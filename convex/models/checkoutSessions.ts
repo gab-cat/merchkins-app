@@ -7,10 +7,16 @@ export const checkoutSessions = defineTable({
   customerId: v.id('users'),
   orderIds: v.array(v.id('orders')),
   totalAmount: v.number(),
+  // Xendit fields (legacy - to be removed after migration)
   xenditInvoiceId: v.optional(v.string()),
   xenditInvoiceUrl: v.optional(v.string()),
   xenditInvoiceExpiryDate: v.optional(v.number()),
   xenditInvoiceCreatedAt: v.optional(v.number()),
+  // Paymongo fields
+  paymongoCheckoutId: v.optional(v.string()),
+  paymongoCheckoutUrl: v.optional(v.string()),
+  paymongoCheckoutExpiryDate: v.optional(v.number()),
+  paymongoCheckoutCreatedAt: v.optional(v.number()),
   status: v.union(v.literal('PENDING'), v.literal('PAID'), v.literal('EXPIRED'), v.literal('CANCELLED')),
   // Security fields
   expiresAt: v.optional(v.number()), // Session expiry timestamp (24 hours from creation)

@@ -1,5 +1,12 @@
 import { httpRouter } from 'convex/server';
-import { clerkWebhookHandler, xenditWebhookHandler, resolveOrgHandler, productsFeedHandler, chatwootWebhookHandler } from './httpActions';
+import {
+  clerkWebhookHandler,
+  xenditWebhookHandler,
+  paymongoWebhookHandler,
+  resolveOrgHandler,
+  productsFeedHandler,
+  chatwootWebhookHandler,
+} from './httpActions';
 
 const http = httpRouter();
 
@@ -10,11 +17,18 @@ http.route({
   handler: clerkWebhookHandler,
 });
 
-// Webhook endpoint for Xendit payment notifications
+// Webhook endpoint for Xendit payment notifications (legacy)
 http.route({
   path: '/xendit-webhook',
   method: 'POST',
   handler: xenditWebhookHandler,
+});
+
+// Webhook endpoint for Paymongo payment notifications
+http.route({
+  path: '/paymongo-webhook',
+  method: 'POST',
+  handler: paymongoWebhookHandler,
 });
 
 // Organization slug resolver for middleware

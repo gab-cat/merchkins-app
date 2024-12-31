@@ -50,7 +50,7 @@ export const payments = defineTable({
 
   paymentDate: v.number(),
   amount: v.number(),
-  paymentMethod: v.literal('XENDIT'),
+  paymentMethod: v.union(v.literal('XENDIT'), v.literal('PAYMONGO')),
   paymentSite: v.union(v.literal('ONSITE'), v.literal('OFFSITE')),
   paymentStatus: v.union(
     v.literal('VERIFIED'),
@@ -70,6 +70,9 @@ export const payments = defineTable({
   xenditInvoiceId: v.optional(v.string()),
   xenditInvoiceUrl: v.optional(v.string()),
   xenditInvoiceExpiryDate: v.optional(v.number()),
+  // Paymongo-specific fields
+  paymongoCheckoutId: v.optional(v.string()),
+  paymongoPaymentId: v.optional(v.string()),
   metadata: v.optional(v.any()),
 
   // Payment tracking

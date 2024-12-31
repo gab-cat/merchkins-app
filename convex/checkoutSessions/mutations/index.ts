@@ -3,6 +3,14 @@ import { v } from 'convex/values';
 import { createCheckoutSessionArgs, createCheckoutSessionHandler } from './createCheckoutSession';
 import { updateCheckoutSessionInvoiceArgs, updateCheckoutSessionInvoiceHandler } from './updateCheckoutSessionInvoice';
 import { markInvoiceCreatedArgs, markInvoiceCreatedHandler } from './markInvoiceCreated';
+import {
+  updateCheckoutSessionPaymongoCheckoutArgs,
+  updateCheckoutSessionPaymongoCheckoutHandler,
+  updateCheckoutSessionAttemptsArgs,
+  updateCheckoutSessionAttemptsHandler,
+  markCheckoutSessionInvoiceCreatedArgs,
+  markCheckoutSessionInvoiceCreatedHandler,
+} from './updateCheckoutSessionPaymongoCheckout';
 
 export const createCheckoutSession = mutation({
   args: createCheckoutSessionArgs,
@@ -17,6 +25,33 @@ export const updateCheckoutSessionInvoice = internalMutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await updateCheckoutSessionInvoiceHandler(ctx, args);
+    return null;
+  },
+});
+
+export const updateCheckoutSessionPaymongoCheckout = internalMutation({
+  args: updateCheckoutSessionPaymongoCheckoutArgs,
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await updateCheckoutSessionPaymongoCheckoutHandler(ctx, args);
+    return null;
+  },
+});
+
+export const updateCheckoutSessionAttempts = internalMutation({
+  args: updateCheckoutSessionAttemptsArgs,
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await updateCheckoutSessionAttemptsHandler(ctx, args);
+    return null;
+  },
+});
+
+export const markCheckoutSessionInvoiceCreated = internalMutation({
+  args: markCheckoutSessionInvoiceCreatedArgs,
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await markCheckoutSessionInvoiceCreatedHandler(ctx, args);
     return null;
   },
 });

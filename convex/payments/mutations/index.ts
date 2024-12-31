@@ -7,6 +7,7 @@ import { refundPaymentArgs, refundPaymentHandler } from './refundPayment';
 import { updatePaymentStatsArgs, updatePaymentStatsHandler } from './updatePaymentStats';
 import { restorePaymentArgs, restorePaymentHandler } from './restorePayment';
 import { handleXenditWebhookArgs, handleXenditWebhookHandler } from './handleXenditWebhook';
+import { handlePaymongoWebhookArgs, handlePaymongoWebhookHandler } from './handlePaymongoWebhook';
 import { handleCheckoutSessionExpiryArgs, handleCheckoutSessionExpiryHandler } from './handleCheckoutSessionExpiry';
 
 export const createPayment = mutation({
@@ -42,6 +43,11 @@ export const updatePaymentStats = internalMutation({
 export const handleXenditWebhook = internalMutation({
   args: handleXenditWebhookArgs,
   handler: handleXenditWebhookHandler,
+});
+
+export const handlePaymongoWebhook = internalMutation({
+  args: handlePaymongoWebhookArgs,
+  handler: handlePaymongoWebhookHandler,
 });
 
 export const handleCheckoutSessionExpiry = internalMutation({

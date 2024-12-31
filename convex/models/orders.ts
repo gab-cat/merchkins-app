@@ -100,11 +100,17 @@ export const orders = defineTable({
   customerNotes: v.optional(v.string()),
   paymentPreference: v.optional(v.union(v.literal('FULL'), v.literal('DOWNPAYMENT'))),
 
-  // Xendit payment integration
+  // Xendit payment integration (legacy - to be removed after migration)
   xenditInvoiceId: v.optional(v.string()),
   xenditInvoiceUrl: v.optional(v.string()),
   xenditInvoiceExpiryDate: v.optional(v.number()),
   xenditInvoiceCreatedAt: v.optional(v.number()),
+
+  // Paymongo payment integration
+  paymongoCheckoutId: v.optional(v.string()),
+  paymongoCheckoutUrl: v.optional(v.string()),
+  paymongoCheckoutExpiryDate: v.optional(v.number()),
+  paymongoCheckoutCreatedAt: v.optional(v.number()),
 
   // Checkout session for grouped payments
   checkoutId: v.optional(v.string()),
