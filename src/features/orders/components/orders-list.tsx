@@ -67,6 +67,9 @@ type Order = {
   xenditInvoiceUrl?: string | null;
   xenditInvoiceCreatedAt?: number | null;
   xenditInvoiceExpiryDate?: number | null;
+  paymongoCheckoutUrl?: string | null;
+  paymongoCheckoutCreatedAt?: number | null;
+  paymongoCheckoutExpiryDate?: number | null;
   customerInfo?: {
     email: string;
   };
@@ -390,6 +393,9 @@ export function OrdersList() {
                                             orderId={o._id as Id<'orders'>}
                                             orderStatus={o.status}
                                             paymentStatus={o.paymentStatus}
+                                            paymongoCheckoutUrl={o.paymongoCheckoutUrl}
+                                            paymongoCheckoutCreatedAt={o.paymongoCheckoutCreatedAt}
+                                            paymongoCheckoutExpiryDate={o.paymongoCheckoutExpiryDate}
                                             xenditInvoiceUrl={o.xenditInvoiceUrl}
                                             xenditInvoiceCreatedAt={o.xenditInvoiceCreatedAt}
                                             xenditInvoiceExpiryDate={o.xenditInvoiceExpiryDate}
@@ -418,6 +424,9 @@ export function OrdersList() {
                               orderId={o._id as Id<'orders'>}
                               orderStatus={o.status}
                               paymentStatus={o.paymentStatus}
+                              paymongoCheckoutUrl={o.paymongoCheckoutUrl}
+                              paymongoCheckoutCreatedAt={o.paymongoCheckoutCreatedAt}
+                              paymongoCheckoutExpiryDate={o.paymongoCheckoutExpiryDate}
                               xenditInvoiceUrl={o.xenditInvoiceUrl}
                               xenditInvoiceCreatedAt={o.xenditInvoiceCreatedAt}
                               xenditInvoiceExpiryDate={o.xenditInvoiceExpiryDate}

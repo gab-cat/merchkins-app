@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-import { useAction, useMutation } from 'convex/react';
+import { useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { CreditCard, RefreshCw, AlertTriangle } from 'lucide-react';
@@ -13,6 +13,11 @@ interface OrderPaymentLinkProps {
   orderId: Id<'orders'>;
   orderStatus: string;
   paymentStatus?: string;
+  // Paymongo fields (primary)
+  paymongoCheckoutUrl?: string | null;
+  paymongoCheckoutCreatedAt?: number | null;
+  paymongoCheckoutExpiryDate?: number | null;
+  // Xendit fields (legacy - for backward compatibility)
   xenditInvoiceUrl?: string | null;
   xenditInvoiceCreatedAt?: number | null;
   xenditInvoiceExpiryDate?: number | null;
@@ -27,20 +32,20 @@ export function OrderPaymentLink({
   orderId,
   orderStatus,
   paymentStatus,
+  paymongoCheckoutUrl,
+  paymongoCheckoutCreatedAt,
+  paymongoCheckoutExpiryDate,
   xenditInvoiceUrl,
   xenditInvoiceCreatedAt,
   xenditInvoiceExpiryDate,
-  totalAmount,
-  customerEmail,
-  orderNumber,
   compact = false,
   short = false,
 }: OrderPaymentLinkProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const refreshInvoice = useAction(api.orders.mutations.index.refreshXenditInvoice);
-  const createInvoice = useAction(api.payments.actions.index.createXenditInvoice);
-  const updateOrderInvoice = useMutation(api.orders.mutations.index.createXenditInvoiceForOrder);
+
+  // Paymongo action for refreshing/creating checkout
+  const refreshPaymongoCheckout = useAction(api.orders.mutations.index.refreshPaymongoCheckout);
 
   // Only show payment link for PENDING orders that haven't been paid
   const shouldShowPayment = orderStatus === 'PENDING' && paymentStatus !== 'PAID';
@@ -49,26 +54,31 @@ export function OrderPaymentLink({
     return null;
   }
 
-  // Check if invoice is expired (more than 24 hours old)
-  const isExpired = xenditInvoiceCreatedAt && xenditInvoiceExpiryDate ? Date.now() > xenditInvoiceExpiryDate : false;
+  // Determine which checkout URL to use (prefer Paymongo, fall back to Xendit for legacy orders)
+  const checkoutUrl = paymongoCheckoutUrl || xenditInvoiceUrl;
+  const checkoutCreatedAt = paymongoCheckoutCreatedAt || xenditInvoiceCreatedAt;
+  const checkoutExpiryDate = paymongoCheckoutExpiryDate || xenditInvoiceExpiryDate;
 
-  const handleRefreshInvoice = async (e: React.MouseEvent) => {
+  // Check if checkout is expired (more than 24 hours old or past expiry date)
+  const isExpired = checkoutCreatedAt && checkoutExpiryDate ? Date.now() > checkoutExpiryDate : false;
+
+  const handleRefreshCheckout = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsRefreshing(true);
     try {
-      const result = await promiseToast(refreshInvoice({ orderId }), {
+      const result = await promiseToast(refreshPaymongoCheckout({ orderId }), {
         loading: 'Refreshing payment link...',
         success: 'Payment link refreshed',
         error: 'Failed to refresh payment link',
       });
 
-      if (result.invoiceUrl) {
-        // External Xendit URL - use window.location for external redirects
-        window.location.href = result.invoiceUrl;
+      if (result.checkoutUrl) {
+        // External Paymongo URL - use window.location for external redirects
+        window.location.href = result.checkoutUrl;
       }
     } catch (error) {
-      console.error('Failed to refresh invoice:', error);
+      console.error('Failed to refresh checkout:', error);
     } finally {
       setIsRefreshing(false);
     }
@@ -78,45 +88,31 @@ export function OrderPaymentLink({
     e.preventDefault();
     e.stopPropagation();
 
-    // If payment link exists, redirect immediately (external Xendit URL)
-    if (xenditInvoiceUrl) {
-      window.location.href = xenditInvoiceUrl;
+    // If payment link exists, redirect immediately (external Paymongo URL)
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl;
       return;
     }
 
-    // If no payment link exists, create one and then redirect
-    if (!totalAmount || !customerEmail) {
-      showToast({
-        type: 'error',
-        title: 'Payment link not available',
-        description: 'Please refresh the page and try again.',
-      });
-      return;
-    }
+    // If no payment link exists, create one using the refresh action
+    // which handles both creating new checkouts and refreshing expired ones
 
     setIsCreating(true);
     try {
       showToast({ type: 'info', title: 'Creating payment link...', description: 'Please wait.' });
 
-      const invoice = await createInvoice({
-        orderId,
-        amount: totalAmount,
-        customerEmail,
-        externalId: orderNumber || `order-${orderId}`,
-      });
+      // Use refreshPaymongoCheckout which handles creating new checkouts if none exists
+      const result = await refreshPaymongoCheckout({ orderId });
 
-      await updateOrderInvoice({
-        orderId,
-        xenditInvoiceId: invoice.invoiceId,
-        xenditInvoiceUrl: invoice.invoiceUrl,
-        xenditInvoiceExpiryDate: invoice.expiryDate,
-      });
-
-      showToast({ type: 'success', title: 'Payment link created', description: 'Redirecting...' });
-      // External Xendit URL - use window.location for external redirects
-      window.location.href = invoice.invoiceUrl;
+      if (result.checkoutUrl) {
+        showToast({ type: 'success', title: 'Payment link created', description: 'Redirecting...' });
+        // External Paymongo URL - use window.location for external redirects
+        window.location.href = result.checkoutUrl;
+      } else {
+        showToast({ type: 'error', title: 'Failed to get payment link', description: 'Please try again.' });
+      }
     } catch (error) {
-      console.error('Failed to create invoice:', error);
+      console.error('Failed to create checkout:', error);
       showToast({ type: 'error', title: 'Failed to create payment link', description: 'Please try again.' });
     } finally {
       setIsCreating(false);
@@ -130,7 +126,7 @@ export function OrderPaymentLink({
         <Button
           size="sm"
           variant="ghost"
-          onClick={handleRefreshInvoice}
+          onClick={handleRefreshCheckout}
           disabled={isRefreshing}
           className="h-6 px-2.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-100 rounded-full"
         >
@@ -166,7 +162,7 @@ export function OrderPaymentLink({
             <Button
               size="sm"
               variant="ghost"
-              onClick={handleRefreshInvoice}
+              onClick={handleRefreshCheckout}
               disabled={isRefreshing}
               className="h-7 px-2.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-100"
             >
@@ -205,7 +201,7 @@ export function OrderPaymentLink({
         <Button
           size="sm"
           variant="outline"
-          onClick={handleRefreshInvoice}
+          onClick={handleRefreshCheckout}
           disabled={isRefreshing}
           className="shrink-0 border-red-200 text-red-600 hover:bg-red-100"
         >

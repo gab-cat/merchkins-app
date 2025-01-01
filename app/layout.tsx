@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { OrgThemeController } from '@/src/features/organizations/components/org-theme-controller';
 import { LoadingProvider } from '@/src/components/loading-provider';
 import { ConvexQueryCacheProvider } from 'convex-helpers/react/cache/provider';
+import { UpdateNotification } from '@/src/components/update-notification';
 
 const outfit = Outfit({
   variable: '--font-outfit',
@@ -152,6 +153,7 @@ export default function RootLayout({
                   <main className="flex flex-col bg-white text-black min-h-[80vh] w-full relative">{children}</main>
                 </div>
                 <Toaster />
+                <UpdateNotification />
               </LoadingProvider>
             </ConvexQueryCacheProvider>
           </ConvexClientProvider>

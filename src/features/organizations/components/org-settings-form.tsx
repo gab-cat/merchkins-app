@@ -13,15 +13,13 @@ import { buildR2PublicUrl } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Save, Upload, Info, Palette, Globe, Layout, Type, MousePointerClick, Check, AlertCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Loader2, Save, Upload, Palette, Globe, Layout, MousePointerClick, Check, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const INDUSTRIES: Array<string> = [
   'Retail',
@@ -99,7 +97,7 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
   const [headerTitle, setHeaderTitle] = useState(organization.themeSettings?.headerTitleColor || '#111111');
   const [footerBg, setFooterBg] = useState(organization.themeSettings?.footerBackgroundColor || '#ffffff');
   const [footerFg, setFooterFg] = useState(organization.themeSettings?.footerForegroundColor || '#111111');
-  const [mode, setMode] = useState<'light' | 'dark' | 'auto'>(organization.themeSettings?.mode || 'auto');
+  const [mode] = useState<'light' | 'dark' | 'auto'>(organization.themeSettings?.mode || 'auto');
   const [fontFamily, setFontFamily] = useState(organization.themeSettings?.fontFamily || FONT_STACKS[1].value);
   const [borderRadius, setBorderRadius] = useState<'none' | 'small' | 'medium' | 'large'>(organization.themeSettings?.borderRadius || 'medium');
   const [organizationType, setOrganizationType] = useState<'PUBLIC' | 'PRIVATE' | 'SECRET'>(organization.organizationType);
@@ -631,7 +629,11 @@ function ThemePreview({ config }: { config: any }) {
       >
         <div className="flex items-center gap-2 font-bold">
           <div className="h-6 w-6 rounded-md bg-white/20 flex items-center justify-center overflow-hidden">
-            {config.logo ? <img src={config.logo} className="h-full w-full object-cover" /> : <div className="h-full w-full bg-current opacity-20" />}
+            {config.logo ? (
+              <Image src={config.logo} width={24} height={24} alt="Logo" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full bg-current opacity-20" />
+            )}
           </div>
           <span style={{ fontFamily: 'var(--preview-font)' }}>{config.name}</span>
         </div>

@@ -358,6 +358,9 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                 orderId={order._id}
                 orderStatus={order.status}
                 paymentStatus={order.paymentStatus}
+                paymongoCheckoutUrl={order.paymongoCheckoutUrl}
+                paymongoCheckoutCreatedAt={order.paymongoCheckoutCreatedAt}
+                paymongoCheckoutExpiryDate={order.paymongoCheckoutExpiryDate}
                 xenditInvoiceUrl={order.xenditInvoiceUrl}
                 xenditInvoiceCreatedAt={order.xenditInvoiceCreatedAt}
                 xenditInvoiceExpiryDate={order.xenditInvoiceExpiryDate}

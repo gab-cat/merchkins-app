@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -10,7 +9,7 @@ import { cn, buildR2PublicUrl } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,32 +20,25 @@ import { useAuth } from '@clerk/nextjs';
 import {
   Users,
   UserPlus,
-  Mail,
   Shield,
   MoreVertical,
   Copy,
   Link2,
   Clock,
-  XCircle,
   Trash2,
   Crown,
   UserCog,
   User,
   Search,
-  Filter,
-  LinkIcon,
   UserCheck,
-  UserX,
   Plus,
-  Calendar,
-  ArrowRight,
   Loader2,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface Props {
   organizationId: Id<'organizations'>;
-  orgSlug?: string;
+  _orgSlug?: string;
 }
 
 type RoleType = 'ADMIN' | 'STAFF' | 'MEMBER';
@@ -62,7 +54,7 @@ const ROLE_CONFIG: Record<RoleType, { icon: React.ElementType; color: string; bg
   MEMBER: { icon: User, color: 'text-slate-600', bgColor: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700', label: 'Member' },
 };
 
-export function OrgMembersManager({ organizationId, orgSlug }: Props) {
+export function OrgMembersManager({ organizationId, _orgSlug }: Props) {
   const { userId: clerkId } = useAuth();
   const [activeTab, setActiveTab] = useState('members');
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'STAFF' | 'MEMBER'>('ALL');
@@ -81,8 +73,6 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
     isActive: true,
     limit: 100,
   });
-
-  const organization = useQuery(api.organizations.queries.index.getOrganizationById, { organizationId });
 
   const permissions = useQuery(api.permissions.queries.index.getPermissions, {
     isActive: true,
@@ -109,7 +99,6 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
   const reviewJoinRequest = useMutation(api.organizations.mutations.index.reviewJoinRequest);
 
   type Permission = Doc<'permissions'>;
-  type InviteLink = Doc<'organizationInviteLinks'>;
 
   const items = useMemo(() => members?.page ?? [], [members?.page]);
   const permissionItems: Permission[] = permissions?.page ?? [];
@@ -123,14 +112,6 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
 
   function toggleSelect(userId: string) {
     setSelected((prev) => ({ ...prev, [userId]: !prev[userId] }));
-  }
-
-  function toggleSelectAll() {
-    if (filteredItems.length === 0) return;
-    const allSelected = filteredItems.every((m) => selected[m.userId]);
-    const next: Record<string, boolean> = {};
-    for (const m of filteredItems) next[m.userId] = !allSelected;
-    setSelected(next);
   }
 
   async function handleRoleChange(memberId: Id<'users'>, nextRole: 'ADMIN' | 'STAFF' | 'MEMBER') {
@@ -199,7 +180,6 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
   }
 
   const selectedCount = useMemo(() => Object.values(selected).filter(Boolean).length, [selected]);
-  const slug = orgSlug || organization?.slug;
   const requestsCount = joinRequests?.page?.length || 0;
 
   return (

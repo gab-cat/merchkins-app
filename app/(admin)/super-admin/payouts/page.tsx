@@ -290,7 +290,7 @@ export default function SuperAdminPayoutsPage() {
       });
 
       if (result.success) {
-        if (result.invoicesCreated === 0) {
+        if (result.invoicesCreated.length === 0) {
           toast.warning(
             `No invoices were created. This could mean:\n` +
               `- No organizations have PAID orders in the selected period\n` +
@@ -299,7 +299,9 @@ export default function SuperAdminPayoutsPage() {
             { duration: 6000 }
           );
         } else {
-          toast.success(`Successfully generated ${result.invoicesCreated} invoice${result.invoicesCreated !== 1 ? 's' : ''} for the selected period`);
+          toast.success(
+            `Successfully generated ${result.invoicesCreated.length} invoice${result.invoicesCreated.length !== 1 ? 's' : ''} for the selected period`
+          );
         }
         setGenerateDialogOpen(false);
         setPeriodStart('');

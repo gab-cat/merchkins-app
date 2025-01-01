@@ -357,7 +357,7 @@ export function CheckoutPage() {
   const createGuestOrder = useMutation(api.guestCheckout.index.createGuestOrder);
   const removeMultipleCartItems = useMutation(api.carts.mutations.index.removeMultipleItems);
   const createCheckoutSession = useMutation(api.checkoutSessions.mutations.index.createCheckoutSession);
-  const createGroupedXenditInvoice = useAction(api.payments.actions.index.createGroupedXenditInvoice);
+  const createGroupedPaymongoCheckout = useAction(api.payments.actions.index.createGroupedPaymongoCheckout);
   const me = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip');
   const guestCart = useGuestCartStore();
   const [guestUserId, setGuestUserId] = useState<string | null>(null);
@@ -598,8 +598,6 @@ export function CheckoutPage() {
         Promise<{
           orderId: Id<'orders'>;
           orderNumber: string | undefined;
-          xenditInvoiceUrl: string | undefined;
-          xenditInvoiceId: string | undefined;
           totalAmount: number;
           checkoutId?: string;
         }>
@@ -649,15 +647,11 @@ export function CheckoutPage() {
               ): {
                 orderId: Id<'orders'>;
                 orderNumber: string | undefined;
-                xenditInvoiceUrl: string | undefined;
-                xenditInvoiceId: string | undefined;
                 totalAmount: number;
                 checkoutId?: string;
               } => ({
                 orderId: result.orderId,
                 orderNumber: result.orderNumber,
-                xenditInvoiceUrl: result.xenditInvoiceUrl,
-                xenditInvoiceId: result.xenditInvoiceId,
                 totalAmount: result.totalAmount,
                 checkoutId: result.checkoutId,
               })
@@ -679,15 +673,11 @@ export function CheckoutPage() {
               ): {
                 orderId: Id<'orders'>;
                 orderNumber: string | undefined;
-                xenditInvoiceUrl: string | undefined;
-                xenditInvoiceId: string | undefined;
                 totalAmount: number;
                 checkoutId?: string;
               } => ({
                 orderId: result.orderId,
                 orderNumber: result.orderNumber,
-                xenditInvoiceUrl: undefined,
-                xenditInvoiceId: undefined,
                 totalAmount: result.totalAmount,
                 checkoutId: result.checkoutId,
               })
@@ -744,18 +734,18 @@ export function CheckoutPage() {
         totalAmount: totalsWithDiscount.total,
       });
 
-      // Create unified Xendit invoice for all orders
+      // Create unified Paymongo checkout for all orders
       try {
         // For guest users, pass email for verification
-        const invoiceArgs: { checkoutId: string; email?: string } = { checkoutId };
+        const checkoutArgs: { checkoutId: string; guestEmail?: string } = { checkoutId };
         if (!isAuthenticated && guestEmail) {
-          invoiceArgs.email = guestEmail;
+          checkoutArgs.guestEmail = guestEmail;
         }
 
-        const invoice = await createGroupedXenditInvoice(invoiceArgs);
+        const checkout = await createGroupedPaymongoCheckout(checkoutArgs);
         router.push(`/orders/payment/success?checkoutId=${checkoutId}`);
-        // Redirect to Xendit payment page
-        window.location.href = invoice.invoiceUrl;
+        // Redirect to Paymongo payment page
+        window.location.href = checkout.checkoutUrl;
       } catch (invoiceError) {
         console.error('Failed to create payment invoice:', invoiceError);
 

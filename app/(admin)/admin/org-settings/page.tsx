@@ -6,9 +6,8 @@ import { OrgSettingsForm } from '@/src/features/organizations/components/org-set
 import { api } from '@/convex/_generated/api';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from 'convex/react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AdminAnnouncementsList } from '@/src/features/organizations/components/admin-announcements-list';
-import { Settings, Megaphone } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Settings } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/src/components/admin/page-header';
 
@@ -74,22 +73,5 @@ export default function Page() {
         <OrgSettingsForm organization={organization} />
       </Suspense>
     </div>
-  );
-}
-
-function AnnouncementsPanel() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Megaphone className="h-4 w-4" />
-          Super-admin Announcements
-        </CardTitle>
-        <CardDescription>Important announcements from the platform administrators</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <AdminAnnouncementsList />
-      </CardContent>
-    </Card>
   );
 }

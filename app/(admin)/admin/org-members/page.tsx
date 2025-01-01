@@ -10,7 +10,6 @@ import { Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/src/components/admin/page-header';
 
-
 // Loading skeleton
 function MembersSkeleton() {
   return (
@@ -38,10 +37,7 @@ export default function Page() {
   const orgSlug = searchParams.get('org');
   const suffix = orgSlug ? `?org=${orgSlug}` : '';
 
-  const organization = useQuery(
-    api.organizations.queries.index.getOrganizationBySlug,
-    orgSlug ? { slug: orgSlug } : 'skip'
-  );
+  const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
 
   if (organization === undefined) {
     return (
@@ -73,7 +69,7 @@ export default function Page() {
       />
 
       <Suspense fallback={<MembersSkeleton />}>
-        <OrgMembersManager organizationId={organization._id} orgSlug={orgSlug || ''} />
+        <OrgMembersManager organizationId={organization._id} _orgSlug={orgSlug || ''} />
       </Suspense>
     </div>
   );
