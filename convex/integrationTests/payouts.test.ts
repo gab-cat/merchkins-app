@@ -1,6 +1,6 @@
 import { convexTest } from 'convex-test';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { api, internal } from '../_generated/api';
+import { describe, it, expect } from 'vitest';
+import { internal } from '../_generated/api';
 import schema from '../schema';
 import { modules } from '../test.setup';
 import { Id } from '../_generated/dataModel';
@@ -23,7 +23,7 @@ describe('Payout Integration Tests', () => {
       });
 
       // Create a paid order (Revenue: 1000)
-      const orderId = await t.run(async (ctx) => {
+      await t.run(async (ctx) => {
         return await ctx.db.insert('orders', {
           ...createTestOrderData(orgId, userId),
           totalAmount: 1000,

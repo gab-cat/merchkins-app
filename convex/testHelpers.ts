@@ -1,3 +1,4 @@
+import { PaymongoWebhookEvent } from '../types/paymongo';
 import { Id } from './_generated/dataModel';
 
 /**
@@ -384,4 +385,192 @@ export async function expectMutationError(mutationPromise: Promise<unknown>, exp
       }
     }
   }
+}
+
+// ============================================================================
+// Paymongo Test Helpers
+// ============================================================================
+
+/**
+ * Creates test checkout session data for grouped orders
+ */
+export function createTestCheckoutSessionData(customerId: Id<'users'>, orderIds: Id<'orders'>[], overrides?: Record<string, unknown>) {
+  const checkoutId = crypto.randomUUID();
+  const now = Date.now();
+  return {
+    checkoutId,
+    customerId,
+    orderIds,
+    totalAmount: 1000,
+    status: 'PENDING' as const,
+    expiresAt: now + 24 * 60 * 60 * 1000, // 24 hours
+    createdAt: now,
+    updatedAt: now,
+    ...overrides,
+  };
+}
+
+/**
+ * Creates mock Paymongo webhook event for testing
+ * @param type - The webhook event type
+ * @param checkoutIdOrOrderNumber - For checkout sessions: checkoutId, for single orders: orderNumber
+ * @param overrides - Optional overrides for the webhook event
+ */
+export function createMockPaymongoWebhookEvent(
+  type: 'checkout_session.payment.paid' | 'payment.failed',
+  checkoutIdOrOrderNumber: string,
+  overrides?: Record<string, unknown>
+): PaymongoWebhookEvent {
+  const paymentId = `pay_${Math.random().toString(36).slice(2, 10)}`;
+  const amount = 10000; // 100 PHP in centavos
+
+  // For single-order payment.failed events, the structure is different
+  if (type === 'payment.failed' && !checkoutIdOrOrderNumber.startsWith('checkout-')) {
+    // Single order payment.failed event
+    return {
+      id: `evt_${Math.random().toString(36).slice(2, 10)}`,
+      type: 'payment.failed',
+      livemode: false,
+      data: {
+        id: paymentId,
+        type: 'payment',
+        attributes: {
+          access_url: null,
+          amount,
+          balance_transaction_id: `btxn_${Math.random().toString(36).slice(2, 10)}`,
+          billing: {
+            name: 'Test Customer',
+            email: 'test@test.com',
+            phone: '+639123456789',
+          },
+          currency: 'PHP',
+          description: 'Test payment',
+          disputed: false,
+          external_reference_number: checkoutIdOrOrderNumber, // This is the orderNumber for single orders
+          fee: Math.round(amount * 0.035),
+          livemode: false,
+          net_amount: amount - Math.round(amount * 0.035),
+          origin: 'api',
+          payment_intent_id: `pi_${Math.random().toString(36).slice(2, 10)}`,
+          payout: null,
+          source: {
+            id: `src_${Math.random().toString(36).slice(2, 10)}`,
+            type: 'gcash',
+          },
+          statement_descriptor: 'TEST',
+          status: 'failed',
+          metadata: {
+            external_id: checkoutIdOrOrderNumber,
+          },
+          refunds: [],
+          taxes: [],
+          available_at: Math.floor(Date.now() / 1000),
+          created_at: Math.floor(Date.now() / 1000),
+          updated_at: Math.floor(Date.now() / 1000),
+        },
+      },
+      created_at: Math.floor(Date.now() / 1000),
+      updated_at: Math.floor(Date.now() / 1000),
+      ...overrides,
+    };
+  }
+
+  // Checkout session event (default behavior)
+  return {
+    id: `evt_${Math.random().toString(36).slice(2, 10)}`,
+    type,
+    livemode: false,
+    data: {
+      id: checkoutIdOrOrderNumber,
+      type: 'checkout_session',
+      attributes: {
+        status: type === 'checkout_session.payment.paid' ? 'paid' : 'expired',
+        checkout_url: `https://checkout.paymongo.com/${checkoutIdOrOrderNumber}`,
+        client_key: `client_${Math.random().toString(36).slice(2, 10)}`,
+        line_items: [
+          {
+            amount,
+            currency: 'PHP',
+            name: 'Test Item',
+            quantity: 1,
+          },
+        ],
+        livemode: false,
+        merchant: `merchant_${Math.random().toString(36).slice(2, 10)}`,
+        payment_intent: {
+          id: `pi_${Math.random().toString(36).slice(2, 10)}`,
+          type: 'payment_intent',
+          attributes: {
+            amount,
+            capture_type: 'automatic',
+            client_key: `client_${Math.random().toString(36).slice(2, 10)}`,
+            currency: 'PHP',
+            description: 'Test payment intent',
+            livemode: false,
+            statement_descriptor: 'TEST',
+            status: 'succeeded',
+            last_payment_error: null,
+            payment_method_allowed: ['gcash'],
+            payments: [],
+            next_action: null,
+            setup_future_usage: null,
+            created_at: Math.floor(Date.now() / 1000),
+            updated_at: Math.floor(Date.now() / 1000),
+          },
+        },
+        payments: [
+          {
+            id: paymentId,
+            type: 'payment',
+            attributes: {
+              access_url: null,
+              amount,
+              balance_transaction_id: `btxn_${Math.random().toString(36).slice(2, 10)}`,
+              billing: {
+                name: 'Test Customer',
+                email: 'test@test.com',
+                phone: '+639123456789',
+              },
+              currency: 'PHP',
+              description: 'Test payment',
+              disputed: false,
+              external_reference_number: null,
+              fee: Math.round(amount * 0.035), // 3.5% Paymongo fee
+              livemode: false,
+              net_amount: amount - Math.round(amount * 0.035),
+              origin: 'api',
+              payment_intent_id: `pi_${Math.random().toString(36).slice(2, 10)}`,
+              payout: null,
+              source: {
+                id: `src_${Math.random().toString(36).slice(2, 10)}`,
+                type: 'gcash',
+              },
+              statement_descriptor: 'TEST',
+              status: type === 'checkout_session.payment.paid' ? 'paid' : 'failed',
+              metadata: {},
+              refunds: [],
+              taxes: [],
+              available_at: Math.floor(Date.now() / 1000),
+              created_at: Math.floor(Date.now() / 1000),
+              paid_at: type === 'checkout_session.payment.paid' ? Math.floor(Date.now() / 1000) : undefined,
+              updated_at: Math.floor(Date.now() / 1000),
+            },
+          },
+        ],
+        payment_method_types: ['gcash'],
+        send_email_receipt: false,
+        show_description: false,
+        show_line_items: true,
+        success_url: `https://example.com/success`,
+        created_at: Math.floor(Date.now() / 1000),
+        updated_at: Math.floor(Date.now() / 1000),
+        metadata: {
+          external_id: `checkout-${checkoutIdOrOrderNumber}`,
+        },
+        ...overrides,
+      },
+    },
+    created_at: Math.floor(Date.now() / 1000),
+    updated_at: Math.floor(Date.now() / 1000),
+  };
 }

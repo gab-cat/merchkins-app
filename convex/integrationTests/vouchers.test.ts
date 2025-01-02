@@ -1,6 +1,6 @@
 import { convexTest } from 'convex-test';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { api, internal } from '../_generated/api';
+import { describe, it, expect } from 'vitest';
+import { api } from '../_generated/api';
 import schema from '../schema';
 import { modules } from '../test.setup';
 import { createTestUserData, createTestOrganizationData, MONETARY_REFUND_DELAY_MS } from '../testHelpers';
@@ -27,7 +27,7 @@ describe('Voucher Integration Tests', () => {
       });
 
       // Create a refund voucher for the customer (simulating post-refund)
-      const voucherId = await t.run(async (ctx) => {
+      await t.run(async (ctx) => {
         return await ctx.db.insert('vouchers', {
           isDeleted: false,
           code: 'REFUND-TEST123',

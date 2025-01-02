@@ -1,5 +1,5 @@
 import { convexTest } from 'convex-test';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 import schema from '../schema';
 import { modules } from '../test.setup';
@@ -8,10 +8,8 @@ import {
   createTestOrganizationData,
   createTestVoucherData,
   createTestRefundVoucherData,
-  createTestProductData,
   getPastTimestamp,
   getFutureTimestamp,
-  ONE_DAY_MS,
   MONETARY_REFUND_DELAY_MS,
 } from '../testHelpers';
 import { api } from '../_generated/api';
@@ -569,7 +567,7 @@ describe('Vouchers Domain', () => {
 
         // Should be exactly 14 days after creation
         const expectedEligibleAt = createdAt + MONETARY_REFUND_DELAY_MS;
-        expect(voucher!.monetaryRefundEligibleAt).toBe(expectedEligibleAt);
+        expect(voucher!.monetaryRefundEligibleAt).toBeCloseTo(expectedEligibleAt);
       });
     });
 

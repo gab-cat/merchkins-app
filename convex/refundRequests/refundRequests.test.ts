@@ -9,9 +9,7 @@ import {
   createTestOrderData,
   createTestPaymentData,
   getPastTimestamp,
-  REFUND_WINDOW_MS,
   MONETARY_REFUND_DELAY_MS,
-  ONE_HOUR_MS,
 } from '../testHelpers';
 
 /**
@@ -42,7 +40,7 @@ describe('Refund Requests Domain', () => {
         const t = convexTest(schema, modules);
 
         // Create admin user
-        const adminId = await t.run(async (ctx) => {
+        await t.run(async (ctx) => {
           return await ctx.db.insert('users', createTestUserData({ isAdmin: true }));
         });
 
@@ -52,7 +50,7 @@ describe('Refund Requests Domain', () => {
         });
 
         // Create a different user who will try to request refund
-        const differentUserId = await t.run(async (ctx) => {
+        await t.run(async (ctx) => {
           return await ctx.db.insert('users', createTestUserData({ clerkId: 'different_clerk' }));
         });
 
@@ -63,7 +61,6 @@ describe('Refund Requests Domain', () => {
 
         // Create order owned by customerId
         const orderId = await t.run(async (ctx) => {
-          const now = Date.now();
           return await ctx.db.insert('orders', {
             ...createTestOrderData(orgId, customerId),
             paymentStatus: 'PAID',
@@ -414,7 +411,7 @@ describe('Refund Requests Domain', () => {
     it('should reject already approved refund request', async () => {
       const t = convexTest(schema, modules);
 
-      const adminId = await t.run(async (ctx) => {
+      await t.run(async (ctx) => {
         return await ctx.db.insert('users', createTestUserData({ clerkId: 'admin_clerk', isAdmin: true }));
       });
 
@@ -467,7 +464,7 @@ describe('Refund Requests Domain', () => {
     it('should reject already rejected refund request', async () => {
       const t = convexTest(schema, modules);
 
-      const adminId = await t.run(async (ctx) => {
+      await t.run(async (ctx) => {
         return await ctx.db.insert('users', createTestUserData({ clerkId: 'admin_clerk', isAdmin: true }));
       });
 

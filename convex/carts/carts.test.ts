@@ -1,6 +1,6 @@
 import { convexTest } from 'convex-test';
 import { describe, it, expect } from 'vitest';
-import { api, internal } from '../_generated/api';
+import { api } from '../_generated/api';
 import schema from '../schema';
 import { modules } from '../test.setup';
 import { createTestUserData, createTestOrganizationData, createTestProductData, createTestCartData } from '../testHelpers';
@@ -267,7 +267,7 @@ describe('Carts Domain', () => {
         return await ctx.db.insert('users', createTestUserData({ clerkId: 'user1_clerk' }));
       });
 
-      const userId2 = await t.run(async (ctx) => {
+      await t.run(async (ctx) => {
         return await ctx.db.insert('users', createTestUserData({ clerkId: 'user2_clerk' }));
       });
 

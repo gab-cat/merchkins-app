@@ -1,6 +1,6 @@
 import { convexTest } from 'convex-test';
 import { describe, it, expect } from 'vitest';
-import { api, internal } from '../_generated/api';
+import { api } from '../_generated/api';
 import schema from '../schema';
 import { modules } from '../test.setup';
 import { createTestUserData, createTestOrganizationData, createTestOrderData, createTestProductData, createTestOrgMemberData } from '../testHelpers';
