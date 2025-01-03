@@ -48,3 +48,6 @@ package-lock.json
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Build version tracking
+/public/version.json

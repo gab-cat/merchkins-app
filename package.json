@@ -8,7 +8,7 @@
     "dev:backend": "bunx --bun convex dev",
     "convex:check": "bunx --bun convex dev --once",
     "seed": "bunx convex dev --until-success && bunx convex run seeds/index:seedAction",
-    "build": "next build",
+    "build": "node scripts/generate-version.js && next build",
     "start": "next start",
     "lint": "oxlint .",
     "format": "prettier --write .",
