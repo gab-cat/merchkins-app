@@ -47,6 +47,12 @@
   --radius: 0.75rem;
   --background: oklch(0.99 0.004 270);
   --foreground: oklch(0.16 0.02 270);
+  /* Defaults for header/footer theme variables */
+  --header-bg: var(--background);
+  --header-fg: var(--foreground);
+  --header-title: var(--primary);
+  --footer-bg: var(--background);
+  --footer-fg: var(--foreground);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.16 0.02 270);
   --popover: oklch(1 0 0);

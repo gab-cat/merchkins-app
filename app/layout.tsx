@@ -3,8 +3,8 @@ import { Poppins } from 'next/font/google'
 import './globals.css'
 import ConvexClientProvider from '@/components/ConvexClientProvider'
 import { ClerkProvider } from '@clerk/nextjs'
-import { SiteHeader } from '@/src/features/common/components/site-header'
-import { SiteFooter } from '@/src/features/common/components/site-footer'
+import { Toaster } from '@/components/ui/sonner'
+import { OrgThemeController } from '@/src/features/organizations/components/org-theme-controller'
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -27,14 +27,14 @@ export default function RootLayout ({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} antialiased`}>
+      <body className={`${poppins.variable} antialiased font-sans`}>
         <ClerkProvider dynamic signInUrl="/sign-in" signUpUrl="/sign-up">
           <ConvexClientProvider>
             <div className="min-h-dvh flex flex-col">
-              <SiteHeader />
+              <OrgThemeController />
               <main className="flex-1">{children}</main>
-              <SiteFooter />
             </div>
+            <Toaster />
           </ConvexClientProvider>
         </ClerkProvider>
       </body>
