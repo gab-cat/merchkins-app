@@ -58,6 +58,10 @@ export const refundPaymentHandler = async (
 
   await ctx.runMutation(internal.payments.mutations.index.updatePaymentStats, {
     orderId: existing.orderId,
+    actorId: currentUser._id,
+    actorName:
+      `${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`.trim() ||
+      currentUser.email,
   });
 
   await logAction(

@@ -62,8 +62,10 @@ import type * as chats_mutations_updateRoom from "../chats/mutations/updateRoom.
 import type * as chats_mutations_updateTyping from "../chats/mutations/updateTyping.js";
 import type * as chats_queries_getChatRoomById from "../chats/queries/getChatRoomById.js";
 import type * as chats_queries_getChatRooms from "../chats/queries/getChatRooms.js";
+import type * as chats_queries_getChatRoomsPage from "../chats/queries/getChatRoomsPage.js";
 import type * as chats_queries_getMessages from "../chats/queries/getMessages.js";
 import type * as chats_queries_getTypingUsers from "../chats/queries/getTypingUsers.js";
+import type * as chats_queries_getUnreadCount from "../chats/queries/getUnreadCount.js";
 import type * as chats_queries_getUnreadCounts from "../chats/queries/getUnreadCounts.js";
 import type * as chats_queries_index from "../chats/queries/index.js";
 import type * as chats_queries_searchChats from "../chats/queries/searchChats.js";
@@ -132,6 +134,7 @@ import type * as orders_mutations_updateOrderStats from "../orders/mutations/upd
 import type * as orders_queries_getOrderAnalytics from "../orders/queries/getOrderAnalytics.js";
 import type * as orders_queries_getOrderById from "../orders/queries/getOrderById.js";
 import type * as orders_queries_getOrders from "../orders/queries/getOrders.js";
+import type * as orders_queries_getOrdersPage from "../orders/queries/getOrdersPage.js";
 import type * as orders_queries_index from "../orders/queries/index.js";
 import type * as orders_queries_searchOrders from "../orders/queries/searchOrders.js";
 import type * as organizations_mutations_addMember from "../organizations/mutations/addMember.js";
@@ -141,7 +144,10 @@ import type * as organizations_mutations_deactivateInviteLink from "../organizat
 import type * as organizations_mutations_deleteOrganization from "../organizations/mutations/deleteOrganization.js";
 import type * as organizations_mutations_index from "../organizations/mutations/index.js";
 import type * as organizations_mutations_joinOrganization from "../organizations/mutations/joinOrganization.js";
+import type * as organizations_mutations_joinPublicOrganization from "../organizations/mutations/joinPublicOrganization.js";
 import type * as organizations_mutations_removeMember from "../organizations/mutations/removeMember.js";
+import type * as organizations_mutations_requestToJoinOrganization from "../organizations/mutations/requestToJoinOrganization.js";
+import type * as organizations_mutations_reviewJoinRequest from "../organizations/mutations/reviewJoinRequest.js";
 import type * as organizations_mutations_updateMemberActivity from "../organizations/mutations/updateMemberActivity.js";
 import type * as organizations_mutations_updateMemberRole from "../organizations/mutations/updateMemberRole.js";
 import type * as organizations_mutations_updateOrganization from "../organizations/mutations/updateOrganization.js";
@@ -155,7 +161,9 @@ import type * as organizations_queries_getOrganizationInviteLinks from "../organ
 import type * as organizations_queries_getOrganizationMembers from "../organizations/queries/getOrganizationMembers.js";
 import type * as organizations_queries_getOrganizations from "../organizations/queries/getOrganizations.js";
 import type * as organizations_queries_getOrganizationsByUser from "../organizations/queries/getOrganizationsByUser.js";
+import type * as organizations_queries_getPopularOrganizations from "../organizations/queries/getPopularOrganizations.js";
 import type * as organizations_queries_index from "../organizations/queries/index.js";
+import type * as organizations_queries_listJoinRequests from "../organizations/queries/listJoinRequests.js";
 import type * as organizations_queries_searchOrganizations from "../organizations/queries/searchOrganizations.js";
 import type * as payments_index from "../payments/index.js";
 import type * as payments_mutations_createPayment from "../payments/mutations/createPayment.js";
@@ -207,6 +215,8 @@ import type * as products_queries_getProductRecommendations from "../products/qu
 import type * as products_queries_getProducts from "../products/queries/getProducts.js";
 import type * as products_queries_index from "../products/queries/index.js";
 import type * as products_queries_searchProducts from "../products/queries/searchProducts.js";
+import type * as seeds_index from "../seeds/index.js";
+import type * as seeds_seedData from "../seeds/seedData.js";
 import type * as surveys_index from "../surveys/index.js";
 import type * as surveys_mutations_index from "../surveys/mutations/index.js";
 import type * as surveys_mutations_manageSurveyCategory from "../surveys/mutations/manageSurveyCategory.js";
@@ -222,6 +232,7 @@ import type * as tickets_mutations_createTicket from "../tickets/mutations/creat
 import type * as tickets_mutations_deleteTicket from "../tickets/mutations/deleteTicket.js";
 import type * as tickets_mutations_index from "../tickets/mutations/index.js";
 import type * as tickets_mutations_manageAssignee from "../tickets/mutations/manageAssignee.js";
+import type * as tickets_mutations_manageReads from "../tickets/mutations/manageReads.js";
 import type * as tickets_mutations_manageTicketUpdates from "../tickets/mutations/manageTicketUpdates.js";
 import type * as tickets_mutations_restoreTicket from "../tickets/mutations/restoreTicket.js";
 import type * as tickets_mutations_updateTicket from "../tickets/mutations/updateTicket.js";
@@ -230,6 +241,8 @@ import type * as tickets_queries_getTicketAnalytics from "../tickets/queries/get
 import type * as tickets_queries_getTicketById from "../tickets/queries/getTicketById.js";
 import type * as tickets_queries_getTicketUpdates from "../tickets/queries/getTicketUpdates.js";
 import type * as tickets_queries_getTickets from "../tickets/queries/getTickets.js";
+import type * as tickets_queries_getTicketsPage from "../tickets/queries/getTicketsPage.js";
+import type * as tickets_queries_getUnreadCount from "../tickets/queries/getUnreadCount.js";
 import type * as tickets_queries_index from "../tickets/queries/index.js";
 import type * as tickets_queries_searchTickets from "../tickets/queries/searchTickets.js";
 import type * as users_mutations_addOrganizationMembership from "../users/mutations/addOrganizationMembership.js";
@@ -326,8 +339,10 @@ declare const fullApi: ApiFromModules<{
   "chats/mutations/updateTyping": typeof chats_mutations_updateTyping;
   "chats/queries/getChatRoomById": typeof chats_queries_getChatRoomById;
   "chats/queries/getChatRooms": typeof chats_queries_getChatRooms;
+  "chats/queries/getChatRoomsPage": typeof chats_queries_getChatRoomsPage;
   "chats/queries/getMessages": typeof chats_queries_getMessages;
   "chats/queries/getTypingUsers": typeof chats_queries_getTypingUsers;
+  "chats/queries/getUnreadCount": typeof chats_queries_getUnreadCount;
   "chats/queries/getUnreadCounts": typeof chats_queries_getUnreadCounts;
   "chats/queries/index": typeof chats_queries_index;
   "chats/queries/searchChats": typeof chats_queries_searchChats;
@@ -396,6 +411,7 @@ declare const fullApi: ApiFromModules<{
   "orders/queries/getOrderAnalytics": typeof orders_queries_getOrderAnalytics;
   "orders/queries/getOrderById": typeof orders_queries_getOrderById;
   "orders/queries/getOrders": typeof orders_queries_getOrders;
+  "orders/queries/getOrdersPage": typeof orders_queries_getOrdersPage;
   "orders/queries/index": typeof orders_queries_index;
   "orders/queries/searchOrders": typeof orders_queries_searchOrders;
   "organizations/mutations/addMember": typeof organizations_mutations_addMember;
@@ -405,7 +421,10 @@ declare const fullApi: ApiFromModules<{
   "organizations/mutations/deleteOrganization": typeof organizations_mutations_deleteOrganization;
   "organizations/mutations/index": typeof organizations_mutations_index;
   "organizations/mutations/joinOrganization": typeof organizations_mutations_joinOrganization;
+  "organizations/mutations/joinPublicOrganization": typeof organizations_mutations_joinPublicOrganization;
   "organizations/mutations/removeMember": typeof organizations_mutations_removeMember;
+  "organizations/mutations/requestToJoinOrganization": typeof organizations_mutations_requestToJoinOrganization;
+  "organizations/mutations/reviewJoinRequest": typeof organizations_mutations_reviewJoinRequest;
   "organizations/mutations/updateMemberActivity": typeof organizations_mutations_updateMemberActivity;
   "organizations/mutations/updateMemberRole": typeof organizations_mutations_updateMemberRole;
   "organizations/mutations/updateOrganization": typeof organizations_mutations_updateOrganization;
@@ -419,7 +438,9 @@ declare const fullApi: ApiFromModules<{
   "organizations/queries/getOrganizationMembers": typeof organizations_queries_getOrganizationMembers;
   "organizations/queries/getOrganizations": typeof organizations_queries_getOrganizations;
   "organizations/queries/getOrganizationsByUser": typeof organizations_queries_getOrganizationsByUser;
+  "organizations/queries/getPopularOrganizations": typeof organizations_queries_getPopularOrganizations;
   "organizations/queries/index": typeof organizations_queries_index;
+  "organizations/queries/listJoinRequests": typeof organizations_queries_listJoinRequests;
   "organizations/queries/searchOrganizations": typeof organizations_queries_searchOrganizations;
   "payments/index": typeof payments_index;
   "payments/mutations/createPayment": typeof payments_mutations_createPayment;
@@ -471,6 +492,8 @@ declare const fullApi: ApiFromModules<{
   "products/queries/getProducts": typeof products_queries_getProducts;
   "products/queries/index": typeof products_queries_index;
   "products/queries/searchProducts": typeof products_queries_searchProducts;
+  "seeds/index": typeof seeds_index;
+  "seeds/seedData": typeof seeds_seedData;
   "surveys/index": typeof surveys_index;
   "surveys/mutations/index": typeof surveys_mutations_index;
   "surveys/mutations/manageSurveyCategory": typeof surveys_mutations_manageSurveyCategory;
@@ -486,6 +509,7 @@ declare const fullApi: ApiFromModules<{
   "tickets/mutations/deleteTicket": typeof tickets_mutations_deleteTicket;
   "tickets/mutations/index": typeof tickets_mutations_index;
   "tickets/mutations/manageAssignee": typeof tickets_mutations_manageAssignee;
+  "tickets/mutations/manageReads": typeof tickets_mutations_manageReads;
   "tickets/mutations/manageTicketUpdates": typeof tickets_mutations_manageTicketUpdates;
   "tickets/mutations/restoreTicket": typeof tickets_mutations_restoreTicket;
   "tickets/mutations/updateTicket": typeof tickets_mutations_updateTicket;
@@ -494,6 +518,8 @@ declare const fullApi: ApiFromModules<{
   "tickets/queries/getTicketById": typeof tickets_queries_getTicketById;
   "tickets/queries/getTicketUpdates": typeof tickets_queries_getTicketUpdates;
   "tickets/queries/getTickets": typeof tickets_queries_getTickets;
+  "tickets/queries/getTicketsPage": typeof tickets_queries_getTicketsPage;
+  "tickets/queries/getUnreadCount": typeof tickets_queries_getUnreadCount;
   "tickets/queries/index": typeof tickets_queries_index;
   "tickets/queries/searchTickets": typeof tickets_queries_searchTickets;
   "users/mutations/addOrganizationMembership": typeof users_mutations_addOrganizationMembership;

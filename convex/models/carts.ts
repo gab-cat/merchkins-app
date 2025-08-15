@@ -15,11 +15,15 @@ export const carts = defineTable({
   
   // Embedded cart items (for small to medium carts, <50 items)
   embeddedItems: v.array(v.object({
-    variantId: v.optional(v.id("products")),
+    // Variant identifier for the specific product variant (string id from product.variants)
+    variantId: v.optional(v.string()),
     
     // Embedded product/variant info to avoid multiple joins
     productInfo: v.object({
       productId: v.id("products"),
+      // Store/organization owning the product (optional for global products)
+      organizationId: v.optional(v.id("organizations")),
+      organizationName: v.optional(v.string()),
       title: v.string(),
       slug: v.string(),
       imageUrl: v.array(v.string()),
@@ -63,6 +67,8 @@ export const cartItems = defineTable({
   // Embedded product/variant info
   productInfo: v.object({
     productId: v.id("products"),
+    organizationId: v.optional(v.id("organizations")),
+    organizationName: v.optional(v.string()),
     title: v.string(),
     slug: v.string(),
     imageUrl: v.array(v.string()),

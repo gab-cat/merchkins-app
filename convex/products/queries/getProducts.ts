@@ -50,84 +50,154 @@ export const getProductsHandler = async (
     offset?: number;
   }
 ) => {
-  let query;
+  // Helper to apply field filters to a query
+  const applyFieldFilters = (baseQuery: any) => {
+    return baseQuery.filter((q: any) => {
+      const conditions: any[] = [];
+      
+      if (!args.includeDeleted) {
+        conditions.push(q.eq(q.field("isDeleted"), false));
+      }
+      
+      if (args.minRating !== undefined) {
+        conditions.push(q.gte(q.field("rating"), args.minRating));
+      }
+      if (args.maxRating !== undefined) {
+        conditions.push(q.lte(q.field("rating"), args.maxRating));
+      }
+      
+      if (args.minPrice !== undefined) {
+        conditions.push(q.gte(q.field("minPrice"), args.minPrice));
+      }
+      if (args.maxPrice !== undefined) {
+        conditions.push(q.lte(q.field("maxPrice"), args.maxPrice));
+      }
+      
+      if (args.hasInventory !== undefined) {
+        if (args.hasInventory) {
+          conditions.push(q.gt(q.field("inventory"), 0));
+        } else {
+          conditions.push(q.eq(q.field("inventory"), 0));
+        }
+      }
+      
+      return conditions.length > 0 ? q.and(...conditions) : q.and();
+    });
+  };
   
-  // Choose the most specific index
-  if (args.organizationId && args.categoryId) {
-    query = ctx.db.query("products")
-      .withIndex("by_organization_category", (q) => 
-        q.eq("organizationId", args.organizationId!).eq("categoryId", args.categoryId!)
-      );
-  } else if (args.organizationId) {
-    query = ctx.db.query("products")
-      .withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!));
-  } else if (args.categoryId) {
-    query = ctx.db.query("products")
-      .withIndex("by_category", (q) => q.eq("categoryId", args.categoryId!));
-  } else if (args.postedById) {
-    query = ctx.db.query("products")
-      .withIndex("by_creator", (q) => q.eq("postedById", args.postedById!));
-  } else if (args.inventoryType) {
-    query = ctx.db.query("products")
-      .withIndex("by_inventory_type", (q) => q.eq("inventoryType", args.inventoryType!));
-  } else if (args.isBestPrice !== undefined) {
-    query = ctx.db.query("products")
-      .withIndex("by_best_price", (q) => q.eq("isBestPrice", args.isBestPrice!));
-  } else if (args.sortBy === "rating") {
-    query = ctx.db.query("products")
-      .withIndex("by_rating");
-  } else if (args.sortBy === "views") {
-    query = ctx.db.query("products")
-      .withIndex("by_view_count");
-  } else {
-    query = ctx.db.query("products")
-      .withIndex("by_isDeleted", (q) => q.eq("isDeleted", false));
-  }
+  let results: any[] = [];
   
-  // Apply filters
-  const filteredQuery = query.filter((q) => {
-    const conditions = [];
-    
-    // Deleted filter
-    if (!args.includeDeleted) {
-      conditions.push(q.eq(q.field("isDeleted"), false));
+  // Aggregation path for global category browsing: include products
+  // from public organizations that share the same category slug
+  if (!args.organizationId && args.categoryId) {
+    const baseCategory = await ctx.db.get(args.categoryId);
+    if (!baseCategory) {
+      return { products: [], total: 0, offset: args.offset || 0, limit: args.limit || 50, hasMore: false };
     }
     
-    // Rating filter
-    if (args.minRating !== undefined) {
-      conditions.push(q.gte(q.field("rating"), args.minRating));
-    }
+    // Find all categories with the same slug (global + org-specific)
+    const categoriesWithSameSlug = await ctx.db
+      .query("categories")
+      .withIndex("by_slug", (q) => q.eq("slug", baseCategory.slug))
+      .filter((q) => q.eq(q.field("isDeleted"), false))
+      .collect();
     
-    if (args.maxRating !== undefined) {
-      conditions.push(q.lte(q.field("rating"), args.maxRating));
-    }
-    
-    // Price filter (using minPrice from variants)
-    if (args.minPrice !== undefined) {
-      conditions.push(q.gte(q.field("minPrice"), args.minPrice));
-    }
-    
-    if (args.maxPrice !== undefined) {
-      conditions.push(q.lte(q.field("maxPrice"), args.maxPrice));
-    }
-    
-    // Inventory filter
-    if (args.hasInventory !== undefined) {
-      if (args.hasInventory) {
-        conditions.push(q.gt(q.field("inventory"), 0));
-      } else {
-        conditions.push(q.eq(q.field("inventory"), 0));
+    // Filter to global categories or public-organization categories
+    const categoryIdsToInclude: Id<"categories">[] = [];
+    const seenOrgIds = new Set<string>();
+    for (const cat of categoriesWithSameSlug) {
+      if (!cat.organizationId) {
+        categoryIdsToInclude.push(cat._id);
+        continue;
+      }
+      const orgId = cat.organizationId as unknown as string;
+      if (seenOrgIds.has(orgId)) {
+        // We may have already validated this org via another category
+        categoryIdsToInclude.push(cat._id);
+        continue;
+      }
+      const org = await ctx.db.get(cat.organizationId);
+      if (org && org.isDeleted === false && org.organizationType === "PUBLIC") {
+        seenOrgIds.add(orgId);
+        categoryIdsToInclude.push(cat._id);
       }
     }
     
-    // Note: Tags filter will be applied in post-processing due to Convex limitations
-    // with array field queries
-    
-    return conditions.length > 0 ? q.and(...conditions) : q.and();
-  });
-  
-  // Get results
-  let results = await filteredQuery.collect();
+    // Fetch products for all included categories
+    for (const cid of categoryIdsToInclude) {
+      const baseQuery = ctx.db
+        .query("products")
+        .withIndex("by_category", (q) => q.eq("categoryId", cid));
+      const filteredQuery = applyFieldFilters(baseQuery);
+      const chunk = await filteredQuery.collect();
+      // Only include products from public orgs when global browsing
+      for (const p of chunk) {
+        if (!p.organizationId) {
+          results.push(p)
+          continue
+        }
+        const org = await ctx.db.get(p.organizationId as Id<'organizations'>)
+        if (org && !org.isDeleted && org.organizationType === 'PUBLIC') {
+          results.push(p)
+        }
+      }
+    }
+  } else {
+    // Original path: choose the most specific index and filter once
+    let query;
+    if (args.organizationId && args.categoryId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_organization_category", (q) =>
+          q.eq("organizationId", args.organizationId!).eq("categoryId", args.categoryId!)
+        );
+    } else if (args.organizationId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!));
+    } else if (args.categoryId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_category", (q) => q.eq("categoryId", args.categoryId!));
+    } else if (args.postedById) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_creator", (q) => q.eq("postedById", args.postedById!));
+    } else if (args.inventoryType) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_inventory_type", (q) => q.eq("inventoryType", args.inventoryType!));
+    } else if (args.isBestPrice !== undefined) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_best_price", (q) => q.eq("isBestPrice", args.isBestPrice!));
+    } else if (args.sortBy === "rating") {
+      query = ctx.db.query("products").withIndex("by_rating");
+    } else if (args.sortBy === "views") {
+      query = ctx.db.query("products").withIndex("by_view_count");
+    } else {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_isDeleted", (q) => q.eq("isDeleted", false));
+    }
+    const filteredQuery = applyFieldFilters(query);
+    results = await filteredQuery.collect();
+    // If not organization-scoped, filter out non-public org products
+    if (!args.organizationId) {
+      const allow: any[] = []
+      for (const p of results) {
+        if (!p.organizationId) {
+          allow.push(p)
+          continue
+        }
+        const org = await ctx.db.get(p.organizationId as Id<'organizations'>)
+        if (org && !org.isDeleted && org.organizationType === 'PUBLIC') {
+          allow.push(p)
+        }
+      }
+      results = allow
+    }
+  }
   
   // Apply tags filter in post-processing
   if (args.tags && args.tags.length > 0) {

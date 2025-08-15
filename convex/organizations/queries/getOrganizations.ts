@@ -32,15 +32,22 @@ export const getOrganizationsHandler = async (
   // Filter out deleted organizations
   queryBuilder = queryBuilder.filter((q) => q.eq(q.field("isDeleted"), false));
   
-  // Apply search filter if provided
+  // Apply search filter if provided (simple contains matching)
   if (search) {
-    queryBuilder = queryBuilder.filter((q) =>
-      q.or(
-        q.eq(q.field("name"), search),
-        q.eq(q.field("slug"), search),
-        q.eq(q.field("description"), search)
-      )
+    const all = await queryBuilder.collect();
+    const s = search.toLowerCase();
+    const filtered = all.filter((org) =>
+      org.name.toLowerCase().includes(s) ||
+      org.slug.toLowerCase().includes(s) ||
+      (org.description?.toLowerCase() || '').includes(s)
     );
+    // Manual paginate
+    const page = filtered.slice(0, limit);
+    return {
+      page,
+      isDone: page.length >= filtered.length,
+      continueCursor: null,
+    } as any;
   }
   
   // Apply pagination

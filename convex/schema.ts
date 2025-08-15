@@ -2,7 +2,7 @@ import { defineSchema } from "convex/server";
 
 // Import all table definitions
 import { users } from "./models/users";
-import { organizations, organizationMembers, organizationInviteLinks, organizationPermissions } from "./models/organizations";
+import { organizations, organizationMembers, organizationInviteLinks, organizationPermissions, organizationJoinRequests } from "./models/organizations";
 import { products, reviews } from "./models/products";
 import { orders, orderItems, orderLogs } from "./models/orders";
 import { payments } from "./models/payments";
@@ -14,7 +14,7 @@ import { logs } from "./models/logs";
 import { messages } from "./models/messages";
 import { announcements } from "./models/announcements";
 import { surveyResponses, surveyCategories } from "./models/surveys";
-import { tickets, ticketUpdates } from "./models/tickets";
+import { tickets, ticketUpdates, ticketReads } from "./models/tickets";
 import { chatRooms, chatParticipants, chatMessages, messageReactions, chatRoomState } from "./models/chats";
 
 export default defineSchema({
@@ -26,6 +26,7 @@ export default defineSchema({
   organizationMembers,
   organizationInviteLinks,
   organizationPermissions,
+  organizationJoinRequests,
   
   // Product management
   products,
@@ -72,4 +73,5 @@ export default defineSchema({
   // Support
   tickets,
   ticketUpdates,
+  ticketReads,
 });

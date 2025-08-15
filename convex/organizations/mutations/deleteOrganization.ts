@@ -1,18 +1,18 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import { requireOrganizationOwner, logAction } from "../../helpers";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireOrganizationOwner, logAction } from '../../helpers';
 
 // Soft delete organization
 export const deleteOrganizationArgs = {
-  organizationId: v.id("organizations"),
+  organizationId: v.id('organizations'),
 };
 
 export const deleteOrganizationHandler = async (
   ctx: MutationCtx,
   args: {
-    organizationId: Id<"organizations">;
-  }
+    organizationId: Id<'organizations'>;
+  },
 ) => {
   const { organizationId } = args;
   
@@ -58,17 +58,23 @@ export const deleteOrganizationHandler = async (
   // Log the action
   await logAction(
     ctx,
-    "delete_organization",
-    "DATA_CHANGE",
-    "HIGH",
+    'delete_organization',
+    'AUDIT_TRAIL',
+    'CRITICAL',
     `Deleted organization: ${organization.name}`,
     user._id,
     organizationId,
-    { 
+    {
       organizationName: organization.name,
       organizationSlug: organization.slug,
-      memberCount: members.length 
-    }
+      memberCount: members.length,
+    },
+    {
+      resourceType: 'organization',
+      resourceId: organizationId as unknown as string,
+      previousValue: { isDeleted: false },
+      newValue: { isDeleted: true },
+    },
   );
   
   return { success: true };

@@ -78,6 +78,32 @@ export const createOrderHandler = async (
   let organizationInfo: { name: string; slug: string; logo?: string } | undefined;
   if (args.organizationId) {
     const organization = await validateOrganizationExists(ctx, args.organizationId);
+    // Enforce organization visibility for purchase
+    if (organization.organizationType !== "PUBLIC") {
+      const isPrivileged = currentUser.isAdmin || currentUser.isStaff;
+      if (!isPrivileged) {
+        // Customer must be a member to order within private/secret org scope
+        const membership = await ctx.db
+          .query("organizationMembers")
+          .withIndex("by_user_organization", (q) =>
+            q
+              .eq("userId", customer._id)
+              .eq("organizationId", args.organizationId!),
+          )
+          .filter((q) => q.eq(q.field("isActive"), true))
+          .first();
+        if (!membership) {
+          if (organization.organizationType === "PRIVATE") {
+            throw new Error(
+              "Membership required to place orders in this private organization.",
+            );
+          }
+          throw new Error(
+            "This organization is invite-only. You must join via invite to place orders.",
+          );
+        }
+      }
+    }
     organizationInfo = {
       name: organization.name,
       slug: organization.slug,
@@ -140,6 +166,35 @@ export const createOrderHandler = async (
     // If organization-scoped, ensure product belongs to same organization (or product is global)
     if (args.organizationId && product.organizationId && product.organizationId !== args.organizationId) {
       throw new Error("All items must belong to the same organization as the order");
+    }
+
+    // If not organization-scoped (global order), enforce org visibility per product
+    if (!args.organizationId && product.organizationId) {
+      const org = await ctx.db.get(product.organizationId);
+      if (org && !org.isDeleted && org.organizationType !== "PUBLIC") {
+        const isPrivileged = currentUser.isAdmin || currentUser.isStaff;
+        if (!isPrivileged) {
+          const membership = await ctx.db
+            .query("organizationMembers")
+            .withIndex("by_user_organization", (q) =>
+              q
+                .eq("userId", customer._id)
+                .eq("organizationId", product.organizationId!),
+            )
+            .filter((q) => q.eq(q.field("isActive"), true))
+            .first();
+          if (!membership) {
+            if (org.organizationType === "PRIVATE") {
+              throw new Error(
+                "Membership required to buy from this private organization.",
+              );
+            }
+            throw new Error(
+              "This organization is invite-only. You must join via invite to buy.",
+            );
+          }
+        }
+      }
     }
 
     let basePrice = product.minPrice ?? product.maxPrice ?? product.supposedPrice ?? 0;

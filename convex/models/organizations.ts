@@ -12,6 +12,12 @@ export const organizations = defineTable({
     // Brand Colors
     primaryColor: v.string(), // Main brand color (hex)
     secondaryColor: v.optional(v.string()), // Secondary brand color
+    // Header/Footer specific colors
+    headerBackgroundColor: v.optional(v.string()),
+    headerForegroundColor: v.optional(v.string()),
+    headerTitleColor: v.optional(v.string()),
+    footerBackgroundColor: v.optional(v.string()),
+    footerForegroundColor: v.optional(v.string()),
     
     // Theme Mode
     mode: v.optional(v.union(
@@ -160,3 +166,22 @@ export const organizationPermissions = defineTable({
 })
   .index("by_member", ["memberId"])
   .index("by_permissionCode", ["permissionCode"]);
+
+// Join requests for private organizations
+export const organizationJoinRequests = defineTable({
+  organizationId: v.id("organizations"),
+  userId: v.id("users"),
+  status: v.union(
+    v.literal("PENDING"),
+    v.literal("APPROVED"),
+    v.literal("REJECTED"),
+  ),
+  note: v.optional(v.string()),
+  reviewedById: v.optional(v.id("users")),
+  createdAt: v.number(),
+  reviewedAt: v.optional(v.number()),
+  updatedAt: v.number(),
+})
+  .index("by_user_organization", ["userId", "organizationId"])
+  .index("by_organization_status", ["organizationId", "status"])
+  .index("by_status", ["status"]);

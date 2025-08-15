@@ -17,7 +17,7 @@ export const getMessagesArgs = {
     v.literal("URGENT")
   )),
   limit: v.optional(v.number()),
-  offset: v.optional(v.number()),
+  cursor: v.optional(v.string()),
 };
 
 export const getMessagesHandler = async (
@@ -32,6 +32,7 @@ export const getMessagesHandler = async (
     priority?: "LOW" | "NORMAL" | "HIGH" | "URGENT";
     limit?: number;
     offset?: number;
+    cursor?: string;
   }
 ) => {
   const user = await requireAuthentication(ctx);
@@ -82,16 +83,11 @@ export const getMessagesHandler = async (
     return conditions.length ? q.and(...conditions) : q.and();
   });
 
-  const results = await filtered.collect();
-  // Default sort by createdAt desc
-  results.sort((a, b) => b.createdAt - a.createdAt);
-
-  const total = results.length;
-  const offset = args.offset || 0;
-  const limit = args.limit || 50;
-  const page = results.slice(offset, offset + limit);
-
-  return { messages: page, total, offset, limit, hasMore: offset + limit < total };
+  const limit = Math.min(Math.max(args.limit ?? 50, 1), 200);
+  const cursor = args.cursor ?? null;
+  // Ensure desc order prior to pagination
+  const results = await filtered.order("desc").paginate({ numItems: limit, cursor });
+  return results as any;
 };
 
 

@@ -9,6 +9,14 @@ export const announcements = defineTable({
   level: v.union(v.literal("INFO"), v.literal("WARNING"), v.literal("CRITICAL")),
   publishedById: v.id("users"),
   
+  // Optional categorization (only settable by org-admin or super-admin)
+  category: v.optional(v.string()),
+  
+  // Visibility within scope (optional for backward compatibility)
+  // - For global announcements (no organizationId), default PUBLIC
+  // - For organization announcements, default INTERNAL unless explicitly PUBLIC
+  visibility: v.optional(v.union(v.literal("PUBLIC"), v.literal("INTERNAL"))),
+  
   // Embedded publisher info
   publisherInfo: v.object({
     firstName: v.optional(v.string()),
@@ -79,6 +87,9 @@ export const announcements = defineTable({
   .index("by_target_audience", ["targetAudience"])
   .index("by_active", ["isActive"])
   .index("by_pinned", ["isPinned"])
+  .index("by_category", ["category"])
+  .index("by_visibility", ["visibility"])
+  .index("by_organization_visibility", ["organizationId", "visibility"])
   .index("by_published_at", ["publishedAt"])
   .index("by_expires_at", ["expiresAt"])
   .index("by_organization_active", ["organizationId", "isActive"])

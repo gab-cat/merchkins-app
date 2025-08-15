@@ -31,6 +31,9 @@ export const searchOrganizationsHandler = async (
   // Apply organization type filter
   if (organizationType) {
     organizations = organizations.filter(org => org.organizationType === organizationType);
+  } else {
+    // By default, hide SECRET orgs from discovery
+    organizations = organizations.filter(org => org.organizationType !== 'SECRET')
   }
   
   // Search by name, slug, or description (case insensitive)
@@ -47,6 +50,14 @@ export const searchOrganizationsHandler = async (
     );
   });
   
+  // Sort: public first, then private, then secret; then by memberCount desc
+  filteredOrganizations.sort((a, b) => {
+    const rank = (t: string) => (t === 'PUBLIC' ? 0 : t === 'PRIVATE' ? 1 : 2)
+    const r = rank(a.organizationType) - rank(b.organizationType)
+    if (r !== 0) return r
+    return (b.memberCount || 0) - (a.memberCount || 0)
+  })
+
   // Limit results
   return filteredOrganizations.slice(0, limit);
 };

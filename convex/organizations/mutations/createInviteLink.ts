@@ -1,11 +1,12 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { logAction, requireOrganizationAdminOrStaff } from '../../helpers';
 
 // Create organization invite link
 export const createInviteLinkArgs = {
-  organizationId: v.id("organizations"),
-  createdById: v.id("users"),
+  organizationId: v.id('organizations'),
+  createdById: v.id('users'),
   expiresAt: v.optional(v.number()),
   usageLimit: v.optional(v.number()),
 };
@@ -13,11 +14,11 @@ export const createInviteLinkArgs = {
 export const createInviteLinkHandler = async (
   ctx: MutationCtx,
   args: {
-    organizationId: Id<"organizations">;
-    createdById: Id<"users">;
+    organizationId: Id<'organizations'>;
+    createdById: Id<'users'>;
     expiresAt?: number;
     usageLimit?: number;
-  }
+  },
 ) => {
   const { organizationId, createdById, expiresAt, usageLimit } = args;
   
@@ -33,17 +34,10 @@ export const createInviteLinkHandler = async (
     throw new Error("Creator not found");
   }
   
-  // Check if creator is a member of the organization
-  const membership = await ctx.db
-    .query("organizationMembers")
-    .withIndex("by_user_organization", (q) => 
-      q.eq("userId", createdById).eq("organizationId", organizationId)
-    )
-    .filter((q) => q.eq(q.field("isActive"), true))
-    .first();
-  
-  if (!membership || (membership.role !== "ADMIN" && membership.role !== "STAFF")) {
-    throw new Error("Only admins and staff can create invite links");
+  // Ensure actor has admin or staff rights (and is current user)
+  const { user: actor } = await requireOrganizationAdminOrStaff(ctx, organizationId);
+  if (createdById !== actor._id) {
+    throw new Error('createdById must match the authenticated user');
   }
   
   // Generate unique invite code
@@ -73,6 +67,19 @@ export const createInviteLinkHandler = async (
     createdAt: Date.now(),
     updatedAt: Date.now(),
   });
+  
+  // Audit log
+  await logAction(
+    ctx,
+    'create_invite_link',
+    'AUDIT_TRAIL',
+    'MEDIUM',
+    `Created invite link for organization ${organization.name}`,
+    createdById,
+    organizationId,
+    { code, expiresAt, usageLimit },
+    { resourceType: 'organization_invite', resourceId: inviteLinkId as unknown as string },
+  );
   
   return { inviteLinkId, code };
 };

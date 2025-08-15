@@ -56,7 +56,23 @@ export const searchProductsHandler = async (
   }
   
   // Get all results for text searching
-  const allProducts = await filteredQuery.collect();
+  let allProducts = await filteredQuery.collect();
+
+  // If not scoped to an organization, filter to public org products (or global)
+  if (!args.organizationId) {
+    const filtered: typeof allProducts = [] as any
+    for (const p of allProducts) {
+      if (!p.organizationId) {
+        filtered.push(p)
+        continue
+      }
+      const org = await ctx.db.get(p.organizationId as Id<'organizations'>)
+      if (org && !org.isDeleted && org.organizationType === 'PUBLIC') {
+        filtered.push(p)
+      }
+    }
+    allProducts = filtered
+  }
   
   // Filter products by search terms
   const matchedProducts = allProducts.filter(product => {

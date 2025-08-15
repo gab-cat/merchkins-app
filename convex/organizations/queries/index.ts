@@ -39,6 +39,14 @@ import {
   searchOrganizationsArgs,
   searchOrganizationsHandler
 } from "./searchOrganizations";
+import {
+  listJoinRequestsArgs,
+  listJoinRequestsHandler,
+} from "./listJoinRequests";
+import {
+  getPopularOrganizationsArgs,
+  getPopularOrganizationsHandler,
+} from './getPopularOrganizations'
 
 export const getOrganizationById = query({
   args: getOrganizationByIdArgs,
@@ -79,4 +87,12 @@ export const getOrganizationInviteLinks = query({
 export const searchOrganizations = query({
   args: searchOrganizationsArgs,
   handler: searchOrganizationsHandler,
+});
+export const listJoinRequests = query({
+  args: listJoinRequestsArgs,
+  handler: listJoinRequestsHandler,
+});
+export const getPopularOrganizations = query({
+  args: getPopularOrganizationsArgs,
+  handler: getPopularOrganizationsHandler,
 });

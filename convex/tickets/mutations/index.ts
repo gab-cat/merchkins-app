@@ -7,6 +7,7 @@ import { restoreTicketArgs, restoreTicketHandler } from "./restoreTicket";
 import { updateTicketStatsArgs, updateTicketStatsHandler } from "./updateTicketStats";
 import { addTicketUpdateArgs, addTicketUpdateHandler } from "./manageTicketUpdates";
 import { assignTicketArgs, assignTicketHandler } from "./manageAssignee";
+import { markTicketReadArgs, markTicketReadHandler } from "./manageReads";
 
 export const createTicket = mutation({ args: createTicketArgs, handler: createTicketHandler });
 export const updateTicket = mutation({ args: updateTicketArgs, handler: updateTicketHandler });
@@ -15,6 +16,7 @@ export const restoreTicket = mutation({ args: restoreTicketArgs, handler: restor
 
 export const addTicketUpdate = mutation({ args: addTicketUpdateArgs, handler: addTicketUpdateHandler });
 export const assignTicket = mutation({ args: assignTicketArgs, handler: assignTicketHandler });
+export const markTicketRead = mutation({ args: markTicketReadArgs, handler: markTicketReadHandler });
 
 export const updateTicketStats = internalMutation({ args: updateTicketStatsArgs, handler: updateTicketStatsHandler });
 

@@ -97,6 +97,20 @@ export const getOrdersHandler = async (
   });
 
   const results = await filtered.collect();
+
+  // Sort by orderDate descending to ensure stable, recent-first pagination
+  results.sort((a: any, b: any) => {
+    const ad = typeof a.orderDate === "number" ? a.orderDate : 0;
+    const bd = typeof b.orderDate === "number" ? b.orderDate : 0;
+    if (ad === bd) {
+      // Fallback to _creationTime descending if orderDate ties
+      const ac = typeof a._creationTime === "number" ? a._creationTime : 0;
+      const bc = typeof b._creationTime === "number" ? b._creationTime : 0;
+      return bc - ac;
+    }
+    return bd - ad;
+  });
+
   const total = results.length;
   const offset = args.offset || 0;
   const limit = args.limit || 50;

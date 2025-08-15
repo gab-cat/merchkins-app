@@ -21,7 +21,10 @@ export const getAnnouncementByIdHandler = async (
   if (!(isPublished && notExpired)) return null;
 
   if (ann.organizationId) {
-    await requireOrganizationMember(ctx, ann.organizationId);
+    // For organization announcements, enforce membership if not PUBLIC (undefined treated as INTERNAL)
+    if (ann.visibility !== "PUBLIC") {
+      await requireOrganizationMember(ctx, ann.organizationId);
+    }
   }
 
   // Basic audience gating: allow admins/staff always; others see ALL/CUSTOMERS/MERCHANTS depending on profile

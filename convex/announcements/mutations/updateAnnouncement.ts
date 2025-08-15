@@ -28,6 +28,8 @@ export const updateAnnouncementArgs = {
       v.literal("ADMINS")
     )
   ),
+  category: v.optional(v.string()),
+  visibility: v.optional(v.union(v.literal("PUBLIC"), v.literal("INTERNAL"))),
   isPinned: v.optional(v.boolean()),
   requiresAcknowledgment: v.optional(v.boolean()),
   attachments: v.optional(
@@ -56,6 +58,8 @@ export const updateAnnouncementHandler = async (
     type?: "NORMAL" | "SYSTEM";
     level?: "INFO" | "WARNING" | "CRITICAL";
     targetAudience?: "ALL" | "STAFF" | "CUSTOMERS" | "MERCHANTS" | "ADMINS";
+    category?: string;
+    visibility?: "PUBLIC" | "INTERNAL";
     isPinned?: boolean;
     requiresAcknowledgment?: boolean;
     attachments?: Array<{ filename: string; url: string; size: number; mimeType: string }>;
@@ -91,6 +95,8 @@ export const updateAnnouncementHandler = async (
   if (args.type !== undefined) updateData.type = args.type;
   if (args.level !== undefined) updateData.level = args.level;
   if (args.targetAudience !== undefined) updateData.targetAudience = args.targetAudience;
+  if (args.category !== undefined) updateData.category = sanitizeString(args.category) || undefined;
+  if (args.visibility !== undefined) updateData.visibility = args.visibility;
   if (args.isPinned !== undefined) updateData.isPinned = args.isPinned;
   if (args.requiresAcknowledgment !== undefined) updateData.requiresAcknowledgment = args.requiresAcknowledgment;
   if (args.attachments !== undefined) updateData.attachments = args.attachments;
@@ -109,6 +115,11 @@ export const updateAnnouncementHandler = async (
   }
   if (expiresAt && scheduledAt && expiresAt <= scheduledAt) {
     throw new Error("expiresAt must be greater than scheduledAt");
+  }
+
+  // Ensure global announcements remain PUBLIC; org PUBLIC may be restricted by permissions elsewhere
+  if (!existing.organizationId) {
+    updateData.visibility = "PUBLIC";
   }
 
   await ctx.db.patch(args.announcementId, updateData);

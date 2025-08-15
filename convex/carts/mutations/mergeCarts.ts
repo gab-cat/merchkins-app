@@ -17,15 +17,20 @@ export const mergeCartsHandler = async (
   const target = await validateCartExists(ctx, args.targetCartId);
   if (target.userId !== currentUser._id) throw new Error("Cannot modify another user's cart");
 
-  // Merge strategy: sum quantities for same product+variantName, cap at inventory
+  // Merge strategy: sum quantities for same product+variant (prefer variantId), cap at inventory
   const mergedItems = [...target.embeddedItems];
   for (const item of source.embeddedItems) {
-    const idx = mergedItems.findIndex(
-      (i) => i.productInfo.productId === item.productInfo.productId && (i.productInfo.variantName ?? null) === (item.productInfo.variantName ?? null)
-    );
+    const idx = mergedItems.findIndex((i) => {
+      if (i.productInfo.productId !== item.productInfo.productId) return false;
+      if (item.variantId != null) {
+        return (i.variantId ?? null) === item.variantId;
+      }
+      return (i.variantId ?? null) === null && ((i.productInfo.variantName ?? null) === (item.productInfo.variantName ?? null));
+    });
     if (idx >= 0) {
       mergedItems[idx] = {
         ...mergedItems[idx],
+        variantId: mergedItems[idx].variantId ?? item.variantId,
         quantity: Math.min(
           mergedItems[idx].quantity + item.quantity,
           item.productInfo.inventory

@@ -10,6 +10,7 @@ import {
 } from "../../helpers";
 import { internal } from "../../_generated/api";
 import { removeItemHandler } from "./removeItem";
+import { isOrganizationMember } from "../../helpers/organizations";
 
 export const updateItemQuantityArgs = {
   cartId: v.id("carts"),
@@ -36,9 +37,32 @@ export const updateItemQuantityHandler = async (
   }
 
   const product = await validateProductExists(ctx, args.productId);
+  // Enforce organization visibility when adjusting quantities as well
+  if (product.organizationId) {
+    const org = await ctx.db.get(product.organizationId);
+    if (org && !org.isDeleted && org.organizationType !== "PUBLIC") {
+      const isPrivileged = currentUser.isAdmin || currentUser.isStaff;
+      if (!isPrivileged) {
+        const member = await isOrganizationMember(
+          ctx,
+          currentUser._id,
+          product.organizationId,
+        );
+        if (!member) {
+          if (org.organizationType === "PRIVATE") {
+            throw new Error(
+              "Membership required to purchase from this private organization.",
+            );
+          }
+          throw new Error(
+            "This organization is invite-only. You must join via invite to purchase.",
+          );
+        }
+      }
+    }
+  }
   let variantInventory = product.inventory;
   let variantName: string | undefined;
-  let price = product.minPrice ?? product.maxPrice ?? product.supposedPrice ?? 0;
   if (args.variantId) {
     const variant = product.variants.find((v) => v.variantId === args.variantId);
     if (!variant) {
@@ -46,14 +70,18 @@ export const updateItemQuantityHandler = async (
     }
     variantInventory = variant.inventory;
     variantName = variant.variantName;
-    price = variant.price;
   }
 
   const now = Date.now();
   const items = [...cart.embeddedItems];
-  const index = items.findIndex(
-    (i) => i.productInfo.productId === product._id && (i.variantId ?? null) === (args.variantId ?? null)
-  );
+  // Match item: prefer variantId when provided; otherwise match only items without variantId by variantName
+  const index = items.findIndex((i) => {
+    if (i.productInfo.productId !== product._id) return false;
+    if (args.variantId != null) {
+      return (i.variantId ?? null) === args.variantId;
+    }
+    return (i.variantId ?? null) === null;
+  });
   if (index === -1) {
     throw new Error("Item not found in cart");
   }

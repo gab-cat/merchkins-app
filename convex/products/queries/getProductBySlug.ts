@@ -25,10 +25,10 @@ export const getProductBySlugHandler = async (
       .withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!))
       .filter((q) => q.eq(q.field("slug"), args.slug));
   } else {
-    // Search globally (products without organization)
-    query = ctx.db.query("products")
+    // Search globally by slug
+    query = ctx.db
+      .query("products")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .filter((q) => q.eq(q.field("organizationId"), undefined));
   }
   
   if (!args.includeDeleted) {
@@ -39,6 +39,15 @@ export const getProductBySlugHandler = async (
   
   if (!product) {
     throw new Error("Product not found");
+  }
+  // If product belongs to an organization and this is a global lookup (no organizationId provided),
+  // hide details for non-public org products
+  if (product.organizationId && !args.organizationId) {
+    const org = await ctx.db.get(product.organizationId)
+    if (org && !org.isDeleted && org.organizationType !== 'PUBLIC') {
+      // Hide details for non-public org products in global context
+      throw new Error("Product not found");
+    }
   }
   
   return product;

@@ -8,6 +8,7 @@ import {
   validatePositiveNumber,
   logAction,
 } from "../../helpers";
+import { isOrganizationMember } from "../../helpers/organizations";
 import { createOrGetCartHandler } from "./createOrGetCart";
 import { internal } from "../../_generated/api";
 
@@ -53,6 +54,32 @@ export const addItemHandler = async (
     throw new Error("Product is not available");
   }
 
+  // Enforce organization visibility for purchasing
+  if (product.organizationId) {
+    const org = await ctx.db.get(product.organizationId);
+    if (org && !org.isDeleted && org.organizationType !== "PUBLIC") {
+      const isPrivileged = currentUser.isAdmin || currentUser.isStaff;
+      if (!isPrivileged) {
+        const member = await isOrganizationMember(
+          ctx,
+          currentUser._id,
+          product.organizationId,
+        );
+        if (!member) {
+          if (org.organizationType === "PRIVATE") {
+            throw new Error(
+              "Membership required to purchase from this private organization.",
+            );
+          }
+          // SECRET
+          throw new Error(
+            "This organization is invite-only. You must join via invite to purchase.",
+          );
+        }
+      }
+    }
+  }
+
   // Determine price/inventory and variant info
   let price = product.minPrice ?? product.maxPrice ?? product.supposedPrice ?? 0;
   const originalPrice = undefined as number | undefined;
@@ -82,11 +109,14 @@ export const addItemHandler = async (
   const selected = args.selected ?? true;
   const note = args.note;
 
-  // Check if item already exists (same product + variantName)
-  const existingIndex = cart.embeddedItems.findIndex((i) =>
-    i.productInfo.productId === product._id &&
-    ((i.productInfo.variantName ?? null) === (variantName ?? null))
-  );
+  // Check if item already exists
+  // Prefer matching by variantId when provided, fall back to variantName for backward compatibility
+  const existingIndex = cart.embeddedItems.findIndex((i) => {
+    if (i.productInfo.productId !== product._id) return false;
+    const sameVariantId = (i.variantId ?? null) === (args.variantId ?? null);
+    const sameVariantName = (i.productInfo.variantName ?? null) === (variantName ?? null);
+    return sameVariantId || (!i.variantId && sameVariantName);
+  });
 
   const newItems = [...cart.embeddedItems];
   if (existingIndex >= 0) {
@@ -94,6 +124,7 @@ export const addItemHandler = async (
     const newQuantity = Math.min(existing.quantity + quantityToAdd, variantInventory);
     newItems[existingIndex] = {
       ...existing,
+      variantId: args.variantId ?? existing.variantId,
       quantity: newQuantity,
       selected: selected ?? existing.selected,
       note: note ?? existing.note,
@@ -101,8 +132,11 @@ export const addItemHandler = async (
     };
   } else {
     newItems.push({
+      variantId: args.variantId,
       productInfo: {
         productId: product._id,
+        organizationId: product.organizationId,
+        organizationName: product.organizationInfo?.name,
         title: product.title,
         slug: product.slug,
         imageUrl: product.imageUrl,

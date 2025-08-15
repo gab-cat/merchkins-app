@@ -5,6 +5,7 @@ import { requireAuthentication, requireOrganizationMember } from "../../helpers"
 
 export const searchAnnouncementsArgs = {
   organizationId: v.optional(v.id("organizations")),
+  category: v.optional(v.string()),
   query: v.string(),
   limit: v.optional(v.number()),
   offset: v.optional(v.number()),
@@ -12,7 +13,7 @@ export const searchAnnouncementsArgs = {
 
 export const searchAnnouncementsHandler = async (
   ctx: QueryCtx,
-  args: { organizationId?: Id<"organizations">; query: string; limit?: number; offset?: number }
+  args: { organizationId?: Id<"organizations">; category?: string; query: string; limit?: number; offset?: number }
 ) => {
   const user = await requireAuthentication(ctx);
   const qLower = args.query.trim().toLowerCase();
@@ -20,6 +21,7 @@ export const searchAnnouncementsHandler = async (
 
   let query;
   if (args.organizationId) {
+    // Allow PUBLIC to everyone; INTERNAL only to members (enforced by membership requirement)
     await requireOrganizationMember(ctx, args.organizationId);
     query = ctx.db.query("announcements").withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!));
   } else {
@@ -33,7 +35,8 @@ export const searchAnnouncementsHandler = async (
         q.eq(q.field("isActive"), true),
         q.lte(q.field("publishedAt"), now),
         q.or(q.eq(q.field("scheduledAt"), undefined), q.lte(q.field("scheduledAt"), now)),
-        q.or(q.eq(q.field("expiresAt"), undefined), q.gt(q.field("expiresAt"), now))
+        q.or(q.eq(q.field("expiresAt"), undefined), q.gt(q.field("expiresAt"), now)),
+        args.category !== undefined ? q.eq(q.field("category"), args.category) : q.eq(q.field("isActive"), true)
       )
     )
     .collect();

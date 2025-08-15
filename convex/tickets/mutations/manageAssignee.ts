@@ -1,7 +1,7 @@
 import { MutationCtx } from "../../_generated/server";
 import { v } from "convex/values";
 import { Id } from "../../_generated/dataModel";
-import { requireAuthentication, logAction, validateUserExists } from "../../helpers";
+import { requireAuthentication, logAction, validateUserExists, requireOrganizationAdminOrStaff } from "../../helpers";
 
 export const assignTicketArgs = {
   ticketId: v.id("tickets"),
@@ -21,7 +21,15 @@ export const assignTicketHandler = async (
   const isOwner = ticket.createdById === user._id;
   const isAssignee = ticket.assignedToId === user._id;
   if (!(isPrivileged || isOwner || isAssignee)) {
-    throw new Error("Permission denied: You cannot reassign this ticket");
+    if (ticket.organizationId) {
+      try {
+        await requireOrganizationAdminOrStaff(ctx, ticket.organizationId);
+      } catch {
+        throw new Error("Permission denied: Only organization admins or staff can reassign tickets for this organization");
+      }
+    } else {
+      throw new Error("Permission denied: You cannot reassign this ticket");
+    }
   }
 
   const assignee = await validateUserExists(ctx, args.assigneeId);

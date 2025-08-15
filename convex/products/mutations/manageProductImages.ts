@@ -7,6 +7,7 @@ import {
   validateProductExists,
   requireOrganizationPermission
 } from "../../helpers";
+import { r2 } from "../../files/r2";
 
 // Update product images (handles file uploads and deletions)
 export const updateProductImagesArgs = {
@@ -46,40 +47,18 @@ export const updateProductImagesHandler = async (
     updatedAt: Date.now(),
   });
 
-  // Mark deleted images as inactive in files table
+  // Delete removed images from storage (best-effort)
   if (args.imagesToDelete && args.imagesToDelete.length > 0) {
-    for (const imageUrl of args.imagesToDelete) {
-      // Find file records with this URL
-      const files = await ctx.db
-        .query("files")
-        .filter((q) => q.eq(q.field("url"), imageUrl))
-        .collect();
-      
-      for (const file of files) {
-        await ctx.db.patch(file._id, {
-          isActive: false,
-          updatedAt: Date.now(),
-        });
+    for (const key of args.imagesToDelete) {
+      try {
+        await r2.deleteObject(ctx, key)
+      } catch (err) {
+        console.log('Failed to delete object from R2', key, err)
       }
     }
   }
 
-  // Update file records to associate with this product
-  for (const imageUrl of args.imageUrls) {
-    const files = await ctx.db
-      .query("files")
-      .filter((q) => q.eq(q.field("url"), imageUrl))
-      .collect();
-    
-    for (const file of files) {
-      await ctx.db.patch(file._id, {
-        relatedEntityType: "product",
-        relatedEntityId: args.productId,
-        usageType: "product_image",
-        updatedAt: Date.now(),
-      });
-    }
-  }
+  // Note: File metadata association handled by R2 sync hooks (if configured)
 
   // Log the action
   await logAction(
@@ -154,37 +133,16 @@ export const updateVariantImageHandler = async (
     updatedAt: Date.now(),
   });
 
-  // Handle previous image deletion
+  // Handle previous image deletion from storage
   if (args.previousImageUrl) {
-    const files = await ctx.db
-      .query("files")
-      .filter((q) => q.eq(q.field("url"), args.previousImageUrl))
-      .collect();
-    
-    for (const file of files) {
-      await ctx.db.patch(file._id, {
-        isActive: false,
-        updatedAt: Date.now(),
-      });
+    try {
+      await r2.deleteObject(ctx, args.previousImageUrl)
+    } catch (err) {
+      console.log('Failed to delete old variant image from R2', args.previousImageUrl, err)
     }
   }
 
-  // Update file record for new image
-  if (args.imageUrl) {
-    const files = await ctx.db
-      .query("files")
-      .filter((q) => q.eq(q.field("url"), args.imageUrl))
-      .collect();
-    
-    for (const file of files) {
-      await ctx.db.patch(file._id, {
-        relatedEntityType: "variant",
-        relatedEntityId: args.variantId,
-        usageType: "variant_image",
-        updatedAt: Date.now(),
-      });
-    }
-  }
+  // Note: association handled by R2 sync hooks if needed
 
   // Log the action
   await logAction(

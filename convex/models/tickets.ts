@@ -3,6 +3,7 @@ import { v } from "convex/values";
 
 // Optimized tickets with embedded user info and updates
 export const tickets = defineTable({
+  organizationId: v.optional(v.id("organizations")),
   title: v.string(),
   description: v.string(),
   status: v.union(
@@ -74,6 +75,7 @@ export const tickets = defineTable({
   createdAt: v.number(),
   updatedAt: v.number(),
 })
+  .index("by_organization", ["organizationId"]) 
   .index("by_creator", ["createdById"])
   .index("by_assignee", ["assignedToId"])
   .index("by_status", ["status"])
@@ -144,3 +146,13 @@ export const ticketUpdates = defineTable({
   .index("by_update_type", ["updateType"])
   .index("by_internal", ["isInternal"])
   .index("by_ticket_type", ["ticketId", "updateType"]);
+
+// Per-user ticket read tracking
+export const ticketReads = defineTable({
+  ticketId: v.id("tickets"),
+  userId: v.id("users"),
+  lastReadAt: v.number(),
+})
+  .index("by_ticket_and_user", ["ticketId", "userId"]) 
+  .index("by_user", ["userId"]) 
+  .index("by_ticket", ["ticketId"]);

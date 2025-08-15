@@ -8,6 +8,7 @@ import {
   validateNotEmpty,
   validateStringLength,
   validateUserExists,
+  requireActiveOrganization,
 } from "../../helpers";
 
 export const createTicketArgs = {
@@ -26,6 +27,7 @@ export const createTicketArgs = {
   tags: v.optional(v.array(v.string())),
   assignedToId: v.optional(v.id("users")),
   dueDate: v.optional(v.number()),
+  organizationId: v.optional(v.id("organizations")),
 };
 
 export const createTicketHandler = async (
@@ -38,6 +40,7 @@ export const createTicketHandler = async (
     tags?: string[];
     assignedToId?: Id<"users">;
     dueDate?: number;
+    organizationId?: Id<"organizations">;
   }
 ) => {
   const currentUser = await requireAuthentication(ctx);
@@ -73,7 +76,13 @@ export const createTicketHandler = async (
 
   const now = Date.now();
 
+  // Validate organization if provided (customers may file tickets with orgs)
+  if (args.organizationId) {
+    await requireActiveOrganization(ctx, args.organizationId);
+  }
+
   const ticketId = await ctx.db.insert("tickets", {
+    organizationId: args.organizationId,
     title,
     description,
     status: "OPEN",

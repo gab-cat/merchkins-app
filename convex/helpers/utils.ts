@@ -1,6 +1,8 @@
-import { DataModel } from "../_generated/dataModel";
-import { GenericQueryCtx, GenericMutationCtx } from "convex/server";
-import { Id } from "../_generated/dataModel";
+import { DataModel } from '../_generated/dataModel';
+import { GenericQueryCtx, GenericMutationCtx } from 'convex/server';
+import { Id } from '../_generated/dataModel';
+import { getOptionalCurrentUser } from './auth';
+import { validateOrganizationExists, validateUserExists } from './validation';
 
 type QueryCtx = GenericQueryCtx<DataModel>;
 type MutationCtx = GenericMutationCtx<DataModel>;
@@ -11,26 +13,120 @@ type MutationCtx = GenericMutationCtx<DataModel>;
 export async function logAction(
   ctx: MutationCtx,
   action: string,
-  logType: "USER_ACTION" | "SYSTEM_EVENT" | "SECURITY_EVENT" | "DATA_CHANGE" | "ERROR_EVENT" | "AUDIT_TRAIL",
-  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
+  logType:
+    | 'USER_ACTION'
+    | 'SYSTEM_EVENT'
+    | 'SECURITY_EVENT'
+    | 'DATA_CHANGE'
+    | 'ERROR_EVENT'
+    | 'AUDIT_TRAIL',
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
   reason: string,
-  userId?: Id<"users">,
-  organizationId?: Id<"organizations">,
-  metadata?: Record<string, unknown>
+  userId?: Id<'users'>,
+  organizationId?: Id<'organizations'>,
+  metadata?: Record<string, unknown>,
+  extras?: {
+    resourceType?: string;
+    resourceId?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    previousValue?: unknown;
+    newValue?: unknown;
+    correlationId?: string;
+    sessionId?: string;
+  }
 ): Promise<void> {
-  await ctx.db.insert("logs", {
-    userId,
+  const creator = await getOptionalCurrentUser(ctx);
+
+  let userInfo: {
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    imageUrl?: string;
+  } | undefined;
+
+  let organizationInfo:
+    | {
+        name: string;
+        slug: string;
+        logo?: string;
+      }
+    | undefined;
+
+  if (userId) {
+    try {
+      const user = await validateUserExists(ctx, userId);
+      userInfo = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        imageUrl: user.imageUrl,
+      };
+    } catch {
+      // If user lookup fails, proceed without embedded snapshot
+      userInfo = undefined;
+    }
+  }
+
+  if (organizationId) {
+    try {
+      const org = await validateOrganizationExists(ctx, organizationId);
+      organizationInfo = {
+        name: org.name,
+        slug: org.slug,
+        logo: org.logo,
+      };
+    } catch {
+      organizationInfo = undefined;
+    }
+  }
+
+  const now = Date.now();
+  const sanitizedReason = sanitizeString(reason);
+  const sanitizedAction = sanitizeString(action);
+  const resourceType = extras?.resourceType
+    ? sanitizeString(extras.resourceType)
+    : undefined;
+  const resourceId = extras?.resourceId
+    ? sanitizeString(extras.resourceId)
+    : undefined;
+  const correlationId = extras?.correlationId
+    ? sanitizeString(extras.correlationId)
+    : undefined;
+  const sessionId = extras?.sessionId
+    ? sanitizeString(extras.sessionId)
+    : undefined;
+
+  await ctx.db.insert('logs', {
     organizationId,
-    action,
+    userId,
+    createdById: creator?._id,
+    userInfo,
+    creatorInfo: creator
+      ? {
+          firstName: creator.firstName,
+          lastName: creator.lastName,
+          email: creator.email,
+          imageUrl: creator.imageUrl,
+        }
+      : undefined,
+    organizationInfo,
+    createdDate: now,
+    reason: sanitizedReason,
+    systemText: sanitizedReason,
+    userText: sanitizedReason,
     logType,
     severity,
-    reason,
-    systemText: reason,
-    userText: reason,
+    resourceType,
+    resourceId,
+    action: sanitizedAction,
     metadata: metadata || {},
-    ipAddress: "Unknown", // Could be enhanced with IP tracking
-    userAgent: "Unknown", // Could be enhanced with user agent tracking
-    createdDate: Date.now(),
+    ipAddress: extras?.ipAddress || 'Unknown',
+    userAgent: extras?.userAgent || 'Unknown',
+    previousValue: extras?.previousValue,
+    newValue: extras?.newValue,
+    correlationId,
+    sessionId,
     isArchived: false,
   });
 }

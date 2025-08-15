@@ -257,6 +257,10 @@ export const createPaymentHandler = async (
   // Recalculate order payment status after creating a payment
   await ctx.runMutation(internal.payments.mutations.index.updatePaymentStats, {
     orderId: args.orderId,
+    actorId: currentUser._id,
+    actorName:
+      `${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`.trim() ||
+      currentUser.email,
   });
 
   await logAction(

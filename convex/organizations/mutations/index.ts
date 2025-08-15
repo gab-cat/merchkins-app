@@ -7,6 +7,9 @@ import { createInviteLinkArgs, createInviteLinkHandler } from "./createInviteLin
 import { deactivateInviteLinkArgs, deactivateInviteLinkHandler } from "./deactivateInviteLink";
 import { deleteOrganizationArgs, deleteOrganizationHandler } from "./deleteOrganization";
 import { joinOrganizationArgs, joinOrganizationHandler } from "./joinOrganization";
+import { joinPublicOrganizationArgs, joinPublicOrganizationHandler } from './joinPublicOrganization'
+import { requestToJoinOrganizationArgs, requestToJoinOrganizationHandler } from './requestToJoinOrganization'
+import { reviewJoinRequestArgs, reviewJoinRequestHandler } from './reviewJoinRequest'
 import { removeMemberArgs, removeMemberHandler } from "./removeMember";
 import { updateMemberActivityArgs, updateMemberActivityHandler } from "./updateMemberActivity";
 import { updateMemberRoleArgs, updateMemberRoleHandler } from "./updateMemberRole";
@@ -42,6 +45,20 @@ export const deleteOrganization = mutation({
 export const joinOrganization = mutation({
   args: joinOrganizationArgs,
   handler: joinOrganizationHandler,
+});
+export const joinPublicOrganization = mutation({
+  args: joinPublicOrganizationArgs,
+  handler: joinPublicOrganizationHandler,
+});
+
+export const requestToJoinOrganization = mutation({
+  args: requestToJoinOrganizationArgs,
+  handler: requestToJoinOrganizationHandler,
+});
+
+export const reviewJoinRequest = mutation({
+  args: reviewJoinRequestArgs,
+  handler: reviewJoinRequestHandler,
 });
 
 export const removeMember = mutation({

@@ -1,7 +1,7 @@
 import { QueryCtx } from "../../_generated/server";
 import { v } from "convex/values";
 import { Id } from "../../_generated/dataModel";
-import { requireAuthentication } from "../../helpers";
+import { requireAuthentication, requireOrganizationAdminOrStaff } from "../../helpers";
 
 export const getTicketUpdatesArgs = {
   ticketId: v.id("tickets"),
@@ -37,7 +37,15 @@ export const getTicketUpdatesHandler = async (
   const isOwner = ticket.createdById === user._id;
   const isAssignee = ticket.assignedToId === user._id;
   if (!(isPrivileged || isOwner || isAssignee)) {
-    throw new Error("Permission denied: You can only view updates for tickets you own or are assigned to");
+    if (ticket.organizationId) {
+      try {
+        await requireOrganizationAdminOrStaff(ctx, ticket.organizationId);
+      } catch {
+        throw new Error("Permission denied: You can only view updates for tickets you own, are assigned to, or manage for your organization");
+      }
+    } else {
+      throw new Error("Permission denied: You can only view updates for tickets you own or are assigned to");
+    }
   }
 
   let query;

@@ -3,26 +3,28 @@ import { v } from "convex/values";
 import { Id } from "../../_generated/dataModel";
 import { requireAuthentication, requireOrganizationAdminOrStaff, isOrganizationMember } from "../../helpers";
 
-export const getTicketsArgs = {
+export const getTicketsPageArgs = {
   createdById: v.optional(v.id("users")),
   assignedToId: v.optional(v.id("users")),
   organizationId: v.optional(v.id("organizations")),
   status: v.optional(v.union(v.literal("OPEN"), v.literal("IN_PROGRESS"), v.literal("RESOLVED"), v.literal("CLOSED"))),
   priority: v.optional(v.union(v.literal("LOW"), v.literal("MEDIUM"), v.literal("HIGH"))),
-  category: v.optional(v.union(
-    v.literal("BUG"),
-    v.literal("FEATURE_REQUEST"),
-    v.literal("SUPPORT"),
-    v.literal("QUESTION"),
-    v.literal("OTHER")
-  )),
+  category: v.optional(
+    v.union(
+      v.literal("BUG"),
+      v.literal("FEATURE_REQUEST"),
+      v.literal("SUPPORT"),
+      v.literal("QUESTION"),
+      v.literal("OTHER"),
+    ),
+  ),
   escalated: v.optional(v.boolean()),
   dueBefore: v.optional(v.number()),
   limit: v.optional(v.number()),
-  offset: v.optional(v.number()),
+  cursor: v.optional(v.string()),
 };
 
-export const getTicketsHandler = async (
+export const getTicketsPageHandler = async (
   ctx: QueryCtx,
   args: {
     createdById?: Id<"users">;
@@ -34,29 +36,28 @@ export const getTicketsHandler = async (
     escalated?: boolean;
     dueBefore?: number;
     limit?: number;
-    offset?: number;
-  }
+    cursor?: string | null;
+  },
 ) => {
   const user = await requireAuthentication(ctx);
 
-  let query;
+  let query: any;
   if (args.organizationId) {
-    // Org filtering
-    // If caller is org-admin or staff, they can see tickets for their org
-    // Otherwise, only tickets created by the user for that org
     const isMember = await isOrganizationMember(ctx, user._id, args.organizationId);
     if (!isMember && !(user.isAdmin || user.isStaff)) {
       throw new Error("Permission denied: not a member of this organization");
     }
     if (user.isAdmin) {
-      query = ctx.db.query("tickets").withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!));
+      query = ctx.db
+        .query("tickets")
+        .withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!));
     } else {
-      // Check if admin or staff
       try {
         await requireOrganizationAdminOrStaff(ctx, args.organizationId);
-        query = ctx.db.query("tickets").withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!));
+        query = ctx.db
+          .query("tickets")
+          .withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!));
       } catch {
-        // Not admin/staff: only their own tickets filed with the org
         query = ctx.db
           .query("tickets")
           .withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!))
@@ -84,14 +85,10 @@ export const getTicketsHandler = async (
   } else if (args.dueBefore !== undefined) {
     query = ctx.db.query("tickets").withIndex("by_due_date");
   } else {
-    // default: user's own created and assigned
-    query = ctx.db
-      .query("tickets")
-      .withIndex("by_creator", (q) => q.eq("createdById", user._id));
+    query = ctx.db.query("tickets").withIndex("by_creator", (q) => q.eq("createdById", user._id));
   }
-  
 
-  const filtered = query.filter((q) => {
+  const filtered = query.filter((q: any) => {
     let predicate = q.and();
     if (args.status) {
       predicate = q.and(predicate, q.eq(q.field("status"), args.status));
@@ -111,15 +108,11 @@ export const getTicketsHandler = async (
     return predicate;
   });
 
-  const results = await filtered.collect();
-  results.sort((a, b) => b.updatedAt - a.updatedAt);
-  const total = results.length;
-  const offset = args.offset || 0;
-  const limit = args.limit || 50;
-  const page = results.slice(offset, offset + limit);
+  const limit = Math.min(Math.max(args.limit ?? 50, 1), 200);
+  const cursor = args.cursor ?? null;
 
-  return { tickets: page, total, offset, limit, hasMore: offset + limit < total };
+  const results = await filtered.order("desc").paginate({ numItems: limit, cursor });
+  return results as any;
 };
-
 
 

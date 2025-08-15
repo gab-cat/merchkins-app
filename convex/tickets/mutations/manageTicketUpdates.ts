@@ -1,7 +1,7 @@
 import { MutationCtx } from "../../_generated/server";
 import { v } from "convex/values";
 import { Id } from "../../_generated/dataModel";
-import { requireAuthentication, logAction } from "../../helpers";
+import { requireAuthentication, logAction, requireOrganizationAdminOrStaff } from "../../helpers";
 
 export const addTicketUpdateArgs = {
   ticketId: v.id("tickets"),
@@ -46,7 +46,15 @@ export const addTicketUpdateHandler = async (
   const isOwner = ticket.createdById === user._id;
   const isAssignee = ticket.assignedToId === user._id;
   if (!(isPrivileged || isOwner || isAssignee)) {
-    throw new Error("Permission denied: You can only update tickets you own or are assigned to");
+    if (ticket.organizationId) {
+      try {
+        await requireOrganizationAdminOrStaff(ctx, ticket.organizationId);
+      } catch {
+        throw new Error("Permission denied: Only organization admins or staff can update tickets for this organization");
+      }
+    } else {
+      throw new Error("Permission denied: You can only update tickets you own or are assigned to");
+    }
   }
 
   const now = Date.now();

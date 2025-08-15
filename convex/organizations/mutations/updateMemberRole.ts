@@ -1,27 +1,32 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { logAction, requireOrganizationAdmin } from '../../helpers';
 
 // Update member role and permissions
 export const updateMemberRoleArgs = {
-  organizationId: v.id("organizations"),
-  userId: v.id("users"),
-  role: v.union(v.literal("ADMIN"), v.literal("STAFF"), v.literal("MEMBER")),
-  permissions: v.optional(v.array(v.object({
-    permissionCode: v.string(),
-    canCreate: v.boolean(),
-    canRead: v.boolean(),
-    canUpdate: v.boolean(),
-    canDelete: v.boolean(),
-  }))),
+  organizationId: v.id('organizations'),
+  userId: v.id('users'),
+  role: v.union(v.literal('ADMIN'), v.literal('STAFF'), v.literal('MEMBER')),
+  permissions: v.optional(
+    v.array(
+      v.object({
+        permissionCode: v.string(),
+        canCreate: v.boolean(),
+        canRead: v.boolean(),
+        canUpdate: v.boolean(),
+        canDelete: v.boolean(),
+      }),
+    ),
+  ),
 };
 
 export const updateMemberRoleHandler = async (
   ctx: MutationCtx,
   args: {
-    organizationId: Id<"organizations">;
-    userId: Id<"users">;
-    role: "ADMIN" | "STAFF" | "MEMBER";
+    organizationId: Id<'organizations'>;
+    userId: Id<'users'>;
+    role: 'ADMIN' | 'STAFF' | 'MEMBER';
     permissions?: Array<{
       permissionCode: string;
       canCreate: boolean;
@@ -29,9 +34,11 @@ export const updateMemberRoleHandler = async (
       canUpdate: boolean;
       canDelete: boolean;
     }>;
-  }
+  },
 ) => {
   const { organizationId, userId, role, permissions = [] } = args;
+  // Ensure actor has admin rights for this org
+  await requireOrganizationAdmin(ctx, organizationId);
   
   // Get membership
   const membership = await ctx.db
@@ -89,5 +96,23 @@ export const updateMemberRoleHandler = async (
     }
   }
   
+  // Audit log
+  await logAction(
+    ctx,
+    'update_member_role',
+    'AUDIT_TRAIL',
+    'HIGH',
+    `Updated role for member ${userId} in organization ${organizationId} from ${oldRole} to ${role}`,
+    userId,
+    organizationId,
+    { oldRole, newRole: role, permissions },
+    {
+      resourceType: 'organization_member',
+      resourceId: membership._id as unknown as string,
+      previousValue: { role: oldRole },
+      newValue: { role },
+    },
+  );
+
   return { success: true };
 };

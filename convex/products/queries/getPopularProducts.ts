@@ -73,7 +73,23 @@ export const getPopularProductsHandler = async (
   });
   
   // Get results
-  const results = await filteredQuery.collect();
+  let results = await filteredQuery.collect();
+
+  // If not scoped to an organization, only include products from public organizations (or global)
+  if (!args.organizationId) {
+    const filtered: any[] = []
+    for (const p of results) {
+      if (!p.organizationId) {
+        filtered.push(p)
+        continue
+      }
+      const org = await ctx.db.get(p.organizationId as Id<'organizations'>)
+      if (org && !org.isDeleted && org.organizationType === 'PUBLIC') {
+        filtered.push(p)
+      }
+    }
+    results = filtered
+  }
   
   // Calculate popularity score for each product
   const productsWithScore = results.map(product => {

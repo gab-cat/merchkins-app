@@ -25,7 +25,6 @@ export const getCategoryBySlugHandler = async (
     : ctx.db.query("categories")
         .withIndex("by_slug", (q) => q.eq("slug", args.slug))
         .filter((q) => q.and(
-          q.eq(q.field("organizationId"), undefined),
           q.eq(q.field("isDeleted"), false)
         ));
   

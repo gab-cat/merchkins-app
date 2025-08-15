@@ -30,6 +30,7 @@ export const removeItemHandler = async (
   }
 
   const product = await validateProductExists(ctx, args.productId);
+  // No org visibility check needed for removal; allow removing inaccessible items gracefully
   let variantName: string | undefined = undefined;
   if (args.variantId) {
     const variant = product.variants.find((v) => v.variantId === args.variantId);
@@ -43,8 +44,15 @@ export const removeItemHandler = async (
   const beforeLength = cart.embeddedItems.length;
   let removedQuantity = 0;
   const items = cart.embeddedItems.filter((i) => {
-    const match = i.productInfo.productId === args.productId &&
-      ((i.productInfo.variantName ?? null) === (variantName ?? null));
+    const sameProduct = i.productInfo.productId === args.productId;
+    let match = false;
+    if (sameProduct) {
+      if (args.variantId != null) {
+        match = (i.variantId ?? null) === args.variantId;
+      } else {
+        match = (i.variantId ?? null) === null;
+      }
+    }
     if (match) {
       removedQuantity += i.quantity;
     }

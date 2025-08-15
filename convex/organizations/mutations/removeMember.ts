@@ -1,22 +1,26 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { logAction, requireOrganizationAdmin } from '../../helpers';
 
 // Remove member from organization
 export const removeMemberArgs = {
-  organizationId: v.id("organizations"),
-  userId: v.id("users"),
+  organizationId: v.id('organizations'),
+  userId: v.id('users'),
 };
 
 export const removeMemberHandler = async (
   ctx: MutationCtx,
   args: {
-    organizationId: Id<"organizations">;
-    userId: Id<"users">;
-  }
+    organizationId: Id<'organizations'>;
+    userId: Id<'users'>;
+  },
 ) => {
   const { organizationId, userId } = args;
   
+  // Ensure actor has admin rights; also get actor for logging
+  const { user: actor } = await requireOrganizationAdmin(ctx, organizationId);
+
   // Get organization
   const organization = await ctx.db.get(organizationId);
   if (!organization || organization.isDeleted) {
@@ -67,6 +71,24 @@ export const removeMemberHandler = async (
     adminCount: newAdminCount,
     updatedAt: Date.now(),
   });
+  
+  // Audit log
+  await logAction(
+    ctx,
+    'remove_member',
+    'AUDIT_TRAIL',
+    'HIGH',
+    `Removed member ${userId} from organization ${organization.name}`,
+    userId,
+    organizationId,
+    { role: membership.role },
+    {
+      resourceType: 'organization_member',
+      resourceId: membership._id as unknown as string,
+      previousValue: { isActive: true },
+      newValue: { isActive: false },
+    },
+  );
   
   return { success: true };
 };

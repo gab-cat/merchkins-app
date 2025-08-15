@@ -18,6 +18,9 @@ export const createAnnouncementArgs = {
     v.literal("MARKDOWN"),
     v.literal("HTML"),
   ),
+  // Optional category and visibility controls
+  category: v.optional(v.string()),
+  visibility: v.optional(v.union(v.literal("PUBLIC"), v.literal("INTERNAL"))),
   type: v.union(v.literal("NORMAL"), v.literal("SYSTEM")),
   level: v.union(
     v.literal("INFO"),
@@ -58,6 +61,8 @@ export const createAnnouncementHandler = async (
     type: "NORMAL" | "SYSTEM";
     level: "INFO" | "WARNING" | "CRITICAL";
     targetAudience: "ALL" | "STAFF" | "CUSTOMERS" | "MERCHANTS" | "ADMINS";
+    category?: string;
+    visibility?: "PUBLIC" | "INTERNAL";
     isPinned?: boolean;
     requiresAcknowledgment?: boolean;
     attachments?: Array<{ filename: string; url: string; size: number; mimeType: string }>;
@@ -68,9 +73,17 @@ export const createAnnouncementHandler = async (
 ) => {
   const currentUser = await requireAuthentication(ctx);
 
+  let membershipRole: "ADMIN" | "STAFF" | "MEMBER" | undefined = undefined;
   if (args.organizationId) {
     await validateOrganizationExists(ctx, args.organizationId);
-    await requireOrganizationPermission(ctx, args.organizationId, "MANAGE_ANNOUNCEMENTS", "create");
+    // Allow ADMIN or STAFF with permission to create org announcements
+    const { membership } = await requireOrganizationPermission(
+      ctx,
+      args.organizationId,
+      "MANAGE_ANNOUNCEMENTS",
+      "create",
+    );
+    membershipRole = membership.role as any;
   } else if (!currentUser.isAdmin) {
     throw new Error("Only system administrators can create global announcements");
   }
@@ -80,6 +93,7 @@ export const createAnnouncementHandler = async (
   const content = sanitizeString(args.content);
   if (!title) throw new Error("Title cannot be empty");
   if (!content) throw new Error("Content cannot be empty");
+  const category = args.category ? sanitizeString(args.category) : undefined;
 
   // Validate schedule consistency
   if (args.expiresAt && args.publishedAt && args.expiresAt <= args.publishedAt) {
@@ -87,6 +101,18 @@ export const createAnnouncementHandler = async (
   }
   if (args.expiresAt && args.scheduledAt && args.expiresAt <= args.scheduledAt) {
     throw new Error("expiresAt must be greater than scheduledAt");
+  }
+
+  // Visibility defaults and constraints
+  // - Global announcements (no organizationId) are always PUBLIC
+  // - Org announcements default to INTERNAL; can be set PUBLIC by admin/staff
+  const visibility: "PUBLIC" | "INTERNAL" = args.organizationId
+    ? (args.visibility ?? "INTERNAL")
+    : "PUBLIC";
+
+  // Staff cannot publish PUBLIC org announcements
+  if (args.organizationId && visibility === "PUBLIC" && membershipRole !== "ADMIN") {
+    throw new Error("Only organization admins can publish public announcements");
   }
 
   // Publisher info snapshot
@@ -119,6 +145,8 @@ export const createAnnouncementHandler = async (
     content,
     contentType: args.contentType,
     targetAudience: args.targetAudience,
+    category,
+    visibility,
     publishedAt: args.publishedAt ?? now,
     scheduledAt: args.scheduledAt,
     expiresAt: args.expiresAt,
@@ -144,7 +172,7 @@ export const createAnnouncementHandler = async (
     `Created announcement: ${title}`,
     currentUser._id,
     args.organizationId,
-    { announcementId, level: args.level, type: args.type, targetAudience: args.targetAudience }
+    { announcementId, level: args.level, type: args.type, targetAudience: args.targetAudience, category, visibility }
   );
 
   return announcementId;

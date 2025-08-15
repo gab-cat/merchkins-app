@@ -29,9 +29,13 @@ export const setItemNoteHandler = async (
 
   const now = Date.now();
   const items = [...cart.embeddedItems];
-  const index = items.findIndex(
-    (i) => i.productInfo.productId === product._id && (i.productInfo.variantName ?? null) === (variantName ?? null)
-  );
+  const index = items.findIndex((i) => {
+    if (i.productInfo.productId !== product._id) return false;
+    if (args.variantId != null) {
+      return (i.variantId ?? null) === args.variantId;
+    }
+    return (i.variantId ?? null) === null;
+  });
   if (index === -1) throw new Error("Item not found in cart");
 
   items[index] = { ...items[index], note: sanitized, addedAt: now };
