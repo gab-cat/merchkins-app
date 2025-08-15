@@ -1,51 +1,108 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Star } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Star } from 'lucide-react'
 import { R2Image } from '@/src/components/ui/r2-image'
 
-type ProductCard = {
-  _id: string
-  slug: string
-  title: string
-  description?: string
-  imageUrl?: string[]
-  minPrice?: number
-  rating?: number
-  reviewsCount?: number
-  isBestPrice?: boolean
-  discountLabel?: string
-}
+export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [q, setQ] = useState(searchParams.get('q') ?? '')
+  const sortOptions = ['newest', 'popular', 'rating', 'price_low', 'price_high'] as const
+  type SortOption = typeof sortOptions[number]
+  const [sortBy, setSortBy] = useState<SortOption>('newest')
 
-export function PopularProducts ({ orgSlug }: { orgSlug?: string } = {}) {
+  useEffect(() => {
+    setQ(searchParams.get('q') ?? '')
+  }, [searchParams])
+
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
   )
-  const result = useQuery(
-    api.products.queries.index.getPopularProducts,
-    organization?._id ? { limit: 8, organizationId: organization._id } : { limit: 8 }
-  )
-  const loading = result === undefined
-  const products = (result?.products ?? []) as unknown as ProductCard[]
+  const searchArgs = q.trim()
+    ? {
+        query: q.trim(),
+        limit: 50,
+        ...(organization?._id ? { organizationId: organization._id } : {}),
+      }
+    : undefined
+  const searchResult = useQuery(api.products.queries.index.searchProducts, searchArgs)
+
+  const loading = q.trim() !== '' && searchResult === undefined
+  const products = useMemo(() => {
+    const list = searchResult?.products ?? []
+    const copy = [...list]
+    copy.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return b.createdAt - a.createdAt
+        case 'rating':
+          if (b.rating !== a.rating) return b.rating - a.rating
+          return b.reviewsCount - a.reviewsCount
+        case 'price_low':
+          return (a.minPrice ?? Number.MAX_VALUE) - (b.minPrice ?? Number.MAX_VALUE)
+        case 'price_high':
+          return (b.maxPrice ?? 0) - (a.maxPrice ?? 0)
+        case 'popular':
+          if (b.totalOrders !== a.totalOrders) return b.totalOrders - a.totalOrders
+          return b.viewCount - a.viewCount
+        default:
+          return 0
+      }
+    })
+    return copy
+  }, [searchResult, sortBy])
+
+  function handleSubmit (e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    router.push(
+      orgSlug
+        ? `/o/${orgSlug}/search?q=${encodeURIComponent(q.trim())}`
+        : `/search?q=${encodeURIComponent(q.trim())}`
+    )
+  }
 
   return (
     <div>
-      <div className="mb-4 flex items-end justify-between">
-        <h2 className="text-xl font-semibold">Popular products</h2>
-        <Link className="text-sm text-primary" href={orgSlug ? `/o/${orgSlug}/search` : '/search'}>View all</Link>
-      </div>
-      <div
-        className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-        data-testid="popular-products-grid"
-      >
+      <form onSubmit={handleSubmit} className="mb-6 flex items-center gap-2" role="search">
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search products"
+          aria-label="Search products"
+        />
+        <Button type="submit">Search</Button>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest</SelectItem>
+            <SelectItem value="popular">Popular</SelectItem>
+            <SelectItem value="rating">Rating</SelectItem>
+            <SelectItem value="price_low">Price: Low to High</SelectItem>
+            <SelectItem value="price_high">Price: High to Low</SelectItem>
+          </SelectContent>
+        </Select>
+      </form>
+
+      {!q.trim() && (
+        <div className="text-sm text-muted-foreground">Enter a search term to begin.</div>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {loading
-          ? new Array(8).fill(null).map((_, i) => (
+          ? new Array(12).fill(null).map((_, i) => (
               <Card
                 key={`skeleton-${i}`}
                 className="overflow-hidden rounded-xl border bg-card shadow-sm py-0"
@@ -60,7 +117,7 @@ export function PopularProducts ({ orgSlug }: { orgSlug?: string } = {}) {
                 </CardContent>
               </Card>
             ))
-          : products.map((p) => (
+          : products.map((p: any) => (
               <Link
                 key={p._id}
                 href={orgSlug ? `/o/${orgSlug}/p/${p.slug}` : `/p/${p.slug}`}
@@ -123,10 +180,12 @@ export function PopularProducts ({ orgSlug }: { orgSlug?: string } = {}) {
               </Link>
             ))}
       </div>
-      {!loading && products.length === 0 && (
-        <div className="text-sm text-muted-foreground">No popular products yet.</div>
+
+      {!loading && q.trim() && products.length === 0 && (
+        <div className="text-sm text-muted-foreground">No products found.</div>
       )}
     </div>
   )
 }
+
 
