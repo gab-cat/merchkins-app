@@ -49,6 +49,7 @@ This comprehensive guide outlines best practices, conventions, and standards for
       - Environment variables
       - Constants
       - Global configurations
+    - Do not BUILD PORJECT unless stated otherwise
 
     Project Structure & Organization
       - Use feature-based architecture organized by domain (admin, customer) under src/features/
