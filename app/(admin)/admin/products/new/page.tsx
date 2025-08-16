@@ -4,18 +4,19 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from 'convex/react'
+import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import type { Id } from '@/convex/_generated/dataModel'
 
 const schema = z.object({
   title: z.string().min(2),
   description: z.string().optional(),
-  imageUrl: z.string().url().array().min(1),
+  imageUrl: z.array(z.string().url()).min(1),
   tags: z.string().transform(v => v.split(',').map(s => s.trim()).filter(Boolean)).optional(),
   inventory: z.coerce.number().min(0),
   inventoryType: z.enum(['PREORDER', 'STOCK']),
@@ -32,7 +33,14 @@ type FormValues = z.infer<typeof schema>
 
 export default function AdminCreateProductPage () {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const orgSlug = searchParams.get('org')
   const createProduct = useMutation(api.products.mutations.index.createProduct)
+
+  const organization = useQuery(
+    api.organizations.queries.index.getOrganizationBySlug,
+    orgSlug ? { slug: orgSlug } : 'skip'
+  )
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -51,6 +59,7 @@ export default function AdminCreateProductPage () {
 
   async function onSubmit (values: FormValues) {
     await createProduct({
+      organizationId: organization?._id,
       title: values.title,
       description: values.description,
       imageUrl: values.imageUrl,
@@ -61,6 +70,16 @@ export default function AdminCreateProductPage () {
       variants: values.variants,
     })
     router.push('/admin/products')
+  }
+
+  if (orgSlug && organization === undefined) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="text-lg font-medium">Loading organization...</div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -88,7 +107,12 @@ export default function AdminCreateProductPage () {
             <div>
               <label className="mb-1 block text-sm font-medium" htmlFor="imageUrl">Image URLs (comma separated)</label>
               <Input id="imageUrl" placeholder="https://... , https://..." {...register('imageUrl', {
-                setValueAs: (v: string) => v.split(',').map((s) => s.trim()).filter(Boolean),
+                setValueAs: (v: any) => {
+                  if (typeof v === 'string') {
+                    return v.split(',').map((s) => s.trim()).filter(Boolean);
+                  }
+                  return [];
+                },
               })} />
               {errors.imageUrl && <p className="mt-1 text-xs text-red-500">At least one valid URL</p>}
             </div>
