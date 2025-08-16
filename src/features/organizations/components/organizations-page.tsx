@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Doc, Id } from '@/convex/_generated/dataModel'
+import { R2Image } from '@/src/components/ui/r2-image'
 
 type Organization = Doc<'organizations'>
 
@@ -100,10 +100,9 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
                     <li key={org._id} className="flex items-center justify-between gap-4 py-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="h-10 w-10 overflow-hidden rounded border bg-secondary flex-shrink-0">
-                          {/* Assuming org.logo is a string or null */}
                           {org.logo ? (
-                            <Image 
-                              src={`https://${process.env.NEXT_PUBLIC_R2_BUCKET_NAME}.r2.cloudflarestorage.com/${org.logo}`} 
+                            <R2Image 
+                              fileKey={org.logo}
                               alt={`${org.name || 'Organization'} logo`} 
                               width={40} 
                               height={40}

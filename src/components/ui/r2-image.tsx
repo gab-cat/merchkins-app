@@ -51,8 +51,8 @@ export function R2Image ({
     <Image
       src={url}
       alt={alt}
-      width={fill ? undefined : width}
-      height={fill ? undefined : height}
+      width={fill ? 1 : width}
+      height={fill ? 1 : height}
       fill={fill}
       className={className}
       priority={priority}

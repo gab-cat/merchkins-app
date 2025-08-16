@@ -239,35 +239,7 @@
     background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--accent) / 0.1));
   }
 
-  /* Clerk button visibility fixes */
-  [data-clerk-component="form-button-primary"] {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    background-color: #1d43d8 !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 0.75rem !important;
-    padding: 12px 24px !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    font-family: 'Poppins', system-ui, -apple-system, sans-serif !important;
-    cursor: pointer !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
-  }
-
-  [data-clerk-component="form-button-primary"]:hover {
-    background-color: #1a3bb8 !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-  }
-
-  [data-clerk-component="form-button-primary"]:active {
-    transform: translateY(0) !important;
-  }
-
-  /* Ensure all Clerk buttons are visible */
+  /* Clerk component visibility fixes */
   [data-clerk-component*="button"] {
     display: inline-block !important;
     visibility: visible !important;

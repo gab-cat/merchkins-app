@@ -19,7 +19,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 const schema = z.object({
   title: z.string().min(2),
   description: z.string().optional(),
-  imageUrl: z.array(z.string().url()).optional(),
   tags: z.string().transform(v => v.split(',').map(s => s.trim()).filter(Boolean)).optional(),
   inventory: z.coerce.number().min(0),
   inventoryType: z.enum(['PREORDER', 'STOCK']),
@@ -27,7 +26,7 @@ const schema = z.object({
     variantName: z.string().min(1),
     price: z.coerce.number().min(0.01),
     inventory: z.coerce.number().min(0),
-    imageUrl: z.string().url().optional(),
+    imageUrl: z.string().optional(),
     isActive: z.boolean().optional(),
   })).min(1),
 })
@@ -48,13 +47,13 @@ export default function AdminCreateProductPage () {
 
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
   const [variantImages, setVariantImages] = useState<Record<number, string>>({})
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, setValue } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: '',
       description: '',
-      imageUrl: [],
       tags: undefined,
       inventory: 0,
       inventoryType: 'STOCK',
@@ -76,7 +75,6 @@ export default function AdminCreateProductPage () {
       )
       const newImages = [...uploadedImages, ...keys]
       setUploadedImages(newImages)
-      setValue('imageUrl', newImages)
     } catch (err) {
       console.error(err)
       alert('Failed to upload images')
@@ -93,7 +91,6 @@ export default function AdminCreateProductPage () {
   async function handleRemoveImage (key: string) {
     const newImages = uploadedImages.filter((k) => k !== key)
     setUploadedImages(newImages)
-    setValue('imageUrl', newImages)
   }
 
   async function handleUploadVariantImage (variantIndex: number, e: React.ChangeEvent<HTMLInputElement>) {
@@ -121,29 +118,36 @@ export default function AdminCreateProductPage () {
   }
 
   async function onSubmit (values: FormValues) {
+    setSubmitError(null)
+    
     if (uploadedImages.length === 0) {
-      alert('Please upload at least one image')
+      setSubmitError('Please upload at least one image')
       return
     }
     
-    // Update variants with uploaded images
-    const variantsWithImages = values.variants.map((variant, index) => ({
-      ...variant,
-      imageUrl: variantImages[index] || variant.imageUrl,
-    }))
-    
-    await createProduct({
-      organizationId: organization?._id,
-      title: values.title,
-      description: values.description,
-      imageUrl: uploadedImages,
-      tags: (values.tags as unknown as string[]) || [],
-      isBestPrice: false,
-      inventory: values.inventory,
-      inventoryType: values.inventoryType,
-      variants: variantsWithImages,
-    })
-    router.push('/admin/products')
+    try {
+      // Update variants with uploaded images
+      const variantsWithImages = values.variants.map((variant, index) => ({
+        ...variant,
+        imageUrl: variantImages[index] || variant.imageUrl,
+      }))
+      
+      await createProduct({
+        organizationId: organization?._id,
+        title: values.title,
+        description: values.description,
+        imageUrl: uploadedImages,
+        tags: (values.tags as unknown as string[]) || [],
+        isBestPrice: false,
+        inventory: values.inventory,
+        inventoryType: values.inventoryType,
+        variants: variantsWithImages,
+      })
+      router.push('/admin/products')
+    } catch (error) {
+      console.error('Failed to create product:', error)
+      setSubmitError('Failed to create product. Please check your input and try again.')
+    }
   }
 
   if (orgSlug && organization === undefined) {
@@ -163,6 +167,32 @@ export default function AdminCreateProductPage () {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 md:grid-cols-2">
+        {/* General form errors */}
+        {(submitError || uploadedImages.length === 0 || errors.title || errors.description || errors.inventory || errors.inventoryType || errors.tags || errors.variants) && (
+          <div className="col-span-full">
+            <div className="rounded-md border border-red-200 bg-red-50 p-4">
+              <div className="flex">
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    Please fix the following errors:
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700">
+                    <ul className="list-disc space-y-1 pl-5">
+                      {submitError && <li>{submitError}</li>}
+                      {errors.title && <li>Title: {errors.title.message}</li>}
+                      {errors.description && <li>Description: {errors.description.message}</li>}
+                      {errors.inventory && <li>Inventory: {errors.inventory.message}</li>}
+                      {errors.inventoryType && <li>Inventory Type: {errors.inventoryType.message}</li>}
+                      {errors.tags && <li>Tags: {errors.tags.message}</li>}
+                      {errors.variants && <li>Variants: Please check variant information</li>}
+                      {uploadedImages.length === 0 && <li>Product Images: At least one image is required</li>}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <Card className="animate-in fade-in slide-in-from-bottom-2">
           <CardHeader>
             <CardTitle>Basics</CardTitle>
@@ -183,7 +213,7 @@ export default function AdminCreateProductPage () {
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {uploadedImages.map((key, idx) => (
                   <div key={key} className="relative group">
-                    <R2Image fileKey={key} alt={`Product image ${idx + 1}`} className="h-32 w-full rounded object-cover" />
+                    <R2Image fileKey={key} alt={`Product image ${idx + 1}`} width={400} height={300} className="h-32 w-full rounded object-cover" />
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <Button
                         variant="destructive"
@@ -211,6 +241,7 @@ export default function AdminCreateProductPage () {
             <div>
               <label className="mb-1 block text-sm font-medium" htmlFor="tags">Tags (comma separated)</label>
               <Input id="tags" placeholder="apparel, stickers" {...register('tags')} />
+              {errors.tags && <p className="mt-1 text-xs text-red-500">{errors.tags.message}</p>}
             </div>
           </CardContent>
         </Card>
@@ -232,30 +263,35 @@ export default function AdminCreateProductPage () {
                   <option value="STOCK">Stock</option>
                   <option value="PREORDER">Preorder</option>
                 </select>
+                {errors.inventoryType && <p className="mt-1 text-xs text-red-500">{errors.inventoryType.message}</p>}
               </div>
             </div>
 
             <div className="rounded-md border p-4">
               <div className="mb-3 text-sm font-medium">Variant 1</div>
+              {errors.variants && <p className="mb-2 text-xs text-red-500">{errors.variants.message}</p>}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium" htmlFor="variantName-0">Name</label>
                   <Input id="variantName-0" {...register('variants.0.variantName')} />
+                  {errors.variants?.[0]?.variantName && <p className="mt-1 text-xs text-red-500">{errors.variants[0].variantName.message}</p>}
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium" htmlFor="variantPrice-0">Price</label>
                   <Input id="variantPrice-0" type="number" step="0.01" min={0.01} {...register('variants.0.price', { valueAsNumber: true })} />
+                  {errors.variants?.[0]?.price && <p className="mt-1 text-xs text-red-500">{errors.variants[0].price.message}</p>}
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium" htmlFor="variantInventory-0">Inventory</label>
                   <Input id="variantInventory-0" type="number" min={0} {...register('variants.0.inventory', { valueAsNumber: true })} />
+                  {errors.variants?.[0]?.inventory && <p className="mt-1 text-xs text-red-500">{errors.variants[0].inventory.message}</p>}
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium">Variant Image</label>
                   <div className="flex items-center gap-3">
                     {variantImages[0] ? (
                       <div className="relative group">
-                        <R2Image fileKey={variantImages[0]} alt="Variant image" className="h-16 w-16 rounded object-cover" />
+                        <R2Image fileKey={variantImages[0]} alt="Variant image" width={64} height={64} className="h-16 w-16 rounded object-cover" />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded">
                           <Button
                             variant="destructive"
