@@ -112,8 +112,8 @@ export function CartSheet ({
         </div>
       </SheetTrigger>
 
-      <SheetContent side="right" className="p-0">
-        <SheetHeader className="border-b">
+      <SheetContent side="right" className="p-0 bg-white text-black">
+        <SheetHeader className="border-b bg-primary">
           <SheetTitle className="p-4 inline-flex items-center gap-2 text-xl sm:text-2xl"><ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" /> Your cart</SheetTitle>
         </SheetHeader>
 
@@ -330,9 +330,9 @@ function MiniCartLineItem ({
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        variant="outline"
+                        variant="secondary"
                         size="sm"
-                        className="w-full justify-between md:w-64"
+                        className="w-full justify-between md:w-64 border"
                         aria-label="Select variant"
                       >
                         {item.productInfo.variantName ?? 'Select a variant'}

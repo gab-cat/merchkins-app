@@ -82,7 +82,7 @@ export function PopularOrganizations ({ limit = 8 }: PopularOrganizationsProps) 
           : organizations.map((org) => (
               <Card
                 key={org.id}
-                className="overflow-hidden rounded-xl py-0 border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                className="overflow-hidden gap-0 rounded-xl py-0 border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
               >
                 {/* Banner */}
                 <div className="relative h-16 w-full overflow-hidden md:h-20">
@@ -112,49 +112,53 @@ export function PopularOrganizations ({ limit = 8 }: PopularOrganizationsProps) 
                   ) : (
                     <div className="h-full w-full bg-gradient-to-r from-muted to-muted/40" />
                   )}
-                  {/* Logo overlay */}
-                  <div className="absolute mt-0 z-40 -bottom-4 left-3 h-9 w-9 overflow-hidden rounded-full ring-2 ring-background md:h-10 md:w-10">
-                    {org.logoUrl ? (
-                      <Image
-                        src={org.logoUrl as string}
-                        alt={`${org.name} logo`}
-                        width={80}
-                        height={80}
-                        className="h-full w-full object-cover z-40"
-                      />
-                    ) : org.logo ? (
-                      isKey(org.logo) ? (
-                        <R2Image
-                          fileKey={org.logo as string}
-                          alt={`${org.name} logo`}
-                          width={80}
-                          height={80}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <Image
-                          src={org.logo as string}
-                          alt={`${org.name} logo`}
-                          width={80}
-                          height={80}
-                          className="h-full w-full object-cover"
-                        />
-                      )
-                    ) : (
-                      <div className="h-full w-full bg-secondary" />
-                    )}
-                  </div>
                 </div>
-                <CardHeader className="p-3 py-0 mt-0 md:p-3">
+                <CardHeader className="p-3 md:p-3 py-0 mt-0">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 pl-11">
-                      <CardTitle className="truncate text-sm font-semibold">
-                        <Link href={`/o/${org.slug}`} aria-label={`Open ${org.name}`}>
-                          {org.name}
-                        </Link>
-                      </CardTitle>
-                      <div className="mt-1 truncate text-[11px] text-muted-foreground">
-                        {org.memberCount} members • {org.totalOrderCount} orders
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Logo beside the name */}
+                      <div className="h-12 w-12 overflow-hidden rounded-full ring-2 ring-background flex-shrink-0 md:h-14 md:w-14">
+                        {org.logoUrl ? (
+                          <Image
+                            src={org.logoUrl as string}
+                            alt={`${org.name} logo`}
+                            width={80}
+                            height={80}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : org.logo ? (
+                          isKey(org.logo) ? (
+                            <R2Image
+                              fileKey={org.logo as string}
+                              alt={`${org.name} logo`}
+                              width={80}
+                              height={80}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <Image
+                              src={org.logo as string}
+                              alt={`${org.name} logo`}
+                              width={80}
+                              height={80}
+                              className="h-full w-full object-cover"
+                            />
+                          )
+                        ) : (
+                          <div className="h-full w-full bg-secondary flex items-center justify-center text-primary text-sm font-medium">
+                            {org.name?.charAt(0) || 'O'}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <CardTitle className="truncate text-sm font-semibold">
+                          <Link href={`/o/${org.slug}`} aria-label={`Open ${org.name}`}>
+                            {org.name}
+                          </Link>
+                        </CardTitle>
+                        <div className="mt-1 truncate text-[11px] text-muted-foreground">
+                          {org.memberCount} members • {org.totalOrderCount} orders
+                        </div>
                       </div>
                     </div>
                     <Badge variant="secondary" className="shrink-0 text-[10px]">

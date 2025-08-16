@@ -143,7 +143,17 @@ export function SiteHeader () {
         <div className="ml-auto flex items-center gap-2" style={{ color: 'var(--header-fg)' }}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="relative gap-2 px-3 text-black" data-testid="support-menu">
+              <Button 
+                variant={orgSlug ? "default" : "outline"} 
+                size="sm" 
+                className={cn(
+                  "relative gap-2 px-3",
+                  orgSlug 
+                    ? "text-black bg-white hover:bg-gray-100" // Storefront page
+                    : "text-white" // Main page
+                )} 
+                data-testid="support-menu"
+              >
                 <MessageSquare className="h-4 w-4" />
                 {totalSupportUnread > 0 && (
                   <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-none text-destructive-foreground">
