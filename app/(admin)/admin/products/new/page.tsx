@@ -1,21 +1,25 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from 'convex/react'
+import { useUploadFile } from '@convex-dev/r2/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { R2Image } from '@/src/components/ui/r2-image'
+import { compressToWebP } from '@/lib/compress'
+import { UploadCloud, Trash2 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const schema = z.object({
   title: z.string().min(2),
   description: z.string().optional(),
-  imageUrl: z.array(z.string().url()).min(1),
+  imageUrl: z.array(z.string().url()).optional(),
   tags: z.string().transform(v => v.split(',').map(s => s.trim()).filter(Boolean)).optional(),
   inventory: z.coerce.number().min(0),
   inventoryType: z.enum(['PREORDER', 'STOCK']),
@@ -35,13 +39,16 @@ export default function AdminCreateProductPage () {
   const searchParams = useSearchParams()
   const orgSlug = searchParams.get('org')
   const createProduct = useMutation(api.products.mutations.index.createProduct)
+  const uploadFile = useUploadFile(api.files.r2)
 
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,
     orgSlug ? { slug: orgSlug } : 'skip'
   )
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: '',
@@ -56,12 +63,50 @@ export default function AdminCreateProductPage () {
     },
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const watchedImageUrl = watch('imageUrl')
+
+  async function uploadAndAddImages (files: File[]) {
+    try {
+      const keys = await Promise.all(
+        files.map(async (f) => {
+          const compressed = await compressToWebP(f)
+          return uploadFile(compressed)
+        }),
+      )
+      const newImages = [...uploadedImages, ...keys]
+      setUploadedImages(newImages)
+      setValue('imageUrl', newImages)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to upload images')
+    }
+  }
+
+  async function handleUploadImages (e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files) return
+    const files = Array.from(e.target.files)
+    await uploadAndAddImages(files)
+    e.target.value = ''
+  }
+
+  async function handleRemoveImage (key: string) {
+    const newImages = uploadedImages.filter((k) => k !== key)
+    setUploadedImages(newImages)
+    setValue('imageUrl', newImages)
+  }
+
   async function onSubmit (values: FormValues) {
+    if (uploadedImages.length === 0) {
+      alert('Please upload at least one image')
+      return
+    }
+    
     await createProduct({
       organizationId: organization?._id,
       title: values.title,
       description: values.description,
-      imageUrl: values.imageUrl,
+      imageUrl: uploadedImages,
       tags: (values.tags as unknown as string[]) || [],
       isBestPrice: false,
       inventory: values.inventory,
@@ -104,16 +149,34 @@ export default function AdminCreateProductPage () {
               {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="imageUrl">Image URLs (comma separated)</label>
-              <Input id="imageUrl" placeholder="https://... , https://..." {...register('imageUrl', {
-                setValueAs: (v) => {
-                  if (typeof v === 'string') {
-                    return v.split(',').map((s) => s.trim()).filter(Boolean);
-                  }
-                  return [];
-                },
-              })} />
-              {errors.imageUrl && <p className="mt-1 text-xs text-red-500">At least one valid URL</p>}
+              <label className="mb-1 block text-sm font-medium">Product Images</label>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                {uploadedImages.map((key, idx) => (
+                  <div key={key} className="relative group">
+                    <R2Image fileKey={key} alt={`Product image ${idx + 1}`} className="h-32 w-full rounded object-cover" />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRemoveImage(key)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="absolute top-1 left-1 bg-black/50 text-white text-xs px-1 rounded">
+                      {idx + 1}
+                    </div>
+                  </div>
+                ))}
+                <label className="h-32 w-full rounded border-2 border-dashed border-muted-foreground/25 flex items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-colors">
+                  <div className="text-center">
+                    <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
+                    <div className="text-sm text-muted-foreground mt-1">Add image</div>
+                  </div>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleUploadImages} />
+                </label>
+              </div>
+              {errors.imageUrl && <p className="mt-1 text-xs text-red-500">At least one image is required</p>}
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium" htmlFor="tags">Tags (comma separated)</label>
