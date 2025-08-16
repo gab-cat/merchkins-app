@@ -47,6 +47,7 @@ export default function AdminCreateProductPage () {
   )
 
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
+  const [variantImages, setVariantImages] = useState<Record<number, string>>({})
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, setValue } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -95,11 +96,41 @@ export default function AdminCreateProductPage () {
     setValue('imageUrl', newImages)
   }
 
+  async function handleUploadVariantImage (variantIndex: number, e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files?.[0]) return
+    try {
+      const file = e.target.files[0]
+      const compressed = await compressToWebP(file)
+      const key = await uploadFile(compressed)
+      setVariantImages(prev => ({ ...prev, [variantIndex]: key }))
+      setValue(`variants.${variantIndex}.imageUrl`, key)
+      e.target.value = ''
+    } catch (err) {
+      console.error(err)
+      alert('Failed to upload variant image')
+    }
+  }
+
+  async function handleRemoveVariantImage (variantIndex: number) {
+    setVariantImages(prev => {
+      const newImages = { ...prev }
+      delete newImages[variantIndex]
+      return newImages
+    })
+    setValue(`variants.${variantIndex}.imageUrl`, undefined)
+  }
+
   async function onSubmit (values: FormValues) {
     if (uploadedImages.length === 0) {
       alert('Please upload at least one image')
       return
     }
+    
+    // Update variants with uploaded images
+    const variantsWithImages = values.variants.map((variant, index) => ({
+      ...variant,
+      imageUrl: variantImages[index] || variant.imageUrl,
+    }))
     
     await createProduct({
       organizationId: organization?._id,
@@ -110,7 +141,7 @@ export default function AdminCreateProductPage () {
       isBestPrice: false,
       inventory: values.inventory,
       inventoryType: values.inventoryType,
-      variants: values.variants,
+      variants: variantsWithImages,
     })
     router.push('/admin/products')
   }
@@ -220,8 +251,38 @@ export default function AdminCreateProductPage () {
                   <Input id="variantInventory-0" type="number" min={0} {...register('variants.0.inventory', { valueAsNumber: true })} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium" htmlFor="variantImage-0">Image URL</label>
-                  <Input id="variantImage-0" placeholder="https://..." {...register('variants.0.imageUrl')} />
+                  <label className="mb-1 block text-sm font-medium">Variant Image</label>
+                  <div className="flex items-center gap-3">
+                    {variantImages[0] ? (
+                      <div className="relative group">
+                        <R2Image fileKey={variantImages[0]} alt="Variant image" className="h-16 w-16 rounded object-cover" />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleRemoveVariantImage(0)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-16 w-16 rounded border-2 border-dashed border-muted-foreground/25 flex items-center justify-center">
+                        <UploadCloud className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    <label className="cursor-pointer">
+                      <div className="text-sm text-muted-foreground">
+                        {variantImages[0] ? 'Change image' : 'Upload image'}
+                      </div>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => handleUploadVariantImage(0, e)} 
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
