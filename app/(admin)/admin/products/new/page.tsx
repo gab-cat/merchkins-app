@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { useRouter, useSearchParams } from 'next/navigation'
-import type { Id } from '@/convex/_generated/dataModel'
 
 const schema = z.object({
   title: z.string().min(2),
@@ -107,7 +106,7 @@ export default function AdminCreateProductPage () {
             <div>
               <label className="mb-1 block text-sm font-medium" htmlFor="imageUrl">Image URLs (comma separated)</label>
               <Input id="imageUrl" placeholder="https://... , https://..." {...register('imageUrl', {
-                setValueAs: (v: any) => {
+                setValueAs: (v) => {
                   if (typeof v === 'string') {
                     return v.split(',').map((s) => s.trim()).filter(Boolean);
                   }
