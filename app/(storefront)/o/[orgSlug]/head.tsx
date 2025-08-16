@@ -22,7 +22,7 @@ export default async function Head ({ params }: { params: Promise<{ orgSlug: str
         '@type': 'Organization',
         name: organization.name,
         url: `/${['o', organization.slug].join('/')}`,
-        logo: logo || '/convex.svg',
+        logo: logo || '/favicon.ico',
         description: organization.description || undefined,
         sameAs: organization.website ? [organization.website] : undefined,
       }

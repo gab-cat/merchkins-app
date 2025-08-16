@@ -27,7 +27,7 @@ export async function generateMetadata ({ params }: PageParams): Promise<Metadat
   }
   // Resolve signed URLs if values are R2 keys
   const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/')
-  let ogImage = (organization.bannerImage as string | undefined) || (organization.logo as string | undefined) || '/convex.svg'
+  let ogImage = (organization.bannerImage as string | undefined) || (organization.logo as string | undefined) || '/favicon.ico'
   if (isKey(ogImage)) {
     try {
       ogImage = await client.query(api.files.queries.index.getFileUrl, { key: ogImage as string })
@@ -97,7 +97,7 @@ export default async function Page ({ params }: PageParams) {
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="relative h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 overflow-hidden rounded-full ring-1 ring-border bg-background">
                 <Image
-                  src={logoUrl || '/convex.svg'}
+                  src={logoUrl || '/favicon.ico'}
                   alt={`${organization.name} logo`}
                   fill
                   className="object-cover object-center"
