@@ -1,6 +1,7 @@
 import React from 'react'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
+import { Doc } from '@/convex/_generated/dataModel'
 
 export default async function Head ({ params }: { params: Promise<{ orgSlug: string; slug: string }> }) {
   const { orgSlug, slug } = await params
@@ -8,7 +9,7 @@ export default async function Head ({ params }: { params: Promise<{ orgSlug: str
   const organization = await client.query(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug })
   if (!organization) return null
 
-  let product: any = null
+  let product: Doc<"products"> | null = null
   try {
     product = await client.query(api.products.queries.index.getProductBySlug, {
       slug,

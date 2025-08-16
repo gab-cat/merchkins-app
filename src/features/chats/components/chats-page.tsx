@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Doc } from '@/convex/_generated/dataModel'
 
 export function ChatsPage () {
   const pathname = usePathname()
@@ -38,7 +39,7 @@ export function ChatsPage () {
     if (!rooms) return []
     const q = search.trim().toLowerCase()
     if (!q) return rooms
-    return rooms.filter((r: any) => (r.name || '').toLowerCase().includes(q))
+    return rooms.filter((r: Doc<'chatRooms'>) => (r.name || '').toLowerCase().includes(q))
   }, [rooms, search])
 
   return (
@@ -60,7 +61,7 @@ export function ChatsPage () {
                       name: `Support — ${organization.name}`,
                     })
                     router.push(`/chats/${roomId}`)
-                  } catch (err) {
+                  } catch {
                     alert('Unable to start chat. You may need to join the organization first.')
                   }
                 }}
@@ -72,7 +73,7 @@ export function ChatsPage () {
         </CardHeader>
         <CardContent>
           <div className="divide-y">
-            {(filtered || []).map((r: any) => (
+            {(filtered || []).map((r: Doc<'chatRooms'>) => (
               <div key={r._id} className="flex items-center justify-between gap-3 py-3">
                 <div className="min-w-0">
                   <div className="truncate font-medium">{r.name || 'Direct chat'}</div>

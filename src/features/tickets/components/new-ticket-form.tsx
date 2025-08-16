@@ -56,7 +56,7 @@ export function NewTicketForm () {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium" htmlFor="priority">Priority</label>
-          <select id="priority" className="h-9 rounded-md border bg-background px-3 text-sm" value={priority} onChange={(e) => setPriority(e.target.value as any)}>
+          <select id="priority" className="h-9 rounded-md border bg-background px-3 text-sm" value={priority} onChange={(e) => setPriority(e.target.value as 'LOW' | 'MEDIUM' | 'HIGH')}>
             <option value="LOW">Low</option>
             <option value="MEDIUM">Medium</option>
             <option value="HIGH">High</option>

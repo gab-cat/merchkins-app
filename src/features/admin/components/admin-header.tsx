@@ -54,7 +54,7 @@ export function AdminHeader () {
             <SheetContent side="left" className="w-64 p-0">
               <div className="px-3 py-2 border-b">
                 <div className="text-sm text-muted-foreground">{areaLabel}</div>
-                <div className="font-semibold tracking-tight">
+                <div className={cn('font-semibold tracking-tight', orgSlug ? '' : 'font-genty')}>
                   {orgSlug ? `Org: ${orgSlug}` : 'Merchkins'}
                 </div>
               </div>
@@ -64,7 +64,7 @@ export function AdminHeader () {
             </SheetContent>
           </Sheet>
           <Link href={pathname?.startsWith('/super-admin') ? '/super-admin' : '/admin'} className="flex items-center gap-2">
-            <span className="text-base font-semibold tracking-tight" style={{ color: 'var(--header-title)' }}>
+            <span className="text-base font-semibold tracking-tight font-genty">
               {areaLabel}
             </span>
           </Link>

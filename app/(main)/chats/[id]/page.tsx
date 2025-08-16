@@ -9,7 +9,6 @@ export default function Page ({ params }: { params: Promise<{ id: string }> }) {
     return <ChatRoom roomId={id as Id<'chatRooms'>} />
   }
   // Render async wrapper
-  // eslint-disable-next-line react/jsx-no-useless-fragment
   return <Inner />
 }
 

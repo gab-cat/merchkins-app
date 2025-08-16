@@ -103,7 +103,7 @@ export const updateOrganizationHandler = async (
   const changed: Record<string, { previous: unknown; next: unknown }> = {};
   for (const key of Object.keys(updates) as Array<keyof typeof updates>) {
     const nextVal = updates[key];
-    const prevVal = (organization as any)[key];
+    const prevVal = (organization as Record<string, unknown>)[key];
     if (nextVal !== undefined) {
       const different = JSON.stringify(prevVal) !== JSON.stringify(nextVal);
       if (different) {
@@ -270,7 +270,6 @@ export const updateOrganizationHandler = async (
           slug: newSlug,
           logo: newLogo,
         },
-        updatedAt: Date.now(),
       });
     }
   }

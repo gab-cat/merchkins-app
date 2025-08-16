@@ -68,7 +68,7 @@ export function SiteFooter () {
       <div className="container mx-auto px-3 py-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {/* Brand / About */}
         <div>
-          <div className="text-lg font-semibold md:text-xl" style={{ color: 'var(--footer-fg)' }}>
+          <div className={cn('text-lg font-semibold md:text-4xl', organization?.name ? '' : 'font-genty')}>
             {organization?.name || 'Merchkins'}
           </div>
           {organization?.description ? (
@@ -77,7 +77,7 @@ export function SiteFooter () {
             </p>
           ) : (
             <p className="mt-2 text-sm md:text-base opacity-80">
-              Custom merch made easy — shop, manage, and fulfill with Merchkins.
+              Custom merch made easy — shop, manage, and fulfill with <span className="font-genty">Merchkins</span>.
             </p>
           )}
           <div className="mt-3 flex items-center gap-2" aria-label="Social links" role="navigation">
@@ -218,7 +218,7 @@ export function SiteFooter () {
 
       <div className="border-t" />
       <div className="container mx-auto flex items-center justify-between gap-3 px-3 py-4 text-xs md:text-sm opacity-80">
-        <p className="font-medium">&copy; {new Date().getFullYear()} {organization?.name || 'Merchkins'}. All rights reserved.</p>
+        <p className="font-medium">&copy; {new Date().getFullYear()} {organization?.name || <span className="font-genty">Merchkins</span>}. All rights reserved.</p>
         <div className="flex items-center gap-3">
           <Link href="#terms" className="hover:underline">Terms</Link>
           <span aria-hidden>•</span>

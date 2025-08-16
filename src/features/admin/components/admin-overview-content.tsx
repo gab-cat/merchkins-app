@@ -1,9 +1,9 @@
 "use client"
 
-import { api } from '@/convex/_generated/api'
 import { useQuery } from 'convex/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import Link from 'next/link'
+import { api } from '@/convex/_generated/api'
+import { Doc } from '@/convex/_generated/dataModel'
 
 interface StatProps {
   title: string
@@ -24,11 +24,10 @@ export function AdminOverviewContent () {
     api.products.queries.index.getProducts,
     { limit: 5 }
   )
-  const org = useQuery(api.organizations.queries.index.getOrganizationBySlug, ('skip' as unknown as { slug: string }))
   const announcements = useQuery(api.announcements.queries.index.getAnnouncements, {
     targetAudience: 'ADMINS',
     limit: 5,
-  } as any)
+  })
   const loading = products === undefined
 
   return (
@@ -71,7 +70,7 @@ export function AdminOverviewContent () {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {(announcements?.announcements || []).map((a: any) => (
+              {(announcements?.announcements || []).map((a: Doc<"announcements">) => (
                 <div key={a._id} className="rounded-lg border bg-card p-3 shadow-sm">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">

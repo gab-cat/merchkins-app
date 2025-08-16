@@ -5,13 +5,31 @@ import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
 import { notFound, redirect } from 'next/navigation'
 import { auth } from '@clerk/nextjs/server'
+import { Doc } from '@/convex/_generated/dataModel'
+
+type Organization = Doc<"organizations">
+
+// Type for organizations with membership info returned by getOrganizationsByUser
+type OrganizationWithMembership = Organization & {
+  membershipInfo?: {
+    role?: 'ADMIN' | 'STAFF' | 'MEMBER'
+    joinedAt?: number
+    permissions?: Array<{
+      permissionCode: string
+      canCreate: boolean
+      canRead: boolean
+      canUpdate: boolean
+      canDelete: boolean
+    }>
+  }
+}
 
 export default async function Page ({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined }
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const params = searchParams || {}
+  const params = await searchParams || {}
   const rawOrg = params['org']
   const orgSlug = Array.isArray(rawOrg) ? rawOrg[0] : rawOrg
 
@@ -35,9 +53,10 @@ export default async function Page ({
     const orgs = await client.query(
       api.organizations.queries.index.getOrganizationsByUser,
       { userId: currentUser._id },
-    )
+    ) as OrganizationWithMembership[]
+    
     const preferred = (orgs || []).find(
-      (o: any) => o?.membershipInfo?.role === 'ADMIN' || o?.membershipInfo?.role === 'STAFF',
+      (o: OrganizationWithMembership) => o?.membershipInfo?.role === 'ADMIN' || o?.membershipInfo?.role === 'STAFF',
     ) || (orgs || [])[0]
     if (preferred?.slug) {
       redirect(`/admin/org-members?org=${preferred.slug}`)

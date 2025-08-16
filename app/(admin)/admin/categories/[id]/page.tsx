@@ -7,11 +7,14 @@ import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Doc, Id } from '@/convex/_generated/dataModel'
+
+type Category = Doc<"categories">
 
 export default function AdminEditCategoryPage () {
   const params = useParams() as { id: string }
   const router = useRouter()
-  const category = useQuery(api.categories.queries.index.getCategoryById, { categoryId: params.id as any })
+  const category = useQuery(api.categories.queries.index.getCategoryById, { categoryId: params.id as Id<"categories"> })
   const categoriesRoot = useQuery(api.categories.queries.index.getCategories, { level: 0, limit: 200, offset: 0 })
   const update = useMutation(api.categories.mutations.index.updateCategory)
   const del = useMutation(api.categories.mutations.index.deleteCategory)
@@ -22,10 +25,10 @@ export default function AdminEditCategoryPage () {
   const siblings = useMemo(() => {
     const list = categoriesRoot?.categories || []
     const currentId = category?._id
-    return list.filter((c: any) => c._id !== currentId)
+    return list.filter((c: Category) => c._id !== currentId)
   }, [categoriesRoot, category])
 
-  async function handleUpdate (fields: Record<string, any>) {
+  async function handleUpdate (fields: Partial<Pick<Category, 'name' | 'description' | 'slug' | 'parentCategoryId' | 'isActive' | 'isFeatured' | 'displayOrder'>>) {
     if (!category) return
     await update({ categoryId: category._id, ...fields })
   }
@@ -87,13 +90,13 @@ export default function AdminEditCategoryPage () {
             <label className="mb-1 block text-sm font-medium" htmlFor="parent">Parent</label>
             <select
               id="parent"
-              defaultValue={(category.parentCategoryId as any) || ''}
+              defaultValue={category.parentCategoryId || ''}
               className="h-9 w-full rounded-md border bg-background px-3 text-sm"
-              onChange={(e) => handleUpdate({ parentCategoryId: e.target.value ? (e.target.value as any) : undefined })}
+              onChange={(e) => handleUpdate({ parentCategoryId: e.target.value ? (e.target.value as Id<"categories">) : undefined })}
             >
               <option value="">None</option>
-              {siblings.map((c: any) => (
-                <option key={c._id} value={c._id as any}>{c.name}</option>
+              {siblings.map((c: Category) => (
+                <option key={c._id} value={c._id}>{c.name}</option>
               ))}
             </select>
           </div>

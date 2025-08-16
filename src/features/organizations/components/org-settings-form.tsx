@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { useUploadFile } from '@convex-dev/r2/react'
 import { compressToWebP } from '@/lib/compress'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
 const INDUSTRIES: Array<string> = [
   'Retail',
@@ -50,16 +51,6 @@ const FONT_STACKS: Array<{ label: string; value: string }> = [
   { label: 'Work Sans', value: 'Work Sans, system-ui, -apple-system, sans-serif' },
   { label: 'DM Sans', value: 'DM Sans, system-ui, -apple-system, sans-serif' },
   { label: 'System UI', value: 'system-ui, -apple-system, sans-serif' },
-]
-
-const BRAND_COLORS: Array<{ label: string; value: string }> = [
-  { label: 'Orange', value: '#E67E22' },
-  { label: 'Blue', value: '#2563eb' },
-  { label: 'Green', value: '#16a34a' },
-  { label: 'Purple', value: '#7e22ce' },
-  { label: 'Pink', value: '#db2777' },
-  { label: 'Teal', value: '#0d9488' },
-  { label: 'Slate', value: '#334155' },
 ]
 
 interface OrganizationDoc {
@@ -135,11 +126,11 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
   const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/')
   const logoPreview = useQuery(
     api.files.queries.index.getFileUrl,
-    isKey(logo) ? { key: logo } : ('skip' as any)
+    isKey(logo) ? { key: logo } : ('skip' as unknown as { key: string })
   )
   const bannerPreview = useQuery(
     api.files.queries.index.getFileUrl,
-    isKey(bannerImage) ? { key: bannerImage } : ('skip' as any)
+    isKey(bannerImage) ? { key: bannerImage } : ('skip' as unknown as { key: string })
   )
 
   const logoSrc = isKey(logo) ? (logoPreview || undefined) : (logo || undefined)
@@ -194,7 +185,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
         industry: industry.trim() || undefined,
         size: size.trim() || undefined,
         themeSettings: {
-          primaryColor: primaryColor.trim() || '#E67E22',
+          primaryColor: primaryColor.trim() || '#1d43d8',
           secondaryColor: secondaryColor.trim() || undefined,
           headerBackgroundColor: headerBg.trim() || undefined,
           headerForegroundColor: headerFg.trim() || undefined,
@@ -222,9 +213,10 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
         }
       }
       setPendingDeleteKeys([])
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      alert(err?.message || 'Failed to save changes')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save changes'
+      alert(errorMessage)
     } finally {
       setSaving(false)
     }
@@ -297,12 +289,12 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           <label className="mb-1 block text-sm font-medium" htmlFor="org-logo">Logo</label>
           <div className="flex items-center gap-4">
             <div className="relative h-20 w-20 overflow-hidden rounded-lg border bg-secondary shadow-modern">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               {logoSrc ? (
-                <img
+                <Image
                   src={logoSrc}
                   alt="Logo preview"
-                  className="h-full w-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
@@ -326,12 +318,12 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           <label className="mb-1 block text-sm font-medium" htmlFor="org-banner">Banner</label>
           <div className="flex items-center gap-4">
             <div className="relative h-24 w-44 overflow-hidden rounded-lg border bg-secondary shadow-modern">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               {bannerSrc ? (
-                <img
+                <Image
                   src={bannerSrc}
                   alt="Banner preview"
-                  className="h-full w-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
@@ -363,14 +355,14 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
               id="primary"
               type="color"
               className="h-9 w-12 cursor-pointer rounded border bg-background"
-              value={primaryColor || '#E67E22'}
+              value={primaryColor || '#1d43d8'}
               onChange={(e) => setPrimaryColor(e.target.value)}
               aria-label="Primary color"
             />
             <Input
               value={primaryColor}
               onChange={(e) => setPrimaryColor(e.target.value)}
-              placeholder="#E67E22"
+              placeholder="#1d43d8"
             />
           </div>
         </div>
@@ -381,14 +373,14 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
               id="secondary"
               type="color"
               className="h-9 w-12 cursor-pointer rounded border bg-background"
-              value={secondaryColor || '#2563eb'}
+              value={secondaryColor || '#1d43d8'}
               onChange={(e) => setSecondaryColor(e.target.value)}
               aria-label="Secondary color"
             />
             <Input
               value={secondaryColor}
               onChange={(e) => setSecondaryColor(e.target.value)}
-              placeholder="#2563eb"
+              placeholder="#1d43d8"
             />
           </div>
         </div>

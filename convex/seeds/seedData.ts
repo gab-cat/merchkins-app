@@ -77,7 +77,7 @@ export const seedData = internalMutation({
         logo: undefined,
         bannerImage: undefined,
         themeSettings: {
-          primaryColor: '#111827',
+          primaryColor: '#1d43d8',
           secondaryColor: '#2563eb',
           mode: 'auto',
           fontFamily: 'Inter, ui-sans-serif, system-ui',

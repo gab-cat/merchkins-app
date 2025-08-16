@@ -12,13 +12,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { Star } from 'lucide-react'
 import { R2Image } from '@/src/components/ui/r2-image'
+import { Doc } from '@/convex/_generated/dataModel'
+
+type Product = Doc<'products'>
 
 export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [q, setQ] = useState(searchParams.get('q') ?? '')
-  const sortOptions = ['newest', 'popular', 'rating', 'price_low', 'price_high'] as const
-  type SortOption = typeof sortOptions[number]
+  type SortOption = 'newest' | 'popular' | 'rating' | 'price_low' | 'price_high'
   const [sortBy, setSortBy] = useState<SortOption>('newest')
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
         limit: 50,
         ...(organization?._id ? { organizationId: organization._id } : {}),
       }
-    : undefined
+    : 'skip'
   const searchResult = useQuery(api.products.queries.index.searchProducts, searchArgs)
 
   const loading = q.trim() !== '' && searchResult === undefined
@@ -117,7 +119,7 @@ export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
                 </CardContent>
               </Card>
             ))
-          : products.map((p: any) => (
+          : products.map((p: Product) => (
               <Link
                 key={p._id}
                 href={orgSlug ? `/o/${orgSlug}/p/${p.slug}` : `/p/${p.slug}`}

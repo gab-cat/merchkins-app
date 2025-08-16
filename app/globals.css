@@ -1,6 +1,19 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: 'Genty';
+  src: url('/fonts/genty.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-genty {
+  font-family: 'Genty', sans-serif;
+  color: #adfc04;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -48,17 +61,17 @@
   --background: oklch(0.99 0.004 270);
   --foreground: oklch(0.16 0.02 270);
   /* Defaults for header/footer theme variables */
-  --header-bg: var(--background);
-  --header-fg: var(--foreground);
-  --header-title: var(--primary);
-  --footer-bg: var(--background);
-  --footer-fg: var(--foreground);
+  --header-bg: var(--primary);
+  --header-fg: var(--primary-foreground);
+  --header-title: var(--primary-foreground);
+  --footer-bg: var(--primary);
+  --footer-fg: var(--primary-foreground);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.16 0.02 270);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.16 0.02 270);
-  /* Merchkins primary: vibrant orange */
-  --primary: oklch(0.72 0.19 45);
+  /* Merchkins primary: vibrant blue */
+  --primary: #1d43d8;
   --primary-foreground: oklch(0.99 0.004 270);
   /* Subtle gray for secondary surfaces */
   --secondary: oklch(0.96 0.01 270);
@@ -72,20 +85,20 @@
   --destructive: oklch(0.62 0.22 25);
   --border: oklch(0.91 0.01 270);
   --input: oklch(0.94 0.01 270);
-  --ring: oklch(0.72 0.19 45);
-  --chart-1: oklch(0.72 0.19 45);
+  --ring: #1d43d8;
+  --chart-1: #1d43d8;
   --chart-2: oklch(0.36 0.03 270);
   --chart-3: oklch(0.66 0.18 75);
   --chart-4: oklch(0.52 0.09 250);
   --chart-5: oklch(0.82 0.19 30);
   --sidebar: oklch(0.99 0.004 270);
   --sidebar-foreground: oklch(0.16 0.02 270);
-  --sidebar-primary: oklch(0.72 0.19 45);
+  --sidebar-primary: #1d43d8;
   --sidebar-primary-foreground: oklch(0.99 0.004 270);
   --sidebar-accent: oklch(0.96 0.01 270);
   --sidebar-accent-foreground: oklch(0.20 0.02 270);
   --sidebar-border: oklch(0.91 0.01 270);
-  --sidebar-ring: oklch(0.72 0.19 45);
+  --sidebar-ring: #1d43d8;
 }
 
 .dark {
@@ -95,7 +108,7 @@
   --card-foreground: oklch(0.95 0.01 270);
   --popover: oklch(0.12 0.02 270);
   --popover-foreground: oklch(0.95 0.01 270);
-  --primary: oklch(0.65 0.19 45);
+  --primary: #1d43d8;
   --primary-foreground: oklch(0.09 0.02 270);
   --secondary: oklch(0.18 0.02 270);
   --secondary-foreground: oklch(0.95 0.01 270);
@@ -106,20 +119,20 @@
   --destructive: oklch(0.68 0.20 25);
   --border: oklch(0.22 0.02 270);
   --input: oklch(0.25 0.02 270);
-  --ring: oklch(0.65 0.19 45);
-  --chart-1: oklch(0.65 0.19 45);
+  --ring: #1d43d8;
+  --chart-1: #1d43d8;
   --chart-2: oklch(0.32 0.03 270);
   --chart-3: oklch(0.58 0.15 75);
   --chart-4: oklch(0.44 0.08 250);
   --chart-5: oklch(0.72 0.18 30);
   --sidebar: oklch(0.12 0.02 270);
   --sidebar-foreground: oklch(0.95 0.01 270);
-  --sidebar-primary: oklch(0.65 0.19 45);
+  --sidebar-primary: #1d43d8;
   --sidebar-primary-foreground: oklch(0.09 0.02 270);
   --sidebar-accent: oklch(0.18 0.02 270);
   --sidebar-accent-foreground: oklch(0.95 0.01 270);
   --sidebar-border: oklch(0.22 0.02 270);
-  --sidebar-ring: oklch(0.65 0.19 45);
+  --sidebar-ring: #1d43d8;
 }
 
 @layer base {

@@ -8,9 +8,10 @@ export const metadata: Metadata = {
 export default async function AdminPage ({
   searchParams,
 }: {
-  searchParams?: { org?: string }
+  searchParams?: Promise<{ org?: string }>
 }) {
-  const org = searchParams?.org
+  const params = await searchParams || {}
+  const org = params.org
   redirect(org ? `/admin/products?org=${encodeURIComponent(org)}` : '/admin/products')
 }
 

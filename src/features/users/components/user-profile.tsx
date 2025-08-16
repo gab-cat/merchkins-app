@@ -3,16 +3,21 @@
 import React, { useMemo, useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@clerk/nextjs'
+import { Doc, Id } from '@/convex/_generated/dataModel'
+
+type Order = Doc<'orders'>
+type OrganizationMember = Doc<'organizationMembers'>
+type Payment = Doc<'payments'>
+type Ticket = Doc<'tickets'>
 
 interface UserProfileProps {
-  userId: Id<'users'> | string
-  organizationId?: Id<'organizations'> | string
+  userId: Id<'users'>
+  organizationId?: Id<'organizations'>
 }
 
 function formatCurrency (amount?: number, currency?: string) {
@@ -53,7 +58,7 @@ export function UserProfile ({ userId, organizationId }: UserProfileProps) {
   const orgMembers = useQuery(
     api.organizations.queries.index.getOrganizationMembers,
     shouldLoadOrgMember ? { organizationId: oid, isActive: true, limit: 200 } : 'skip',
-  ) as unknown as { page?: any[] } | undefined
+  ) as unknown as { page?: OrganizationMember[] } | undefined
 
   // Recent items (client filtered by org when provided)
   const shouldLoadOrders = !!uid
@@ -66,13 +71,13 @@ export function UserProfile ({ userId, organizationId }: UserProfileProps) {
           offset: 0,
         }
       : 'skip',
-  ) as unknown as { orders?: any[] } | undefined
+  ) as unknown as { orders?: Order[] } | undefined
 
 
   const orders = useMemo(() => {
     const list = ordersRes?.orders || []
     if (!oid) return list.slice(0, 10)
-    return list.filter((o: any) => o.organizationId === oid).slice(0, 10)
+    return list.filter((o: Order) => o.organizationId === oid).slice(0, 10)
   }, [ordersRes, oid])
 
   // Sensitive lists are rendered in a separate child component to keep hook order stable here
@@ -80,7 +85,7 @@ export function UserProfile ({ userId, organizationId }: UserProfileProps) {
   const member = useMemo(() => {
     if (!shouldLoadOrgMember) return undefined
     const list = orgMembers?.page || []
-    return list.find((m: any) => m.userId === uid)
+    return list.find((m: OrganizationMember) => m.userId === uid)
   }, [shouldLoadOrgMember, orgMembers, uid])
 
   const loading =
@@ -196,7 +201,7 @@ export function UserProfile ({ userId, organizationId }: UserProfileProps) {
             <div className="py-6 text-sm text-muted-foreground">No organizations.</div>
           ) : (
             <div className="space-y-1.5">
-              {organizations.map((org: any) => (
+              {organizations.map((org) => (
                 <div key={org._id} className="rounded border p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
@@ -225,7 +230,7 @@ export function UserProfile ({ userId, organizationId }: UserProfileProps) {
               <div className="py-6 text-sm text-muted-foreground">No orders.</div>
             ) : (
               <div className="divide-y rounded border">
-                {orders.map((o: any) => (
+                {orders.map((o: Order) => (
                   <div key={o._id} className="px-3 py-2 text-sm">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
@@ -439,11 +444,11 @@ function SuperAdminOrgAccessManager ({ targetUserId }: { targetUserId: Id<'users
 }
 
 function SensitivePayments ({ userId, organizationId }: { userId: Id<'users'>; organizationId?: Id<'organizations'> }) {
-  const paymentsRes = useQuery(api.payments.queries.index.getPayments, { userId, offset: 0 }) as unknown as { payments?: any[] } | undefined
+  const paymentsRes = useQuery(api.payments.queries.index.getPayments, { userId, offset: 0 }) as unknown as { payments?: Payment[] } | undefined
   const payments = useMemo(() => {
-    const list = (paymentsRes as any)?.payments || (paymentsRes as any)?.page || []
+    const list = (paymentsRes as { payments?: Payment[] })?.payments || (paymentsRes as { page?: Payment[] })?.page || []
     if (!organizationId) return list.slice(0, 10)
-    return list.filter((p: any) => p.organizationId === organizationId).slice(0, 10)
+    return list.filter((p: Payment) => p.organizationId === organizationId).slice(0, 10)
   }, [paymentsRes, organizationId])
   return (
     <Card>
@@ -455,7 +460,7 @@ function SensitivePayments ({ userId, organizationId }: { userId: Id<'users'>; o
           <div className="py-6 text-sm text-muted-foreground">No payments.</div>
         ) : (
           <div className="divide-y rounded border">
-            {payments.map((p: any) => (
+            {payments.map((p: Payment) => (
               <div key={p._id} className="px-3 py-2 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
@@ -479,17 +484,17 @@ function SensitivePayments ({ userId, organizationId }: { userId: Id<'users'>; o
 }
 
 function SensitiveTickets ({ userId, organizationId }: { userId: Id<'users'>; organizationId?: Id<'organizations'> }) {
-  const createdTicketsRes = useQuery(api.tickets.queries.index.getTickets, { createdById: userId, limit: 50, offset: 0 }) as unknown as { tickets?: any[] } | undefined
-  const assignedTicketsRes = useQuery(api.tickets.queries.index.getTickets, { assignedToId: userId, limit: 50, offset: 0 }) as unknown as { tickets?: any[] } | undefined
+  const createdTicketsRes = useQuery(api.tickets.queries.index.getTickets, { createdById: userId, limit: 50, offset: 0 }) as unknown as { tickets?: Ticket[] } | undefined
+  const assignedTicketsRes = useQuery(api.tickets.queries.index.getTickets, { assignedToId: userId, limit: 50, offset: 0 }) as unknown as { tickets?: Ticket[] } | undefined
   const createdTickets = useMemo(() => {
     const list = createdTicketsRes?.tickets || []
     if (!organizationId) return list.slice(0, 10)
-    return list.filter((t: any) => t.organizationId === organizationId).slice(0, 10)
+    return list.filter((t: Ticket) => t.organizationId === organizationId).slice(0, 10)
   }, [createdTicketsRes, organizationId])
   const assignedTickets = useMemo(() => {
     const list = assignedTicketsRes?.tickets || []
     if (!organizationId) return list.slice(0, 10)
-    return list.filter((t: any) => t.organizationId === organizationId).slice(0, 10)
+    return list.filter((t: Ticket) => t.organizationId === organizationId).slice(0, 10)
   }, [assignedTicketsRes, organizationId])
   return (
     <Card>
@@ -504,7 +509,7 @@ function SensitiveTickets ({ userId, organizationId }: { userId: Id<'users'>; or
             <div>
               <div className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Created by user</div>
               <div className="divide-y rounded border">
-                {createdTickets.slice(0, 10).map((t: any) => (
+                {createdTickets.slice(0, 10).map((t: Ticket) => (
                   <div key={t._id} className="px-3 py-2 text-sm">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
@@ -520,7 +525,7 @@ function SensitiveTickets ({ userId, organizationId }: { userId: Id<'users'>; or
             <div>
               <div className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Assigned to user</div>
               <div className="divide-y rounded border">
-                {assignedTickets.slice(0, 10).map((t: any) => (
+                {assignedTickets.slice(0, 10).map((t: Ticket) => (
                   <div key={t._id} className="px-3 py-2 text-sm">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">

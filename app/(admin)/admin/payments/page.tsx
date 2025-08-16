@@ -4,15 +4,33 @@ import React, { useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/lib/toast'
 import { useOffsetPagination } from '@/src/hooks/use-pagination'
+import { Doc, Id } from '@/convex/_generated/dataModel'
 
 type PaymentMethod = 'CASH' | 'BANK_TRANSFER' | 'GCASH' | 'MAYA' | 'OTHERS'
 type PaymentStatus = 'VERIFIED' | 'PENDING' | 'DECLINED' | 'PROCESSING' | 'FAILED' | 'REFUND_PENDING' | 'REFUNDED' | 'CANCELLED'
+
+type Payment = Doc<"payments">
+
+type PaymentQueryArgs = {
+  organizationId?: Id<"organizations">
+  paymentStatus?: PaymentStatus
+  paymentMethod?: PaymentMethod
+  limit?: number
+  offset?: number
+}
+
+type PaymentQueryResult = {
+  payments: Payment[]
+  total: number
+  offset: number
+  limit: number
+  hasMore: boolean
+}
 
 function StatusBadge ({ value }: { value: string }) {
   const variant: 'default' | 'secondary' | 'destructive' =
@@ -43,7 +61,7 @@ export default function AdminPaymentsPage () {
     org ? { slug: org } : ('skip' as unknown as { slug: string }),
   )
 
-  const baseArgs = useMemo(() => ({
+  const baseArgs = useMemo((): PaymentQueryArgs => ({
     organizationId: org ? organization?._id : undefined,
     paymentStatus: status === 'ALL' ? undefined : status,
     paymentMethod: method === 'ALL' ? undefined : method,
@@ -52,12 +70,18 @@ export default function AdminPaymentsPage () {
   // Skip only while resolving organization when org slug is present
   const shouldSkip = org ? organization === undefined : false
 
-  const { items: payments, isLoading: loading, hasMore, loadMore } = useOffsetPagination<any, any>({
+  const { items: payments, isLoading: loading, hasMore, loadMore } = useOffsetPagination<Payment, PaymentQueryArgs>({
     query: api.payments.queries.index.getPayments,
     baseArgs: shouldSkip ? 'skip' : baseArgs,
     limit: 25,
-    selectItems: (res: any) => res.payments || [],
-    selectHasMore: (res: any) => !!res.hasMore,
+    selectItems: (res: unknown) => {
+      const typedRes = res as PaymentQueryResult
+      return typedRes.payments || []
+    },
+    selectHasMore: (res: unknown) => {
+      const typedRes = res as PaymentQueryResult
+      return !!typedRes.hasMore
+    },
   })
 
   const updatePayment = useMutation(api.payments.mutations.index.updatePayment)
@@ -65,7 +89,7 @@ export default function AdminPaymentsPage () {
   const filtered = useMemo(() => {
     if (!search) return payments
     const q = search.toLowerCase()
-    return payments.filter((p: any) =>
+    return payments.filter((p: Payment) =>
       [p.referenceNo || '', p.orderInfo?.orderNumber || '', p.userInfo?.email || '', p.userInfo?.firstName || '', p.userInfo?.lastName || '']
         .join(' ')
         .toLowerCase()
@@ -82,13 +106,13 @@ export default function AdminPaymentsPage () {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Input placeholder="Search by ref #, order #, or customer..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
-          <select className="h-9 rounded-md border bg-background px-3 text-sm" value={status} onChange={(e) => setStatus(e.target.value as any)}>
+          <select className="h-9 rounded-md border bg-background px-3 text-sm" value={status} onChange={(e) => setStatus(e.target.value as PaymentStatus | 'ALL')}>
             <option value="ALL">All statuses</option>
             {['VERIFIED','PENDING','DECLINED','PROCESSING','FAILED','REFUND_PENDING','REFUNDED','CANCELLED'].map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
-          <select className="h-9 rounded-md border bg-background px-3 text-sm" value={method} onChange={(e) => setMethod(e.target.value as any)}>
+          <select className="h-9 rounded-md border bg-background px-3 text-sm" value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod | 'ALL')}>
             <option value="ALL">All methods</option>
             {['CASH','BANK_TRANSFER','GCASH','MAYA','OTHERS'].map((m) => (
               <option key={m} value={m}>{m}</option>
@@ -105,7 +129,7 @@ export default function AdminPaymentsPage () {
                   <div className="h-4 w-1/3 animate-pulse rounded bg-secondary" />
                 </div>
               ))
-            : filtered.map((p: any) => (
+            : filtered.map((p: Payment) => (
                 <div key={p._id} className="px-3 py-2 hover:bg-secondary/50">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
@@ -129,8 +153,9 @@ export default function AdminPaymentsPage () {
                             try {
                               await updatePayment({ paymentId: p._id, paymentStatus: 'DECLINED' })
                               showToast({ type: 'success', title: 'Payment declined' })
-                            } catch (err: any) {
-                              showToast({ type: 'error', title: err?.message || 'Failed to decline' })
+                            } catch (err: unknown) {
+                              const error = err as Error
+                              showToast({ type: 'error', title: error?.message || 'Failed to decline' })
                             }
                           }}
                         >
@@ -143,8 +168,9 @@ export default function AdminPaymentsPage () {
                             try {
                               await updatePayment({ paymentId: p._id, paymentStatus: 'VERIFIED' })
                               showToast({ type: 'success', title: 'Payment verified' })
-                            } catch (err: any) {
-                              showToast({ type: 'error', title: err?.message || 'Failed to verify' })
+                            } catch (err: unknown) {
+                              const error = err as Error
+                              showToast({ type: 'error', title: error?.message || 'Failed to verify' })
                             }
                           }}
                         >

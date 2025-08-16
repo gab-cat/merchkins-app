@@ -94,7 +94,7 @@ export default function AdminCreateProductPage () {
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium" htmlFor="tags">Tags (comma separated)</label>
-              <Input id="tags" placeholder="apparel, stickers" {...register('tags' as any)} />
+              <Input id="tags" placeholder="apparel, stickers" {...register('tags')} />
             </div>
           </CardContent>
         </Card>

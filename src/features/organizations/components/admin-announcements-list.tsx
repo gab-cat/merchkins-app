@@ -1,21 +1,32 @@
 "use client"
 
 import React from 'react'
-import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useCursorPagination } from '@/src/hooks/use-pagination'
 import { LoadMore } from '@/src/components/ui/pagination'
+import { Doc } from '@/convex/_generated/dataModel'
+
+type Announcement = Doc<'announcements'>
+
+interface AnnouncementsResponse {
+  page: Announcement[]
+  isDone: boolean
+  continueCursor: string | null
+}
 
 export function AdminAnnouncementsList () {
-  const { items, isLoading, hasMore, loadMore } = useCursorPagination<any, { targetAudience: 'ADMINS' }>({
+  const { items, isLoading, hasMore, loadMore } = useCursorPagination<Announcement, { targetAudience: 'ADMINS' }>({
     query: api.announcements.queries.index.getAnnouncements,
     baseArgs: { targetAudience: 'ADMINS' },
     limit: 5,
-    selectPage: (res: any) => ({
-      page: res.page || [],
-      isDone: !!res.isDone,
-      continueCursor: res.continueCursor ?? null,
-    })
+    selectPage: (res: unknown) => {
+      const result = res as AnnouncementsResponse
+      return {
+        page: (result.page || []) as ReadonlyArray<Announcement>,
+        isDone: !!result.isDone,
+        continueCursor: result.continueCursor ?? null,
+      }
+    }
   })
 
   if (isLoading && items.length === 0) {
@@ -26,7 +37,7 @@ export function AdminAnnouncementsList () {
 
   return (
     <div className="space-y-3">
-      {list.map((a: any) => (
+      {list.map((a: Announcement) => (
         <div key={a._id} className="rounded-lg border bg-card p-3 shadow-sm">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">

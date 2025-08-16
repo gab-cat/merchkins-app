@@ -2,19 +2,34 @@
 
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useMutation, useQuery } from 'convex/react'
+import { useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { useOffsetPagination } from '@/src/hooks/use-pagination'
+import { Doc } from '@/convex/_generated/dataModel'
 
 type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
 type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH'
 
+type Ticket = Doc<"tickets">
+
+type TicketQueryArgs = {
+  status?: TicketStatus
+  priority?: TicketPriority
+  limit?: number
+  offset?: number
+}
+
+type TicketQueryResult = {
+  tickets: Ticket[]
+  hasMore: boolean
+}
+
 function StatusBadge ({ value }: { value: TicketStatus }) {
   const color = value === 'OPEN' ? 'secondary' : value === 'CLOSED' ? 'destructive' : 'default'
-  return <Badge variant={color as any}>{value}</Badge>
+  return <Badge variant={color as 'secondary' | 'destructive' | 'default'}>{value}</Badge>
 }
 
 export default function AdminTicketsPage () {
@@ -22,21 +37,19 @@ export default function AdminTicketsPage () {
   const [priority, setPriority] = useState<TicketPriority | 'ALL'>('ALL')
   const [search, setSearch] = useState('')
 
-  const baseArgs = useMemo(() => ({
+  const baseArgs = useMemo((): TicketQueryArgs => ({
     status: status === 'ALL' ? undefined : status,
     priority: priority === 'ALL' ? undefined : priority,
   }), [status, priority])
 
-  const { items: tickets, isLoading: loading, hasMore, loadMore } = useOffsetPagination<any, any>({
+  const { items: tickets, isLoading: loading, hasMore, loadMore } = useOffsetPagination<Ticket, TicketQueryArgs>({
     query: api.tickets.queries.index.getTickets,
     baseArgs,
     limit: 25,
-    selectItems: (res: any) => res.tickets || [],
-    selectHasMore: (res: any) => !!res.hasMore,
+    selectItems: (res: unknown) => (res as TicketQueryResult).tickets || [],
+    selectHasMore: (res: unknown) => !!(res as TicketQueryResult).hasMore,
   })
   const createTicket = useMutation(api.tickets.mutations.index.createTicket)
-
-  
 
   const filtered = useMemo(() => {
     const byPriority = priority === 'ALL' ? tickets : tickets.filter((t) => t.priority === priority)
@@ -54,14 +67,14 @@ export default function AdminTicketsPage () {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Input placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
-          <select className="h-9 rounded-md border bg-background px-3 text-sm" value={status} onChange={(e) => setStatus(e.target.value as any)}>
+          <select className="h-9 rounded-md border bg-background px-3 text-sm" value={status} onChange={(e) => setStatus(e.target.value as TicketStatus | 'ALL')}>
             <option value="ALL">All statuses</option>
             <option value="OPEN">Open</option>
             <option value="IN_PROGRESS">In progress</option>
             <option value="RESOLVED">Resolved</option>
             <option value="CLOSED">Closed</option>
           </select>
-          <select className="h-9 rounded-md border bg-background px-3 text-sm" value={priority} onChange={(e) => setPriority(e.target.value as any)}>
+          <select className="h-9 rounded-md border bg-background px-3 text-sm" value={priority} onChange={(e) => setPriority(e.target.value as TicketPriority | 'ALL')}>
             <option value="ALL">All priorities</option>
             <option value="LOW">Low</option>
             <option value="MEDIUM">Medium</option>

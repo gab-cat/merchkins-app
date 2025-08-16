@@ -6,6 +6,9 @@ import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Doc, Id } from '@/convex/_generated/dataModel'
+
+type Log = Doc<"logs">
 
 export default function SuperAdminLogsPage () {
   const [search, setSearch] = useState('')
@@ -19,19 +22,19 @@ export default function SuperAdminLogsPage () {
   const archiveLog = useMutation(api.logs.mutations.index.archiveLog)
   const restoreLog = useMutation(api.logs.mutations.index.restoreLog)
 
-  async function handleArchive (logId: string) {
+  async function handleArchive (logId: Id<"logs">) {
     await archiveLog({ logId })
   }
 
-  async function handleRestore (logId: string) {
+  async function handleRestore (logId: Id<"logs">) {
     await restoreLog({ logId })
   }
 
   const filtered = useMemo(() => {
     const term = search.toLowerCase().trim()
     if (!term) return logs?.logs || []
-    return (logs?.logs || []).filter((l: any) =>
-      (l.message || '').toLowerCase().includes(term) ||
+    return (logs?.logs || []).filter((l: Log) =>
+      (l.reason || '').toLowerCase().includes(term) ||
       (l.resourceType || '').toLowerCase().includes(term) ||
       (l.action || '').toLowerCase().includes(term)
     )
@@ -61,9 +64,9 @@ export default function SuperAdminLogsPage () {
               <div className="col-span-2 text-right">Actions</div>
             </div>
             <div>
-              {filtered.map((l: any) => (
+              {filtered.map((l: Log) => (
                 <div key={l._id} className="grid grid-cols-12 items-center px-3 py-2 hover:bg-secondary">
-                  <div className="col-span-4 text-sm">{l.message}</div>
+                  <div className="col-span-4 text-sm">{l.reason}</div>
                   <div className="col-span-2 text-xs text-muted-foreground">{l.resourceType}</div>
                   <div className="col-span-2 text-xs">{l.action}</div>
                   <div className="col-span-2 text-xs">{l.severity}</div>

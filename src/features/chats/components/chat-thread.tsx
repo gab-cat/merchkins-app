@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useMemo, useRef } from 'react'
-import type { Doc } from '@/convex/_generated/dataModel'
+import type { Doc, Id } from '@/convex/_generated/dataModel'
 import { MessageBubble } from './message-bubble'
 import { useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -23,7 +23,7 @@ export function ChatThread ({ messages, currentUserId, chatRoomId }: ChatThreadP
 
   useEffect(() => {
     if (chatRoomId) {
-      markRead({ chatRoomId: chatRoomId as any })
+      markRead({ chatRoomId: chatRoomId as Id<'chatRooms'> })
     }
   }, [chatRoomId, markRead, list])
 

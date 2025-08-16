@@ -315,7 +315,7 @@ export function OrgMembersManager ({ organizationId }: Props) {
             <div className="px-3 py-2 text-sm font-medium">Pending join requests</div>
             <Separator />
             <div className="divide-y">
-              {joinRequests?.page?.map((req: { _id: string; userId: string; createdAt: number; note?: string }) => (
+              {joinRequests?.page?.map((req: { _id: Id<'organizationJoinRequests'>; userId: string; createdAt: number; note?: string }) => (
                 <div key={req._id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
                   <div className="min-w-0">
                     <div className="font-medium">{req.userId}</div>

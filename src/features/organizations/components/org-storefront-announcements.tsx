@@ -4,8 +4,10 @@ import React, { useMemo } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
+import type { Id, Doc } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+type Announcement = Doc<'announcements'>
 
 interface Props {
   organizationId: Id<'organizations'>
@@ -17,12 +19,12 @@ export function OrgStorefrontAnnouncements ({ organizationId }: Props) {
 
   const orgs = useQuery(
     api.organizations.queries.index.getOrganizationsByUser,
-    currentUser?._id ? { userId: currentUser._id } : ('skip' as unknown as { userId: string })
+    currentUser?._id ? { userId: currentUser._id } : ('skip' as unknown as { userId: Id<'users'> })
   )
 
   const isMember = useMemo(() => {
     if (!orgs) return false
-    return orgs.some((o: any) => o._id === organizationId)
+    return orgs.some((o) => o._id === organizationId)
   }, [orgs, organizationId])
 
   const pinned = useQuery(
@@ -40,7 +42,7 @@ export function OrgStorefrontAnnouncements ({ organizationId }: Props) {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {pinned.map((a: any) => (
+            {pinned.map((a: Announcement) => (
               <div key={a._id} className="rounded-lg border bg-card p-3 shadow-sm">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">

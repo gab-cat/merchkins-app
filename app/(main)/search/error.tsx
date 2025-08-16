@@ -11,7 +11,6 @@ interface ErrorProps {
 export default function Error ({ error, reset }: ErrorProps) {
   useEffect(() => {
     // TODO: replace with dynamic value: send to monitoring service
-    // eslint-disable-next-line no-console
     console.error('Search page error:', error)
   }, [error])
 

@@ -60,7 +60,7 @@ const lineItemSchema = z.object({
     ])
     .optional()
     .nullable()
-    .transform((v) => (v === '' || v === null ? undefined : (v as number))),
+    .transform((v) => (v === null ? undefined : v)),
   customerNote: z.string().optional(),
 })
 
@@ -185,8 +185,9 @@ export function ManualOrderForm () {
       })
       showToast({ type: 'success', title: 'Order created' })
       router.push(`/admin/orders/${orderId}`)
-    } catch (err: any) {
-      showToast({ type: 'error', title: err?.message || 'Failed to create order' })
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create order'
+      showToast({ type: 'error', title: errorMessage })
     }
   }
 
@@ -442,36 +443,6 @@ function useDebouncedRecord (values: Record<number, string>, ms: number) {
     return () => clearTimeout(id)
   }, [values, ms])
   return state
-}
-
-function useProductsSearchMap (
-  debouncedQueries: Record<number, string>,
-): Record<number, Array<ConvexProduct>> {
-  // Build a stable key to trigger a single query per render, then split client-side
-  const entries = Object.entries(debouncedQueries)
-    .filter(([, q]) => (q || '').trim().length >= 2)
-    .map(([k, q]) => ({ idx: Number(k), q: q.trim() }))
-
-  // Aggregate distinct queries to minimize server calls when multiple rows share the same search term
-  const distinct = Array.from(new Map(entries.map((e) => [e.q, e])).values())
-
-  // Run up to 5 parallel queries by slicing; additional rows will share results
-  const results: Record<string, Array<ConvexProduct>> = {}
-  distinct.slice(0, 5).forEach((entry) => {
-    const res = useQuery(
-      api.products.queries.index.searchProducts,
-      entry.q.length >= 2
-        ? { query: entry.q, limit: 20 }
-        : ('skip' as unknown as { query: string }),
-    ) as any
-    results[entry.q] = res?.products || res || []
-  })
-
-  const map: Record<number, Array<ConvexProduct>> = {}
-  entries.forEach((e) => {
-    map[e.idx] = results[e.q] || []
-  })
-  return map
 }
 
 export default ManualOrderForm

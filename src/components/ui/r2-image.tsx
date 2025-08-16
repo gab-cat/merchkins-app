@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import Image, { type ImageProps } from 'next/image'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'

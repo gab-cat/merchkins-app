@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useMemo, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,10 +9,13 @@ import { Button } from '@/components/ui/button'
 import { ReceivePaymentDialog } from '@/src/features/orders/components/receive-payment-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import type { Id } from '@/convex/_generated/dataModel'
+import type { Id, Doc } from '@/convex/_generated/dataModel'
 
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'DELIVERED' | 'CANCELLED'
 type PaymentStatus = 'PENDING' | 'DOWNPAYMENT' | 'PAID' | 'REFUNDED'
+
+type Order = Doc<"orders">
+type OrderItem = NonNullable<Order['embeddedItems']>[0]
 
 function StatusBadge ({ value }: { value: string }) {
   const variant: 'default' | 'secondary' | 'destructive' =
@@ -28,7 +31,6 @@ function formatCurrency (amount: number | undefined) {
 
 export default function AdminOrderDetailPage () {
   const params = useParams() as { id: string }
-  const router = useRouter()
   const order = useQuery(api.orders.queries.index.getOrderById, {
     orderId: params.id as Id<'orders'>,
     includeItems: true,
@@ -40,10 +42,10 @@ export default function AdminOrderDetailPage () {
 
   const loading = order === undefined
   const items = useMemo(() => {
-    if (!order) return [] as Array<any>
-    if (order.embeddedItems) return order.embeddedItems as Array<any>
+    if (!order) return [] as OrderItem[]
+    if (order.embeddedItems) return order.embeddedItems as OrderItem[]
     // @ts-expect-error items is present when includeItems is true and not embedded
-    return (order.items ?? []) as Array<any>
+    return (order.items ?? []) as OrderItem[]
   }, [order])
 
   async function handleStatus (next: OrderStatus) {
@@ -181,7 +183,7 @@ export default function AdminOrderDetailPage () {
 }
 
 function LineItemImage ({ imageKey }: { imageKey?: string }) {
-  const url = useQuery(api.files.queries.index.getFileUrl, imageKey ? { key: imageKey } : 'skip' as any)
+  const url = useQuery(api.files.queries.index.getFileUrl, imageKey ? { key: imageKey } : 'skip')
   if (!url) return <div className="h-16 w-16 rounded-md bg-secondary" />
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={url} alt="Product" className="h-16 w-16 rounded-md object-cover" />

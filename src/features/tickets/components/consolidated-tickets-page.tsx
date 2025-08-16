@@ -1,23 +1,20 @@
 "use client"
 
-import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
+import { useMemo, useState } from 'react'
+import { Doc, Id } from '@/convex/_generated/dataModel'
+import Link from 'next/link'
+
+type Ticket = Doc<'tickets'>
+type TicketUpdate = Doc<'ticketUpdates'>
+type Organization = Doc<'organizations'>
 
 type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
 
@@ -28,7 +25,7 @@ function StatusBadge ({ value }: { value: TicketStatus }) {
       : value === 'CLOSED'
       ? 'destructive'
       : 'default'
-  return <Badge variant={color as any}>{value}</Badge>
+  return <Badge variant={color as 'secondary' | 'destructive' | 'default'}>{value}</Badge>
 }
 
 function TicketProgress ({ status }: { status: TicketStatus }) {
@@ -75,7 +72,7 @@ export function ConsolidatedTicketsPage () {
     api.organizations.queries.index.getOrganizationsByUser,
     currentUser?._id
       ? { userId: currentUser._id }
-      : ('skip' as unknown as { userId: string }),
+      : ('skip' as unknown as { userId: Id<'users'> }),
   )
 
   const personal = useQuery(
@@ -89,7 +86,7 @@ export function ConsolidatedTicketsPage () {
 
   const personalTickets = useMemo(() => {
     const list = personal?.tickets || []
-    return list.filter((t: any) => !t.organizationId)
+    return list.filter((t: Ticket) => !t.organizationId)
   }, [personal])
 
   const loading =
@@ -135,7 +132,7 @@ export function ConsolidatedTicketsPage () {
           <CardContent>
             {personalTickets.length > 0 ? (
               <div className="divide-y">
-                {personalTickets.map((t: any) => (
+                {personalTickets.map((t: Ticket) => (
                   <div
                     key={t._id}
                     className="flex items-center justify-between gap-3 py-3 cursor-pointer hover:bg-muted/30 rounded px-2"
@@ -169,8 +166,8 @@ export function ConsolidatedTicketsPage () {
           </CardContent>
         </Card>
 
-        {(orgs || []).map((org: any) => (
-          <OrgTicketsSection key={org._id} org={org} onOpen={setActiveId} />
+        {(orgs || []).map((org) => (
+          <OrgTicketsSection key={org._id} org={org as Organization} onOpen={setActiveId} />
         ))}
       </div>
 
@@ -232,7 +229,7 @@ export function ConsolidatedTicketsPage () {
                   <CardTitle>Updates</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {(updates?.updates || []).map((u: any) => (
+                  {(updates?.updates || []).map((u: TicketUpdate) => (
                     <div key={String(u._id)} className="rounded border p-3">
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>{new Date(u.createdAt).toLocaleString()}</span>
@@ -269,7 +266,7 @@ export function ConsolidatedTicketsPage () {
   )
 }
 
-function OrgTicketsSection ({ org, onOpen }: { org: any, onOpen: (id: Id<'tickets'>) => void }) {
+function OrgTicketsSection ({ org, onOpen }: { org: Organization, onOpen: (id: Id<'tickets'>) => void }) {
   const tickets = useQuery(
     api.tickets.queries.index.getTickets,
     org?._id ? { organizationId: org._id } : ('skip' as unknown as { organizationId: Id<'organizations'> }),
@@ -298,7 +295,7 @@ function OrgTicketsSection ({ org, onOpen }: { org: any, onOpen: (id: Id<'ticket
           </div>
         ) : (tickets?.tickets || []).length > 0 ? (
           <div className="divide-y">
-            {(tickets?.tickets || []).map((t: any) => (
+            {(tickets?.tickets || []).map((t: Ticket) => (
               <div
                 key={t._id}
                 className="flex items-center justify-between gap-3 py-3 cursor-pointer hover:bg-muted/30 rounded px-2"

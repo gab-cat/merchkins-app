@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useMutation, useQuery } from 'convex/react'
 import { useUploadFile } from '@convex-dev/r2/react'
@@ -11,12 +11,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { compressToWebP } from '@/lib/compress'
-import { ArrowLeft, ArrowRight, UploadCloud, Trash2 } from 'lucide-react'
+import { ArrowLeft, UploadCloud, Trash2 } from 'lucide-react'
+import { Id } from '@/convex/_generated/dataModel'
 
 export default function AdminEditProductPage () {
   const params = useParams() as { id: string }
   const router = useRouter()
-  const product = useQuery(api.products.queries.index.getProductById, { productId: params.id as any })
+  const product = useQuery(api.products.queries.index.getProductById, { productId: params.id as Id<"products"> })
   const update = useMutation(api.products.mutations.index.updateProduct)
   const del = useMutation(api.products.mutations.index.deleteProduct)
   const restore = useMutation(api.products.mutations.index.restoreProduct)
@@ -88,8 +89,10 @@ export default function AdminEditProductPage () {
   }
 
   async function handleRemoveImage (key: string) {
+    if (!product) return
+    const currentImages = product.imageUrl
     setPendingImages((prev) => {
-      const current = (prev ?? product.imageUrl) as string[]
+      const current = (prev ?? currentImages) as string[]
       return current.filter((k) => k !== key)
     })
   }
@@ -109,45 +112,22 @@ export default function AdminEditProductPage () {
       setPendingImages(null)
     } catch (err) {
       console.error(err)
-      alert('Failed to save image changes')
+      alert('Failed to save images')
     }
   }
 
-  function moveImage (index: number, direction: 'left' | 'right') {
-    setPendingImages((prev) => {
-      const current = [...(prev ?? product!.imageUrl)]
-      const target = direction === 'left' ? index - 1 : index + 1
-      if (target < 0 || target >= current.length) return current
-      const tmp = current[target]
-      current[target] = current[index]
-      current[index] = tmp
-      return current
-    })
-  }
-
-  function handleDropUploadImages (e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault()
-    const files = Array.from(e.dataTransfer.files || [])
-    if (files.length === 0) return
-    uploadAndAddImages(files)
-  }
-
-  async function handleUploadVariantImage (
-    variantId: string,
-    previousKey: string | undefined,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) {
+  async function handleUploadVariantImage (variantId: string, currentImageKey: string | undefined, e: React.ChangeEvent<HTMLInputElement>) {
     if (!product) return
-    const file = e.target.files?.[0]
-    if (!file) return
+    if (!e.target.files?.[0]) return
     try {
+      const file = e.target.files[0]
       const compressed = await compressToWebP(file)
       const key = await uploadFile(compressed)
-      await updateVariantImage({
-        productId: product._id,
-        variantId,
+      await updateVariantImage({ 
+        productId: product._id, 
+        variantId, 
         imageUrl: key,
-        previousImageUrl: previousKey,
+        previousImageUrl: currentImageKey
       })
       e.target.value = ''
     } catch (err) {
@@ -157,29 +137,56 @@ export default function AdminEditProductPage () {
   }
 
   async function handleNewVariantImage (e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    if (!e.target.files?.[0]) return
     try {
+      const file = e.target.files[0]
       const compressed = await compressToWebP(file)
       const key = await uploadFile(compressed)
       setNewVariantImageKey(key)
       e.target.value = ''
     } catch (err) {
       console.error(err)
-      alert('Failed to upload image')
+      alert('Failed to upload variant image')
     }
   }
 
-  async function safeUpdateVariant (
-    variantId: string,
-    fields: Partial<{ variantName: string; price: number; inventory: number }>
-  ) {
+  async function handleAddVariant () {
+    if (!product) return
+    if (!newVariant.name || !newVariant.price || !newVariant.inventory) return
+    try {
+      await addVariant({
+        productId: product._id,
+        variantName: newVariant.name,
+        price: Number(newVariant.price),
+        inventory: Number(newVariant.inventory),
+        imageUrl: newVariantImageKey,
+      })
+      setNewVariant({ name: '', price: '', inventory: '' })
+      setNewVariantImageKey(undefined)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to add variant')
+    }
+  }
+
+  async function safeUpdateVariant (variantId: string, fields: Partial<{ variantName: string; price: number; inventory: number }>) {
     if (!product) return
     try {
       await updateVariant({ productId: product._id, variantId, ...fields })
     } catch (err) {
       console.error(err)
       alert('Failed to update variant')
+    }
+  }
+
+  async function safeRemoveVariant (variantId: string) {
+    if (!product) return
+    if (!confirm('Are you sure you want to delete this variant?')) return
+    try {
+      await removeVariant({ productId: product._id, variantId })
+    } catch (err) {
+      console.error(err)
+      alert('Failed to remove variant')
     }
   }
 
@@ -193,45 +200,15 @@ export default function AdminEditProductPage () {
     }
   }
 
-  async function safeRemoveVariant (variantId: string) {
-    if (!product) return
-    try {
-      await removeVariant({ productId: product._id, variantId })
-    } catch (err) {
-      console.error(err)
-      alert('Failed to remove variant')
-    }
-  }
-
-  async function handleAddVariant () {
-    if (!product) return
-    const name = newVariant.name.trim()
-    const price = Number(newVariant.price)
-    const inventory = Number(newVariant.inventory)
-    if (!name || isNaN(price) || isNaN(inventory)) {
-      alert('Please provide valid name, price, and inventory')
-      return
-    }
-    try {
-      await addVariant({
-        productId: product._id,
-        variantName: name,
-        price,
-        inventory,
-        imageUrl: newVariantImageKey,
-      })
-      setNewVariant({ name: '', price: '', inventory: '' })
-      setNewVariantImageKey(undefined)
-    } catch (err) {
-      console.error(err)
-      alert('Failed to add variant')
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Edit product</h1>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-semibold">Edit product</h1>
+        </div>
         <div className="flex items-center gap-2">
           {!product.isDeleted ? (
             <Button variant="destructive" onClick={handleDelete}>Delete</Button>
@@ -245,48 +222,39 @@ export default function AdminEditProductPage () {
         <CardHeader>
           <CardTitle>Images</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDropUploadImages}
-            className="grid grid-cols-2 gap-3 sm:grid-cols-4"
-          >
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {imageKeys.map((key, idx) => (
-              <div
-                key={key}
-                className="group relative overflow-hidden rounded border bg-card shadow-modern animate-in fade-in slide-in-from-bottom-2"
-              >
-                <R2Image imageKey={key} className="h-32 w-full object-cover transition-transform group-hover:scale-[1.02]" />
-                <div className="absolute inset-0 hidden items-center justify-between gap-2 bg-black/40 p-2 group-hover:flex">
-                  <Button size="icon" variant="secondary" onClick={() => moveImage(idx, 'left')} aria-label="Move left">
-                    <ArrowLeft className="h-4 w-4" />
+              <div key={key} className="relative group">
+                <R2Image imageKey={key} className="h-32 w-full rounded object-cover" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleRemoveImage(key)}
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="destructive" onClick={() => handleRemoveImage(key)}>
-                      <Trash2 className="mr-1 h-4 w-4" /> Remove
-                    </Button>
-                  </div>
-                  <Button size="icon" variant="secondary" onClick={() => moveImage(idx, 'right')} aria-label="Move right">
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
+                </div>
+                <div className="absolute top-1 left-1 bg-black/50 text-white text-xs px-1 rounded">
+                  {idx + 1}
                 </div>
               </div>
             ))}
-            {imageKeys.length === 0 && (
-              <div className="rounded border p-6 text-center text-sm text-muted-foreground">No images yet</div>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <label
-              htmlFor="image-upload"
-              className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-secondary px-3 py-2 text-sm hover:bg-secondary/80"
-            >
-              <UploadCloud className="h-4 w-4" />
-              <span>Upload images</span>
-              <input id="image-upload" className="hidden" type="file" accept="image/*" multiple onChange={handleUploadImages} />
+            <label className="h-32 w-full rounded border-2 border-dashed border-muted-foreground/25 flex items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-colors">
+              <div className="text-center">
+                <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
+                <div className="text-sm text-muted-foreground mt-1">Add image</div>
+              </div>
+              <input type="file" accept="image/*" multiple className="hidden" onChange={handleUploadImages} />
             </label>
-            <Button variant="secondary" onClick={handleSaveImages} disabled={!pendingImages}>Save changes</Button>
           </div>
+          {pendingImages && (
+            <div className="mt-4 flex items-center gap-2">
+              <Button onClick={handleSaveImages}>Save images</Button>
+              <Button variant="ghost" onClick={() => setPendingImages(null)}>Cancel</Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -294,7 +262,7 @@ export default function AdminEditProductPage () {
         <CardHeader>
           <CardTitle>Basics</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
+        <CardContent className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium" htmlFor="title">Title</label>
             <div className="flex gap-2">
@@ -382,7 +350,7 @@ export default function AdminEditProductPage () {
 }
 
 function R2Image ({ imageKey, className }: { imageKey: string; className?: string }) {
-  const url = useQuery(api.files.queries.index.getFileUrl, imageKey ? { key: imageKey } : 'skip' as any)
+  const url = useQuery(api.files.queries.index.getFileUrl, imageKey ? { key: imageKey } : 'skip')
   if (!url) {
     return <div className={['bg-secondary', className].filter(Boolean).join(' ')} />
   }
@@ -391,7 +359,7 @@ function R2Image ({ imageKey, className }: { imageKey: string; className?: strin
 }
 
 function VariantImage ({ imageKey }: { imageKey?: string }) {
-  const url = useQuery(api.files.queries.index.getFileUrl, imageKey ? { key: imageKey } : 'skip' as any)
+  const url = useQuery(api.files.queries.index.getFileUrl, imageKey ? { key: imageKey } : 'skip')
   // eslint-disable-next-line @next/next/no-img-element
   return url ? <img src={url} alt="Variant" className="h-16 w-16 rounded object-cover" /> : <div className="h-16 w-16 rounded bg-secondary" />
 }

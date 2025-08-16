@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
+import { Id } from '@/convex/_generated/dataModel'
 
 const schema = z.object({
   name: z.string().min(2),
@@ -44,7 +45,7 @@ export default function AdminCreateCategoryPage () {
       name: values.name,
       description: values.description || undefined,
       slug: values.slug || undefined,
-      parentCategoryId: values.parentCategoryId ? (values.parentCategoryId as any) : undefined,
+      parentCategoryId: values.parentCategoryId ? (values.parentCategoryId as Id<"categories">) : undefined,
       isFeatured: values.isFeatured,
       displayOrder: values.displayOrder,
     })
@@ -89,7 +90,7 @@ export default function AdminCreateCategoryPage () {
               <select id="parent" className="h-9 w-full rounded-md border bg-background px-3 text-sm" {...register('parentCategoryId')}>
                 <option value="">None</option>
                 {(categoriesRoot?.categories || []).map((c) => (
-                  <option key={c._id} value={c._id as any}>{c.name}</option>
+                  <option key={c._id} value={c._id}>{c.name}</option>
                 ))}
               </select>
             </div>

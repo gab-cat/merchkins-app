@@ -38,19 +38,18 @@ export default function AdminOrdersPage () {
   }) as unknown as { page?: Array<{ _id: string, orderNumber?: string, status: string, orderDate: number, itemCount: number, totalAmount?: number, customerInfo?: { email?: string } }> }
 
   const loading = ordersResult === undefined
-  const orders = ordersResult?.page ?? []
 
   const filtered = useMemo(() => {
-    const list = orders
-    if (!search) return list
+    const orders = ordersResult?.page ?? []
+    if (!search) return orders
     const q = search.toLowerCase()
-    return list.filter((o) =>
+    return orders.filter((o) =>
       [o.orderNumber || '', o.customerInfo?.email || '']
         .join(' ')
         .toLowerCase()
         .includes(q)
     )
-  }, [orders, search])
+  }, [ordersResult?.page, search])
 
   return (
     <div>

@@ -19,11 +19,14 @@ export function ChatsSidebarList ({ rooms, baseHref = '/chats' }: ChatsSidebarLi
     query: api.chats.queries.index.getChatRoomsPage,
     baseArgs: {},
     limit: 25,
-    selectPage: (res: { page?: ReadonlyArray<RoomListItem>, isDone?: boolean, continueCursor?: string | null }) => ({
-      page: res.page || [],
-      isDone: !!res.isDone,
-      continueCursor: res.continueCursor ?? null,
-    })
+    selectPage: (res: unknown) => {
+      const result = res as { page?: ReadonlyArray<RoomListItem>, isDone?: boolean, continueCursor?: string | null }
+      return {
+        page: (result.page || []) as ReadonlyArray<RoomListItem>,
+        isDone: !!result.isDone,
+        continueCursor: result.continueCursor ?? null,
+      }
+    }
   })
   const list: ReadonlyArray<RoomListItem> = (items && items.length > 0) ? items : rooms
 

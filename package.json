@@ -7,7 +7,7 @@
     "dev:frontend": "next dev --turbopack",
     "dev:backend": "convex dev",
     "seed": "bunx convex dev --until-success && bunx convex run seeds/index:seedAction",
-    "predev": "convex dev --until-success && convex dashboard",
+    "predev": "convex dev --until-success",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "next lint"

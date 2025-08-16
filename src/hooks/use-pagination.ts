@@ -3,24 +3,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from 'convex/react'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FunctionRef = any
 
-export interface UseOffsetPaginationOptions<TItem, TArgs extends Record<string, any>> {
+export interface UseOffsetPaginationOptions<TItem extends { _id?: string | number }, TArgs extends Record<string, unknown>> {
   query: FunctionRef
   baseArgs: TArgs | 'skip'
   limit?: number
   enabled?: boolean
-  selectItems: (result: any) => ReadonlyArray<TItem>
-  selectHasMore: (result: any) => boolean
+  selectItems: (result: unknown) => ReadonlyArray<TItem>
+  selectHasMore: (result: unknown) => boolean
 }
 
-export interface UseCursorPaginationOptions<TItem, TArgs extends Record<string, any>> {
+export interface UseCursorPaginationOptions<TItem extends { _id?: string | number }, TArgs extends Record<string, unknown>> {
   query: FunctionRef
   baseArgs: TArgs | 'skip'
   limit?: number
   enabled?: boolean
   // Extracts the { page, isDone, continueCursor } from the query result
-  selectPage: (result: any) => {
+  selectPage: (result: unknown) => {
     page: ReadonlyArray<TItem>
     isDone: boolean
     continueCursor: string | null
@@ -35,7 +36,7 @@ export interface PaginationResult<TItem> {
   reset: () => void
 }
 
-export function useOffsetPagination<TItem, TArgs extends Record<string, any>> (
+export function useOffsetPagination<TItem extends { _id?: string | number }, TArgs extends Record<string, unknown>> (
   options: UseOffsetPaginationOptions<TItem, TArgs>,
 ): PaginationResult<TItem> {
   const { query, baseArgs, limit = 20, enabled = true, selectItems, selectHasMore } = options
@@ -55,7 +56,7 @@ export function useOffsetPagination<TItem, TArgs extends Record<string, any>> (
     }
   }, [baseArgsStable, limit, offset])
 
-  const result = useQuery(query, enabled ? argsForQuery : 'skip') as any
+  const result = useQuery(query, enabled ? argsForQuery : 'skip')
 
   const isLoading = result === undefined
   const pageItems = useMemo(() => (result ? selectItems(result) : []), [result, selectItems])
@@ -74,7 +75,7 @@ export function useOffsetPagination<TItem, TArgs extends Record<string, any>> (
       setItems(pageItems)
       return
     }
-    setItems(prev => dedupeById([...prev, ...pageItems]))
+    setItems(prev => dedupeById([...prev, ...pageItems]) as ReadonlyArray<TItem>)
   }, [result, offset, pageItems])
 
   function loadMore () {
@@ -90,7 +91,7 @@ export function useOffsetPagination<TItem, TArgs extends Record<string, any>> (
   return { items, isLoading, hasMore, loadMore, reset }
 }
 
-export function useCursorPagination<TItem, TArgs extends Record<string, any>> (
+export function useCursorPagination<TItem extends { _id?: string | number }, TArgs extends Record<string, unknown>> (
   options: UseCursorPaginationOptions<TItem, TArgs>,
 ): PaginationResult<TItem> {
   const { query, baseArgs, limit = 20, enabled = true, selectPage } = options
@@ -101,7 +102,7 @@ export function useCursorPagination<TItem, TArgs extends Record<string, any>> (
 
   const argsForQuery = useMemo(() => {
     if (baseArgsStable === 'skip') return 'skip'
-    const base: any = {
+    const base: Record<string, unknown> = {
       ...(baseArgsStable as TArgs),
       limit,
     }
@@ -109,7 +110,7 @@ export function useCursorPagination<TItem, TArgs extends Record<string, any>> (
     return base
   }, [baseArgsStable, limit, cursor])
 
-  const result = useQuery(query, enabled ? argsForQuery : 'skip') as any
+  const result = useQuery(query, enabled ? argsForQuery : 'skip')
   const isLoading = result === undefined
 
   const page = useMemo(() => (result ? selectPage(result) : { page: [], isDone: true, continueCursor: null }), [result, selectPage])
@@ -127,7 +128,7 @@ export function useCursorPagination<TItem, TArgs extends Record<string, any>> (
       setItems(page.page)
       return
     }
-    setItems(prev => dedupeById([...prev, ...page.page]))
+    setItems(prev => dedupeById([...prev, ...page.page]) as ReadonlyArray<TItem>)
   }, [result, cursor, page])
 
   const hasMore = !page.isDone

@@ -6,6 +6,9 @@ import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Doc, Id } from '@/convex/_generated/dataModel'
+
+type Announcement = Doc<"announcements">
 
 export default function AdminAnnouncementsPage () {
   const [search, setSearch] = useState('')
@@ -21,22 +24,22 @@ export default function AdminAnnouncementsPage () {
   const update = useMutation(api.announcements.mutations.index.updateAnnouncement)
 
   const loading = result === undefined
-  const announcements = result?.announcements ?? []
+  const announcements = useMemo(() => result?.page ?? [], [result?.page])
 
   const filtered = useMemo(() => {
     if (!search) return announcements
     const q = search.toLowerCase()
-    return announcements.filter((a) =>
+    return announcements.filter((a: Announcement) =>
       [a.title || '', a.content || ''].join(' ').toLowerCase().includes(q)
     )
   }, [announcements, search])
 
-  async function toggleActive (id: string, isActive: boolean) {
-    await update({ announcementId: id as any, isActive: !isActive })
+  async function toggleActive (id: Id<"announcements">, isActive: boolean) {
+    await update({ announcementId: id, isActive: !isActive })
   }
 
-  async function togglePinned (id: string, isPinned: boolean) {
-    await update({ announcementId: id as any, isPinned: !isPinned })
+  async function togglePinned (id: Id<"announcements">, isPinned: boolean) {
+    await update({ announcementId: id, isPinned: !isPinned })
   }
 
   return (
@@ -68,7 +71,7 @@ export default function AdminAnnouncementsPage () {
               </CardContent>
             </Card>
           ))
-        ) : filtered.map((a) => (
+        ) : filtered.map((a: Announcement) => (
           <Card key={a._id}>
             <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
               <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -79,10 +82,10 @@ export default function AdminAnnouncementsPage () {
                 <span className="truncate" title={a.title}>{a.title}</span>
               </CardTitle>
               <div className="flex items-center gap-2">
-                <Button size="sm" variant={a.isPinned ? 'secondary' : 'outline'} onClick={() => togglePinned(a._id as any, !!a.isPinned)}>
+                <Button size="sm" variant={a.isPinned ? 'secondary' : 'outline'} onClick={() => togglePinned(a._id, !!a.isPinned)}>
                   {a.isPinned ? 'Unpin' : 'Pin'}
                 </Button>
-                <Button size="sm" variant={a.isActive ? 'secondary' : 'outline'} onClick={() => toggleActive(a._id as any, !!a.isActive)}>
+                <Button size="sm" variant={a.isActive ? 'secondary' : 'outline'} onClick={() => toggleActive(a._id, !!a.isActive)}>
                   {a.isActive ? 'Deactivate' : 'Activate'}
                 </Button>
               </div>

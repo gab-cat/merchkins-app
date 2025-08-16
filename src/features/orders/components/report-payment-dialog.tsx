@@ -72,8 +72,9 @@ export function ReportPaymentDialog ({ orderId, defaultAmount, defaultCurrency =
       showToast({ type: 'success', title: 'Payment submitted for review' })
       setOpen(false)
       onCreated?.()
-    } catch (err: any) {
-      showToast({ type: 'error', title: err?.message || 'Failed to submit payment' })
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit payment'
+      showToast({ type: 'error', title: errorMessage })
     }
   }
 

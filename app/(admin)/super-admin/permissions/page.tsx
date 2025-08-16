@@ -6,13 +6,18 @@ import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Doc } from '@/convex/_generated/dataModel'
+
+type Permission = Doc<"permissions">
+type PermissionCategory = 'USER_MANAGEMENT' | 'PRODUCT_MANAGEMENT' | 'ORDER_MANAGEMENT' | 'PAYMENT_MANAGEMENT' | 'ORGANIZATION_MANAGEMENT' | 'SYSTEM_ADMINISTRATION'
+type UserRole = 'ADMIN' | 'STAFF' | 'MEMBER'
 
 export default function SuperAdminPermissionsPage () {
-  const [category, setCategory] = useState<'' | 'USER_MANAGEMENT' | 'PRODUCT_MANAGEMENT' | 'ORDER_MANAGEMENT' | 'PAYMENT_MANAGEMENT' | 'ORGANIZATION_MANAGEMENT' | 'SYSTEM_ADMINISTRATION'>('')
+  const [category, setCategory] = useState<'' | PermissionCategory>('')
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [requiredRole, setRequiredRole] = useState<'' | 'ADMIN' | 'STAFF' | 'MEMBER'>('')
+  const [requiredRole, setRequiredRole] = useState<'' | UserRole>('')
 
   const permissions = useQuery(api.permissions.queries.index.getPermissions, {
     category: category || undefined,
@@ -30,7 +35,7 @@ export default function SuperAdminPermissionsPage () {
       code: code.trim().toUpperCase(),
       name: name.trim(),
       description: description.trim() || undefined,
-      category: category as any,
+      category: category as PermissionCategory,
       defaultSettings: { canCreate: false, canRead: true, canUpdate: false, canDelete: false },
       requiredRole: requiredRole || undefined,
     })
@@ -47,7 +52,7 @@ export default function SuperAdminPermissionsPage () {
         </CardHeader>
         <CardContent>
           <div className="mb-4">
-            <select className="h-10 rounded-md border bg-background px-3 text-sm" value={category} onChange={(e) => setCategory(e.target.value as any)}>
+            <select className="h-10 rounded-md border bg-background px-3 text-sm" value={category} onChange={(e) => setCategory(e.target.value as '' | PermissionCategory)}>
               <option value="">All categories</option>
               <option value="USER_MANAGEMENT">User Management</option>
               <option value="PRODUCT_MANAGEMENT">Product Management</option>
@@ -65,7 +70,7 @@ export default function SuperAdminPermissionsPage () {
               <div className="col-span-3">Required Role</div>
             </div>
             <div>
-              {permissions?.page?.map((p) => (
+              {permissions?.page?.map((p: Permission) => (
                 <div key={p._id} className="grid grid-cols-12 px-3 py-2 hover:bg-secondary">
                   <div className="col-span-3 text-xs font-mono">{p.code}</div>
                   <div className="col-span-3 text-sm">{p.name}</div>
@@ -98,7 +103,7 @@ export default function SuperAdminPermissionsPage () {
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium" htmlFor="perm-cat">Category</label>
-              <select id="perm-cat" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={category} onChange={(e) => setCategory(e.target.value as any)}>
+              <select id="perm-cat" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={category} onChange={(e) => setCategory(e.target.value as '' | PermissionCategory)}>
                 <option value="">Select</option>
                 <option value="USER_MANAGEMENT">User Management</option>
                 <option value="PRODUCT_MANAGEMENT">Product Management</option>
@@ -110,7 +115,7 @@ export default function SuperAdminPermissionsPage () {
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium" htmlFor="perm-role">Required role</label>
-              <select id="perm-role" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={requiredRole} onChange={(e) => setRequiredRole(e.target.value as any)}>
+              <select id="perm-role" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={requiredRole} onChange={(e) => setRequiredRole(e.target.value as '' | UserRole)}>
                 <option value="">None</option>
                 <option value="ADMIN">Admin</option>
                 <option value="STAFF">Staff</option>

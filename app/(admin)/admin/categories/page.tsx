@@ -33,8 +33,14 @@ export default function AdminCategoriesPage () {
     query: api.categories.queries.index.getCategories,
     baseArgs,
     limit: 50,
-    selectItems: (res: { categories?: ReadonlyArray<CategoryListItem> }) => res.categories || [],
-    selectHasMore: (res: { hasMore?: boolean }) => !!res.hasMore,
+    selectItems: (res: unknown) => {
+      const typedRes = res as { categories?: ReadonlyArray<CategoryListItem> }
+      return typedRes.categories || []
+    },
+    selectHasMore: (res: unknown) => {
+      const typedRes = res as { hasMore?: boolean }
+      return !!typedRes.hasMore
+    },
   })
 
   const filtered = useMemo(() => {

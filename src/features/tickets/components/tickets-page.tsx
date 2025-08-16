@@ -56,15 +56,16 @@ export function TicketsPage () {
     query: api.tickets.queries.index.getTicketsPage,
     baseArgs: organization?._id ? { organizationId: organization._id } : 'skip',
     limit: 25,
-    selectPage: (res: { page?: readonly TicketListItem[]; isDone?: boolean; continueCursor?: string | null }) => ({
-      page: res.page || [],
-      isDone: !!res.isDone,
-      continueCursor: res.continueCursor ?? null,
-    }),
+    selectPage: (res: unknown) => {
+      const result = res as { page?: readonly TicketListItem[]; isDone?: boolean; continueCursor?: string | null }
+      return {
+        page: (result.page || []) as ReadonlyArray<TicketListItem>,
+        isDone: !!result.isDone,
+        continueCursor: result.continueCursor ?? null,
+      }
+    },
   })
 
-  const [search, setSearch] = useState('')
-  const [activeId, setActiveId] = useState<Id<'tickets'> | null>(null)
   interface TicketListItem {
     _id: Id<'tickets'>
     title?: string
@@ -72,6 +73,9 @@ export function TicketsPage () {
     priority: 'LOW' | 'MEDIUM' | 'HIGH'
     updatedAt?: number
   }
+
+  const [search, setSearch] = useState('')
+  const [activeId, setActiveId] = useState<Id<'tickets'> | null>(null)
 
   const filtered: ReadonlyArray<TicketListItem> = useMemo(() => {
     const q = search.trim().toLowerCase()

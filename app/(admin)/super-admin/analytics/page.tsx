@@ -6,8 +6,10 @@ import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
+type Timeframe = 'day' | 'week' | 'month' | 'quarter' | 'year' | 'all'
+
 export default function SuperAdminAnalyticsPage () {
-  const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'quarter' | 'year' | 'all'>('month')
+  const [timeframe, setTimeframe] = useState<Timeframe>('month')
 
   const productAnalytics = useQuery(api.products.queries.index.getProductAnalytics, {
     timeframe,
@@ -18,7 +20,7 @@ export default function SuperAdminAnalyticsPage () {
     <div className="grid gap-6 md:grid-cols-2">
       <div className="md:col-span-2">
         <label className="mb-2 block text-sm font-medium" htmlFor="tf">Timeframe</label>
-        <select id="tf" className="h-10 rounded-md border bg-background px-3 text-sm" value={timeframe} onChange={(e) => setTimeframe(e.target.value as any)}>
+        <select id="tf" className="h-10 rounded-md border bg-background px-3 text-sm" value={timeframe} onChange={(e) => setTimeframe(e.target.value as Timeframe)}>
           <option value="day">Day</option>
           <option value="week">Week</option>
           <option value="month">Month</option>
@@ -45,7 +47,7 @@ export default function SuperAdminAnalyticsPage () {
               )
               const csv = [
                 headers.join(','),
-                ...rows.map((r) => headers.map((h) => JSON.stringify((r as any)[h] ?? '')).join(',')),
+                ...rows.map((r) => headers.map((h) => JSON.stringify((r as Record<string, unknown>)[h] ?? '')).join(',')),
               ].join('\n')
               const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
               const url = URL.createObjectURL(blob)

@@ -6,12 +6,17 @@ import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Doc } from '@/convex/_generated/dataModel'
+
+type Announcement = Doc<"announcements">
+type TargetAudience = 'ALL' | 'STAFF' | 'CUSTOMERS' | 'MERCHANTS' | 'ADMINS'
+type AnnouncementLevel = 'INFO' | 'WARNING' | 'CRITICAL'
 
 export default function SuperAdminAnnouncementsPage () {
-  const [target, setTarget] = useState<'ALL' | 'STAFF' | 'CUSTOMERS' | 'MERCHANTS' | 'ADMINS'>('ALL')
+  const [target, setTarget] = useState<TargetAudience>('ALL')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [level, setLevel] = useState<'INFO' | 'WARNING' | 'CRITICAL'>('INFO')
+  const [level, setLevel] = useState<AnnouncementLevel>('INFO')
   const [isPinned, setIsPinned] = useState(false)
   const [category, setCategory] = useState('')
 
@@ -19,7 +24,7 @@ export default function SuperAdminAnnouncementsPage () {
     targetAudience: target,
     includeInactive: false,
     limit: 100,
-  }) as unknown as { page?: Array<any> }
+  }) as unknown as { page?: Announcement[] }
 
   const createAnnouncement = useMutation(api.announcements.mutations.index.createAnnouncement)
   const updateAnnouncement = useMutation(api.announcements.mutations.index.updateAnnouncement)
@@ -53,7 +58,7 @@ export default function SuperAdminAnnouncementsPage () {
         </CardHeader>
         <CardContent>
           <div className="mb-4">
-            <select className="h-10 rounded-md border bg-background px-3 text-sm" value={target} onChange={(e) => setTarget(e.target.value as any)}>
+            <select className="h-10 rounded-md border bg-background px-3 text-sm" value={target} onChange={(e) => setTarget(e.target.value as TargetAudience)}>
               <option value="ALL">All</option>
               <option value="STAFF">Staff</option>
               <option value="CUSTOMERS">Customers</option>
@@ -69,7 +74,7 @@ export default function SuperAdminAnnouncementsPage () {
               <div className="col-span-2">Pinned</div>
             </div>
             <div>
-               {(announcements?.page || []).map((a: any) => (
+               {(announcements?.page || []).map((a: Announcement) => (
                 <div key={a._id} className="grid grid-cols-12 items-center px-3 py-2 hover:bg-secondary">
                   <div className="col-span-5 text-sm flex items-center gap-2">
                     <span className="inline-flex min-w-0 max-w-[50%] items-center gap-1 rounded-md bg-accent/60 px-2 py-0.5 text-xs text-accent-foreground">
@@ -82,8 +87,8 @@ export default function SuperAdminAnnouncementsPage () {
                   <div className="col-span-2 text-xs">{a.level}</div>
                   <div className="col-span-2 flex items-center justify-end gap-2 text-xs">
                     <span>{a.isPinned ? 'Pinned' : ''}</span>
-                    <Button size="sm" variant="outline" onClick={() => updateAnnouncement({ announcementId: a._id, isPinned: !a.isPinned } as any)}>{a.isPinned ? 'Unpin' : 'Pin'}</Button>
-                    <Button size="sm" variant="destructive" onClick={() => deleteAnnouncement({ announcementId: a._id } as any)}>Delete</Button>
+                    <Button size="sm" variant="outline" onClick={() => updateAnnouncement({ announcementId: a._id, isPinned: !a.isPinned })}>{a.isPinned ? 'Unpin' : 'Pin'}</Button>
+                    <Button size="sm" variant="destructive" onClick={() => deleteAnnouncement({ announcementId: a._id })}>Delete</Button>
                   </div>
                 </div>
               ))}
@@ -113,7 +118,7 @@ export default function SuperAdminAnnouncementsPage () {
             <div className="grid gap-4 md:grid-cols-3">
               <div>
                 <label className="mb-1 block text-sm font-medium" htmlFor="ann-level">Level</label>
-                <select id="ann-level" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={level} onChange={(e) => setLevel(e.target.value as any)}>
+                <select id="ann-level" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={level} onChange={(e) => setLevel(e.target.value as AnnouncementLevel)}>
                   <option value="INFO">Info</option>
                   <option value="WARNING">Warning</option>
                   <option value="CRITICAL">Critical</option>

@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ShoppingCart, Search, Building2, Package, User as UserIcon, MessageSquare, Ticket } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -56,12 +55,6 @@ export function SiteHeader () {
     api.organizations.queries.index.getOrganizationBySlug,
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
   )
-  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/')
-  const logoArg = isKey(organization?.logo as string | undefined)
-    ? { key: organization?.logo as string }
-    : ('skip' as unknown as { key: string })
-  const rawLogoUrl = useQuery(api.files.queries.index.getFileUrl, logoArg)
-  const logoUrl = typeof rawLogoUrl === 'string' ? rawLogoUrl : undefined
 
   const topCategories = useQuery(
     api.categories.queries.index.getCategories,
@@ -114,22 +107,10 @@ export function SiteHeader () {
         color: 'var(--header-fg)'
       }}
     >
-      <div className="container mx-auto flex h-14 items-center gap-3 px-3">
-          <Link href={orgSlug ? `/o/${orgSlug}` : '/'} className="flex items-center gap-2" style={{ color: 'var(--header-fg)' }}>
-          <div className="relative h-8 w-8 overflow-hidden rounded-full">
-            <Image
-              src={logoUrl || (!isKey(organization?.logo as string | undefined) ? (organization?.logo as string | undefined) : undefined) || '/convex.svg'}
-              alt={organization?.name ? `${organization.name} logo` : 'Merchkins'}
-              fill
-              className="object-cover object-center"
-              sizes="28px"
-              quality={95}
-              unoptimized
-            />
-          </div>
+      <div className="container mx-auto flex h-14 items-center gap-3 px-3 pt-4">
+        <Link href={orgSlug ? `/o/${orgSlug}` : '/'} className="flex items-center gap-2 text-3xl" style={{ color: 'var(--header-fg)' }}>
           <span
-            className={cn('font-semibold tracking-tight text-lg md:text-xl')}
-            style={{ color: 'var(--header-title)' }}
+            className={cn('font-semibold tracking-tight text-lg md:text-4xl', organization?.name ? '' : 'font-genty')}
           >
             {organization?.name ?? 'Merchkins'}
           </span>
@@ -141,13 +122,13 @@ export function SiteHeader () {
           role="search"
         >
           <div className="relative w-full">
-            <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--header-fg)] opacity-60" />
+            <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-black opacity-60" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search products"
               aria-label="Search products"
-              className="h-9 md:h-10 pl-8 text-[var(--header-fg)] placeholder:text-[var(--header-fg)] placeholder:opacity-60 text-sm md:text-base"
+              className="h-9 md:h-10 pl-8 bg-white text-black placeholder:text-black placeholder:opacity-60 text-sm md:text-base hover:bg-white focus:bg-white focus-visible:bg-white"
             />
           </div>
           <Button type="submit" variant="default" size="sm">Search</Button>
@@ -156,7 +137,7 @@ export function SiteHeader () {
         <div className="ml-auto flex items-center gap-2" style={{ color: 'var(--header-fg)' }}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="relative gap-2 px-3" data-testid="support-menu">
+              <Button variant="outline" size="sm" className="relative gap-2 px-3 text-black" data-testid="support-menu">
                 <MessageSquare className="h-4 w-4" />
                 {totalSupportUnread > 0 && (
                   <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-none text-destructive-foreground">
@@ -231,7 +212,12 @@ export function SiteHeader () {
               <Link
                 key={c._id}
                 href={orgSlug ? `/o/${orgSlug}/c/${c.slug}` : `/c/${c.slug}`}
-                className="rounded-md px-3 py-1.5 text-sm md:text-[15px] font-medium text-[var(--header-fg)] opacity-80 hover:bg-accent hover:text-[var(--header-fg)] hover:opacity-100"
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-sm md:text-[15px] font-medium opacity-80 hover:opacity-100",
+                  orgSlug 
+                    ? "text-black hover:bg-secondary hover:text-black" // Storefront page
+                    : "text-white hover:bg-green-500/20 hover:text-white" // Main page
+                )}
               >
                 {c.name}
               </Link>

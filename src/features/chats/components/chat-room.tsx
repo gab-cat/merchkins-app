@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { useMutation, useQuery } from 'convex/react'
-import type { Id } from '@/convex/_generated/dataModel'
+import type { Id, Doc } from '@/convex/_generated/dataModel'
 import { api } from '@/convex/_generated/api'
 import { ChatLayout } from './chat-layout'
 import { ChatsSidebarList } from './chats-sidebar-list'
@@ -33,12 +33,12 @@ export function ChatRoom ({ roomId, hideSidebar = false }: { roomId: Id<'chatRoo
     <div className="container mx-auto px-3 py-4">
       <ChatLayout
         title={room.name || 'Chat room'}
-        subtitle={(room.embeddedParticipants || []).map((p: any) => p.email).join(', ')}
+        subtitle={(room.embeddedParticipants || []).map((p: { email: string }) => p.email).join(', ')}
         sidebar={hideSidebar ? undefined : <ChatsSidebarList rooms={rooms || []} />}
       >
         <div className="flex h-full flex-col">
           <div className="min-h-0 flex-1">
-            <ChatThread messages={list as any} currentUserId={me?._id ? String(me._id) : undefined} chatRoomId={String(roomId)} />
+            <ChatThread messages={list as Doc<"chatMessages">[]} currentUserId={me?._id ? String(me._id) : undefined} chatRoomId={String(roomId)} />
           </div>
           <div className="border-t">
             <ChatInput onSend={handleSend} disabled={!me} />

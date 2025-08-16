@@ -1,14 +1,17 @@
 "use client"
 
-import React, { useMemo, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { useMutation, useQuery } from 'convex/react'
+import Image from 'next/image'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { R2Image } from '@/src/components/ui/r2-image'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Doc, Id } from '@/convex/_generated/dataModel'
+
+type Organization = Doc<'organizations'>
 
 interface OrganizationsPageProps {
   clerkId: string
@@ -18,7 +21,7 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
   const currentUser = useQuery(api.users.queries.index.getCurrentUser, { clerkId })
   const orgs = useQuery(
     api.organizations.queries.index.getOrganizationsByUser,
-    currentUser?._id ? { userId: currentUser._id } : ('skip' as unknown as { userId: string })
+    currentUser?._id ? { userId: currentUser._id } : ('skip' as unknown as { userId: Id<'users'> })
   )
   const loading = currentUser === undefined || orgs === undefined
 
@@ -97,7 +100,20 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
                     <li key={org._id} className="flex items-center justify-between gap-4 py-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="h-10 w-10 overflow-hidden rounded border bg-secondary flex-shrink-0">
-                          <R2Image fileKey={org.logo} alt={`${org.name} logo`} width={40} height={40} />
+                          {/* Assuming org.logo is a string or null */}
+                          {org.logo ? (
+                            <Image 
+                              src={`https://${process.env.NEXT_PUBLIC_R2_BUCKET_NAME}.r2.cloudflarestorage.com/${org.logo}`} 
+                              alt={`${org.name || 'Organization'} logo`} 
+                              width={40} 
+                              height={40}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 flex items-center justify-center bg-secondary text-primary text-sm font-medium">
+                              {org.name?.charAt(0) || 'O'}
+                            </div>
+                          )}
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -167,7 +183,7 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
               <div className="text-sm text-muted-foreground">Enter at least 2 characters to search.</div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {(searchResult ?? []).map((org: any) => (
+                {(searchResult ?? []).map((org: Organization) => (
                   <div key={org._id} className="rounded border p-3">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0">

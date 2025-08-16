@@ -54,7 +54,7 @@ export default function SuperAdminUsersPage () {
         <CardContent>
           <div className="mb-4 flex items-center gap-2">
             <Input placeholder="Search users" value={search} onChange={(e) => setSearch(e.target.value)} />
-            <select className="h-10 rounded-md border bg-background px-3 text-sm" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as any)}>
+            <select className="h-10 rounded-md border bg-background px-3 text-sm" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as '' | 'staff' | 'admin' | 'merchant')}>
               <option value="">All</option>
               <option value="staff">Staff</option>
               <option value="admin">Admin</option>

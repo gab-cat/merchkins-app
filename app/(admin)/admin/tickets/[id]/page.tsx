@@ -11,7 +11,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import type { Id } from '@/convex/_generated/dataModel'
-import { useAuth } from '@clerk/nextjs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { showToast } from '@/lib/toast'
 
@@ -19,7 +18,7 @@ type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
 
 function StatusBadge ({ value }: { value: TicketStatus }) {
   const color = value === 'OPEN' ? 'secondary' : value === 'CLOSED' ? 'destructive' : 'default'
-  return <Badge variant={color as any}>{value}</Badge>
+  return <Badge variant={color as 'secondary' | 'destructive' | 'default'}>{value}</Badge>
 }
 
 export default function AdminTicketDetailPage () {
@@ -29,7 +28,6 @@ export default function AdminTicketDetailPage () {
   const addUpdate = useMutation(api.tickets.mutations.index.addTicketUpdate)
   const markRead = useMutation(api.tickets.mutations.index.markTicketRead)
   const assignTicket = useMutation(api.tickets.mutations.index.assignTicket)
-  const { userId: clerkId } = useAuth()
 
   const [busy, setBusy] = useState(false)
 
@@ -98,58 +96,55 @@ export default function AdminTicketDetailPage () {
       await assignTicket({ ticketId: ticket._id as Id<'tickets'>, assigneeId: assigneeId as Id<'users'> })
       showToast({ type: 'success', title: 'Ticket assigned' })
     } catch (err: unknown) {
-      const message = typeof err === 'object' && err && 'message' in err ? String((err as { message?: string }).message) : 'Failed to assign ticket'
-      showToast({ type: 'error', title: message })
+      const error = err as Error
+      showToast({ type: 'error', title: error?.message || 'Failed to assign ticket' })
     }
   }
 
   if (loading) return <div className="py-12">Loading...</div>
   if (ticket === null) return <div className="py-12">Ticket not found.</div>
 
-  const options: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">{ticket.title}</h1>
-          <div className="mt-1 text-sm text-muted-foreground">Created by {ticket.creatorInfo?.email}</div>
+          <h1 className="text-2xl font-semibold">Ticket #{ticket._id}</h1>
+          <div className="mt-1 text-sm text-muted-foreground">{ticket.title}</div>
         </div>
-        <div className="flex items-center gap-2">
-          <select
-            className="h-9 rounded-md border bg-background px-3 text-sm"
-            value={ticket.status}
-            onChange={(e) => setStatus(e.target.value as TicketStatus)}
-            disabled={busy}
-          >
-            {options.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <Dialog open={isCommentOpen} onOpenChange={setIsCommentOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="default" disabled={busy}>Add comment</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add comment</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3">
-                <Textarea
-                  placeholder="Write your comment..."
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  autoResize
-                  minRows={4}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button variant="secondary" onClick={() => setIsCommentOpen(false)} disabled={busy}>Cancel</Button>
-                  <Button onClick={submitComment} disabled={busy || !commentText.trim()}>Submit</Button>
-                </div>
+        <StatusBadge value={ticket.status} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-muted-foreground">Status</span>
+        {(['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'] as const).map((s) => (
+          <Button key={s} size="sm" variant={ticket.status === s ? 'secondary' : 'outline'} disabled={busy} onClick={() => setStatus(s)}>
+            {s}
+          </Button>
+        ))}
+        <Separator orientation="vertical" className="h-6" />
+        <Dialog open={isCommentOpen} onOpenChange={setIsCommentOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="default" disabled={busy}>Add comment</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add comment</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Textarea
+                placeholder="Write your comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                autoResize
+                minRows={4}
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="secondary" onClick={() => setIsCommentOpen(false)} disabled={busy}>Cancel</Button>
+                <Button onClick={submitComment} disabled={busy || !commentText.trim()}>Submit</Button>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -196,7 +191,7 @@ export default function AdminTicketDetailPage () {
                 <div className="pt-2">
                   <div className="mb-1 text-xs text-muted-foreground">Assign to</div>
                   <Select
-                    value={String((ticket as any).assignedToId || '')}
+                    value={String(ticket.assignedToId || '')}
                     onValueChange={handleAssign}
                     disabled={eligibleAssignees.length === 0}
                   >
@@ -204,7 +199,7 @@ export default function AdminTicketDetailPage () {
                       <SelectValue placeholder="Select member" />
                     </SelectTrigger>
                     <SelectContent>
-                      {eligibleAssignees.map((m: any) => (
+                      {eligibleAssignees.map((m: OrganizationMemberLite) => (
                         <SelectItem key={String(m.userId)} value={String(m.userId)}>
                           {(m.userInfo.firstName || m.userInfo.lastName)
                             ? `${m.userInfo.firstName || ''} ${m.userInfo.lastName || ''}`.trim()
