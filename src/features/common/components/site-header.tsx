@@ -14,8 +14,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { useQuery } from 'convex/react'
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
+import { SignedIn, SignedOut, UserButton, useAuth } from '@clerk/nextjs'
 import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
 import { CartSheet } from '@/src/features/cart/components/cart-sheet'
 import { cn } from '@/lib/utils'
 
@@ -23,6 +24,7 @@ export function SiteHeader () {
   const router = useRouter()
   const pathname = usePathname()
   const [search, setSearch] = useState('')
+  const { isSignedIn } = useAuth()
   
 
   const orgSlugFromPath = useMemo(() => {
@@ -66,14 +68,18 @@ export function SiteHeader () {
   const cart = useQuery(api.carts.queries.index.getCartByUser, {})
   const totalItems = useMemo(() => cart?.totalItems ?? 0, [cart])
 
-  // Unread counts
+  // Unread counts - only run when authenticated
   const chatsUnread = useQuery(
     api.chats.queries.index.getUnreadCount,
-    organization?._id ? { organizationId: organization._id } : {}
+    isSignedIn && organization?._id 
+      ? { organizationId: organization._id } 
+      : ('skip' as unknown as { organizationId?: Id<"organizations"> })
   )
   const ticketsUnread = useQuery(
     api.tickets.queries.index.getUnreadCount,
-    organization?._id ? { organizationId: organization._id } : {}
+    isSignedIn && organization?._id 
+      ? { organizationId: organization._id } 
+      : ('skip' as unknown as { organizationId?: Id<"organizations">; forAssignee?: boolean })
   )
   const totalChatUnread = (chatsUnread as { count?: number } | undefined)?.count || 0
   const totalTicketUnread = (ticketsUnread as { count?: number } | undefined)?.count || 0
