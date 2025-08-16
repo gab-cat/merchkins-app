@@ -92,7 +92,13 @@ export default async function Page ({ params }: PageParams) {
 
       {/* Hero card with logo, name, description, and CTAs */}
       <section className="container mx-auto -mt-14 sm:-mt-16 px-3">
-        <div className="rounded-xl border bg-background/70 shadow-xl backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+        <div 
+          className="rounded-xl border shadow-xl backdrop-blur supports-[backdrop-filter]:backdrop-blur"
+          style={{
+            backgroundColor: 'var(--header-bg)',
+            color: 'var(--header-fg)'
+          }}
+        >
           <div className="px-4 sm:px-6 py-6 sm:py-8">
             <div className="flex items-center gap-4 sm:gap-6">
               <div className="relative h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 overflow-hidden rounded-full ring-1 ring-border bg-background">
@@ -107,21 +113,22 @@ export default async function Page ({ params }: PageParams) {
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight" style={{ color: 'var(--header-fg)' }}>
                   {organization.name}
                 </h1>
                 {organization.description && (
-                  <p className="mt-1 text-muted-foreground max-w-2xl">
+                  <p className="mt-1 max-w-2xl" style={{ color: 'var(--header-fg)' }}>
                     {organization.description}
                   </p>
                 )}
-                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm" style={{ color: 'var(--header-fg)' }}>
                   {organization.website && (
                     <a
                       href={organization.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-primary hover:underline"
+                      className="inline-flex items-center gap-1.5 hover:underline"
+                      style={{ color: 'var(--header-fg)' }}
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                       <span>Visit website</span>
@@ -129,11 +136,11 @@ export default async function Page ({ params }: PageParams) {
                   )}
                   {organization.industry && (
                     <span>
-                      Industry: <span className="text-foreground/80">{organization.industry}</span>
+                      Industry: <span style={{ opacity: 0.8 }}>{organization.industry}</span>
                     </span>
                   )}
                   <span>
-                    Members: <span className="text-foreground/80">{organization.memberCount}</span>
+                    Members: <span style={{ opacity: 0.8 }}>{organization.memberCount}</span>
                   </span>
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
