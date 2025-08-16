@@ -48,7 +48,7 @@ export default function AdminCreateProductPage () {
 
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<FormValues>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: '',
@@ -63,8 +63,7 @@ export default function AdminCreateProductPage () {
     },
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const watchedImageUrl = watch('imageUrl')
+
 
   async function uploadAndAddImages (files: File[]) {
     try {
@@ -176,7 +175,7 @@ export default function AdminCreateProductPage () {
                   <input type="file" accept="image/*" multiple className="hidden" onChange={handleUploadImages} />
                 </label>
               </div>
-              {errors.imageUrl && <p className="mt-1 text-xs text-red-500">At least one image is required</p>}
+              {uploadedImages.length === 0 && <p className="mt-1 text-xs text-red-500">At least one image is required</p>}
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium" htmlFor="tags">Tags (comma separated)</label>
@@ -228,7 +227,9 @@ export default function AdminCreateProductPage () {
             </div>
 
             <div className="pt-2">
-              <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Creating...' : 'Create product'}</Button>
+              <Button type="submit" disabled={isSubmitting || uploadedImages.length === 0}>
+                {isSubmitting ? 'Creating...' : 'Create product'}
+              </Button>
             </div>
           </CardContent>
         </Card>
