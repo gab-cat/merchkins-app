@@ -7,7 +7,6 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUploadFile } from "@convex-dev/r2/react";
 import Image from "next/image";
-import { compressToWebP } from "@/lib/compress";
 
 export function FileUploadExample() {
   const [uploading, setUploading] = useState(false);
@@ -28,12 +27,13 @@ export function FileUploadExample() {
 
     setUploading(true);
     try {
-      // Compress to WebP client-side if possible
-      const compressed = await compressToWebP(file);
       // Upload file using the R2 component
-      const key = await uploadFile(compressed);
+      const key = await uploadFile(file);
       setUploadedKey(key);
+      
+      console.log('File uploaded successfully with key:', key);
     } catch (error) {
+      console.error('Upload failed:', error);
       
       // Show more detailed error information
       if (error instanceof Error) {
@@ -54,10 +54,7 @@ export function FileUploadExample() {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">File Upload Example (R2 Component) - Debug Mode</h2>
-      <p className="text-sm text-gray-600 mb-4">
-        Check the browser console for detailed upload logs.
-      </p>
+      <h2 className="text-xl font-bold mb-4">File Upload Example (R2 Component)</h2>
       
       <input
         type="file"

@@ -55,7 +55,12 @@ export function AdminHeader () {
               <div className="px-3 py-2 border-b">
                 <div className="text-sm text-muted-foreground">{areaLabel}</div>
                 <div className={cn('font-semibold tracking-tight', orgSlug ? '' : 'font-genty')}>
-                  {orgSlug ? `Org: ${orgSlug}` : 'Merchkins'}
+                  {orgSlug ? `Org: ${orgSlug}` : (
+                    <>
+                      <span className='text-white'>Merch</span>
+                      <span className='text-brand-neon'>kins</span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="p-2">

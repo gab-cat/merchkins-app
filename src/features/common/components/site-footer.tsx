@@ -65,11 +65,17 @@ export function SiteFooter () {
         color: 'var(--footer-fg)'
       }}
     >
-      <div className="container mx-auto px-3 py-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="w-full px-4 py-8">
+        <div className="max-w-7xl mx-auto grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {/* Brand / About */}
         <div>
           <div className={cn('text-lg font-semibold md:text-4xl', organization?.name ? '' : 'font-genty')}>
-            {organization?.name || 'Merchkins'}
+            {organization?.name || (
+              <>
+                <span className='text-white'>Merch</span>
+                <span className='text-brand-neon'>kins</span>
+              </>
+            )}
           </div>
           {organization?.description ? (
             <p className="mt-2 line-clamp-3 text-sm md:text-base opacity-80">
@@ -77,7 +83,7 @@ export function SiteFooter () {
             </p>
           ) : (
             <p className="mt-2 text-sm md:text-base opacity-80">
-              Custom merch made easy — shop, manage, and fulfill with <span className="font-genty">Merchkins</span>.
+              Custom merch made easy — shop, manage, and fulfill with <span className="font-genty"><span className='text-white'>Merch</span><span className='text-brand-neon'>kins</span></span>.
             </p>
           )}
           <div className="mt-3 flex items-center gap-2" aria-label="Social links" role="navigation">
@@ -214,15 +220,18 @@ export function SiteFooter () {
             <Link href="#privacy" className="underline">Privacy Policy</Link>.
           </p>
         </div>
+        </div>
       </div>
 
       <div className="border-t" />
-      <div className="container mx-auto flex items-center justify-between gap-3 px-3 py-4 text-xs md:text-sm opacity-80">
-        <p className="font-medium">&copy; {new Date().getFullYear()} {organization?.name || <span className="font-genty">Merchkins</span>}. All rights reserved.</p>
-        <div className="flex items-center gap-3">
-          <Link href="#terms" className="hover:underline">Terms</Link>
-          <span aria-hidden>•</span>
-          <Link href="#privacy" className="hover:underline">Privacy</Link>
+      <div className="w-full px-4 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs md:text-sm opacity-80">
+          <p className="font-medium">&copy; {new Date().getFullYear()} {organization?.name || <span className="font-genty"><span className='text-white'>Merch</span><span className='text-brand-neon'>kins</span></span>}. All rights reserved.</p>
+          <div className="flex items-center gap-3">
+            <Link href="#terms" className="hover:underline">Terms</Link>
+            <span aria-hidden>•</span>
+            <Link href="#privacy" className="hover:underline">Privacy</Link>
+          </div>
         </div>
       </div>
     </footer>

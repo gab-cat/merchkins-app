@@ -16,7 +16,14 @@ export function AdminFooter () {
       <div className="container mx-auto grid gap-3 px-3 py-6 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <div className="text-xs uppercase mb-1" style={{ color: 'var(--footer-fg)', opacity: 0.8 }}>{areaLabel}</div>
-          <div className={cn('text-sm font-semibold tracking-tight', org ? '' : 'font-genty')}>{org ? `Org: ${org}` : 'Merchkins'}</div>
+          <div className={cn('text-sm font-semibold tracking-tight', org ? '' : 'font-genty')}>
+            {org ? `Org: ${org}` : (
+              <>
+                <span className='text-white'>Merch</span>
+                <span className='text-brand-neon'>kins</span>
+              </>
+            )}
+          </div>
         </div>
         <div>
           <h3 className="text-sm font-semibold mb-2">Resources</h3>
@@ -33,7 +40,7 @@ export function AdminFooter () {
           </ul>
         </div>
         <div className="text-sm" style={{ color: 'var(--footer-fg)', opacity: 0.8 }}>
-          <p>&copy; {new Date().getFullYear()} <span className="font-genty">Merchkins</span>. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} <span className="font-genty"><span className='text-white'>Merch</span><span className='text-brand-neon'>kins</span></span>. All rights reserved.</p>
         </div>
       </div>
     </footer>

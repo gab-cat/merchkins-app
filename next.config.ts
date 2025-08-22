@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ['@clerk/nextjs', 'lucide-react'],
+    useLightningcss: true,
   },
 }
 

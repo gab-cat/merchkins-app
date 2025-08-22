@@ -10,15 +10,15 @@ export const metadata: Metadata = {
 
 export default function MainLayout ({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-dvh flex flex-col">
+    <>
       <SiteHeader />
-      <main className="flex-1">
+      <main className="flex flex-col">
         <ErrorBoundary>
           {children}
         </ErrorBoundary>
       </main>
       <SiteFooter />
-    </div>
+    </>
   )
 }
 

@@ -7,16 +7,22 @@ import { PopularOrganizations } from '@/src/features/organizations/components/po
 
 export default function Page () {
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="w-full">
       <HomeHero />
-      <section className="container mx-auto px-3 py-6">
-        <FeaturedCategories />
+      <section className="w-full px-4 py-6">
+        <div className="max-w-7xl mx-auto">
+          <FeaturedCategories />
+        </div>
       </section>
-      <section className="container mx-auto px-3 py-6">
-        <PopularOrganizations />
+      <section className="w-full px-4 py-6">
+        <div className="max-w-7xl mx-auto">
+          <PopularOrganizations />
+        </div>
       </section>
-      <section className="container mx-auto px-3 py-6">
-        <PopularProducts />
+      <section className="w-full px-4 py-6">
+        <div className="max-w-7xl mx-auto">
+          <PopularProducts />
+        </div>
       </section>
     </div>
   )
