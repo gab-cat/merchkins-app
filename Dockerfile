@@ -15,7 +15,7 @@ ENV BUN_CONFIG_INSTALL_MAX_NETWORK_CONNECTIONS=128
 
 # Copy package files and install dependencies
 COPY bun.lock package.json ./
-RUN bun install --frozen-lockfile --concurrent-scripts=8 --verbose
+RUN bun install --frozen-lockfile --concurrent-scripts=8
 
 
 # STAGE 2: BUILD
