@@ -91,9 +91,6 @@ jobs:
 
             - name: Deploy to Convex
               run: |
-                  set -a
-                  [ -f .env ] && . .env
-                  set +a
                   bunx convex deploy -y
 
             - name: Remove env file
