@@ -84,6 +84,18 @@ jobs:
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
 
+            - name: Install Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: Deploy to Convex
+              run: |
+                  set -a
+                  [ -f .env ] && . .env
+                  set +a
+                  bunx convex deploy -y
+
             - name: Remove env file
               if: always()
               run: |
