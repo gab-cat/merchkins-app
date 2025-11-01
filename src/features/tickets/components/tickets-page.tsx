@@ -15,27 +15,39 @@ import { LoadMore } from '@/src/components/ui/pagination'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Separator } from '@/components/ui/separator'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useMutation } from 'convex/react'
-import { showToast } from '@/lib/toast'
-import { TicketIcon, ChevronRight, User, Activity } from 'lucide-react'
+import { showToast, promiseToast } from '@/lib/toast'
+import { TicketIcon, ChevronRight, User, Activity, Search, Plus, Filter } from 'lucide-react'
 
 type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
 
 function StatusBadge ({ value }: { value: TicketStatus }) {
-  const color =
-    value === 'OPEN'
-      ? 'secondary'
-      : value === 'CLOSED'
-      ? 'destructive'
-      : 'default'
-  return <Badge variant={color as 'secondary' | 'destructive' | 'default'}>{value}</Badge>
+  const getStatusConfig = (status: TicketStatus) => {
+    switch (status) {
+      case 'OPEN':
+        return { variant: 'secondary' as const, icon: '🆕', color: 'bg-blue-100 text-blue-800' }
+      case 'IN_PROGRESS':
+        return { variant: 'default' as const, icon: '⚡', color: 'bg-orange-100 text-orange-800' }
+      case 'RESOLVED':
+        return { variant: 'outline' as const, icon: '✅', color: 'bg-green-100 text-green-800' }
+      case 'CLOSED':
+        return { variant: 'destructive' as const, icon: '❌', color: 'bg-red-100 text-red-800' }
+      default:
+        return { variant: 'outline' as const, icon: '❓', color: 'bg-gray-100 text-gray-800' }
+    }
+  }
+
+  const config = getStatusConfig(value)
+  return (
+    <Badge variant={config.variant} className={`text-xs px-2 py-1 font-medium ${config.color}`}>
+      <span className="mr-1">{config.icon}</span>
+      {value}
+    </Badge>
+  )
 }
 
 export function TicketsPage () {
@@ -122,9 +134,16 @@ export function TicketsPage () {
   }, [orgMembers])
   async function handleAssign (assigneeId: string) {
     if (!activeTicket) return
+
     try {
-      await assignTicket({ ticketId: activeTicket._id as Id<'tickets'>, assigneeId: assigneeId as Id<'users'> })
-      showToast({ type: 'success', title: 'Ticket assigned' })
+      await promiseToast(
+        assignTicket({ ticketId: activeTicket._id as Id<'tickets'>, assigneeId: assigneeId as Id<'users'> }),
+        {
+          loading: 'Assigning ticket...',
+          success: 'Ticket assigned successfully!',
+          error: 'Failed to assign ticket'
+        }
+      )
     } catch (err: unknown) {
       const message = typeof err === 'object' && err && 'message' in err ? String((err as { message?: string }).message) : 'Failed to assign ticket'
       showToast({ type: 'error', title: message })
@@ -139,58 +158,78 @@ export function TicketsPage () {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">{organization?.name ? `${organization.name} Tickets` : 'My Tickets'}</h1>
-          <p className="text-sm text-muted-foreground">{organization?.name ? 'Tickets filed with this organization' : 'Your support tickets'}</p>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <TicketIcon className="h-8 w-8" />
+            {organization?.name ? `${organization.name} Tickets` : 'My Tickets'}
+          </h1>
+          <p className="text-muted-foreground">
+            {organization?.name ? 'Tickets filed with this organization' : 'Your support tickets'}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tickets" className="h-8 w-56" />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search tickets..."
+              className="pl-9 h-9"
+            />
+          </div>
           <Link href={orgSlug ? `/o/${orgSlug}/tickets/new` : `/tickets/new`}>
-            <Button size="sm">New ticket</Button>
+            <Button size="sm" className="hover:scale-105 transition-all duration-200">
+              <Plus className="h-4 w-4 mr-2" />
+              New ticket
+            </Button>
           </Link>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Tickets</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Support tickets
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {loading ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {new Array(4).fill(null).map((_, i) => (
-                <div key={`skeleton-${i}`} className="flex items-center justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="h-4 w-1/3 animate-pulse rounded bg-secondary" />
-                    <div className="mt-2 h-3 w-1/4 animate-pulse rounded bg-secondary" />
+                <div key={`skeleton-${i}`} className="rounded-lg border p-4 animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-md bg-secondary" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-48 rounded bg-secondary" />
+                      <div className="h-3 w-32 rounded bg-secondary" />
+                    </div>
+                    <div className="h-6 w-20 rounded bg-secondary" />
                   </div>
-                  <div className="h-8 w-20 animate-pulse rounded bg-secondary" />
                 </div>
               ))}
             </div>
           ) : (filtered || []).length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {(filtered || []).map((t: TicketListItem) => (
                 <div
                   key={t._id}
-                  className="group relative flex items-center justify-between gap-4 rounded-lg border p-4 transition-colors hover:border-primary/40 hover:bg-accent/30"
+                  className="group relative flex items-center justify-between gap-4 rounded-lg border p-4 transition-all duration-200 hover:border-primary/30 hover:bg-accent/50 hover:shadow-sm cursor-pointer"
                   onClick={() => setActiveId(t._id as Id<'tickets'>)}
                   data-testid={`ticket-row-${t._id}`}
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
-                      <TicketIcon className="size-4" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <TicketIcon className="h-5 w-5" />
                     </div>
-                    <div className="min-w-0">
-                      <div className="truncate font-medium tracking-tight">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-sm group-hover:text-primary transition-colors">
                         {t.title}
                       </div>
-                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                        <Badge variant={t.status === 'OPEN' ? 'secondary' : t.status === 'CLOSED' ? 'destructive' : 'default'}>
-                          {t.status}
-                        </Badge>
+                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                        <StatusBadge value={t.status} />
                         <span className="inline-flex items-center gap-1">
                           <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
                           Priority: {t.priority}
@@ -198,18 +237,35 @@ export function TicketsPage () {
                         {t.updatedAt ? (
                           <span className="inline-flex items-center gap-1">
                             <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
-                            Updated {new Date(t.updatedAt).toLocaleString()}
+                            {new Date(t.updatedAt).toLocaleDateString()}
                           </span>
                         ) : null}
                       </div>
                     </div>
                   </div>
-                  <ChevronRight className="size-4 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground" />
+                  <ChevronRight className="size-4 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-1 text-muted-foreground" />
                 </div>
               ))}
+
+              {filtered.length === 0 && search.trim() && (
+                <div className="text-center py-8">
+                  <Search className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-muted-foreground">No tickets match &quot;{search}&quot;</p>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="py-12 text-center text-sm text-muted-foreground">No tickets yet.</div>
+            <div className="text-center py-12">
+              <TicketIcon className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold mb-2">No tickets yet</h3>
+              <p className="text-muted-foreground mb-6">Create a support ticket to get help</p>
+              <Link href={orgSlug ? `/o/${orgSlug}/tickets/new` : `/tickets/new`}>
+                <Button className="hover:scale-105 transition-all duration-200">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create your first ticket
+                </Button>
+              </Link>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -237,61 +293,76 @@ export function TicketsPage () {
               Ticket not found.
             </div>
           ) : activeId && activeTicket ? (
-            <div className="space-y-4">
-              <div className="rounded-lg border bg-gradient-to-r from-primary/10 to-transparent p-4">
-                <DialogHeader>
-                  <DialogTitle className="flex items-start justify-between gap-3">
-                    <span className="truncate text-balance">
+            <div className="space-y-6">
+              <div className="rounded-xl border bg-gradient-to-r from-primary/10 to-transparent p-4 shadow-sm">
+                <DialogHeader className="space-y-3">
+                  <DialogTitle className="flex items-start justify-between gap-3 text-lg">
+                    <span className="truncate">
                       {activeTicket.title}
                     </span>
                     <StatusBadge value={activeTicket.status as TicketStatus} />
                   </DialogTitle>
-                  <DialogDescription className="flex items-center gap-2">
-                    <User className="size-4" />
-                    <span>
-                      {activeTicket.creatorInfo?.email || 'Unknown'}
-                    </span>
-                    <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
-                    <span className="inline-flex items-center gap-2">
-                      <span className="rounded-full border px-2 py-0.5 text-xs">
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>{activeTicket.creatorInfo?.email || 'Unknown'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${activeTicket.priority === 'HIGH' ? 'bg-red-100 text-red-700' : activeTicket.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
                         Priority: {activeTicket.priority}
                       </span>
-                    </span>
-                  </DialogDescription>
+                    </div>
+                  </div>
                 </DialogHeader>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-md border bg-muted/30 p-4 text-sm sm:col-span-2">
-                  <div className="mb-2 font-semibold">Progress</div>
+              <div className="grid gap-4 lg:grid-cols-3">
+                <div className="rounded-lg border bg-muted/30 p-4 text-sm lg:col-span-2">
+                  <div className="mb-3 font-semibold flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    Progress
+                  </div>
                   <TicketProgress status={activeTicket.status as TicketStatus} />
                 </div>
-                <div className="rounded-md border bg-card p-4 text-sm">
-                  <div className="font-semibold">Details</div>
-                  <Separator className="my-3" />
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between"><span>Status</span><span>{activeTicket.status}</span></div>
-                    <div className="flex items-center justify-between"><span>Priority</span><span>{activeTicket.priority}</span></div>
-                    <div className="flex items-center justify-between"><span>Creator</span><span>{activeTicket.creatorInfo?.email || 'Unknown'}</span></div>
-                    <div className="flex items-center justify-between"><span>Assignee</span><span>{activeTicket.assigneeInfo?.email || 'Unassigned'}</span></div>
+                <div className="rounded-lg border bg-card p-4 text-sm">
+                  <div className="font-semibold mb-3">Details</div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Status</span>
+                      <StatusBadge value={activeTicket.status as TicketStatus} />
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Priority</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${activeTicket.priority === 'HIGH' ? 'bg-red-100 text-red-700' : activeTicket.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
+                        {activeTicket.priority}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Creator</span>
+                      <span className="font-medium">{activeTicket.creatorInfo?.email || 'Unknown'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Assignee</span>
+                      <span className="font-medium">{activeTicket.assigneeInfo?.email || 'Unassigned'}</span>
+                    </div>
                     {activeTicket.organizationId ? (
-                      <div className="pt-2">
-                        <div className="mb-1 text-xs text-muted-foreground">Assign to</div>
+                      <div className="pt-2 border-t">
+                        <div className="mb-2 text-xs font-semibold text-muted-foreground">Assign to</div>
                         <Select
                           value={String((activeTicket as { assignedToId?: Id<'users'> } | null)?.assignedToId || '')}
                           onValueChange={handleAssign}
                           disabled={eligibleAssignees.length === 0}
                         >
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger className="w-full h-8 text-sm">
                             <SelectValue placeholder="Select member" />
                           </SelectTrigger>
                           <SelectContent>
                             {eligibleAssignees.map((m) => (
-                              <SelectItem key={String(m.userId)} value={String(m.userId)}>
+                              <SelectItem key={String(m.userId)} value={String(m.userId)} className="text-sm">
                                 {(m.userInfo.firstName || m.userInfo.lastName)
                                   ? `${m.userInfo.firstName || ''} ${m.userInfo.lastName || ''}`.trim()
                                   : m.userInfo.email}
-                                <span className="text-muted-foreground"> — {m.userInfo.email}</span>
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -314,38 +385,39 @@ export function TicketsPage () {
               ) : null}
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="size-4" /> Updates
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Activity className="h-4 w-4" /> Updates
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
+                <CardContent className="pt-0">
+                  <div className="space-y-4">
                     {(updates?.updates || []).map((u: TicketUpdate) => (
-                      <div key={String(u._id)} className="relative pl-4">
-                        <div className="absolute left-0 top-2 h-full w-px bg-border" />
-                        <div className="absolute left-[-6px] top-2 size-2 rounded-full bg-primary" />
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{new Date(u.createdAt).toLocaleString()}</span>
-                          <span>{u.updateType}</span>
+                      <div key={String(u._id)} className="relative pl-4 pb-3 border-l-2 border-l-primary/20 last:border-l-0">
+                        <div className="absolute left-[-6px] top-2 h-2 w-2 rounded-full bg-primary" />
+                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                          <span>{new Date(u.createdAt).toLocaleDateString()}</span>
+                          <span className="px-2 py-0.5 rounded-full bg-muted text-xs font-medium">
+                            {u.updateType.replace('_', ' ')}
+                          </span>
                         </div>
-                        <div className="mt-1 text-sm">{u.content}</div>
+                        <div className="text-sm leading-relaxed">{u.content}</div>
                       </div>
                     ))}
                     {updates && updates.updates.length === 0 && (
-                      <div className="text-sm text-muted-foreground">No updates yet.</div>
+                      <div className="text-center py-4 text-sm text-muted-foreground">
+                        No updates yet.
+                      </div>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              <DialogFooter>
-                <div className="flex w-full items-center justify-end">
-                  <Button size="sm" onClick={() => setActiveId(null)}>
-                    Close
-                  </Button>
-                </div>
-              </DialogFooter>
+              <div className="flex items-center justify-end pt-4 border-t">
+                <Button size="sm" onClick={() => setActiveId(null)} className="h-9">
+                  Close
+                </Button>
+              </div>
             </div>
           ) : null}
         </DialogContent>

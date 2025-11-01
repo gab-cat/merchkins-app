@@ -247,7 +247,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           <label className="mb-1 block text-sm font-medium" htmlFor="org-industry">Industry</label>
           <select
             id="org-industry"
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+            className="h-9 w-full rounded-md border px-3 text-sm"
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
           >
@@ -264,7 +264,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           <label className="mb-1 block text-sm font-medium" htmlFor="org-size">Size</label>
           <select
             id="org-size"
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+            className="h-9 w-full rounded-md border  px-3 text-sm"
             value={size}
             onChange={(e) => setSize(e.target.value)}
           >
@@ -281,7 +281,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
 
       <div>
         <label className="mb-1 block text-sm font-medium" htmlFor="org-desc">Description</label>
-        <textarea id="org-desc" className="h-24 w-full rounded-md border bg-background px-3 py-2 text-sm" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <textarea id="org-desc" className="h-24 w-full rounded-md border  px-3 py-2 text-sm" value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -354,7 +354,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
             <input
               id="primary"
               type="color"
-              className="h-9 w-12 cursor-pointer rounded border bg-background"
+              className="h-9 w-12 cursor-pointer rounded border "
               value={primaryColor || '#1d43d8'}
               onChange={(e) => setPrimaryColor(e.target.value)}
               aria-label="Primary color"
@@ -372,7 +372,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
             <input
               id="secondary"
               type="color"
-              className="h-9 w-12 cursor-pointer rounded border bg-background"
+              className="h-9 w-12 cursor-pointer rounded border "
               value={secondaryColor || '#1d43d8'}
               onChange={(e) => setSecondaryColor(e.target.value)}
               aria-label="Secondary color"
@@ -388,7 +388,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           <label className="mb-1 block text-sm font-medium" htmlFor="font">Font</label>
           <select
             id="font"
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+            className="h-9 w-full rounded-md border  px-3 text-sm"
             value={fontFamily}
             onChange={(e) => setFontFamily(e.target.value)}
           >
@@ -404,7 +404,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           <label className="mb-1 block text-sm font-medium" htmlFor="mode">Mode</label>
           <select
             id="mode"
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+            className="h-9 w-full rounded-md border  px-3 text-sm"
             value={mode}
             onChange={(e) => setMode(e.target.value as 'light' | 'dark' | 'auto')}
           >
@@ -417,7 +417,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           <label className="mb-1 block text-sm font-medium" htmlFor="radius">Border Radius</label>
           <select
             id="radius"
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+            className="h-9 w-full rounded-md border  px-3 text-sm"
             value={borderRadius}
             onChange={(e) => setBorderRadius(e.target.value as 'none' | 'small' | 'medium' | 'large')}
           >
@@ -439,7 +439,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
               <input
                 id="header-bg"
                 type="color"
-                className="h-9 w-12 cursor-pointer rounded border bg-background"
+                className="h-9 w-12 cursor-pointer rounded border "
                 value={headerBg || '#ffffff'}
                 onChange={(e) => setHeaderBg(e.target.value)}
                 aria-label="Header background color"
@@ -457,7 +457,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
               <input
                 id="header-fg"
                 type="color"
-                className="h-9 w-12 cursor-pointer rounded border bg-background"
+                className="h-9 w-12 cursor-pointer rounded border "
                 value={headerFg || '#111111'}
                 onChange={(e) => setHeaderFg(e.target.value)}
                 aria-label="Header text color"
@@ -475,7 +475,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
               <input
                 id="header-title"
                 type="color"
-                className="h-9 w-12 cursor-pointer rounded border bg-background"
+                className="h-9 w-12 cursor-pointer rounded border "
                 value={headerTitle || headerFg || '#111111'}
                 onChange={(e) => setHeaderTitle(e.target.value)}
                 aria-label="Header title color"
@@ -495,7 +495,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
               <input
                 id="footer-bg"
                 type="color"
-                className="h-9 w-12 cursor-pointer rounded border bg-background"
+                className="h-9 w-12 cursor-pointer rounded border "
                 value={footerBg || '#ffffff'}
                 onChange={(e) => setFooterBg(e.target.value)}
                 aria-label="Footer background color"
@@ -513,7 +513,7 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
               <input
                 id="footer-fg"
                 type="color"
-                className="h-9 w-12 cursor-pointer rounded border bg-background"
+                className="h-9 w-12 cursor-pointer rounded border "
                 value={footerFg || '#111111'}
                 onChange={(e) => setFooterFg(e.target.value)}
                 aria-label="Footer text color"

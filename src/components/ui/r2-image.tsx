@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react'
 import Image, { type ImageProps } from 'next/image'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
 import { cn } from '@/lib/utils'
 
 interface R2ImageProps extends Omit<ImageProps, 'src'> {
@@ -23,18 +21,27 @@ export function R2Image ({
   fallbackClassName,
   ...rest
 }: R2ImageProps) {
-  const shouldQuery = Boolean(fileKey)
-  const url = useQuery(
-    api.files.queries.index.getFileUrl,
-    shouldQuery ? { key: fileKey as string } : 'skip'
-  )
-
   const [hasError, setHasError] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL
+  const joinUrl = (a: string, b: string) =>
+    `${a.replace(/\/+$/u, '')}/${String(b).replace(/^\/+/, '')}`
+
+  const computedUrl = (() => {
+    if (!fileKey) return null
+    if (typeof fileKey === 'string' && /^https?:\/\//u.test(fileKey)) {
+      return fileKey
+    }
+    if (!baseUrl) return null
+    return joinUrl(baseUrl, fileKey as string)
+  })()
 
   const placeholder = (
     <div
       className={cn(
-        'bg-secondary animate-pulse',
+        'bg-muted skeleton',
+        'transition-opacity duration-300',
         fill ? 'w-full h-full' : '',
         !fill && width && height ? '' : 'aspect-square',
         fallbackClassName,
@@ -45,21 +52,36 @@ export function R2Image ({
     />
   )
 
-  if (!fileKey || !url || hasError) return placeholder
+  if (!computedUrl || hasError) return placeholder
 
   return (
-    <Image
-      src={url}
-      alt={alt}
-      width={fill ? 1 : width}
-      height={fill ? 1 : height}
-      fill={fill}
-      className={className}
-      priority={priority}
-      sizes={sizes}
-      onError={() => setHasError(true)}
-      {...rest}
-    />
+    <div className="relative overflow-hidden">
+      <Image
+        src={computedUrl}
+        alt={alt}
+        {...(fill ? { fill: true } : { width, height })}
+        className={cn(
+          'object-cover transition-all duration-300',
+          !isLoaded && 'opacity-0 scale-105',
+          isLoaded && 'opacity-100 scale-100',
+          className
+        )}
+        priority={priority}
+        sizes={sizes}
+        onError={() => setHasError(true)}
+        onLoad={() => setIsLoaded(true)}
+        {...rest}
+      />
+      {!isLoaded && (
+        <div
+          className={cn(
+            'absolute inset-0 bg-muted skeleton',
+            fill ? 'w-full h-full' : '',
+            !fill && width && height ? '' : 'aspect-square'
+          )}
+        />
+      )}
+    </div>
   )
 }
 

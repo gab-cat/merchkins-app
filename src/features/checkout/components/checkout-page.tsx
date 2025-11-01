@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { CreditCard, ListChecks, StickyNote, ShoppingBag } from 'lucide-react'
 import type { Id } from '@/convex/_generated/dataModel'
 import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { showToast, promiseToast } from '@/lib/toast'
 
@@ -18,6 +17,7 @@ export function CheckoutPage () {
   const cart = useQuery(api.carts.queries.index.getCartByUser, {})
   const createOrder = useMutation(api.orders.mutations.index.createOrder)
   const me = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip')
+
 
   const [notes, setNotes] = useState('')
   const [isPlacing, setIsPlacing] = useState(false)
@@ -55,7 +55,7 @@ export function CheckoutPage () {
     setError(null)
     try {
       // Create one order per organization group
-      const promises: Array<Promise<unknown>> = []
+      const promises: Array<Promise<{ orderId: Id<'orders'>; orderNumber: string | undefined; xenditInvoiceUrl: string | undefined; xenditInvoiceId: string | undefined; totalAmount: number }>> = []
       for (const [orgId, group] of Object.entries(selectedByOrg)) {
         const items = group.items.map((it) => ({
           productId: it.productInfo.productId,
@@ -75,11 +75,27 @@ export function CheckoutPage () {
         )
       }
 
-      await promiseToast(
+      const results = await promiseToast(
         Promise.all(promises),
-        { loading: 'Placing order…', success: 'Order placed', error: () => 'Failed to place order' },
+        { loading: 'Placing order…', success: 'Order placed, redirecting to payment...', error: () => 'Failed to place order' },
       )
-      window.location.href = '/orders'
+
+      // Check if any order has a Xendit invoice URL
+      let xenditUrl: string | null = null
+      for (const result of results) {
+        if (result && typeof result === 'object' && 'xenditInvoiceUrl' in result && result.xenditInvoiceUrl) {
+          xenditUrl = result.xenditInvoiceUrl
+          break
+        }
+      }
+
+      if (xenditUrl) {
+        // Redirect to Xendit payment page
+        window.location.href = xenditUrl
+      } else {
+        // Fallback to orders page if no payment URL
+        window.location.href = '/orders'
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to place order'
       setError(message)
@@ -91,13 +107,13 @@ export function CheckoutPage () {
 
   if (cart === undefined || me === undefined) {
     return (
-      <div className="container mx-auto px-3 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid gap-4">
           {new Array(2).fill(null).map((_, i) => (
-            <Card key={`s-${i}`}>
+            <Card key={`s-${i}`} className="animate-pulse">
               <CardContent className="p-4">
-                <div className="h-6 w-1/3 rounded bg-secondary animate-pulse" />
-                <div className="mt-2 h-16 w-full rounded bg-secondary animate-pulse" />
+                <div className="h-5 w-1/3 rounded bg-secondary" />
+                <div className="mt-3 h-12 w-full rounded bg-secondary" />
               </CardContent>
             </Card>
           ))}
@@ -108,46 +124,50 @@ export function CheckoutPage () {
 
   if (!canCheckout) {
     return (
-      <div className="container mx-auto px-3 py-16 text-center">
-        <h1 className="text-2xl font-semibold">Nothing to checkout</h1>
-        <p className="mt-2 text-muted-foreground">Select at least one item in your cart.</p>
-        <div className="mt-6">
-          <Link href="/cart">
-            <Button>Back to cart</Button>
-          </Link>
-        </div>
+      <div className="container mx-auto px-4 py-16 text-center">
+        <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <h1 className="text-2xl font-semibold mb-2">Nothing to checkout</h1>
+        <p className="text-muted-foreground mb-6">Select at least one item in your cart.</p>
+        <Link href="/cart">
+          <Button className="hover:scale-105 transition-all duration-200">Back to cart</Button>
+        </Link>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-3 py-6">
-      <h1 className="text-2xl font-semibold inline-flex items-center gap-2"><ShoppingBag className="h-5 w-5" /> Checkout</h1>
-      <div className="mt-6 grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-3">
+    <div className="container mx-auto px-4 py-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold inline-flex items-center gap-3"><ShoppingBag className="h-6 w-6" /> Checkout</h1>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-4">
           <Card>
             <CardContent className="p-4">
-              <div className="font-medium inline-flex items-center gap-2"><ListChecks className="h-4 w-4" /> Review items</div>
-              <div className="mt-3 space-y-5">
+              <div className="font-semibold inline-flex items-center gap-2 mb-4"><ListChecks className="h-4 w-4" /> Review items</div>
+              <div className="space-y-4">
                 {Object.entries(selectedByOrg).map(([orgId, group]) => (
-                  <div key={orgId} className="space-y-2">
-                    <div className="text-sm font-semibold text-muted-foreground">{group.name}</div>
-                    <div className="space-y-3">
-                      {group.items.map((it) => (
-                        <div key={`${String(it.productInfo.productId)}::${it.productInfo.variantName ?? 'default'}`} className="flex items-start justify-between">
-                          <div>
-                            <div className="font-medium">
-                              {it.productInfo.title}
-                              {it.productInfo.variantName ? (
-                                <span className="ml-2 text-sm text-muted-foreground">{it.productInfo.variantName}</span>
-                              ) : null}
-                            </div>
-                            <div className="text-sm text-muted-foreground">Qty {it.quantity} × ${it.productInfo.price.toFixed(2)}</div>
-                          </div>
-                          <div className="font-semibold">${(it.quantity * it.productInfo.price).toFixed(2)}</div>
-                        </div>
-                      ))}
+                  <div key={orgId} className="space-y-3">
+                    <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
+                      {group.name}
                     </div>
+                    {group.items.map((it) => (
+                      <div key={`${String(it.productInfo.productId)}::${it.productInfo.variantName ?? 'default'}`} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm">
+                            {it.productInfo.title}
+                            {it.productInfo.variantName && (
+                              <span className="ml-2 text-xs text-muted-foreground font-normal">{it.productInfo.variantName}</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Qty {it.quantity} × ${it.productInfo.price.toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="text-sm font-bold">${(it.quantity * it.productInfo.price).toFixed(2)}</div>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -155,35 +175,53 @@ export function CheckoutPage () {
           </Card>
 
           <Card>
-            <CardContent className="p-4 space-y-3">
-              <div className="font-medium inline-flex items-center gap-2"><StickyNote className="h-4 w-4" /> Notes</div>
+            <CardContent className="p-4">
+              <div className="font-semibold inline-flex items-center gap-2 mb-3"><StickyNote className="h-4 w-4" /> Order notes</div>
               <Input
                 placeholder="Add order notes (optional)"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                className="h-9"
               />
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Card>
-            <CardContent className="p-4 space-y-2">
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Items</span>
-                <span>{totals.quantity}</span>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>Items ({totals.quantity})</span>
+                  <span>${totals.amount.toFixed(2)}</span>
+                </div>
+                <div className="h-px bg-border" />
+                <div className="flex items-center justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span className="text-primary">${totals.amount.toFixed(2)}</span>
+                </div>
+
+                {error && (
+                  <div className="text-sm text-destructive bg-destructive/10 p-2 rounded border border-destructive/20">
+                    {error}
+                  </div>
+                )}
+
+                <Button
+                  className="w-full h-10 hover:scale-105 transition-all duration-200"
+                  onClick={handlePlaceOrder}
+                  disabled={isPlacing}
+                  aria-label="Place order"
+                >
+                  {isPlacing ? (
+                    'Placing order…'
+                  ) : (
+                    <>
+                      <CreditCard className="mr-2 h-4 w-4" /> Place order
+                    </>
+                  )}
+                </Button>
               </div>
-              <Separator className="my-2" />
-              <div className="flex items-center justify-between font-semibold">
-                <span>Total</span>
-                <span>${totals.amount.toFixed(2)}</span>
-              </div>
-              {error ? (
-                <div className="text-sm text-red-600">{error}</div>
-              ) : null}
-              <Button className="mt-3 w-full" onClick={handlePlaceOrder} disabled={isPlacing} aria-label="Place order">
-                {isPlacing ? 'Placing order…' : (<><CreditCard className="mr-2 h-4 w-4" /> Place order</>)}
-              </Button>
             </CardContent>
           </Card>
         </div>

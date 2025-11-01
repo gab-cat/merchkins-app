@@ -17,7 +17,7 @@ import { showToast } from '@/lib/toast'
 const schema = z.object({
   amount: z.number().min(1, 'Amount must be at least 1').or(z.string().regex(/^\d+(?:[.,]\d+)?$/, 'Invalid amount')).transform((v) => typeof v === 'string' ? Number(v.replace(',', '.')) : v),
   currency: z.string().min(3).max(8),
-  paymentMethod: z.enum(['CASH', 'BANK_TRANSFER', 'GCASH', 'MAYA', 'OTHERS']),
+  paymentMethod: z.enum(['XENDIT']),
   referenceNo: z.string().min(3).max(128),
   transactionId: z.string().optional(),
   memo: z.string().optional(),
@@ -45,7 +45,7 @@ export function ReportPaymentDialog ({ orderId, defaultAmount, defaultCurrency =
     defaultValues: {
       amount: defaultAmount ?? 0,
       currency: defaultCurrency,
-      paymentMethod: 'BANK_TRANSFER',
+      paymentMethod: 'XENDIT',
       referenceNo: '',
       transactionId: '',
       memo: '',

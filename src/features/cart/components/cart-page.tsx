@@ -7,11 +7,10 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { R2Image } from '@/src/components/ui/r2-image'
 import { showToast, promiseToast } from '@/lib/toast'
-import { Trash2, Plus, Minus } from 'lucide-react'
+import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import {
@@ -63,13 +62,13 @@ export function CartPage () {
 
   if (cart === undefined) {
     return (
-      <div className="container mx-auto px-3 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid gap-4">
           {new Array(3).fill(null).map((_, i) => (
-            <Card key={`s-${i}`}>
+            <Card key={`s-${i}`} className="animate-pulse">
               <CardContent className="p-4">
-                <div className="h-6 w-1/3 rounded bg-secondary animate-pulse" />
-                <div className="mt-2 h-16 w-full rounded bg-secondary animate-pulse" />
+                <div className="h-5 w-1/3 rounded bg-secondary" />
+                <div className="mt-3 h-12 w-full rounded bg-secondary" />
               </CardContent>
             </Card>
           ))}
@@ -80,12 +79,15 @@ export function CartPage () {
 
   if (!cart || !hasItems) {
     return (
-      <div className="container mx-auto px-3 py-16 text-center">
-        <h1 className="text-2xl font-semibold">Your cart is empty</h1>
-        <p className="mt-2 text-muted-foreground">Browse products and add items to your cart.</p>
-        <div className="mt-6">
+      <div className="container mx-auto px-4 py-16 text-center">
+        <div className="max-w-md mx-auto">
+          <div className="h-24 w-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+            <ShoppingCart className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Your cart is empty</h1>
+          <p className="text-muted-foreground mb-6">Browse products and add items to your cart.</p>
           <Link href="/">
-            <Button>Continue shopping</Button>
+            <Button className="hover:scale-105 transition-all duration-200">Continue shopping</Button>
           </Link>
         </div>
       </div>
@@ -93,13 +95,19 @@ export function CartPage () {
   }
 
   return (
-    <div className="container mx-auto px-3 py-6">
-      <h1 className="text-2xl font-semibold">Your cart</h1>
-      <div className="mt-6 grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-4">
+    <div className="container mx-auto px-4 py-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold">Your cart</h1>
+        <p className="text-muted-foreground mt-1">{totals.totalItems} items</p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-4">
           {Object.entries(groupedByOrg).map(([orgId, group]) => (
-            <div key={orgId} className="space-y-2">
-              <div className="text-sm font-semibold text-muted-foreground">{group.name}</div>
+            <div key={orgId} className="space-y-3">
+              <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
+                {group.name}
+              </div>
               {group.items.map((item) => (
                 <CartLineItem
                   key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
@@ -110,32 +118,40 @@ export function CartPage () {
             </div>
           ))}
 
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" onClick={handleClear}>Clear cart</Button>
+          <div className="pt-4 border-t">
+            <Button
+              variant="ghost"
+              onClick={handleClear}
+              className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Clear cart
+            </Button>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Card>
-            <CardContent className="p-4 space-y-2">
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Items</span>
-                <span>{totals.totalItems}</span>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>Items ({totals.totalItems})</span>
+                  <span>${totals.totalValue.toFixed(2)}</span>
+                </div>
+                <div className="h-px bg-border" />
+                <div className="flex items-center justify-between font-bold text-lg">
+                  <span>Selected total</span>
+                  <span className="text-primary">${totals.selectedValue.toFixed(2)}</span>
+                </div>
+
+                <Link href="/checkout">
+                  <Button
+                    className="w-full h-10 hover:scale-105 transition-all duration-200"
+                    disabled={totals.selectedItems === 0}
+                  >
+                    Checkout ({totals.selectedItems} items)
+                  </Button>
+                </Link>
               </div>
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Subtotal</span>
-                <span>${totals.totalValue.toFixed(2)}</span>
-              </div>
-              <Separator className="my-2" />
-              <div className="flex items-center justify-between font-semibold">
-                <span>Selected total</span>
-                <span>${totals.selectedValue.toFixed(2)}</span>
-              </div>
-          <Link href="/checkout">
-            <Button className="mt-3 w-full" disabled={totals.selectedItems === 0}>
-              Checkout
-            </Button>
-          </Link>
             </CardContent>
           </Card>
         </div>
@@ -233,10 +249,10 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
   }
 
   return (
-    <Card className={cn(item.selected && 'border-primary')}>
-      <CardContent className={cn('p-3', item.selected && 'bg-primary/5')}>
+    <Card className={cn('transition-all duration-200', item.selected && 'border-primary bg-primary/5 shadow-sm')}>
+      <CardContent className="p-3">
         <div className="flex items-start gap-3">
-          <div className="pt-0.5">
+          <div className="pt-1">
             <Checkbox
               checked={item.selected}
               onCheckedChange={async (checked) => {
@@ -248,40 +264,50 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                 })
               }}
               aria-label="Select item"
+              className="mt-0.5"
             />
           </div>
-          {item.productInfo.imageUrl?.[0] ? (
-            <R2Image
-              fileKey={item.productInfo.imageUrl[0]}
-              alt={item.productInfo.title}
-              width={96}
-              height={96}
-              className="h-12 w-12 shrink-0 rounded object-cover bg-secondary"
-            />
-          ) : (
-            <div className="h-12 w-12 shrink-0 rounded bg-secondary" />
-          )}
-          <div className="flex-1">
+
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
+            {item.productInfo.imageUrl?.[0] ? (
+              <R2Image
+                fileKey={item.productInfo.imageUrl[0]}
+                alt={item.productInfo.title}
+                width={64}
+                height={64}
+                className="h-full w-full object-cover bg-secondary"
+              />
+            ) : (
+              <div className="h-full w-full bg-secondary rounded-lg" />
+            )}
+          </div>
+
+          <div className="flex-1 space-y-2">
             <div className="flex items-start justify-between gap-2">
-              <div>
-                <div className="text-sm font-medium leading-tight">
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold leading-tight">
                   {item.productInfo.title}
                 </div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  ${item.productInfo.price.toFixed(2)} each
+                </div>
                 {product && (product.variants?.length ?? 0) > 0 && (
-                  <div className="mt-1">
+                  <div className="mt-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="w-full justify-between md:w-64"
+                          className="h-7 text-xs justify-between border-muted hover:border-primary/30"
                           aria-label="Select variant"
                         >
-                          {item.productInfo.variantName ?? 'Select a variant'}
-                          <span aria-hidden>▾</span>
+                          <span className="truncate">
+                            {item.productInfo.variantName ?? 'Select variant'}
+                          </span>
+                          <span aria-hidden className="ml-1">▾</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="min-w-[12rem]">
+                      <DropdownMenuContent align="start" className="min-w-[10rem] animate-in fade-in-0 zoom-in-95">
                         <DropdownMenuRadioGroup
                           value={item.variantId ?? ''}
                           onValueChange={(val) => handleVariantChange(val || undefined)}
@@ -289,8 +315,11 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                           {product.variants
                             .filter((v) => v.isActive)
                             .map((v) => (
-                              <DropdownMenuRadioItem key={v.variantId} value={v.variantId}>
-                                {v.variantName} • ${v.price.toFixed(2)}
+                              <DropdownMenuRadioItem key={v.variantId} value={v.variantId} className="text-xs">
+                                <div className="flex items-center justify-between w-full">
+                                  <span>{v.variantName}</span>
+                                  <span className="ml-2 font-medium text-primary">${v.price.toFixed(2)}</span>
+                                </div>
                               </DropdownMenuRadioItem>
                             ))}
                         </DropdownMenuRadioGroup>
@@ -298,32 +327,50 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                     </DropdownMenu>
                   </div>
                 )}
-                <div className="mt-1 text-xs text-muted-foreground">
-                  ${item.productInfo.price.toFixed(2)} each
-                </div>
               </div>
               <div className="text-right">
-                <div className="text-sm font-semibold">
-                  ${(item.productInfo.price * item.quantity).toFixed(2)}
-                </div>
+                <div className="text-sm font-bold">${(item.productInfo.price * item.quantity).toFixed(2)}</div>
               </div>
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2">
-                <Button variant="secondary" size="sm" onClick={handleDec} aria-label="Decrease quantity"><Minus className="h-4 w-4" /></Button>
-                <span className="min-w-8 text-center text-sm">{item.quantity}</span>
-                <Button variant="secondary" size="sm" onClick={handleInc} aria-label="Increase quantity"><Plus className="h-4 w-4" /></Button>
+            <div className="flex items-center justify-between gap-2">
+              <div className="inline-flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDec}
+                  aria-label="Decrease quantity"
+                  className="h-7 w-7 p-0 hover:bg-primary/10"
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="min-w-8 text-center text-sm font-medium">{item.quantity}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleInc}
+                  aria-label="Increase quantity"
+                  className="h-7 w-7 p-0 hover:bg-primary/10"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
               </div>
-              <Separator orientation="vertical" className="mx-2 h-5" />
-              <Button variant="ghost" size="sm" onClick={handleRemove}><Trash2 className="mr-2 h-4 w-4" /> Remove</Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRemove}
+                className="h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-3 w-3 mr-1" /> Remove
+              </Button>
             </div>
 
-            <div className="mt-2 flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Input
                 defaultValue={item.note ?? ''}
-                placeholder="Add a note (optional)"
-                className="max-w-md"
+                placeholder="Add a note..."
+                className="h-7 text-xs max-w-xs"
                 onBlur={async (e) => {
                   try {
                     await setItemNote({

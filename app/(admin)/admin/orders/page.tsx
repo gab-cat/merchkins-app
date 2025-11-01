@@ -3,11 +3,18 @@
 import React, { useMemo, useState } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'DELIVERED' | 'CANCELLED'
 type PaymentStatus = 'PENDING' | 'DOWNPAYMENT' | 'PAID' | 'REFUNDED'
@@ -81,41 +88,68 @@ export default function AdminOrdersPage () {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {loading
-          ? new Array(6).fill(null).map((_, i) => (
-              <Card key={`skeleton-${i}`} className="overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="h-4 w-1/3 animate-pulse rounded bg-secondary" />
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="h-4 w-1/5 animate-pulse rounded bg-secondary" />
-                  <div className="h-4 w-1/4 animate-pulse rounded bg-secondary" />
-                </CardContent>
-              </Card>
-            ))
-          : filtered.map((o) => (
-              <Link key={o._id} href={`/admin/orders/${o._id}`}>
-                <Card className="h-full transition hover:border-primary">
-                  <CardHeader className="flex-row items-center justify-between gap-3 space-y-0">
-                    <CardTitle className="text-base font-medium">
-                      {o.orderNumber ? `Order #${o.orderNumber}` : 'Order'}
-                    </CardTitle>
-                    <StatusBadge value={o.status} />
-                  </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground">
-                    <div className="flex items-center justify-between">
-                      <span>{new Date(o.orderDate).toLocaleDateString()}</span>
-                      <span>{o.itemCount} items</span>
-                    </div>
-                    <div className="mt-1 flex items-center justify-between">
-                      <span>{o.customerInfo?.email}</span>
-                      <span className="font-medium text-foreground">{formatCurrency(o.totalAmount)}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Order #</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Items</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading
+              ? new Array(10).fill(null).map((_, i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    <TableCell>
+                      <div className="h-4 w-16 animate-pulse rounded bg-secondary" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-6 w-20 animate-pulse rounded bg-secondary" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-24 animate-pulse rounded bg-secondary" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-12 animate-pulse rounded bg-secondary" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-32 animate-pulse rounded bg-secondary" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="h-4 w-16 animate-pulse rounded bg-secondary ml-auto" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              : filtered.map((o) => (
+                  <TableRow key={o._id} className="cursor-pointer hover:bg-muted/50">
+                    <TableCell className="font-medium">
+                      <Link href={`/admin/orders/${o._id}`} className="hover:underline">
+                        {o.orderNumber ? `#${o.orderNumber}` : 'N/A'}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge value={o.status} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(o.orderDate).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {o.itemCount}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {o.customerInfo?.email || 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatCurrency(o.totalAmount)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+          </TableBody>
+        </Table>
       </div>
 
       {!loading && filtered.length === 0 && (

@@ -3,11 +3,11 @@
 import React from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { MessageSquare, Clock } from 'lucide-react'
 import { Doc } from '@/convex/_generated/dataModel'
 import Link from 'next/link'
+import { SettingsHeader, SettingsList, SettingsRow } from './settings'
 
 type ChatRoom = Doc<"chatRooms">
 
@@ -39,18 +39,20 @@ export function ChatsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Recent Chats</h3>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/chats">View All</Link>
-        </Button>
-      </div>
-      
-      <div className="space-y-2">
-        {rooms.slice(0, 5).map((room) => (
-          <Card key={room._id} className="hover:bg-muted/50 transition-colors">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between">
+      <SettingsHeader title="Chats" />
+      <SettingsList>
+        <SettingsRow
+          label={<span>Recent chats</span>}
+          action={
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/chats">View all</Link>
+            </Button>
+          }
+          alignTop
+        >
+          <div className="space-y-2">
+            {rooms.slice(0, 5).map((room) => (
+              <div key={room._id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <MessageSquare className="h-4 w-4 text-muted-foreground" />
                   <div>
@@ -67,10 +69,10 @@ export function ChatsPage() {
                   <Link href={`/chats/${room._id}`}>Open</Link>
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            ))}
+          </div>
+        </SettingsRow>
+      </SettingsList>
     </div>
   )
 }

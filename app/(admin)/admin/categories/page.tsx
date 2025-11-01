@@ -4,10 +4,19 @@ import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
 import { useOffsetPagination } from '@/src/hooks/use-pagination'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 interface CategoryListItem {
   _id: Id<'categories'>
@@ -65,65 +74,96 @@ export default function AdminCategoriesPage () {
             Manage category tree and settings
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <Input
             placeholder="Search categories..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-64"
           />
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="onlyActive"
               checked={onlyActive}
-              onChange={(e) => setOnlyActive(e.target.checked)}
+              onCheckedChange={(checked) => setOnlyActive(checked as boolean)}
             />
-            Active only
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+            <label htmlFor="onlyActive" className="text-sm font-medium">Active only</label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="showDeleted"
               checked={showDeleted}
-              onChange={(e) => setShowDeleted(e.target.checked)}
+              onCheckedChange={(checked) => setShowDeleted(checked as boolean)}
             />
-            Show deleted
-          </label>
+            <label htmlFor="showDeleted" className="text-sm font-medium">Show deleted</label>
+          </div>
           <Link href="/admin/categories/new">
             <Button>Create category</Button>
           </Link>
         </div>
       </div>
 
-      {loading ? (
-        <div className="rounded-md border divide-y">
-          {new Array(6).fill(null).map((_, i) => (
-            <div key={`s-${i}`} className="px-3 py-2">
-              <div className="h-4 w-1/3 animate-pulse rounded bg-secondary" />
-            </div>
-          ))}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Slug</TableHead>
+              <TableHead>Level</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading
+              ? new Array(10).fill(null).map((_, i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    <TableCell>
+                      <div className="h-4 w-32 animate-pulse rounded bg-secondary" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-24 animate-pulse rounded bg-secondary" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-12 animate-pulse rounded bg-secondary" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-6 w-16 animate-pulse rounded bg-secondary" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-40 animate-pulse rounded bg-secondary" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="h-8 w-16 animate-pulse rounded bg-secondary ml-auto" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              : (
+                <>
+                  {grouped.root.map((c) => (
+                    <CategoryTableRow
+                      key={c._id}
+                      cat={c}
+                      childrenMap={grouped.children}
+                    />
+                  ))}
+                </>
+              )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {!loading && filtered.length === 0 && (
+        <div className="py-12 text-center text-sm text-muted-foreground">
+          No categories found.
         </div>
-      ) : (
-        <>
-          <div className="space-y-2">
-            {grouped.root.map((c) => (
-              <CategoryRow
-                key={c._id}
-                cat={c}
-                childrenMap={grouped.children}
-              />
-            ))}
-          </div>
-          {hasMore && (
-            <div className="mt-3 flex justify-center">
-              <Button size="sm" variant="ghost" onClick={loadMore}>Load more</Button>
-            </div>
-          )}
-          {!loading && filtered.length === 0 && (
-            <div className="py-12 text-center text-sm text-muted-foreground">
-              No categories found.
-            </div>
-          )}
-        </>
+      )}
+
+      {hasMore && !loading && (
+        <div className="mt-4 flex justify-center">
+          <Button size="sm" variant="ghost" onClick={loadMore}>Load more</Button>
+        </div>
       )}
     </div>
   )
@@ -145,7 +185,7 @@ function groupByParent (categories: ReadonlyArray<CategoryListItem>) {
   return { root, children }
 }
 
-function CategoryRow ({
+function CategoryTableRow ({
   cat,
   childrenMap,
   depth = 0,
@@ -154,41 +194,49 @@ function CategoryRow ({
   childrenMap: Map<string, CategoryListItem[]>
   depth?: number
 }) {
-  const kids = childrenMap.get(cat._id as unknown as string) || []
-  return (
-    <Card>
-      <CardContent className="flex flex-col gap-2 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <div className="text-sm font-medium">
-              <span className="opacity-50">{Array(depth).fill('—').join('')}</span>
-              {cat.name}
+  // Render this category and all its children recursively
+  const renderCategory = (category: CategoryListItem, currentDepth: number) => {
+    const childCategories = childrenMap.get(category._id as unknown as string) || []
+
+    return (
+      <React.Fragment key={category._id}>
+        <TableRow className={currentDepth > 0 ? "bg-muted/30" : ""}>
+          <TableCell className="font-medium">
+            <div className="flex items-center gap-2">
+              {currentDepth > 0 && (
+                <span className="text-muted-foreground">
+                  {Array(currentDepth).fill('└─').join('')}
+                </span>
+              )}
+              {category.name}
             </div>
-            <div className="text-xs text-muted-foreground">
-              slug: {cat.slug} • level {cat.level} • {cat.isActive ? 'active' : 'inactive'}
-            </div>
-          </div>
-          <div className="shrink-0">
-            <Link href={`/admin/categories/${cat._id}`}>
-              <Button size="sm" variant="secondary">Edit</Button>
+          </TableCell>
+          <TableCell className="text-muted-foreground font-mono text-sm">
+            {category.slug}
+          </TableCell>
+          <TableCell className="text-muted-foreground">
+            {category.level}
+          </TableCell>
+          <TableCell>
+            <Badge variant={category.isActive ? "default" : "secondary"}>
+              {category.isActive ? "Active" : "Inactive"}
+            </Badge>
+          </TableCell>
+          <TableCell className="text-muted-foreground max-w-xs truncate">
+            {category.description || "—"}
+          </TableCell>
+          <TableCell className="text-right">
+            <Link href={`/admin/categories/${category._id}`}>
+              <Button size="sm" variant="ghost">Edit</Button>
             </Link>
-          </div>
-        </div>
-        {kids.length > 0 && (
-          <div className="space-y-2">
-            {kids.map((k) => (
-              <CategoryRow
-                key={k._id}
-                cat={k}
-                childrenMap={childrenMap}
-                depth={depth + 1}
-              />
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
+          </TableCell>
+        </TableRow>
+        {childCategories.map((child) => renderCategory(child, currentDepth + 1))}
+      </React.Fragment>
+    )
+  }
+
+  return renderCategory(cat, depth)
 }
 
 

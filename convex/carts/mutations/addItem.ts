@@ -109,48 +109,27 @@ export const addItemHandler = async (
   const selected = args.selected ?? true;
   const note = args.note;
 
-  // Check if item already exists
-  // Prefer matching by variantId when provided, fall back to variantName for backward compatibility
-  const existingIndex = cart.embeddedItems.findIndex((i) => {
-    if (i.productInfo.productId !== product._id) return false;
-    const sameVariantId = (i.variantId ?? null) === (args.variantId ?? null);
-    const sameVariantName = (i.productInfo.variantName ?? null) === (variantName ?? null);
-    return sameVariantId || (!i.variantId && sameVariantName);
-  });
-
+  // Always create a new cart item (no merging)
   const newItems = [...cart.embeddedItems];
-  if (existingIndex >= 0) {
-    const existing = newItems[existingIndex];
-    const newQuantity = Math.min(existing.quantity + quantityToAdd, variantInventory);
-    newItems[existingIndex] = {
-      ...existing,
-      variantId: args.variantId ?? existing.variantId,
-      quantity: newQuantity,
-      selected: selected ?? existing.selected,
-      note: note ?? existing.note,
-      addedAt: now,
-    };
-  } else {
-    newItems.push({
-      variantId: args.variantId,
-      productInfo: {
-        productId: product._id,
-        organizationId: product.organizationId,
-        organizationName: product.organizationInfo?.name,
-        title: product.title,
-        slug: product.slug,
-        imageUrl: product.imageUrl,
-        variantName,
-        price,
-        originalPrice,
-        inventory: variantInventory,
-      },
-      quantity: quantityToAdd,
-      selected,
-      note,
-      addedAt: now,
-    });
-  }
+  newItems.push({
+    variantId: args.variantId,
+    productInfo: {
+      productId: product._id,
+      organizationId: product.organizationId,
+      organizationName: product.organizationInfo?.name,
+      title: product.title,
+      slug: product.slug,
+      imageUrl: product.imageUrl,
+      variantName,
+      price,
+      originalPrice,
+      inventory: variantInventory,
+    },
+    quantity: quantityToAdd,
+    selected,
+    note,
+    addedAt: now,
+  });
 
   // Recompute cart totals
   let totalItems = 0;

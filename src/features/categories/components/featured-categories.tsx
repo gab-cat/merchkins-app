@@ -27,23 +27,24 @@ export function FeaturedCategories (
   const isUrl = (val?: string) => !!val && (/^https?:\/\//.test(val) || val.startsWith('/'))
 
   return (
-    <div>
-      <div className="mb-6 flex items-end justify-between">
-        <h2 className="text-xl font-semibold">Featured categories</h2>
-        <Link className="text-sm text-primary" href={orgSlug ? `/o/${orgSlug}/search` : '/search'}>
+    <div className="space-y-4">
+      <div className="flex items-end justify-between">
+        <h2 className="text-2xl font-bold">Featured categories</h2>
+        <Link className="text-sm text-primary hover:text-primary/80 font-medium hover:underline transition-all duration-200" href={orgSlug ? `/o/${orgSlug}/search` : '/search'}>
           View all
         </Link>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {loading
           ? new Array(6).fill(null).map((_, i) => (
-              <Card key={`skeleton-${i}`} className="overflow-hidden">
-                <div className="relative h-28 w-full">
-                  <span className="absolute inset-0 animate-pulse bg-secondary/60" />
-                </div>
-                <div className="flex items-center justify-between px-3 py-2">
-                  <span className="h-4 w-28 animate-pulse rounded bg-secondary" />
-                  <span className="h-4 w-16 animate-pulse rounded bg-secondary" />
+              <Card key={`skeleton-${i}`} className="overflow-hidden animate-pulse">
+                <div className="relative h-32 w-full bg-secondary skeleton" />
+                <div className="flex items-center justify-between p-3">
+                  <div className="space-y-1">
+                    <span className="h-4 w-24 rounded bg-secondary block" />
+                    <span className="h-3 w-32 rounded bg-secondary block" />
+                  </div>
+                  <span className="h-5 w-16 rounded bg-secondary" />
                 </div>
               </Card>
             ))
@@ -53,21 +54,21 @@ export function FeaturedCategories (
                 href={orgSlug ? `/o/${orgSlug}/c/${c.slug}` : `/c/${c.slug}`}
                 className="group block"
               >
-                <Card className="overflow-hidden border-muted/60 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md">
-                  <div className="relative h-28 w-full">
+                <Card className="overflow-hidden border-muted/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/30">
+                  <div className="relative h-32 w-full overflow-hidden">
                     {isUrl(c.imageUrl) ? (
                       <Image
                         src={c.imageUrl as string}
                         alt={`${c.name} cover`}
                         fill
                         sizes="(min-width: 1024px) 384px, (min-width: 768px) 320px, 100vw"
-                        className="object-cover object-center"
+                        className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
                         quality={85}
                         priority={false}
                       />
                     ) : (
                       <div
-                        className="h-full w-full"
+                        className="h-full w-full transition-all duration-300"
                         style={{
                           background: c.color
                             ? `linear-gradient(135deg, ${c.color} 0%, rgba(0,0,0,0.08) 100%)`
@@ -75,32 +76,42 @@ export function FeaturedCategories (
                         }}
                       />
                     )}
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
                     {c.color && (
                       <span
                         aria-hidden
-                        className="absolute left-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-full ring-2 ring-white/70 shadow"
+                        className="absolute left-3 top-3 inline-flex h-6 w-6 items-center justify-center rounded-full ring-2 ring-white/70 shadow-lg transition-all duration-200 group-hover:scale-110"
                         style={{ backgroundColor: c.color }}
                       />
                     )}
-                  </div>
-                  <div className="flex items-center justify-between px-3 py-2">
-                    <div className="min-w-0">
-                      <div className="truncate font-medium group-hover:underline">{c.name}</div>
-                      {c.description && (
-                        <div className="truncate text-xs text-muted-foreground">{c.description}</div>
-                      )}
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <div className="text-white font-bold text-lg leading-tight drop-shadow-md group-hover:text-white/90 transition-colors">
+                        {c.name}
+                      </div>
                     </div>
-                    <Badge variant="secondary" className="shrink-0">
-                      {c.activeProductCount} products
-                    </Badge>
+                  </div>
+                  <div className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        {c.description && (
+                          <div className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                            {c.description}
+                          </div>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="shrink-0 ml-2 text-[10px] px-2 py-0.5 font-medium">
+                        {c.activeProductCount} products
+                      </Badge>
+                    </div>
                   </div>
                 </Card>
               </Link>
             ))}
       </div>
       {!loading && categories.length === 0 && (
-        <div className="text-sm text-muted-foreground">No categories to show.</div>
+        <div className="text-center py-8 text-muted-foreground">
+          <p>No categories to show.</p>
+        </div>
       )}
     </div>
   )

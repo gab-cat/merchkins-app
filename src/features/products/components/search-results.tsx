@@ -75,51 +75,59 @@ export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
   }
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} className="mb-6 flex items-center gap-2" role="search">
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search products"
-          aria-label="Search products"
-        />
-        <Button type="submit">Search</Button>
-        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest</SelectItem>
-            <SelectItem value="popular">Popular</SelectItem>
-            <SelectItem value="rating">Rating</SelectItem>
-            <SelectItem value="price_low">Price: Low to High</SelectItem>
-            <SelectItem value="price_high">Price: High to Low</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3" role="search">
+        <div className="flex-1">
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search products..."
+            aria-label="Search products"
+            className="h-10"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+            <SelectTrigger className="w-40 h-10">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="popular">Popular</SelectItem>
+              <SelectItem value="rating">Rating</SelectItem>
+              <SelectItem value="price_low">Price: Low to High</SelectItem>
+              <SelectItem value="price_high">Price: High to Low</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button type="submit" className="h-10 px-6">Search</Button>
+        </div>
       </form>
 
       {!q.trim() && (
-        <div className="text-sm text-muted-foreground">Enter a search term to begin.</div>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground text-lg">Enter a search term to begin.</p>
+        </div>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {loading
-          ? new Array(12).fill(null).map((_, i) => (
+          ? new Array(10).fill(null).map((_, i) => (
               <Card
                 key={`skeleton-${i}`}
-                className="overflow-hidden rounded-xl border bg-card shadow-sm py-0"
+                className="overflow-hidden rounded-xl border bg-card shadow-sm py-0 animate-pulse"
               >
-                <div className="aspect-[4/3] animate-pulse bg-secondary" />
-                <CardHeader className="p-3 md:p-3">
-                  <CardTitle className="h-4 w-2/3 animate-pulse rounded bg-secondary" />
+                <div className="aspect-[4/3] bg-secondary skeleton" />
+                <CardHeader className="p-3 space-y-2">
+                  <CardTitle className="h-4 w-2/3 rounded bg-secondary" />
+                  <div className="h-3 w-full rounded bg-secondary" />
                 </CardHeader>
-                <CardContent className="flex items-center justify-between p-3 md:p-3">
-                  <span className="h-4 w-16 animate-pulse rounded bg-secondary" />
-                  <span className="h-8 w-20 animate-pulse rounded bg-secondary" />
+                <CardContent className="flex items-center justify-between p-3">
+                  <span className="h-4 w-16 rounded bg-secondary" />
+                  <span className="h-3 w-12 rounded bg-secondary" />
                 </CardContent>
               </Card>
             ))
-          : products.map((p: Product) => (
+          : products.map((p: Product, index: number) => (
               <Link
                 key={p._id}
                 href={orgSlug ? `/o/${orgSlug}/p/${p.slug}` : `/p/${p.slug}`}
@@ -128,54 +136,57 @@ export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
                 data-testid="product-card"
               >
                 <Card
-                  className="overflow-hidden rounded-xl border bg-card shadow-sm py-0 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                  className={`overflow-hidden rounded-xl border bg-card shadow-sm py-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20 card-enter card-enter-delay-${(index % 8) + 1}`}
                 >
-                  <div className="relative h-40 w-full overflow-hidden md:h-44">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden">
                     <R2Image
                       fileKey={p.imageUrl?.[0]}
                       alt={p.title}
-                      width={800}
-                      height={600}
-                      className="h-full w-full bg-secondary object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      width={400}
+                      height={300}
+                      className="h-full w-full bg-secondary object-cover transition-transform duration-300 group-hover:scale-110"
                     />
-                    <div className="pointer-events-none absolute left-2 top-2 flex flex-wrap gap-1">
+                    <div className="pointer-events-none absolute left-1.5 top-1.5 flex flex-wrap gap-1">
                       {p.isBestPrice && (
-                        <Badge variant="secondary" className="text-[10px]">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 font-medium">
                           Best price
                         </Badge>
                       )}
                       {p.discountLabel && (
-                        <Badge variant="outline" className="text-[10px]">
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 font-medium">
                           {p.discountLabel}
                         </Badge>
                       )}
                     </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                  <CardHeader className="space-y-1 p-3 md:p-3">
+                  <CardHeader className="space-y-1 p-3">
                     <CardTitle
-                      className="line-clamp-2 text-base font-semibold leading-snug text-primary"
+                      className="line-clamp-2 text-sm font-semibold leading-tight text-primary group-hover:text-primary/90 transition-colors"
                       data-testid="product-card-title"
                     >
                       {p.title}
                     </CardTitle>
                     {p.description && (
-                      <p className="line-clamp-2 text-xs text-muted-foreground">
+                      <p className="line-clamp-2 text-xs text-muted-foreground leading-relaxed">
                         {p.description}
                       </p>
                     )}
                   </CardHeader>
-                  <CardContent className="flex items-center justify-between p-3 md:p-3">
+                  <CardContent className="flex items-center justify-between p-3 pt-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold" data-testid="product-card-price">
+                      <span className="text-sm font-bold text-primary" data-testid="product-card-price">
                         {p.minPrice !== undefined ? `$${p.minPrice.toFixed(2)}` : ''}
                       </span>
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Star size={14} className="fill-current" />
-                        {p.rating?.toFixed(1)} ({p.reviewsCount})
-                      </span>
+                      {p.rating && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Star size={12} className="fill-current text-yellow-400" />
+                          {p.rating.toFixed(1)}
+                        </span>
+                      )}
                     </div>
-                    <span className="text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                      View
+                    <span className="text-[10px] text-muted-foreground opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:text-primary font-medium">
+                      View →
                     </span>
                   </CardContent>
                 </Card>
@@ -184,7 +195,10 @@ export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
       </div>
 
       {!loading && q.trim() && products.length === 0 && (
-        <div className="text-sm text-muted-foreground">No products found.</div>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground text-lg">No products found for &quot;{q}&quot;.</p>
+          <p className="text-muted-foreground text-sm mt-2">Try adjusting your search terms.</p>
+        </div>
       )}
     </div>
   )

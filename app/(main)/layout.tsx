@@ -12,11 +12,11 @@ export default function MainLayout ({ children }: { children: ReactNode }) {
   return (
     <>
       <SiteHeader />
-      <main className="flex flex-col">
+      <div className="max-w-7xl mx-auto w-full min-h-[80vh]">
         <ErrorBoundary>
           {children}
         </ErrorBoundary>
-      </main>
+      </div>
       <SiteFooter />
     </>
   )

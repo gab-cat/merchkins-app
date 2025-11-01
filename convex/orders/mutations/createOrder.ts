@@ -433,6 +433,18 @@ export const createOrderHandler = async (
     }
   }
 
+  // Create Xendit payment invoice
+  let xenditInvoice;
+  try {
+    // Note: We can't call runAction from a mutation in Convex
+    // The invoice creation will be handled by the frontend or a separate action
+    console.log("Xendit invoice creation will be handled by frontend");
+  } catch (error) {
+    console.error("Failed to create Xendit invoice:", error);
+    // Don't fail order creation if payment invoice creation fails
+    // User can still pay manually or refresh invoice later
+  }
+
   // Log action
   await logAction(
     ctx,
@@ -451,7 +463,19 @@ export const createOrderHandler = async (
     }
   );
 
-  return orderId;
+  // Return order details including Xendit invoice info
+  const createdOrder = await ctx.db.get(orderId);
+  if (!createdOrder) {
+    throw new Error("Order creation failed");
+  }
+
+  return {
+    orderId,
+    orderNumber: createdOrder.orderNumber,
+    xenditInvoiceUrl: createdOrder.xenditInvoiceUrl,
+    xenditInvoiceId: createdOrder.xenditInvoiceId,
+    totalAmount: createdOrder.totalAmount,
+  };
 };
 
 

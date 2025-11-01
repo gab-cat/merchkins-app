@@ -877,7 +877,7 @@ export const seedData = internalMutation({
             },
             paymentDate: now,
             amount: Math.round(order.totalAmount / 2),
-            paymentMethod: 'GCASH',
+            paymentMethod: 'XENDIT',
             paymentSite: 'ONSITE',
             paymentStatus: 'VERIFIED',
             referenceNo: `PAY-${now}`,

@@ -2,15 +2,15 @@
 @import "tw-animate-css";
 
 @font-face {
-  font-family: 'Genty';
-  src: url('/fonts/genty.woff') format('woff');
+  font-family: "Genty";
+  src: url("/fonts/genty.woff") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
 .font-genty {
-  font-family: 'Genty', sans-serif;
+  font-family: "Genty", sans-serif;
   color: #adfc04;
 }
 
@@ -19,8 +19,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, monospace;
+  --font-sans: "Poppins", system-ui, -apple-system, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -77,13 +78,13 @@
   --primary-foreground: oklch(0.99 0.004 270);
   /* Subtle gray for secondary surfaces */
   --secondary: oklch(0.96 0.01 270);
-  --secondary-foreground: oklch(0.20 0.02 270);
+  --secondary-foreground: oklch(0.2 0.02 270);
   /* Muted backgrounds */
   --muted: oklch(0.95 0.01 270);
   --muted-foreground: oklch(0.53 0.02 270);
   /* Blue accent tint for hovers and tags */
   --accent: oklch(0.92 0.04 240);
-  --accent-foreground: oklch(0.20 0.02 270);
+  --accent-foreground: oklch(0.2 0.02 270);
   --destructive: oklch(0.62 0.22 25);
   --border: oklch(0.91 0.01 270);
   --input: oklch(0.94 0.01 270);
@@ -98,7 +99,7 @@
   --sidebar-primary: #1d43d8;
   --sidebar-primary-foreground: oklch(0.99 0.004 270);
   --sidebar-accent: oklch(0.96 0.01 270);
-  --sidebar-accent-foreground: oklch(0.20 0.02 270);
+  --sidebar-accent-foreground: oklch(0.2 0.02 270);
   --sidebar-border: oklch(0.91 0.01 270);
   --sidebar-ring: #1d43d8;
 }
@@ -116,9 +117,9 @@
   --secondary-foreground: oklch(0.95 0.01 270);
   --muted: oklch(0.18 0.02 270);
   --muted-foreground: oklch(0.67 0.02 270);
-  --accent: oklch(0.30 0.04 240);
+  --accent: oklch(0.3 0.04 240);
   --accent-foreground: oklch(0.95 0.01 270);
-  --destructive: oklch(0.68 0.20 25);
+  --destructive: oklch(0.68 0.2 25);
   --border: oklch(0.22 0.02 270);
   --input: oklch(0.25 0.02 270);
   --ring: #1d43d8;
@@ -141,17 +142,200 @@
   * {
     @apply border-border outline-ring/50;
   }
-  
-  /* Apply specific transitions to interactive elements to prevent jitter */
-  button, [role="button"], input, select, textarea, a, .transition-all {
+
+  /* Consistent transition timing for all interactive elements */
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea,
+  a,
+  .transition-all,
+  .card,
+  .hover-transition,
+  [data-slot="card"],
+  [data-slot="button"] {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
-  /* Apply hover transitions to cards and interactive elements */
-  .card, .hover-transition {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Enhanced hover effects for cards */
+  .card,
+  .hover-transition,
+  [data-slot="card"] {
+    transition:
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
+  /* Compact spacing utilities */
+  .p-compact {
+    padding: 0.5rem;
+  }
+  .px-compact {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  .py-compact {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .pt-compact {
+    padding-top: 0.5rem;
+  }
+  .pb-compact {
+    padding-bottom: 0.5rem;
+  }
+  .pl-compact {
+    padding-left: 0.5rem;
+  }
+  .pr-compact {
+    padding-right: 0.5rem;
+  }
+
+  /* Extra compact spacing */
+  .p-xs {
+    padding: 0.25rem;
+  }
+  .px-xs {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  .py-xs {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  /* Consistent spacing scale: 4px, 8px, 12px, 16px, 24px, 32px */
+  .space-compact > * + * {
+    margin-top: 0.5rem;
+  }
+  .space-tight > * + * {
+    margin-top: 0.25rem;
+  }
+
+  /* Enhanced skeleton loading animations */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 25%,
+      hsl(var(--muted) / 0.5) 50%,
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Pulse animation for notifications */
+  .pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  /* Smooth fade-in animation */
+  .fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Product card entrance animation */
+  .card-enter {
+    opacity: 0;
+    animation: card-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes card-enter {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Staggered animation delays for product cards */
+  .card-enter-delay-1 {
+    animation-delay: 0.1s;
+  }
+  .card-enter-delay-2 {
+    animation-delay: 0.15s;
+  }
+  .card-enter-delay-3 {
+    animation-delay: 0.2s;
+  }
+  .card-enter-delay-4 {
+    animation-delay: 0.25s;
+  }
+  .card-enter-delay-5 {
+    animation-delay: 0.3s;
+  }
+  .card-enter-delay-6 {
+    animation-delay: 0.35s;
+  }
+  .card-enter-delay-7 {
+    animation-delay: 0.4s;
+  }
+  .card-enter-delay-8 {
+    animation-delay: 0.45s;
+  }
+
+  /* Enhanced focus styles for better accessibility */
+  :focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) * 0.5);
+  }
+
+  /* Improved button interactions */
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    transition:
+      transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  button:hover,
+  [role="button"]:hover {
+    transform: translateY(-1px);
+  }
+
+  button:active,
+  [role="button"]:active {
+    transform: translateY(0);
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -161,25 +345,25 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Enhanced scrollbars */
+  /* Unified scrollbar styles: transparent track, primary thumb */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: hsl(var(--muted));
-    border-radius: 4px;
   }
-  
+
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
+    background: hsl(var(--primary));
     border-radius: 4px;
+    border: 2px solid hsl(var(--muted));
     transition: background 0.2s ease;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground));
+    background: hsl(var(--primary));
   }
 
   /* Modern focus styles */
@@ -196,15 +380,22 @@
   }
 
   /* Enhanced button and interactive element styles */
-  button, [role="button"], input[type="submit"], input[type="button"] {
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    transition:
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  button:hover, [role="button"]:hover {
+  button:hover,
+  [role="button"]:hover {
     transform: translateY(-1px);
   }
 
-  button:active, [role="button"]:active {
+  button:active,
+  [role="button"]:active {
     transform: translateY(0);
   }
 
@@ -222,32 +413,56 @@
 
   /* Gradient text effect */
   .gradient-text {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary)),
+      hsl(var(--accent))
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Modern shadow styles */
+  /* Modern shadow styles with hover enhancement */
   .shadow-modern {
-    box-shadow: 
+    box-shadow:
       0 1px 3px 0 hsl(var(--foreground) / 0.1),
       0 1px 2px -1px hsl(var(--foreground) / 0.1);
   }
 
+  .shadow-modern:hover {
+    box-shadow:
+      0 4px 6px -1px hsl(var(--foreground) / 0.15),
+      0 2px 4px -2px hsl(var(--foreground) / 0.15);
+  }
+
   .shadow-modern-lg {
-    box-shadow: 
+    box-shadow:
       0 10px 15px -3px hsl(var(--foreground) / 0.1),
       0 4px 6px -4px hsl(var(--foreground) / 0.1);
   }
 
+  .shadow-modern-lg:hover {
+    box-shadow:
+      0 20px 25px -5px hsl(var(--foreground) / 0.15),
+      0 8px 10px -6px hsl(var(--foreground) / 0.15);
+  }
+
   /* Brand gradient backgrounds */
   .bg-brand-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary)),
+      hsl(var(--accent))
+    );
   }
 
   .bg-brand-gradient-subtle {
-    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--accent) / 0.1));
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary) / 0.1),
+      hsl(var(--accent) / 0.1)
+    );
   }
 
   /* Clerk component visibility fixes */
@@ -261,7 +476,9 @@
   [data-clerk-component="card"] {
     background-color: #ffffff !important;
     border-radius: 0.75rem !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
     border: 1px solid #e2e8f0 !important;
   }
 
@@ -273,7 +490,11 @@
     font-size: 14px !important;
     padding: 12px 16px !important;
     color: #1e293b !important;
-    font-family: 'Poppins', system-ui, -apple-system, sans-serif !important;
+    font-family:
+      "Poppins",
+      system-ui,
+      -apple-system,
+      sans-serif !important;
   }
 
   [data-clerk-component="form-field-input"]:focus {
@@ -282,31 +503,9 @@
     outline: none !important;
   }
 
-  /* Make scrollbar primary color */
-  ::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-    background-color: hsl(var(--muted));
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
-    border-radius: 4px;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary));
-    border-radius: 4px;
-    border: 2px solid hsl(var(--muted));
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary) / 0.8);
-  }
-
-  /* Also make scrollbar visible on Firefox */
+  /* Firefox scrollbar: primary thumb, transparent track */
   * {
-    scrollbar-width: auto;
+    scrollbar-width: thin;
     scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
   }
 }

@@ -45,13 +45,7 @@ export const payments = defineTable({
   
   paymentDate: v.number(),
   amount: v.number(),
-  paymentMethod: v.union(
-    v.literal("CASH"),
-    v.literal("BANK_TRANSFER"),
-    v.literal("GCASH"),
-    v.literal("MAYA"),
-    v.literal("OTHERS")
-  ),
+  paymentMethod: v.literal("XENDIT"),
   paymentSite: v.union(v.literal("ONSITE"), v.literal("OFFSITE")),
   paymentStatus: v.union(
     v.literal("VERIFIED"),
@@ -68,6 +62,9 @@ export const payments = defineTable({
   currency: v.string(),
   transactionId: v.optional(v.string()),
   paymentProvider: v.optional(v.string()),
+  xenditInvoiceId: v.optional(v.string()),
+  xenditInvoiceUrl: v.optional(v.string()),
+  xenditInvoiceExpiryDate: v.optional(v.number()),
   metadata: v.optional(v.any()),
   
   // Payment tracking

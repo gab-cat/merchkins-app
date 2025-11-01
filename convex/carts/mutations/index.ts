@@ -4,6 +4,7 @@ import { mutation, internalMutation } from "../../_generated/server";
 import { createOrGetCartArgs, createOrGetCartHandler } from "./createOrGetCart";
 import { addItemArgs, addItemHandler } from "./addItem";
 import { updateItemQuantityArgs, updateItemQuantityHandler } from "./updateItemQuantity";
+import { updateItemVariantArgs, updateItemVariantHandler } from "./updateItemVariant";
 import { removeItemArgs, removeItemHandler } from "./removeItem";
 import { clearCartArgs, clearCartHandler } from "./clearCart";
 import { setItemSelectedArgs, setItemSelectedHandler } from "./setItemSelected";
@@ -26,6 +27,11 @@ export const addItem = mutation({
 export const updateItemQuantity = mutation({
   args: updateItemQuantityArgs,
   handler: updateItemQuantityHandler,
+});
+
+export const updateItemVariant = mutation({
+  args: updateItemVariantArgs,
+  handler: updateItemVariantHandler,
 });
 
 export const removeItem = mutation({

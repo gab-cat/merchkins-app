@@ -18,7 +18,7 @@ type Payment = Doc<'payments'>
 const schema = z.object({
   amount: z.string().min(1, 'Amount is required'),
   currency: z.string().min(1, 'Currency is required'),
-  paymentMethod: z.enum(['CASH', 'BANK_TRANSFER', 'GCASH', 'MAYA', 'OTHERS']),
+  paymentMethod: z.enum(['XENDIT']),
   referenceNo: z.string().optional(),
   memo: z.string().optional(),
   status: z.enum(['PENDING', 'VERIFIED', 'FAILED']),
@@ -60,7 +60,7 @@ export function ReceivePaymentDialog ({
     defaultValues: {
       amount: String(defaultAmount ?? 0),
       currency: defaultCurrency,
-      paymentMethod: 'CASH',
+      paymentMethod: 'XENDIT',
       referenceNo: '',
       memo: '',
       status: 'VERIFIED',
@@ -78,7 +78,7 @@ export function ReceivePaymentDialog ({
         paymentMethod: values.paymentMethod,
         paymentSite: 'ONSITE',
         paymentStatus: values.status,
-        referenceNo: values.referenceNo || 'CASH_PAYMENT',
+        referenceNo: values.referenceNo || 'XENDIT_PAYMENT',
         memo: values.memo || undefined,
         currency: values.currency,
       })

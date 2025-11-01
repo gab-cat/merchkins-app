@@ -1,4 +1,5 @@
-import { mutation, internalMutation } from "../../_generated/server";
+import { mutation, internalMutation, internalAction, action } from "../../_generated/server";
+import { v } from "convex/values";
 
 import { createOrderArgs, createOrderHandler } from "./createOrder";
 import { updateOrderArgs, updateOrderHandler } from "./updateOrder";
@@ -6,6 +7,9 @@ import { cancelOrderArgs, cancelOrderHandler } from "./cancelOrder";
 import { deleteOrderArgs, deleteOrderHandler } from "./deleteOrder";
 import { restoreOrderArgs, restoreOrderHandler } from "./restoreOrder";
 import { updateOrderStatsArgs, updateOrderStatsHandler } from "./updateOrderStats";
+import { refreshXenditInvoiceArgs, refreshXenditInvoiceHandler } from "./refreshXenditInvoice";
+import { updateOrderXenditInvoiceArgs, updateOrderXenditInvoiceHandler } from "./updateOrderXenditInvoice";
+import { createXenditInvoiceForOrderArgs, createXenditInvoiceForOrderHandler } from "./createXenditInvoiceForOrder";
 
 export const createOrder = mutation({
   args: createOrderArgs,
@@ -30,6 +34,22 @@ export const deleteOrder = mutation({
 export const restoreOrder = mutation({
   args: restoreOrderArgs,
   handler: restoreOrderHandler,
+});
+
+export const refreshXenditInvoice = action({
+  args: refreshXenditInvoiceArgs,
+  returns: v.object({ invoiceUrl: v.string(), isExpired: v.boolean() }),
+  handler: refreshXenditInvoiceHandler,
+});
+
+export const createXenditInvoiceForOrder = mutation({
+  args: createXenditInvoiceForOrderArgs,
+  handler: createXenditInvoiceForOrderHandler,
+});
+
+export const updateOrderXenditInvoice = internalMutation({
+  args: updateOrderXenditInvoiceArgs,
+  handler: updateOrderXenditInvoiceHandler,
 });
 
 export const updateOrderStats = internalMutation({

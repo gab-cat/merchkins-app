@@ -3,12 +3,15 @@
 import React, { useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useQuery } from 'convex/react'
+import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent } from '@/components/ui/card'
 import { ReportPaymentDialog } from './report-payment-dialog'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { CreditCard } from 'lucide-react'
+import { showToast } from '@/lib/toast'
 import type { Id } from '@/convex/_generated/dataModel'
 
 interface OrderItemUI {
@@ -39,7 +42,49 @@ export function OrderDetail ({ orderId }: { orderId: string }) {
     includeItems: true,
   })
 
+  const createInvoice = useAction(api.payments.actions.index.createXenditInvoice)
+  const updateOrderInvoice = useMutation(api.orders.mutations.index.createXenditInvoiceForOrder)
+
   const loading = order === undefined
+
+  const handleCreateInvoice = async () => {
+    if (!order) return
+
+    try {
+      showToast({ type: 'info', title: 'Creating payment link...', description: 'Please wait while we create a payment link for your order.' })
+
+      const invoice = await createInvoice({
+        orderId: order._id,
+        amount: order.totalAmount || 0,
+        customerEmail: order.customerInfo.email,
+        externalId: order.orderNumber || `order-${order._id}`,
+      })
+
+      // Update the order with the invoice details
+      await updateOrderInvoice({
+        orderId: order._id,
+        xenditInvoiceId: invoice.invoiceId,
+        xenditInvoiceUrl: invoice.invoiceUrl,
+        xenditInvoiceExpiryDate: invoice.expiryDate,
+      })
+
+      showToast({
+        type: 'success',
+        title: 'Payment link created',
+        description: 'Redirecting to payment...',
+      })
+
+      // Redirect to payment
+      window.location.href = invoice.invoiceUrl
+    } catch (error) {
+      console.error('Failed to create invoice:', error)
+      showToast({
+        type: 'error',
+        title: 'Failed to create payment link',
+        description: 'Please try again or contact support.',
+      })
+    }
+  }
 
   const items = useMemo<OrderItemUI[]>(() => {
     if (!order) return []
@@ -132,8 +177,33 @@ export function OrderDetail ({ orderId }: { orderId: string }) {
               <span>Total</span>
               <span>{formatCurrency(order.totalAmount)}</span>
             </div>
-            <div className="mt-4">
-              <ReportPaymentDialog orderId={String(order._id)} defaultAmount={order.totalAmount} defaultCurrency={'PHP'} />
+            <div className="mt-4 space-y-2">
+              {/* Show Pay Now button for pending orders without payment links */}
+              {order.status === 'PENDING' && order.paymentStatus !== 'PAID' && !order.xenditInvoiceUrl && (
+                <Button
+                  className="w-full"
+                  onClick={handleCreateInvoice}
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Pay Now
+                </Button>
+              )}
+
+              {/* Show payment link if available */}
+              {order.xenditInvoiceUrl && order.status === 'PENDING' && order.paymentStatus !== 'PAID' && (
+                <Button
+                  className="w-full"
+                  onClick={() => window.location.href = order.xenditInvoiceUrl!}
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Complete Payment
+                </Button>
+              )}
+
+              {/* Show manual payment reporting for other cases */}
+              {order.paymentStatus !== 'PAID' && (
+                <ReportPaymentDialog orderId={String(order._id)} defaultAmount={order.totalAmount} defaultCurrency={'PHP'} />
+              )}
             </div>
           </div>
         </div>

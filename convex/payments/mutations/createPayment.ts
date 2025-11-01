@@ -21,13 +21,7 @@ export const createPaymentArgs = {
   paymentDate: v.optional(v.number()),
   amount: v.number(),
   processingFee: v.optional(v.number()),
-  paymentMethod: v.union(
-    v.literal("CASH"),
-    v.literal("BANK_TRANSFER"),
-    v.literal("GCASH"),
-    v.literal("MAYA"),
-    v.literal("OTHERS"),
-  ),
+  paymentMethod: v.literal("XENDIT"),
   paymentSite: v.union(v.literal("ONSITE"), v.literal("OFFSITE")),
   paymentStatus: v.optional(
     v.union(
@@ -59,7 +53,7 @@ export const createPaymentHandler = async (
     paymentDate?: number;
     amount: number;
     processingFee?: number;
-    paymentMethod: "CASH" | "BANK_TRANSFER" | "GCASH" | "MAYA" | "OTHERS";
+    paymentMethod: "XENDIT";
     paymentSite: "ONSITE" | "OFFSITE";
     paymentStatus?:
       | "VERIFIED"

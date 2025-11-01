@@ -20,15 +20,7 @@ export const getPaymentsArgs = {
       v.literal("CANCELLED"),
     ),
   ),
-  paymentMethod: v.optional(
-    v.union(
-      v.literal("CASH"),
-      v.literal("BANK_TRANSFER"),
-      v.literal("GCASH"),
-      v.literal("MAYA"),
-      v.literal("OTHERS"),
-    ),
-  ),
+  paymentMethod: v.optional(v.literal("XENDIT")),
   dateFrom: v.optional(v.number()),
   dateTo: v.optional(v.number()),
   includeDeleted: v.optional(v.boolean()),
@@ -52,7 +44,7 @@ export const getPaymentsHandler = async (
       | "REFUND_PENDING"
       | "REFUNDED"
       | "CANCELLED";
-    paymentMethod?: "CASH" | "BANK_TRANSFER" | "GCASH" | "MAYA" | "OTHERS";
+    paymentMethod?: "XENDIT";
     dateFrom?: number;
     dateTo?: number;
     includeDeleted?: boolean;
@@ -89,10 +81,6 @@ export const getPaymentsHandler = async (
     query = ctx.db
       .query("payments")
       .withIndex("by_payment_status", (q) => q.eq("paymentStatus", args.paymentStatus!));
-  } else if (args.paymentMethod) {
-    query = ctx.db
-      .query("payments")
-      .withIndex("by_payment_method", (q) => q.eq("paymentMethod", args.paymentMethod!));
   } else if (args.dateFrom || args.dateTo) {
     query = ctx.db.query("payments").withIndex("by_payment_date");
   } else {
@@ -102,7 +90,7 @@ export const getPaymentsHandler = async (
   }
 
   const filtered = query.filter((q) => {
-    const cond: any[] = [];
+    const cond = [];
     if (!args.includeDeleted) {
       cond.push(q.eq(q.field("isDeleted"), false));
     }

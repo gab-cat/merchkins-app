@@ -73,12 +73,14 @@ export function CategoryProducts ({ slug, orgSlug }: Props) {
   const hasMore = productsResult?.hasMore ?? false
 
   const breadcrumb = useMemo(() => (
-    <div className="mb-4 text-sm text-muted-foreground">
-      <Link href={orgSlug ? `/o/${orgSlug}` : '/'}>Home</Link>
-      <span className="mx-2">/</span>
+    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+      <Link href={orgSlug ? `/o/${orgSlug}` : '/'} className="hover:text-primary transition-colors">
+        Home
+      </Link>
+      <span className="text-muted-foreground/50">/</span>
       <span>Category</span>
-      <span className="mx-2">/</span>
-      <span className="text-foreground">{category?.name ?? '...'}</span>
+      <span className="text-muted-foreground/50">/</span>
+      <span className="text-foreground font-medium">{category?.name ?? '...'}</span>
     </div>
   ), [category, orgSlug])
 
@@ -97,18 +99,18 @@ export function CategoryProducts ({ slug, orgSlug }: Props) {
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       {breadcrumb}
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold leading-tight">{category?.name ?? 'Loading...'}</h1>
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold leading-tight">{category?.name ?? 'Loading...'}</h1>
           {category && (
-            <p className="text-sm text-muted-foreground">{category.description}</p>
+            <p className="text-muted-foreground leading-relaxed">{category.description}</p>
           )}
         </div>
         <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={(v) => { setSortBy(v as SortOption); setOffset(0) }}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 h-9">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -122,45 +124,67 @@ export function CategoryProducts ({ slug, orgSlug }: Props) {
         </div>
       </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <Input
-          value={priceMin}
-          onChange={(e) => setPriceMin(e.target.value)}
-          placeholder="Min price"
-          inputMode="decimal"
-          aria-label="Minimum price"
-        />
-        <Input
-          value={priceMax}
-          onChange={(e) => setPriceMax(e.target.value)}
-          placeholder="Max price"
-          inputMode="decimal"
-          aria-label="Maximum price"
-        />
-        <Input
-          value={minRating}
-          onChange={(e) => setMinRating(e.target.value)}
-          placeholder="Min rating (0-5)"
-          inputMode="decimal"
-          aria-label="Minimum rating"
-        />
-        <Input
-          value={tagsRaw}
-          onChange={(e) => setTagsRaw(e.target.value)}
-          placeholder="Tags (comma separated)"
-          aria-label="Tags"
-        />
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={hasInventory}
-            onChange={(e) => { setHasInventory(e.target.checked); setOffset(0) }}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">Price Range</label>
+          <div className="flex gap-2">
+            <Input
+              value={priceMin}
+              onChange={(e) => setPriceMin(e.target.value)}
+              placeholder="Min"
+              inputMode="decimal"
+              aria-label="Minimum price"
+              className="h-9"
+            />
+            <Input
+              value={priceMax}
+              onChange={(e) => setPriceMax(e.target.value)}
+              placeholder="Max"
+              inputMode="decimal"
+              aria-label="Maximum price"
+              className="h-9"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">Min Rating</label>
+          <Input
+            value={minRating}
+            onChange={(e) => setMinRating(e.target.value)}
+            placeholder="0-5"
+            inputMode="decimal"
+            aria-label="Minimum rating"
+            className="h-9"
           />
-          In stock only
-        </label>
-        <div className="sm:col-span-2 lg:col-span-5 flex gap-2">
-          <Button type="button" onClick={applyFilters}>Apply</Button>
-          <Button type="button" variant="outline" onClick={clearFilters}>Clear</Button>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">Tags</label>
+          <Input
+            value={tagsRaw}
+            onChange={(e) => setTagsRaw(e.target.value)}
+            placeholder="tag1, tag2"
+            aria-label="Tags"
+            className="h-9"
+          />
+        </div>
+
+        <div className="flex items-end">
+          <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
+            <input
+              type="checkbox"
+              checked={hasInventory}
+              onChange={(e) => { setHasInventory(e.target.checked); setOffset(0) }}
+              className="rounded"
+            />
+            In stock only
+          </label>
+        </div>
+
+        <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-2">
+          <Button type="button" onClick={applyFilters} className="h-9">Apply</Button>
+          <Button type="button" variant="outline" onClick={clearFilters} className="h-9">Clear</Button>
         </div>
       </div>
 
@@ -170,18 +194,23 @@ export function CategoryProducts ({ slug, orgSlug }: Props) {
       >
         {loading
           ? new Array(12).fill(null).map((_, i) => (
-              <Card key={`skeleton-${i}`} className="overflow-hidden py-0">
-                <div className="aspect-[4/3] animate-pulse bg-secondary" />
-                <CardHeader>
-                  <CardTitle className="h-4 w-2/3 animate-pulse rounded bg-secondary" />
+              <Card key={`skeleton-${i}`} className="overflow-hidden py-0 animate-pulse">
+                <div className="aspect-[4/3] bg-secondary skeleton" />
+                <CardHeader className="space-y-2">
+                  <div className="flex gap-1">
+                    <span className="h-4 w-16 rounded bg-secondary" />
+                    <span className="h-4 w-12 rounded bg-secondary" />
+                  </div>
+                  <CardTitle className="h-4 w-2/3 rounded bg-secondary" />
+                  <div className="h-3 w-full rounded bg-secondary" />
                 </CardHeader>
                 <CardContent className="flex items-center justify-between">
-                  <span className="h-4 w-16 animate-pulse rounded bg-secondary" />
-                  <span className="h-8 w-20 animate-pulse rounded bg-secondary" />
+                  <span className="h-4 w-16 rounded bg-secondary" />
+                  <span className="h-7 w-12 rounded bg-secondary" />
                 </CardContent>
               </Card>
             ))
-          : products.map((p) => (
+          : products.map((p, index) => (
               <Link
                 key={p._id}
                 href={orgSlug ? `/o/${orgSlug}/p/${p.slug}` : `/p/${p.slug}`}
@@ -189,51 +218,54 @@ export function CategoryProducts ({ slug, orgSlug }: Props) {
                 className="group block"
                 data-testid="product-card"
               >
-                <Card className="overflow-hidden py-0 transition-shadow group-hover:shadow-md">
-                  <div className="aspect-[4/3]">
+                <Card className={`overflow-hidden py-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20 card-enter card-enter-delay-${(index % 8) + 1}`}>
+                  <div className="relative aspect-[4/3] overflow-hidden">
                     <R2Image
                       fileKey={p.imageUrl?.[0]}
                       alt={p.title}
-                      width={800}
-                      height={600}
-                      className="h-full w-full object-cover bg-secondary"
+                      width={400}
+                      height={300}
+                      className="h-full w-full object-cover bg-secondary transition-transform duration-300 group-hover:scale-110"
                     />
-                  </div>
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
+                    <div className="pointer-events-none absolute left-1.5 top-1.5 flex flex-wrap gap-1">
                       {p.isBestPrice && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 font-medium">
                           Best price
                         </Badge>
                       )}
                       {p.discountLabel && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 font-medium">
                           {p.discountLabel}
                         </Badge>
                       )}
                     </div>
-                    <CardTitle className="text-base font-medium leading-tight">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
+                  <CardHeader className="space-y-2">
+                    <CardTitle className="text-sm font-semibold leading-tight text-primary group-hover:text-primary/90 transition-colors">
                       {p.title}
                     </CardTitle>
                     {p.description && (
-                      <p className="line-clamp-2 text-sm text-muted-foreground">
+                      <p className="line-clamp-2 text-xs text-muted-foreground leading-relaxed">
                         {p.description}
                       </p>
                     )}
                   </CardHeader>
-                  <CardContent className="flex items-center justify-between">
+                  <CardContent className="flex items-center justify-between pt-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold">
+                      <span className="text-sm font-bold text-primary">
                         {p.minPrice !== undefined ? `$${p.minPrice.toFixed(2)}` : ''}
                       </span>
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Star size={14} className="fill-current" />
-                        {p.rating?.toFixed(1)} ({p.reviewsCount})
-                      </span>
+                      {p.rating && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Star size={12} className="fill-current text-yellow-400" />
+                          {p.rating.toFixed(1)}
+                        </span>
+                      )}
                     </div>
-                    <Button size="sm" variant="secondary">
-                      View
-                    </Button>
+                    <span className="text-[10px] text-muted-foreground opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:text-primary font-medium">
+                      View →
+                    </span>
                   </CardContent>
                 </Card>
               </Link>
@@ -241,32 +273,40 @@ export function CategoryProducts ({ slug, orgSlug }: Props) {
       </div>
 
       {!loading && products.length === 0 && (
-        <div className="text-sm text-muted-foreground">No products found in this category.</div>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground text-lg">No products found in this category.</p>
+          <p className="text-muted-foreground text-sm mt-2">Try adjusting your filters or browse other categories.</p>
+        </div>
       )}
 
-      <div className="mt-6 flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          {total > 0 ? `Showing ${products.length} of ${total}` : ''}
+      {total > 0 && (
+        <div className="flex items-center justify-between pt-4 border-t">
+          <div className="text-sm text-muted-foreground">
+            Showing {products.length} of {total} products
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={offset === 0 || loading}
+              onClick={() => setOffset(Math.max(0, offset - limit))}
+              className="h-8"
+            >
+              Previous
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={!hasMore || loading}
+              onClick={() => setOffset(offset + limit)}
+              className="h-8"
+            >
+              Next
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={offset === 0 || loading}
-            onClick={() => setOffset(Math.max(0, offset - limit))}
-          >
-            Previous
-          </Button>
-          <Button
-            type="button"
-            variant="default"
-            disabled={!hasMore || loading}
-            onClick={() => setOffset(offset + limit)}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   )
 }

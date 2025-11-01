@@ -6,7 +6,6 @@ import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
@@ -112,83 +111,79 @@ export function CartSheet ({
         </div>
       </SheetTrigger>
 
-      <SheetContent side="right" className="p-0 bg-white text-black">
-        <SheetHeader className="border-b bg-primary">
-          <SheetTitle className="p-4 inline-flex items-center gap-2 text-xl sm:text-2xl"><ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" /> Your cart</SheetTitle>
+      <SheetContent side="right" className="p-0 bg-white border-none text-black">
+        <SheetHeader className="border-b bg-primary py-2">
+          <SheetTitle className="px-4 py-2 inline-flex items-center gap-3 text-base font-bold"><ShoppingCart className="h-4 w-4" /> Your cart</SheetTitle>
         </SheetHeader>
 
         {cart === undefined ? (
           <div className="p-4 space-y-3">
             {new Array(3).fill(null).map((_, i) => (
-              <div key={`s-${i}`} className="rounded-md border p-4">
-                <div className="h-4 w-1/3 rounded bg-secondary animate-pulse" />
-                <div className="mt-2 h-10 w-full rounded bg-secondary animate-pulse" />
+              <div key={`s-${i}`} className="rounded-lg border p-3 animate-pulse">
+                <div className="h-4 w-1/3 rounded bg-secondary" />
+                <div className="mt-2 h-8 w-full rounded bg-secondary" />
               </div>
             ))}
           </div>
         ) : !cart || !hasItems ? (
-          <div className="px-6 py-16 text-center">
-            <h2 className="text-lg font-semibold">Your cart is empty</h2>
-            <p className="mt-2 text-muted-foreground">Browse products and add items to your cart.</p>
-            <div className="mt-6">
-              <Link href="/">
-                <Button>Continue shopping</Button>
-              </Link>
-            </div>
+          <div className="px-6 py-12 text-center">
+            <ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h2 className="text-lg font-semibold mb-2">Your cart is empty</h2>
+            <p className="text-muted-foreground mb-6">Browse products and add items to your cart.</p>
+            <Link href="/">
+              <Button className="hover:scale-105 transition-all duration-200">Continue shopping</Button>
+            </Link>
           </div>
         ) : (
           <div className="flex h-full min-h-[60vh] flex-col">
-            <ScrollArea className="h-[60vh] px-4 py-3">
-              <div className="space-y-5">
+            <ScrollArea className="flex-1 px-4 py-3">
+              <div className="space-y-4">
                 {Object.entries(groupedByOrg).map(([orgId, group]) => (
-                  <div key={orgId} className="space-y-2">
-                    <div className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group.name}</div>
-                    <div className="space-y-3">
-                      {group.items.map((item) => (
-                        <MiniCartLineItem
-                          key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
-                          cartId={cart._id}
-                          item={item as CartItem}
-                        />
-                      ))}
+                  <div key={orgId} className="space-y-3">
+                    <div className="px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-b pb-1">
+                      {group.name}
                     </div>
+                    {group.items.map((item) => (
+                      <MiniCartLineItem
+                        key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
+                        cartId={cart._id}
+                        item={item as CartItem}
+                      />
+                    ))}
                   </div>
                 ))}
               </div>
             </ScrollArea>
 
-            <div className="px-4">
-              <div className="rounded-md border p-3 text-sm">
+            <div className="px-4 py-3 border-t bg-muted/30">
+              <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>Items</span>
-                  <span>{totals.totalItems}</span>
-                </div>
-                <div className="mt-1 flex items-center justify-between text-muted-foreground">
-                  <span>Subtotal</span>
+                  <span>Items ({totals.totalItems})</span>
                   <span>${totals.totalValue.toFixed(2)}</span>
                 </div>
-                <Separator className="my-2" />
-                <div className="flex items-center justify-between font-semibold">
+                <div className="flex items-center justify-between font-semibold text-base">
                   <span>Selected total</span>
-                  <span>${totals.selectedValue.toFixed(2)}</span>
+                  <span className="text-primary">${totals.selectedValue.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
-            <SheetFooter className="gap-2 p-4">
+            <SheetFooter className="gap-2 p-4 border-t">
               <div className="flex w-full items-center gap-2">
                 <Button
                   variant="ghost"
-                  className="shrink-0"
+                  size="sm"
+                  className="shrink-0 hover:bg-destructive/10 hover:text-destructive"
                   onClick={handleClear}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" /> Clear cart
+                  <Trash2 className="mr-2 h-4 w-4" /> Clear
                 </Button>
                 <div className="ml-auto flex items-center gap-2">
                   <SheetClose asChild>
                     <Link href="/checkout">
                       <Button
-                        className="min-w-28"
+                        size="sm"
+                        className="min-w-24 hover:scale-105 transition-all duration-200"
                         data-testid="cart-checkout-button"
                         disabled={totals.selectedItems === 0}
                       >
@@ -216,7 +211,7 @@ function MiniCartLineItem ({
   const setSelected = useMutation(api.carts.mutations.index.setItemSelected)
   const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity)
   const setItemNote = useMutation(api.carts.mutations.index.setItemNote)
-  const addItem = useMutation(api.carts.mutations.index.addItem)
+  const updateItemVariant = useMutation(api.carts.mutations.index.updateItemVariant)
   const product = useQuery(
     api.products.queries.index.getProductById,
     { productId: item.productInfo.productId }
@@ -274,27 +269,26 @@ function MiniCartLineItem ({
 
   async function handleVariantChange (newVariantId?: string) {
     if ((newVariantId ?? null) === (item.variantId ?? null)) return
-    // remove old then add new, preserving quantity, selected, and note
-    await updateQty({
-      cartId: cartId,
-      productId: item.productInfo.productId,
-      variantId: item.variantId,
-      quantity: 0,
-    })
-    await addItem({
-      cartId: cartId,
-      productId: item.productInfo.productId,
-      variantId: newVariantId,
-      quantity: item.quantity,
-      selected: item.selected,
-      note: item.note,
-    })
+    // update variant directly without removing/adding
+    try {
+      await promiseToast(
+        updateItemVariant({
+          cartId: cartId,
+          productId: item.productInfo.productId,
+          oldVariantId: item.variantId,
+          newVariantId: newVariantId,
+        }),
+        { loading: 'Updating variant…', success: 'Variant updated', error: () => 'Failed to update variant' },
+      )
+    } catch {
+      // no-op
+    }
   }
 
   return (
-    <div className={cn('rounded-md border p-2', item.selected && 'border-primary bg-primary/5')}>
-      <div className="flex items-start gap-2">
-        <div className="pt-0.5">
+    <div className={cn('rounded-lg border p-3 transition-all duration-200', item.selected && 'border-primary bg-primary/5 shadow-sm')}>
+      <div className="flex items-start gap-3">
+        <div className="pt-1">
           <Checkbox
             checked={item.selected}
             onCheckedChange={async (checked) => {
@@ -306,40 +300,50 @@ function MiniCartLineItem ({
               })
             }}
             aria-label="Select item"
+            className="mt-0.5"
           />
         </div>
-        {item.productInfo.imageUrl?.[0] ? (
-          <R2Image
-            fileKey={item.productInfo.imageUrl[0]}
-            alt={item.productInfo.title}
-            width={96}
-            height={96}
-            className="h-12 w-12 shrink-0 rounded object-cover bg-secondary"
-          />
-        ) : (
-          <div className="h-12 w-12 shrink-0 rounded bg-secondary" />
-        )}
-        <div className="min-w-0 flex-1">
+
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
+          {item.productInfo.imageUrl?.[0] ? (
+            <R2Image
+              fileKey={item.productInfo.imageUrl[0]}
+              alt={item.productInfo.title}
+              width={64}
+              height={64}
+              className="h-full w-full object-cover bg-secondary"
+            />
+          ) : (
+            <div className="h-full w-full bg-secondary rounded-lg" />
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium leading-tight">
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-semibold leading-tight">
                 {item.productInfo.title}
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                ${item.productInfo.price.toFixed(2)} each
               </div>
               {product && (product.variants?.length ?? 0) > 0 && (
                 <div className="mt-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         size="sm"
-                        className="w-full justify-between md:w-64 border"
+                        className="h-7 text-xs justify-between border-muted hover:border-primary/30"
                         aria-label="Select variant"
                       >
-                        {item.productInfo.variantName ?? 'Select a variant'}
-                        <span aria-hidden>▾</span>
+                        <span className="truncate">
+                          {item.productInfo.variantName ?? 'Select variant'}
+                        </span>
+                        <span aria-hidden className="ml-1">▾</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="min-w-[12rem]">
+                    <DropdownMenuContent align="start" className="min-w-[10rem] animate-in fade-in-0 zoom-in-95">
                       <DropdownMenuRadioGroup
                         value={item.variantId ?? ''}
                         onValueChange={(val) => handleVariantChange(val || undefined)}
@@ -347,8 +351,11 @@ function MiniCartLineItem ({
                         {product.variants
                           .filter((v) => v.isActive)
                           .map((v) => (
-                            <DropdownMenuRadioItem key={v.variantId} value={v.variantId}>
-                              {v.variantName} • ${v.price.toFixed(2)}
+                            <DropdownMenuRadioItem key={v.variantId} value={v.variantId} className="text-xs">
+                              <div className="flex items-center justify-between w-full">
+                                <span>{v.variantName}</span>
+                                <span className="ml-2 font-medium text-primary">${v.price.toFixed(2)}</span>
+                              </div>
                             </DropdownMenuRadioItem>
                           ))}
                       </DropdownMenuRadioGroup>
@@ -356,53 +363,53 @@ function MiniCartLineItem ({
                   </DropdownMenu>
                 </div>
               )}
-              <div className="mt-1 text-xs text-muted-foreground">
-                ${item.productInfo.price.toFixed(2)} each
-              </div>
             </div>
-            <div className="text-right text-sm font-semibold">
-              ${(item.productInfo.price * item.quantity).toFixed(2)}
+            <div className="text-right">
+              <div className="text-sm font-bold">${(item.productInfo.price * item.quantity).toFixed(2)}</div>
             </div>
           </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="inline-flex items-center gap-1">
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
                 onClick={handleDec}
                 data-testid="cart-item-qty-decrease"
                 aria-label="Decrease quantity"
+                className="h-7 w-7 p-0 hover:bg-primary/10"
               >
-                <Minus className="h-4 w-4" />
+                <Minus className="h-3 w-3" />
               </Button>
-              <span className="min-w-8 text-center text-sm">{item.quantity}</span>
+              <span className="min-w-8 text-center text-sm font-medium">{item.quantity}</span>
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
                 onClick={handleInc}
                 data-testid="cart-item-qty-increase"
                 aria-label="Increase quantity"
+                className="h-7 w-7 p-0 hover:bg-primary/10"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3 w-3" />
               </Button>
             </div>
-            <Separator orientation="vertical" className="mx-1 h-5" />
+
             <Button
               variant="ghost"
               size="sm"
               onClick={handleRemove}
               data-testid="cart-item-remove"
+              className="h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
             >
-              <Trash2 className="mr-2 h-4 w-4" /> Remove
+              <Trash2 className="h-3 w-3 mr-1" /> Remove
             </Button>
           </div>
 
-          <div className="mt-2 flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Input
               defaultValue={item.note ?? ''}
-              placeholder="Add a note (optional)"
-              className="max-w-md"
+              placeholder="Add a note..."
+              className="h-7 text-xs max-w-xs"
               onBlur={async (e) => {
                 try {
                   await handleSaveNote(e.target.value)

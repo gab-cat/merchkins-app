@@ -6,6 +6,7 @@ import { deletePaymentArgs, deletePaymentHandler } from "./deletePayment";
 import { refundPaymentArgs, refundPaymentHandler } from "./refundPayment";
 import { updatePaymentStatsArgs, updatePaymentStatsHandler } from "./updatePaymentStats";
 import { restorePaymentArgs, restorePaymentHandler } from "./restorePayment";
+import { handleXenditWebhookArgs, handleXenditWebhookHandler } from "./handleXenditWebhook";
 
 export const createPayment = mutation({
   args: createPaymentArgs,
@@ -35,6 +36,11 @@ export const restorePayment = mutation({
 export const updatePaymentStats = internalMutation({
   args: updatePaymentStatsArgs,
   handler: updatePaymentStatsHandler,
+});
+
+export const handleXenditWebhook = internalMutation({
+  args: handleXenditWebhookArgs,
+  handler: handleXenditWebhookHandler,
 });
 
 

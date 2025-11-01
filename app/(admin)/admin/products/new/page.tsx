@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { R2Image } from '@/src/components/ui/r2-image'
 import { compressToWebP } from '@/lib/compress'
 import { UploadCloud, Trash2 } from 'lucide-react'
@@ -49,7 +50,7 @@ export default function AdminCreateProductPage () {
   const [variantImages, setVariantImages] = useState<Record<number, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue } = useForm<FormValues>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: '',
@@ -259,10 +260,15 @@ export default function AdminCreateProductPage () {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium" htmlFor="inventoryType">Inventory Type</label>
-                <select id="inventoryType" className="h-9 w-full rounded-md border bg-background px-3 text-sm" {...register('inventoryType')}>
-                  <option value="STOCK">Stock</option>
-                  <option value="PREORDER">Preorder</option>
-                </select>
+                <Select value={watch('inventoryType')} onValueChange={(value) => setValue('inventoryType', value as 'STOCK' | 'PREORDER')}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select inventory type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="STOCK">Stock</SelectItem>
+                    <SelectItem value="PREORDER">Preorder</SelectItem>
+                  </SelectContent>
+                </Select>
                 {errors.inventoryType && <p className="mt-1 text-xs text-red-500">{errors.inventoryType.message}</p>}
               </div>
             </div>

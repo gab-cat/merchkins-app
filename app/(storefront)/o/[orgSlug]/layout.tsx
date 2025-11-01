@@ -45,7 +45,7 @@ export default async function OrgLayout ({ children, params }: { children: React
   return (
     <div className={wrapperClassName} style={styleVars as React.CSSProperties}>
       <SiteHeader />
-      <main className="flex-1">{children}</main>
+      <div className="flex-1 max-w-7xl mx-auto w-full min-h-[80vh]">{children}</div>
       <SiteFooter />
     </div>
   )

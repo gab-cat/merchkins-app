@@ -4,12 +4,12 @@ import React from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Ticket, Clock } from 'lucide-react'
 import { Doc, Id } from '@/convex/_generated/dataModel'
 import Link from 'next/link'
+import { SettingsHeader, SettingsList, SettingsRow } from './settings'
 
 type Ticket = Doc<'tickets'>
 
@@ -65,18 +65,20 @@ export function TicketsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">My Tickets</h3>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/tickets">View All</Link>
-        </Button>
-      </div>
-      
-      <div className="space-y-2">
-        {personalTickets.slice(0, 5).map((ticket: Ticket) => (
-          <Card key={ticket._id} className="hover:bg-muted/50 transition-colors">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between">
+      <SettingsHeader title="Tickets" />
+      <SettingsList>
+        <SettingsRow
+          label={<span>My tickets</span>}
+          action={
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/tickets">View all</Link>
+            </Button>
+          }
+          alignTop
+        >
+          <div className="space-y-2">
+            {personalTickets.slice(0, 5).map((ticket: Ticket) => (
+              <div key={ticket._id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Ticket className="h-4 w-4 text-muted-foreground" />
                   <div>
@@ -96,10 +98,10 @@ export function TicketsPage() {
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            ))}
+          </div>
+        </SettingsRow>
+      </SettingsList>
     </div>
   )
 }

@@ -85,6 +85,12 @@ export const orders = defineTable({
   customerSatisfactionSurveyId: v.optional(v.id("surveyResponses")),
   customerNotes: v.optional(v.string()),
   paymentPreference: v.optional(v.union(v.literal("FULL"), v.literal("DOWNPAYMENT"))),
+
+  // Xendit payment integration
+  xenditInvoiceId: v.optional(v.string()),
+  xenditInvoiceUrl: v.optional(v.string()),
+  xenditInvoiceExpiryDate: v.optional(v.number()),
+  xenditInvoiceCreatedAt: v.optional(v.number()),
   
   // Embedded status history for quick access (last 5 changes)
   recentStatusHistory: v.array(v.object({

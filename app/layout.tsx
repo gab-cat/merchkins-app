@@ -59,7 +59,9 @@ export default function RootLayout ({
           <ConvexClientProvider>
             <div className="min-h-dvh flex flex-col">
               <OrgThemeController />
-              <main className="flex flex-col bg-white text-black">{children}</main>
+              <main className="flex flex-col bg-white text-black min-h-[80vh] w-full relative">
+                {children}
+              </main>
             </div>
             <Toaster />
           </ConvexClientProvider>
