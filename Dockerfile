@@ -1,4 +1,4 @@
-FROM oven/bun:1.3 AS base
+FROM oven/bun:1.3-slim AS base
 
 # STAGE 1: DEPS
 FROM base AS deps
