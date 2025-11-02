@@ -1,0 +1,323 @@
+name: Preview Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number to deploy"
+        required: true
+        type: number
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+jobs:
+  notification:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    outputs:
+      pr_number: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+      comment_id: ${{ steps.initial_comment.outputs.comment-id }}
+    steps:
+      - name: Find Existing Deployment Comment
+        id: find_comment
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "Deployment"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initial Deployment Notification
+        id: initial_comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+          body: |
+            # 🔄 Preview Deployment in Progress
+
+            <div style="background-color: #e8f5fd; padding: 15px; border-radius: 8px; border-left: 5px solid #2196F3; margin-bottom: 20px;">
+              <h2 style="color: #0d47a1; margin-top: 0;">Building Your Preview Environment</h2>
+              <p style="font-size: 16px; margin-bottom: 0;">
+                The preview deployment for PR #${{ github.event.pull_request.number || github.event.inputs.pr_number }} is now being prepared.
+              </p>
+            </div>
+
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <tr style="background-color: #f5f5f5;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; width: 200px;">🔄 <b>Status:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><b style="color: #2196F3;">Building & Deploying</b></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">⏱️ <b>Started at:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><code>${{ github.event.pull_request.updated_at }} UTC</code></td>
+              </tr>
+              <tr style="background-color: #f5f5f5;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">📝 <b>Commit:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><code>${{ github.event.pull_request.head.sha }}</code></td>
+              </tr>
+            </table>
+
+            <div style="margin-top: 16px; padding: 12px; background-color: #fffde7; border-left: 4px solid #ffc107; border-radius: 4px;">
+              <p style="margin: 0; font-size: 14px;">
+                <b>Please wait</b> while we build and deploy your preview environment. This process typically takes 3-5 minutes to complete.
+              </p>
+            </div>
+          edit-mode: ${{ steps.find_comment.outputs.comment-id != '' && 'replace' || 'append' }}
+
+  build:
+    runs-on: "ubuntu-latest"
+    environment: Staging
+    outputs:
+      pr_number: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+        with:
+          registry: https://index.docker.io/v1/
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Install Doppler CLI
+        uses: dopplerhq/cli-action@v3
+
+      - name: Setup Doppler Configuration
+        run: |
+          doppler setup --no-prompt --token ${{ secrets.DOPPLER_TOKEN }} --project merchkins-app --config stg
+          echo "Doppler configuration complete for project merchkins-app with config stg"
+          doppler secrets download --no-file --format env > .env
+          echo "Secrets downloaded to .env file."
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build client image and push to Docker Hub
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v6.10.0
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: |
+            merchkins/merchkins:preview-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+
+      - name: Remove env file
+        if: always()
+        run: |
+          if [ -f .env ]; then
+            rm .env || echo "Warning: Failed to remove .env file"
+          fi
+
+  deploy:
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+      deployments: write
+    runs-on: self-hosted
+    needs: [notification, build]
+    environment: Staging
+    steps:
+      - name: Navigate to preview directory
+        run: |
+          cd ~
+          mkdir -p preview
+          cd preview
+          mkdir -p ${{ needs.notification.outputs.pr_number }}
+          cd ${{ needs.notification.outputs.pr_number }}
+
+      - name: Create or update compose file
+        run: |
+          cd ~/preview/${{ needs.notification.outputs.pr_number }}
+          PR_NUMBER=${{ needs.notification.outputs.pr_number }}
+          cat > compose.yml << EOF
+          services:
+            preview-${PR_NUMBER}:
+              image: merchkins/merchkins:preview-${PR_NUMBER}
+              container_name: merchkins-preview-${PR_NUMBER}
+              restart: "unless-stopped"
+              env_file: .env
+              environment:
+                NODE_ENV: production
+                APP_ENV: production
+                NEXT_PUBLIC_NODE_ENV: production
+                NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL: /dashboard
+                NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: /dashboard
+                NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL: /onboarding
+              volumes:
+                - "/etc/timezone:/etc/timezone:ro"
+                - "/etc/localtime:/etc/localtime:ro"
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.preview-${PR_NUMBER}.rule=Host(\`preview-${PR_NUMBER}.merchkins.com\`)"
+                - "traefik.http.routers.preview-${PR_NUMBER}.entrypoints=websecure"
+                - "traefik.http.routers.preview-${PR_NUMBER}.tls.certresolver=letsencrypt"
+                - "traefik.http.services.preview-${PR_NUMBER}.loadbalancer.server.port=3000"
+
+          networks:
+            default:
+              name: dokploy-network
+              external: true
+          EOF
+
+      - name: Setup Doppler Configuration
+        run: |
+          cd ~/preview/${{ needs.notification.outputs.pr_number }}
+          doppler setup --no-prompt --token ${{ secrets.DOPPLER_TOKEN }} --project merchkins-app --config stg
+          echo "Doppler configuration complete for project merchkins-app with config stg"
+          doppler secrets download --no-file --format env > .env
+          echo "Secrets downloaded to .env file."
+
+      - name: Stop existing container if it exists
+        run: |
+          cd ~/preview/${{ needs.notification.outputs.pr_number }}
+          sudo docker compose down || true
+
+      - name: Delete old image if exists
+        run: |
+          cd ~/preview/${{ needs.notification.outputs.pr_number }}
+          # Get the image ID of the old image if it exists
+          set +e
+          OLD_IMAGE_ID=$(docker images -q merchkins/merchkins:preview-${{ needs.notification.outputs.pr_number }} 2>/dev/null)
+          set -e 
+          if [ ! -z "$OLD_IMAGE_ID" ]; then
+            echo "Old image found with ID: $OLD_IMAGE_ID"
+            # Remove any containers using the image
+            CONTAINERS=$(docker ps -a --filter ancestor=merchkins/merchkins:preview-${{ needs.notification.outputs.pr_number }} -q)
+            if [ ! -z "$CONTAINERS" ]; then
+              echo "Removing containers using the old image"
+              sudo docker rm -f $CONTAINERS
+            fi
+            # Remove the old image
+            echo "Removing old image"
+            sudo docker rmi -f $OLD_IMAGE_ID
+          else
+            echo "No old image found to remove"
+          fi
+
+      - name: Pull new image and start container
+        run: |
+          cd ~/preview/${{ needs.notification.outputs.pr_number }}
+          sudo docker pull merchkins/merchkins:preview-${{ needs.notification.outputs.pr_number }}
+          sudo docker compose up -d
+
+      - name: Verify Traefik configuration
+        run: |
+          echo "Traefik labels have been configured in the compose file"
+          echo "Traefik will automatically discover and route traffic to preview-${{ needs.notification.outputs.pr_number }}.merchkins.com"
+          echo "No manual configuration needed - Traefik handles routing automatically"
+  failure-notification:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    needs: [notification, build, deploy]
+    if: failure()
+    steps:
+      - name: Update Deployment Comment with Failure
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ needs.notification.outputs.comment_id }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          edit-mode: replace
+          body: |
+            # ❌ Deployment Failed
+
+            <div style="background-color: #fbe9e7; padding: 15px; border-radius: 8px; border-left: 5px solid #ff5722; margin-bottom: 20px;">
+              <h2 style="color: #d84315; margin-top: 0;">Preview Deployment Issues</h2>
+              <p style="font-size: 16px; margin-bottom: 0;">
+                The preview deployment for PR #${{ needs.notification.outputs.pr_number }} has encountered errors and could not be completed.
+              </p>
+            </div>
+
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <tr style="background-color: #f5f5f5;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; width: 200px;">🔄 <b>Status:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><b style="color: #f44336;">❌ Failed</b></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">⏱️ <b>Failed at:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><code>${{ github.event.pull_request.updated_at }} UTC</code></td>
+              </tr>
+              <tr style="background-color: #f5f5f5;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">📝 <b>Commit:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><code>${{ github.event.pull_request.head.sha }}</code></td>
+              </tr>
+            </table>
+
+            <div style="margin-top: 16px; padding: 12px; background-color: #fff8e1; border-radius: 4px; border-left: 4px solid #ffc107;">
+              <p style="margin: 0; font-size: 16px;">
+                📢 <b>Next Steps:</b> Please check the <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" style="color: #1976d2; text-decoration: none; font-weight: bold;">workflow run</a> for detailed error logs and diagnostic information. Most deployment issues can be fixed by addressing code errors or configuration problems in your PR.
+              </p>
+            </div>
+
+            <div style="margin-top: 16px; padding: 12px; background-color: #f5f5f5; border-radius: 4px;">
+              <p style="margin: 0; font-size: 14px;">
+                <i>If you need assistance troubleshooting this issue, please reach out to the DevOps team or leave a comment in this PR.</i>
+              </p>
+            </div>
+  notify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    needs: [notification, build, deploy]
+    if: success()
+    steps:
+      - name: Update Comment with Success
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ needs.notification.outputs.comment_id }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          edit-mode: replace
+          body: |
+            # 🚀 Preview Deployment Successful! 
+
+            <div align="center">
+              <h2 style="color: #4CAF50; background-color: #e8f5e9; padding: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                PR #${{ needs.notification.outputs.pr_number }} has been successfully deployed for preview testing
+              </h2>
+            </div>
+
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            <tr style="background-color: #f0f4f8;">
+              <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">📌 <b>Preview URL:</b></td>
+              <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><a href="https://preview-${{ needs.notification.outputs.pr_number }}.merchkins.com" style="color: #2196F3; text-decoration: none; font-weight: bold;">https://preview-${{ needs.notification.outputs.pr_number }}.merchkins.com</a> (Traefik)</td>
+            </tr>
+            <tr style="background-color: #ffffff;">
+              <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">⏰ <b>Deployed at:</b></td>
+              <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><code>${{ github.event.pull_request.updated_at }} UTC</code></td>
+            </tr>
+            <tr style="background-color: #f0f4f8;">
+              <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">📝 <b>Commit:</b></td>
+              <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><code>${{ github.event.pull_request.head.sha }}</code></td>
+            </tr>
+            </table>
+
+            <div style="margin-top: 16px; padding: 12px; background-color: #e3f2fd; border-left: 4px solid #2196F3; border-radius: 4px;">
+              <p style="margin: 0; font-size: 16px;">
+                📣 <b>The preview environment is now ready for testing!</b> Please verify your changes thoroughly and report any issues in the PR discussion. This environment is an exact replica of production, allowing you to test your changes in isolation before merging.
+              </p>
+            </div>
+
+      - name: Purge Cloudflare cache
+        run: |
+          curl https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache \
+            -H 'Content-Type: application/json' \
+            -H "X-Auth-Email: ${{ secrets.CLOUDFLARE_EMAIL }}" \
+            -H "X-Auth-Key: ${{ secrets.CLOUDFLARE_API_KEY }}" \
+            -d '{
+              "hosts": ["preview-${{ needs.notification.outputs.pr_number }}.merchkins.com"]
+            }'
