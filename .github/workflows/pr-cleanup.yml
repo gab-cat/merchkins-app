@@ -1,0 +1,180 @@
+name: PR Cleanup
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR Number to clean up"
+        required: true
+
+jobs:
+  cleanup:
+    runs-on: self-hosted
+    environment: Staging
+    steps:
+      - name: Determine PR Number
+        id: pr-number
+        run: |
+          if [[ -n "${{ github.event.inputs.pr_number }}" ]]; then
+            echo "pr_number=${{ github.event.inputs.pr_number }}" >> $GITHUB_OUTPUT
+          else
+            echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Find Existing Deployment Comment
+        id: find_comment
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add Comment to PR
+        if: github.event_name == 'pull_request'
+        id: initial-comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            # 🧹 Preview Environment Cleanup
+
+            <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; border-left: 5px solid #ff9800; margin-bottom: 20px;">
+              <h2 style="color: #e65100; margin-top: 0;">Preview Environment Cleanup</h2>
+              <p style="font-size: 16px; margin-bottom: 5px;">
+                The preview environment for PR #${{ github.event.pull_request.number }} is being removed as this pull request has been ${{ github.event.pull_request.merged && '✅ <b>merged</b>' || '❌ <b>closed</b>' }}.
+              </p>
+              <p style="font-size: 14px; margin-bottom: 0;">
+                Cleanup timestamp: <code>${{ github.event.pull_request.closed_at }} UTC</code>
+              </p>
+            </div>
+
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <tr style="background-color: #f5f5f5;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; width: 200px;">🔄 <b>Status:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><b>In Progress</b></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">🔍 <b>Details:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">Removing Docker containers, images, and Traefik routing</td>
+              </tr>
+            </table>
+
+      - name: Stop and remove container
+        run: |
+          cd ~/preview/${{ steps.pr-number.outputs.pr_number }}
+          if [ -f "compose.yml" ]; then
+            sudo docker compose down || true
+            echo "Container stopped and removed"
+          else
+            echo "No compose.yml file found, skipping container removal"
+          fi
+
+      - name: Remove Docker image
+        run: |
+          # Try to remove the Docker image
+          sudo docker rmi merchkins/merchkins:preview-${{ steps.pr-number.outputs.pr_number }} -f || true
+          echo "Docker image removal attempted"
+
+      - name: Verify Traefik cleanup
+        run: |
+          echo "Traefik will automatically remove routing when the container is stopped"
+          echo "No manual Traefik configuration cleanup needed"
+
+      - name: Clean up preview directory
+        run: |
+          rm -rf ~/preview/${{ steps.pr-number.outputs.pr_number }}
+          echo "Preview directory cleaned up"
+
+      - name: Purge Cloudflare cache
+        run: |
+          curl https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache \
+            -H 'Content-Type: application/json' \
+            -H "X-Auth-Email: ${{ secrets.CLOUDFLARE_EMAIL }}" \
+            -H "X-Auth-Key: ${{ secrets.CLOUDFLARE_API_KEY }}" \
+            -d '{
+              "hosts": ["preview-${{ steps.pr-number.outputs.pr_number }}.merchtrack.tech"]
+            }'
+          echo "Cloudflare cache purged"
+
+      - name: Update Comment with Success
+        if: github.event_name == 'pull_request' && success()
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          edit-mode: replace
+          body: |
+            # 🧹 Preview Environment Cleanup - Completed
+
+            <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; border-left: 5px solid #4caf50; margin-bottom: 20px;">
+              <h2 style="color: #2e7d32; margin-top: 0;">Preview Environment Removed</h2>
+              <p style="font-size: 16px; margin-bottom: 5px;">
+                The preview environment for PR #${{ github.event.pull_request.number }} has been successfully cleaned up.
+              </p>
+              <p style="font-size: 14px; margin-bottom: 0;">
+                Completed at: <code>${{ github.event.pull_request.closed_at }} UTC</code>
+              </p>
+            </div>
+
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <tr style="background-color: #f5f5f5;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; width: 200px;">🔄 <b>Status:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><b style="color: #4caf50;">✅ Completed</b></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">🧹 <b>Cleaned Up:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">
+                  ✅ Docker container<br>
+                  ✅ Docker image<br>
+                  ✅ Traefik routing (automatic)<br>
+                  ✅ Preview directory<br>
+                  ✅ Cloudflare cache
+                </td>
+              </tr>
+            </table>
+
+            <div style="margin-top: 16px; padding: 12px; background-color: #f9f9f9; border-radius: 4px;">
+              <p style="margin: 0; font-size: 14px;">
+                <i>Note: All resources associated with this preview environment have been removed. If you need to test these changes again, please reopen the PR or create a new one.</i>
+              </p>
+            </div>
+
+      - name: Update Comment with Failure
+        if: github.event_name == 'pull_request' && failure()
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            # ⚠️ Cleanup Encountered Issues
+
+            <div style="background-color: #fbe9e7; padding: 15px; border-radius: 8px; border-left: 5px solid #ff5722; margin-bottom: 20px;">
+              <h2 style="color: #d84315; margin-top: 0;">Preview Environment Cleanup Issues</h2>
+              <p style="font-size: 16px; margin-bottom: 0;">
+                There were some issues during the cleanup process for PR #${{ github.event.pull_request.number }}.
+              </p>
+            </div>
+
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <tr style="background-color: #f5f5f5;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; width: 200px;">🔄 <b>Status:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><b style="color: #f44336;">❌ Failed</b></td>
+              </tr>
+              <tr style="background-color: #ffffff;">
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">🔍 <b>Details:</b></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">
+                  Please check the <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" style="color: #1976d2; text-decoration: none; font-weight: bold;">workflow run</a> for more details on what went wrong.
+                </td>
+              </tr>
+            </table>
+
+            <div style="margin-top: 16px; padding: 12px; background-color: #fff8e1; border-radius: 4px; border-left: 4px solid #ffc107;">
+              <p style="margin: 0; font-size: 14px;">
+                <b>Note:</b> Manual cleanup may be required. Please contact the DevOps team if resources related to this preview deployment remain active.
+              </p>
+            </div>

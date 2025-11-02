@@ -1,0 +1,63 @@
+name: 3. ROLLBACK - Return Previous versions
+
+on:
+    workflow_dispatch:
+        inputs:
+            commit_tag:
+                description: "Rollback version"
+                required: true
+
+permissions:
+    contents: read
+    packages: write
+
+jobs:
+    build:
+        if: github.event_name == 'workflow_dispatch'
+        runs-on: "ubuntu-latest"
+        environment: Production
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  ref: main
+                  fetch-depth: 0
+
+            - name: Set tag from input
+              id: set_tag
+              run: |
+                  # Extract tag name (remove 'v' prefix if present)
+                  TAG_NAME="${{ github.event.inputs.commit_tag }}"
+                  TAG_NAME="${TAG_NAME#v}"
+                  echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+                  echo "Using tag for rollback: $TAG_NAME"
+
+            - name: Validate tag format
+              run: |
+                  TAG="${{ steps.set_tag.outputs.tag }}"
+                  if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "Invalid tag format. Expected format: <number>.<number>.<number>"
+                    echo "Received: $TAG"
+                    exit 1
+                  fi
+                  echo "Tag format validated: $TAG"
+
+            - name: Log in to Docker Hub
+              uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
+              with:
+                  registry: https://index.docker.io/v1/
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
+
+            - name: Pull production image
+              run: |
+                  docker pull merchkins/merchkins:${{ steps.set_tag.outputs.tag }}
+
+            - name: Tag image for production
+              run: |
+                  docker tag merchkins/merchkins:${{ steps.set_tag.outputs.tag }} merchkins/merchkins:latest
+
+            - name: Push production tags to Docker Hub
+              run: |
+                  docker push merchkins/merchkins:latest
