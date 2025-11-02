@@ -27,7 +27,7 @@ jobs:
 
       - name: Find Existing Deployment Comment
         id: find_comment
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v3.0.0
         with:
           issue-number: ${{ steps.pr-number.outputs.pr_number }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -37,7 +37,7 @@ jobs:
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.find_comment.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.pr-number.outputs.pr_number }}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             # 🧹 Preview Environment Cleanup
@@ -147,7 +147,7 @@ jobs:
         if: github.event_name == 'pull_request' && failure()
         uses: peter-evans/create-or-update-comment@v4
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.pr-number.outputs.pr_number }}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             # ⚠️ Cleanup Encountered Issues
