@@ -29,11 +29,10 @@ jobs:
         id: find_comment
         uses: peter-evans/find-comment@v3
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.pr-number.outputs.pr_number }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Add Comment to PR
-        if: github.event_name == 'pull_request'
         id: initial-comment
         uses: peter-evans/create-or-update-comment@v4
         with:
@@ -97,7 +96,7 @@ jobs:
             -H "X-Auth-Email: ${{ secrets.CLOUDFLARE_EMAIL }}" \
             -H "X-Auth-Key: ${{ secrets.CLOUDFLARE_API_KEY }}" \
             -d '{
-              "hosts": ["preview-${{ steps.pr-number.outputs.pr_number }}.merchtrack.tech"]
+              "hosts": ["preview-${{ steps.pr-number.outputs.pr_number }}.merchkins.com"]
             }'
           echo "Cloudflare cache purged"
 

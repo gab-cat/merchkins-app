@@ -55,7 +55,7 @@ jobs:
               </tr>
               <tr style="background-color: #ffffff;">
                 <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">⏱️ <b>Started at:</b></td>
-                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><code>${{ format('%.19s', github.event.pull_request.updated_at) }} UTC</code></td>
+                <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><code>${{ github.event.pull_request.updated_at }} UTC</code></td>
               </tr>
               <tr style="background-color: #f5f5f5;">
                 <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">📝 <b>Commit:</b></td>
@@ -138,53 +138,7 @@ jobs:
           mkdir -p ${{ needs.notification.outputs.pr_number }}
           cd ${{ needs.notification.outputs.pr_number }}
 
-      - name: Check for existing compose file
-        id: check_compose
-        run: |
-          cd ~/preview/${{ needs.notification.outputs.pr_number }}
-          if [ -f "compose.yml" ]; then
-            echo "compose_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "compose_exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create compose file if it doesn't exist
-        if: steps.check_compose.outputs.compose_exists == 'false'
-        run: |
-          cd ~/preview/${{ needs.notification.outputs.pr_number }}
-          PR_NUMBER=${{ needs.notification.outputs.pr_number }}
-          cat > compose.yml << EOF
-          services:
-            preview-${PR_NUMBER}:
-              image: merchkins/merchkins:preview-${PR_NUMBER}
-              container_name: merchkins-preview-${PR_NUMBER}
-              restart: "unless-stopped"
-              env_file: .env
-              environment:
-                NODE_ENV: production
-                APP_ENV: production
-                NEXT_PUBLIC_NODE_ENV: production
-                NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL: /dashboard
-                NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: /dashboard
-                NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL: /onboarding
-              volumes:
-                - "/etc/timezone:/etc/timezone:ro"
-                - "/etc/localtime:/etc/localtime:ro"
-              labels:
-                - "traefik.enable=true"
-                - "traefik.http.routers.preview-${PR_NUMBER}.rule=Host(\`preview-${PR_NUMBER}.merchkins.com\`)"
-                - "traefik.http.routers.preview-${PR_NUMBER}.entrypoints=websecure"
-                - "traefik.http.routers.preview-${PR_NUMBER}.tls.certresolver=letsencrypt"
-                - "traefik.http.services.preview-${PR_NUMBER}.loadbalancer.server.port=3000"
-
-          networks:
-            default:
-              name: dokploy-network
-              external: true
-          EOF
-
-      - name: Update compose file if it exists
-        if: steps.check_compose.outputs.compose_exists == 'true'
+      - name: Create or update compose file
         run: |
           cd ~/preview/${{ needs.notification.outputs.pr_number }}
           PR_NUMBER=${{ needs.notification.outputs.pr_number }}
@@ -227,7 +181,6 @@ jobs:
           echo "Secrets downloaded to .env file."
 
       - name: Stop existing container if it exists
-        if: steps.check_compose.outputs.compose_exists == 'true'
         run: |
           cd ~/preview/${{ needs.notification.outputs.pr_number }}
           sudo docker compose down || true
@@ -263,7 +216,7 @@ jobs:
       - name: Verify Traefik configuration
         run: |
           echo "Traefik labels have been configured in the compose file"
-          echo "Traefik will automatically discover and route traffic to preview-${{ needs.notification.outputs.pr_number }}.merchtrack.tech"
+          echo "Traefik will automatically discover and route traffic to preview-${{ needs.notification.outputs.pr_number }}.merchkins.com"
           echo "No manual configuration needed - Traefik handles routing automatically"
   failure-notification:
     runs-on: ubuntu-latest
@@ -341,7 +294,7 @@ jobs:
             <table style="width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
             <tr style="background-color: #f0f4f8;">
               <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">📌 <b>Preview URL:</b></td>
-              <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><a href="https://preview-${{ needs.notification.outputs.pr_number }}.merchtrack.tech" style="color: #2196F3; text-decoration: none; font-weight: bold;">https://preview-${{ needs.notification.outputs.pr_number }}.merchtrack.tech</a> (Traefik)</td>
+              <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;"><a href="https://preview-${{ needs.notification.outputs.pr_number }}.merchkins.com" style="color: #2196F3; text-decoration: none; font-weight: bold;">https://preview-${{ needs.notification.outputs.pr_number }}.merchkins.com</a> (Traefik)</td>
             </tr>
             <tr style="background-color: #ffffff;">
               <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">⏰ <b>Deployed at:</b></td>
@@ -366,5 +319,5 @@ jobs:
             -H "X-Auth-Email: ${{ secrets.CLOUDFLARE_EMAIL }}" \
             -H "X-Auth-Key: ${{ secrets.CLOUDFLARE_API_KEY }}" \
             -d '{
-              "hosts": ["preview-${{ needs.notification.outputs.pr_number }}.merchtrack.tech"]
+              "hosts": ["preview-${{ needs.notification.outputs.pr_number }}.merchkins.com"]
             }'
