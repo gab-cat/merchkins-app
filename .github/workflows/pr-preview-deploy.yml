@@ -113,6 +113,29 @@ jobs:
           cache-to: type=gha,mode=max
           push: true
 
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            .bun
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: |
+          bun install --frozen-lockfile
+
+      - name: Deploy to Convex
+        run: |
+          bunx convex deploy -y
+
       - name: Remove env file
         if: always()
         run: |
