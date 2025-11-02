@@ -108,6 +108,35 @@ jobs:
         run: |
           bunx convex deploy -y
 
+      - name: Call deploy webhook
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.DEPLOY_WEBHOOK_URL }}" ]; then
+            echo "Calling deploy webhook..."
+            MAX_RETRIES=5
+            RETRY_INTERVAL=10
+            RETRY_COUNT=0
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if curl -f -s "${{ secrets.DEPLOY_WEBHOOK_URL }}"; then
+                echo "Deploy webhook called successfully"
+                exit 0
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                  echo "Attempt $RETRY_COUNT failed. Retrying in $RETRY_INTERVAL seconds..."
+                  sleep $RETRY_INTERVAL
+                else
+                  echo "Warning: Failed to call deploy webhook after $MAX_RETRIES attempts"
+                  exit 0
+                fi
+              fi
+            done
+          else
+            echo "Warning: DEPLOY_WEBHOOK_URL not found in secrets"
+          fi
+
       - name: Remove env file
         if: always()
         run: |
