@@ -1,5 +1,4 @@
-
-FROM oven/bun:latest AS base
+FROM oven/bun:1.3-alpine AS base
 
 # STAGE 1: DEPS
 FROM base AS deps
@@ -15,6 +14,7 @@ ENV BUN_CONFIG_INSTALL_MAX_NETWORK_CONNECTIONS=128
 
 # Copy package files and install dependencies
 COPY bun.lock package.json ./
+RUN apk add --no-cache libc6-compat
 RUN bun install --frozen-lockfile --concurrent-scripts=8
 
 
