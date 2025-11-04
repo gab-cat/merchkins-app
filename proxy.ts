@@ -2,15 +2,12 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 export default clerkMiddleware(async (auth, req) => {
+  console.log(req.nextUrl.pathname);
   // Handle subdomain redirects before auth
-  const hostname = req.nextUrl.hostname;
-  const isLocalhost = hostname === 'localhost';
-
-  console.log('Hostname:', hostname);
-  console.log('Is localhost:', isLocalhost);
+  const hostname = req.headers.get('host');
 
   // Only process subdomains on production domains
-  if (!isLocalhost && hostname.includes('.merchkins.com')) {
+  if (hostname && hostname.includes('.merchkins.com')) {
     const subdomain = hostname.split('.')[0];
 
     // Skip if subdomain is app, staging, or starts with preview
