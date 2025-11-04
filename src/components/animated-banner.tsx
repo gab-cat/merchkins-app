@@ -25,7 +25,7 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
   return (
     <motion.section
       aria-label="Organization banner"
-      className="relative bg-gradient-to-br from-primary/90 via-primary/70 to-primary/50"
+      className="relative bg-gradient-to-br from-primary/90 via-primary/70 to-primary/50 rounded-b-md overflow-hidden"
       variants={fadeInUpContainer}
       initial="initial"
       whileInView="animate"
@@ -33,13 +33,13 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
     >
       {/* Banner background image */}
       {bannerUrl && (
-        <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 opacity-30 rounded-b-md overflow-hidden">
           <Image src={bannerUrl as string} alt={`${organization.name} banner`} fill className="object-cover object-center" priority />
         </div>
       )}
 
       {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/5 to-black/10" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/5 to-black/10 rounded-b-md" />
 
       {/* Organization content */}
       <div className="relative container mx-auto px-4 py-6 sm:py-8">

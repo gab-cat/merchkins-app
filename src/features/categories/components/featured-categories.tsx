@@ -18,7 +18,9 @@ export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCa
   const organization = preloadedOrganization
     ? usePreloadedQuery(preloadedOrganization)
     : useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string }));
-  const result = preloadedCategories
+
+  // First try to get featured categories
+  const featuredResult = preloadedCategories
     ? usePreloadedQuery(preloadedCategories)
     : useQuery(
         api.categories.queries.index.getCategories,
@@ -26,8 +28,24 @@ export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCa
           ? { organizationId: organization._id, isFeatured: true, isActive: true, limit: 6 }
           : { isFeatured: true, isActive: true, limit: 6 }
       );
-  const loading = result === undefined;
-  const categories = result?.categories ?? [];
+
+  // If no featured categories, fall back to popular categories
+  const popularResult = useQuery(
+    api.categories.queries.index.getPopularCategories,
+    organization?._id
+      ? { organizationId: organization._id, limit: 6, includeEmpty: false }
+      : { limit: 6, includeEmpty: false }
+  );
+
+  const loading = featuredResult === undefined;
+  const featuredCategories = featuredResult?.categories ?? [];
+  const popularCategories = (popularResult ?? []).map(cat => ({
+    ...cat,
+    _id: cat.id // Normalize id to _id for consistency
+  }));
+
+  // Use featured categories if available, otherwise fall back to popular categories
+  const categories = featuredCategories.length > 0 ? featuredCategories : popularCategories;
 
   return (
     <div className="space-y-4">

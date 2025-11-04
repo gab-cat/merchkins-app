@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { ShoppingBag, Plus } from 'lucide-react';
 import { createFadeInUpVariant } from '@/lib/animations';
 
 export function HomeHero() {
@@ -51,10 +52,16 @@ export function HomeHero() {
             animate="animate"
           >
             <Button size="lg" asChild className="hover:scale-105 transition-all duration-200 shadow-md hover:shadow-lg">
-              <Link href="/search">Browse products</Link>
+              <Link href="/search" className="flex items-center gap-2">
+                <ShoppingBag className="h-5 w-5" />
+                Browse products
+              </Link>
             </Button>
             <Button variant="outline" size="lg" asChild className="hover:scale-105 transition-all duration-200 hover:opacity-80 border">
-              <Link href="/account">Start a project</Link>
+              <Link href="/account" className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                Start a project
+              </Link>
             </Button>
           </motion.div>
         </div>

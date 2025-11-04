@@ -71,7 +71,7 @@ export function ProductCard({
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" />
           </div>
-          <CardHeader className="flex-1 space-y-1 p-3 pt-0">
+          <CardHeader className="flex-1 space-y-1 p-3 pt-0 min-h-[80px]">
             <CardTitle
               className="line-clamp-2 text-md font-semibold leading-tight text-primary group-hover:text-primary/90 transition-colors"
               data-testid="product-card-title"

@@ -10,6 +10,7 @@ import { AnimatedBanner } from '@/src/components/animated-banner';
 import { AnimatedAnnouncements } from '@/src/components/animated-announcements';
 import { AnimatedPopularProducts } from '@/src/components/animated-popular-products';
 import { AnimatedFeaturedCategories } from '@/src/components/animated-featured-categories';
+import { buildR2PublicUrl } from '@/lib/utils';
 
 interface PageParams {
   params: Promise<{ orgSlug: string }>;
@@ -28,15 +29,22 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   // Resolve signed URLs if values are R2 keys
   const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
   let ogImage = (organization.bannerImage as string | undefined) || (organization.logo as string | undefined) || '/favicon.ico';
+  let faviconUrl = (organization.logo as string | '') || '/favicon.ico';
   if (isKey(ogImage)) {
     try {
       ogImage = await client.query(api.files.queries.index.getFileUrl, { key: ogImage as string });
     } catch {}
   }
+  if (isKey(faviconUrl) && faviconUrl) {
+    faviconUrl = buildR2PublicUrl(faviconUrl) || '/favicon.ico';
+  }
   return {
     title: `${organization.name} — Merchkins`,
     description: organization.description || 'Organization storefront',
     alternates: { canonical: `/o/${organization.slug}` },
+    icons: {
+      icon: faviconUrl,
+    },
     openGraph: {
       title: `${organization.name} — Merchkins`,
       description: organization.description || 'Organization storefront',

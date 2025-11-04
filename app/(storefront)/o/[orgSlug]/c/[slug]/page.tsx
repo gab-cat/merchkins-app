@@ -14,6 +14,16 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const client = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL as string);
   const organization = await client.query(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug });
   if (!organization) return {};
+
+  // Resolve favicon URL if key
+  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
+  let faviconUrl = (organization.logo as string | undefined) || '/favicon.ico';
+  if (isKey(faviconUrl)) {
+    try {
+      faviconUrl = await client.query(api.files.queries.index.getFileUrl, { key: faviconUrl as string });
+    } catch {}
+  }
+
   let category = null;
   try {
     category = await client.query(api.categories.queries.index.getCategoryBySlug, {
@@ -26,6 +36,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     title,
     description: 'Browse products in this organization category.',
     alternates: { canonical: `/o/${orgSlug}/c/${slug}` },
+    icons: {
+      icon: faviconUrl,
+    },
     openGraph: {
       title,
       url: `/o/${orgSlug}/c/${slug}`,

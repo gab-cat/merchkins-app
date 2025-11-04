@@ -2,9 +2,9 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 export default clerkMiddleware(async (auth, req) => {
-  console.log(req.nextUrl.pathname);
   // Handle subdomain redirects before auth
   const hostname = req.headers.get('host');
+  console.log('Hostname:', hostname);
 
   // Only process subdomains on production domains
   if (hostname && hostname.includes('.merchkins.com')) {
@@ -13,7 +13,8 @@ export default clerkMiddleware(async (auth, req) => {
     // Skip if subdomain is app, staging, or starts with preview
     if (subdomain !== 'app' && subdomain !== 'staging' && !subdomain.startsWith('preview')) {
       try {
-        const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+        // Replace the .cloud at the end to .site
+        const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace('.cloud', '.site');
         if (!convexUrl) {
           console.error('NEXT_PUBLIC_CONVEX_URL not configured');
         } else {

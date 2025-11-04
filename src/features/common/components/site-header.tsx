@@ -122,14 +122,14 @@ export function SiteHeader() {
       }}
     >
       {/* Main Header */}
-      <div className="container max-w-7xl mx-auto flex h-14 items-center gap-2 px-4">
+      <div className="container max-w-7xl mx-auto flex h-16 items-center gap-2 px-4">
         {/* Logo */}
         <Link
           href={orgSlug ? `/o/${orgSlug}` : '/'}
           className="flex items-center gap-2 font-bold tracking-tight transition-opacity hover:opacity-80"
           style={{ color: organization ? 'var(--primary)' : 'var(--header-fg)' }}
         >
-          <span className={cn('text-lg md:text-xl font-bold', organization?.name ? '' : 'font-genty')}>
+          <span className={cn('text-xl md:text-3xl font-bold', organization?.name ? '' : 'font-genty')}>
             {organization?.name ?? (
               <div className="flex items-center">
                 <span className="text-white">Merch</span>

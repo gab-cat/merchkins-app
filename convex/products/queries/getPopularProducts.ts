@@ -87,37 +87,53 @@ export const getPopularProductsHandler = async (
     results = filtered;
   }
 
-  // Calculate popularity score for each product
-  const productsWithScore = results.map((product) => {
-    // Popularity score calculation:
-    // - Orders: 40% weight
-    // - Rating: 30% weight
-    // - Views: 20% weight
-    // - Reviews count: 10% weight
-    const orderScore = product.totalOrders * 0.4;
-    const ratingScore = (product.rating / 5) * product.reviewsCount * 0.3;
-    const viewScore = (product.viewCount / 100) * 0.2; // Normalize views
-    const reviewScore = product.reviewsCount * 0.1;
+  // Check if organization has any sales (products with orders > 0)
+  const hasSales = results.some(product => product.totalOrders > 0);
 
-    const popularityScore = orderScore + ratingScore + viewScore + reviewScore;
+  let productsWithScore;
 
-    return {
+  if (hasSales) {
+    // Calculate popularity score for each product when there are sales
+    productsWithScore = results.map((product) => {
+      // Popularity score calculation:
+      // - Orders: 40% weight
+      // - Rating: 30% weight
+      // - Views: 20% weight
+      // - Reviews count: 10% weight
+      const orderScore = product.totalOrders * 0.4;
+      const ratingScore = (product.rating / 5) * product.reviewsCount * 0.3;
+      const viewScore = (product.viewCount / 100) * 0.2; // Normalize views
+      const reviewScore = product.reviewsCount * 0.1;
+
+      const popularityScore = orderScore + ratingScore + viewScore + reviewScore;
+
+      return {
+        ...product,
+        popularityScore,
+      };
+    });
+
+    // Sort by popularity score
+    productsWithScore.sort((a, b) => {
+      if (b.popularityScore !== a.popularityScore) {
+        return b.popularityScore - a.popularityScore;
+      }
+
+      // Secondary sort by rating, then orders, then views
+      if (b.rating !== a.rating) return b.rating - a.rating;
+      if (b.totalOrders !== a.totalOrders) return b.totalOrders - a.totalOrders;
+      return b.viewCount - a.viewCount;
+    });
+  } else {
+    // Fall back to latest products when organization has no sales
+    productsWithScore = results.map((product) => ({
       ...product,
-      popularityScore,
-    };
-  });
+      popularityScore: 0, // Set to 0 for consistent interface
+    }));
 
-  // Sort by popularity score
-  productsWithScore.sort((a, b) => {
-    if (b.popularityScore !== a.popularityScore) {
-      return b.popularityScore - a.popularityScore;
-    }
-
-    // Secondary sort by rating, then orders, then views
-    if (b.rating !== a.rating) return b.rating - a.rating;
-    if (b.totalOrders !== a.totalOrders) return b.totalOrders - a.totalOrders;
-    return b.viewCount - a.viewCount;
-  });
+    // Sort by creation time (latest first)
+    productsWithScore.sort((a, b) => b._creationTime - a._creationTime);
+  }
 
   // Apply pagination
   const total = productsWithScore.length;
