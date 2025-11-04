@@ -19,6 +19,11 @@ import { showToast, promiseToast } from '@/lib/toast';
 
 type CartItem = {
   variantId?: string;
+  size?: {
+    id: string;
+    label: string;
+    price?: number;
+  };
   productInfo: {
     productId: Id<'products'>;
     title: string;
@@ -257,8 +262,33 @@ function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartIte
           productId: item.productInfo.productId,
           oldVariantId: item.variantId,
           newVariantId: newVariantId,
+          oldSize: item.size,
+          newSize: undefined, // Reset size when changing variant
         }),
         { loading: 'Updating variant…', success: 'Variant updated', error: () => 'Failed to update variant' }
+      );
+    } catch {
+      // no-op
+    }
+  }
+
+  async function handleSizeChange(newSize?: { id: string; label: string; price?: number }) {
+    if (!item.variantId) return; // Size can only be changed if variant is selected
+    const currentSizeId = item.size?.id ?? null;
+    const newSizeId = newSize?.id ?? null;
+    if (currentSizeId === newSizeId) return;
+
+    try {
+      await promiseToast(
+        updateItemVariant({
+          cartId: cartId,
+          productId: item.productInfo.productId,
+          oldVariantId: item.variantId,
+          newVariantId: item.variantId, // Keep same variant
+          oldSize: item.size,
+          newSize: newSize,
+        }),
+        { loading: 'Updating size…', success: 'Size updated', error: () => 'Failed to update size' }
       );
     } catch {
       // no-op
@@ -305,41 +335,91 @@ function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartIte
               <div className="text-xs text-muted-foreground mt-0.5">
                 {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price)} each
               </div>
-              {product && (product.variants?.length ?? 0) > 0 && (
-                <div className="mt-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white"
-                        aria-label="Select variant"
-                      >
-                        <span className="truncate">{item.productInfo.variantName ?? 'Select variant'}</span>
-                        <span aria-hidden className="ml-1">
-                          ▾
-                        </span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="min-w-[10rem] animate-in fade-in-0 zoom-in-95">
-                      <DropdownMenuRadioGroup value={item.variantId ?? ''} onValueChange={(val) => handleVariantChange(val || undefined)}>
-                        {product.variants
-                          .filter((v) => v.isActive)
-                          .map((v) => (
-                            <DropdownMenuRadioItem key={v.variantId} value={v.variantId} className="text-xs">
-                              <div className="flex items-center justify-between w-full">
-                                <span>{v.variantName}</span>
-                                <span className="ml-2 font-medium text-primary">
-                                  {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}
-                                </span>
-                              </div>
-                            </DropdownMenuRadioItem>
-                          ))}
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              )}
+              <div className="space-x-2 flex flex-row">
+                {product && (product.variants?.length ?? 0) > 0 && (
+                  <div className="mt-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white"
+                          aria-label="Select variant"
+                        >
+                          <span className="truncate">{item.productInfo.variantName ?? 'Select variant'}</span>
+                          <span aria-hidden className="ml-1">
+                            ▾
+                          </span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-[10rem] animate-in fade-in-0 zoom-in-95">
+                        <DropdownMenuRadioGroup value={item.variantId ?? ''} onValueChange={(val) => handleVariantChange(val || undefined)}>
+                          {product.variants
+                            .filter((v) => v.isActive)
+                            .map((v) => (
+                              <DropdownMenuRadioItem key={v.variantId} value={v.variantId} className="text-xs">
+                                <div className="flex items-center justify-between w-full">
+                                  <span>{v.variantName}</span>
+                                  <span className="ml-2 font-medium text-primary">
+                                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}
+                                  </span>
+                                </div>
+                              </DropdownMenuRadioItem>
+                            ))}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
+                {product &&
+                  item.variantId &&
+                  (() => {
+                    const currentVariant = product.variants.find((v) => v.variantId === item.variantId);
+                    const hasSizes = currentVariant && currentVariant.sizes && currentVariant.sizes.length > 0;
+                    if (!hasSizes) return null;
+                    return (
+                      <div className="mt-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white"
+                              aria-label="Select size"
+                            >
+                              <span className="truncate">Size: {item.size?.label ?? 'Select size'}</span>
+                              <span aria-hidden className="ml-1">
+                                ▾
+                              </span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="min-w-[10rem] animate-in fade-in-0 zoom-in-95">
+                            <DropdownMenuRadioGroup
+                              value={item.size?.id ?? ''}
+                              onValueChange={(val) => {
+                                const selectedSize = currentVariant.sizes?.find((s) => s.id === val);
+                                handleSizeChange(selectedSize);
+                              }}
+                            >
+                              {currentVariant.sizes?.map((size) => (
+                                <DropdownMenuRadioItem key={size.id} value={size.id} className="text-xs">
+                                  <div className="flex items-center justify-between w-full">
+                                    <span>{size.label}</span>
+                                    {size.price !== undefined && (
+                                      <span className="ml-2 font-medium text-primary">
+                                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(size.price)}
+                                      </span>
+                                    )}
+                                  </div>
+                                </DropdownMenuRadioItem>
+                              ))}
+                            </DropdownMenuRadioGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    );
+                  })()}
+              </div>
             </div>
             <div className="text-right">
               <div className="text-sm font-bold">

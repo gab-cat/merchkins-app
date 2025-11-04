@@ -4,14 +4,15 @@ import { NextResponse } from 'next/server';
 export default clerkMiddleware(async (auth, req) => {
   // Handle subdomain redirects before auth
   const hostname = req.headers.get('host');
-  console.log('Hostname:', hostname);
+  const pathname = req.nextUrl.pathname;
 
   // Only process subdomains on production domains
   if (hostname && hostname.includes('.merchkins.com')) {
     const subdomain = hostname.split('.')[0];
 
     // Skip if subdomain is app, staging, or starts with preview
-    if (subdomain !== 'app' && subdomain !== 'staging' && !subdomain.startsWith('preview')) {
+    // Only redirect when accessing the root path to avoid redirect loops
+    if (subdomain !== 'app' && subdomain !== 'staging' && !subdomain.startsWith('preview') && req.nextUrl.pathname === '/') {
       try {
         // Replace the .cloud at the end to .site
         const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace('.cloud', '.site');
@@ -24,12 +25,16 @@ export default clerkMiddleware(async (auth, req) => {
             headers: {
               'Content-Type': 'application/json',
             },
+            cache: 'force-cache',
           });
 
           if (resolverResponse.ok) {
             // Organization exists, rewrite to storefront
+            console.log('Organization found for subdomain:', subdomain, '- rewriting to /o/' + subdomain);
             const newUrl = new URL(`/o/${subdomain}`, req.url);
             return NextResponse.rewrite(newUrl);
+          } else {
+            console.log('Organization not found for subdomain:', subdomain, '- status:', resolverResponse.status);
           }
         }
       } catch (error) {

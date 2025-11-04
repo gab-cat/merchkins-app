@@ -150,6 +150,11 @@ export function CartPage() {
 
 type CartItem = {
   variantId?: string;
+  size?: {
+    id: string;
+    label: string;
+    price?: number;
+  };
   productInfo: {
     productId: Id<'products'>;
     organizationId?: Id<'organizations'>;
@@ -173,6 +178,7 @@ function CartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartItem })
   const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity);
   const setItemNote = useMutation(api.carts.mutations.index.setItemNote);
   const addItem = useMutation(api.carts.mutations.index.addItem);
+  const updateItemVariant = useMutation(api.carts.mutations.index.updateItemVariant);
   const product = useQuery(api.products.queries.index.getProductById, { productId: item.productInfo.productId });
 
   // note input is uncontrolled; saving on blur
@@ -215,20 +221,44 @@ function CartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartItem })
 
   async function handleVariantChange(newVariantId?: string) {
     if ((newVariantId ?? null) === (item.variantId ?? null)) return;
-    await updateQty({
-      cartId: cartId,
-      productId: item.productInfo.productId,
-      variantId: item.variantId,
-      quantity: 0,
-    });
-    await addItem({
-      cartId: cartId,
-      productId: item.productInfo.productId,
-      variantId: newVariantId,
-      quantity: item.quantity,
-      selected: item.selected,
-      note: item.note,
-    });
+    try {
+      await promiseToast(
+        updateItemVariant({
+          cartId: cartId,
+          productId: item.productInfo.productId,
+          oldVariantId: item.variantId,
+          newVariantId: newVariantId,
+          oldSize: item.size,
+          newSize: undefined, // Reset size when changing variant
+        }),
+        { loading: 'Updating variant…', success: 'Variant updated', error: () => 'Failed to update variant' }
+      );
+    } catch {
+      // no-op
+    }
+  }
+
+  async function handleSizeChange(newSize?: { id: string; label: string; price?: number }) {
+    if (!item.variantId) return; // Size can only be changed if variant is selected
+    const currentSizeId = item.size?.id ?? null;
+    const newSizeId = newSize?.id ?? null;
+    if (currentSizeId === newSizeId) return;
+    
+    try {
+      await promiseToast(
+        updateItemVariant({
+          cartId: cartId,
+          productId: item.productInfo.productId,
+          oldVariantId: item.variantId,
+          newVariantId: item.variantId, // Keep same variant
+          oldSize: item.size,
+          newSize: newSize,
+        }),
+        { loading: 'Updating size…', success: 'Size updated', error: () => 'Failed to update size' }
+      );
+    } catch {
+      // no-op
+    }
   }
 
   return (
@@ -307,6 +337,52 @@ function CartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartItem })
                     </DropdownMenu>
                   </div>
                 )}
+                {product && item.variantId && (() => {
+                  const currentVariant = product.variants.find((v) => v.variantId === item.variantId);
+                  const hasSizes = currentVariant && currentVariant.sizes && currentVariant.sizes.length > 0;
+                  if (!hasSizes) return null;
+                  return (
+                    <div className="mt-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white"
+                            aria-label="Select size"
+                          >
+                            <span className="truncate">Size: {item.size?.label ?? 'Select size'}</span>
+                            <span aria-hidden className="ml-1">
+                              ▾
+                            </span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="min-w-[10rem] animate-in fade-in-0 zoom-in-95">
+                          <DropdownMenuRadioGroup
+                            value={item.size?.id ?? ''}
+                            onValueChange={(val) => {
+                              const selectedSize = currentVariant.sizes?.find((s) => s.id === val);
+                              handleSizeChange(selectedSize);
+                            }}
+                          >
+                            {currentVariant.sizes?.map((size) => (
+                              <DropdownMenuRadioItem key={size.id} value={size.id} className="text-xs">
+                                <div className="flex items-center justify-between w-full">
+                                  <span>{size.label}</span>
+                                  {size.price !== undefined && (
+                                    <span className="ml-2 font-medium text-primary">
+                                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(size.price)}
+                                    </span>
+                                  )}
+                                </div>
+                              </DropdownMenuRadioItem>
+                            ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  );
+                })()}
               </div>
               <div className="text-right">
                 <div className="text-sm font-bold">

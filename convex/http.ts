@@ -156,8 +156,6 @@ http.route({
         slug,
       });
 
-      console.log('Organization:', organization);
-
       if (organization) {
         return new Response(JSON.stringify({ slug: organization.slug }), {
           status: 200,

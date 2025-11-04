@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Clock, TrendingUp, Star, TrendingDown, Search } from 'lucide-react';
 import { ProductCard } from './product-card';
 import { Doc } from '@/convex/_generated/dataModel';
 
@@ -29,6 +30,8 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
     api.organizations.queries.index.getOrganizationBySlug,
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
   );
+
+  // Use search when there's a query, otherwise use popular products
   const searchArgs = q.trim()
     ? {
         query: q.trim(),
@@ -36,11 +39,20 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
         ...(organization?._id ? { organizationId: organization._id } : {}),
       }
     : 'skip';
+  const popularArgs = !q.trim()
+    ? {
+        limit: 50,
+        ...(organization?._id ? { organizationId: organization._id } : {}),
+      }
+    : 'skip';
+
   const searchResult = useQuery(api.products.queries.index.searchProducts, searchArgs);
+  const popularResult = useQuery(api.products.queries.index.getPopularProducts, popularArgs);
 
   const loading = q.trim() !== '' && searchResult === undefined;
+  const result = q.trim() ? searchResult : popularResult;
   const products = useMemo(() => {
-    const list = searchResult?.products ?? [];
+    const list = result?.products ?? [];
     const copy = [...list];
     copy.sort((a, b) => {
       switch (sortBy) {
@@ -61,7 +73,7 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
       }
     });
     return copy;
-  }, [searchResult, sortBy]);
+  }, [result, sortBy]);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -80,24 +92,44 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="popular">Popular</SelectItem>
-              <SelectItem value="rating">Rating</SelectItem>
-              <SelectItem value="price_low">Price: Low to High</SelectItem>
-              <SelectItem value="price_high">Price: High to Low</SelectItem>
+              <SelectItem value="newest">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Newest
+                </div>
+              </SelectItem>
+              <SelectItem value="popular">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Popular
+                </div>
+              </SelectItem>
+              <SelectItem value="rating">
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4" />
+                  Rating
+                </div>
+              </SelectItem>
+              <SelectItem value="price_low">
+                <div className="flex items-center gap-2">
+                  <TrendingDown className="h-4 w-4" />
+                  Price: Low to High
+                </div>
+              </SelectItem>
+              <SelectItem value="price_high">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Price: High to Low
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
           <Button type="submit" className="h-10 px-6">
+            <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
         </div>
       </form>
-
-      {!q.trim() && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground text-lg">Enter a search term to begin.</p>
-        </div>
-      )}
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {loading

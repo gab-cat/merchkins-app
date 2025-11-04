@@ -14,6 +14,7 @@ type PopularOrganization = {
   bannerImage?: string;
   bannerImageUrl?: string;
   organizationType: 'PUBLIC' | 'PRIVATE' | 'SECRET';
+  industry?: string;
   memberCount: number;
   totalOrderCount: number;
   isMember: boolean;
@@ -114,6 +115,7 @@ export const getPopularOrganizationsHandler = async (
         bannerImage: org.bannerImage,
         bannerImageUrl,
         organizationType: org.organizationType,
+        industry: org.industry,
         memberCount: org.memberCount,
         totalOrderCount: org.totalOrderCount,
         isMember,

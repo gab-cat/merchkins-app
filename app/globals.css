@@ -214,9 +214,18 @@
 
   /* Enhanced skeleton loading animations */
   .skeleton {
-    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted) / 0.5) 50%, hsl(var(--muted)) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.2s infinite;
+    background: linear-gradient(
+      110deg,
+      hsl(var(--muted)) 8%,
+      hsl(var(--muted) / 0.8) 18%,
+      hsl(var(--muted) / 0.6) 33%,
+      hsl(var(--muted) / 0.8) 50%,
+      hsl(var(--muted)) 66%,
+      hsl(var(--muted) / 0.8) 83%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 300% 100%;
+    animation: skeleton-loading 1.4s ease-in-out infinite;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -239,12 +248,12 @@
     }
   }
 
-  @keyframes shimmer {
+  @keyframes skeleton-loading {
     0% {
-      background-position: -200% 0;
+      background-position: -300% 0;
     }
     100% {
-      background-position: 200% 0;
+      background-position: 300% 0;
     }
   }
 

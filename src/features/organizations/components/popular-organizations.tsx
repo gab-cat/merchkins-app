@@ -29,6 +29,7 @@ type PopularOrg = {
   bannerImage?: string;
   bannerImageUrl?: string;
   organizationType: string;
+  industry?: string;
   memberCount: number;
   totalOrderCount: number;
   isMember?: boolean;
@@ -166,30 +167,26 @@ export function PopularOrganizations({ limit = 8, preloadedOrganizations }: Popu
                             )}
                           </div>
                           <div className="min-w-0">
-                            <CardTitle className="truncate text-sm font-bold text-white drop-shadow-lg group-hover:text-white/90 transition-colors">
+                            <CardTitle className="truncate text-base font-bold text-white drop-shadow-lg group-hover:text-white/90 transition-colors">
                               {org.name}
                             </CardTitle>
-                            <Badge
-                              variant="secondary"
-                              className="mt-0.5 text-[10px] px-1.5 py-0.5 font-semibold bg-white text-primary border-transparent shadow-sm"
-                            >
-                              {org.organizationType}
-                            </Badge>
+                            <div className="mt-0.5 text-xs font-medium text-white/90 drop-shadow-lg">@{org.slug}</div>
                           </div>
                         </div>
                       </div>
 
                       <CardContent className="flex flex-col flex-1 p-3 pt-0 space-y-2">
-                        {/* Stats */}
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            <span className="font-medium">{org.memberCount}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <ShoppingBag className="h-3 w-3" />
-                            <span className="font-medium">{org.totalOrderCount}</span>
-                          </div>
+                        {/* Industry/Category */}
+                        <div className="flex items-center gap-2 -mt-2">
+                          {org.industry ? (
+                            <Badge variant="outline" className="text-[10px] px-2 py-0.5">
+                              {org.industry}
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                              Community
+                            </Badge>
+                          )}
                         </div>
 
                         {/* Description */}
@@ -197,9 +194,16 @@ export function PopularOrganizations({ limit = 8, preloadedOrganizations }: Popu
 
                         {/* Action Button */}
                         <div className="flex items-center justify-between gap-2 pt-1.5 border-t">
-                          <span className="text-[10px] text-muted-foreground opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:text-primary font-medium">
-                            View →
-                          </span>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              <span className="font-medium">{org.memberCount}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <ShoppingBag className="h-3 w-3" />
+                              <span className="font-medium">{org.totalOrderCount}</span>
+                            </div>
+                          </div>
                           {!org.isMember &&
                             (org.organizationType === 'PUBLIC' ? (
                               <Button

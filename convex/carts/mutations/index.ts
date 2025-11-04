@@ -6,6 +6,7 @@ import { addItemArgs, addItemHandler } from './addItem';
 import { updateItemQuantityArgs, updateItemQuantityHandler } from './updateItemQuantity';
 import { updateItemVariantArgs, updateItemVariantHandler } from './updateItemVariant';
 import { removeItemArgs, removeItemHandler } from './removeItem';
+import { removeMultipleItemsArgs, removeMultipleItemsHandler } from './removeMultipleItems';
 import { clearCartArgs, clearCartHandler } from './clearCart';
 import { setItemSelectedArgs, setItemSelectedHandler } from './setItemSelected';
 import { setItemNoteArgs, setItemNoteHandler } from './setItemNote';
@@ -37,6 +38,11 @@ export const updateItemVariant = mutation({
 export const removeItem = mutation({
   args: removeItemArgs,
   handler: removeItemHandler,
+});
+
+export const removeMultipleItems = mutation({
+  args: removeMultipleItemsArgs,
+  handler: removeMultipleItemsHandler,
 });
 
 export const clearCart = mutation({

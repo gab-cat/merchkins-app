@@ -15,6 +15,7 @@ import { Id } from '@/convex/_generated/dataModel';
 import { CartSheet } from '@/src/features/cart/components/cart-sheet';
 import { cn } from '@/lib/utils';
 import { OrganizationsPage, AccountPage } from '@/src/features/common/components/user-profile-pages';
+import { useThemeExclusionAuto } from '../../../stores/theme-exclusion';
 
 export function SiteHeader() {
   const router = useRouter();
@@ -22,9 +23,31 @@ export function SiteHeader() {
   const { userId: clerkId } = useAuth();
   const isSignedIn = !!clerkId;
   const [search, setSearch] = useState('');
+  const { shouldApplyTheme } = useThemeExclusionAuto();
 
+  // Detect organization slug from hostname (for subdomains) or pathname (for direct access)
   const orgSlugFromPath = useMemo(() => {
     if (!pathname) return undefined;
+
+    // First check if we're on a subdomain (hostname-based detection)
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      if (
+        hostname &&
+        hostname.includes('.merchkins.com') &&
+        !hostname.startsWith('app.') &&
+        !hostname.startsWith('staging.') &&
+        !hostname.startsWith('preview.')
+      ) {
+        const subdomain = hostname.split('.')[0];
+        // Only use subdomain if we're not on the main app domain
+        if (subdomain !== 'app' && subdomain !== 'staging' && !subdomain.startsWith('preview')) {
+          return subdomain;
+        }
+      }
+    }
+
+    // Fallback to pathname-based detection for direct access or when hostname detection fails
     const segments = pathname.split('/').filter(Boolean);
     if (segments[0] === 'o' && segments[1]) return segments[1];
     return undefined;
@@ -110,15 +133,15 @@ export function SiteHeader() {
   const headerClassName = cn(
     'sticky top-0 z-40 w-full border-b',
     'supports-[backdrop-filter]:backdrop-blur-md',
-    organization && 'border-primary/20 shadow-sm'
+    shouldApplyTheme && 'border-primary/20 shadow-sm'
   );
 
   return (
     <header
       className={headerClassName}
       style={{
-        backgroundColor: organization ? 'rgba(255, 255, 255, 0.95)' : 'var(--header-bg)',
-        color: organization ? 'var(--foreground)' : 'var(--header-fg)',
+        backgroundColor: shouldApplyTheme ? 'rgba(255, 255, 255, 0.95)' : 'var(--header-bg)',
+        color: shouldApplyTheme ? 'var(--foreground)' : 'var(--header-fg)',
       }}
     >
       {/* Main Header */}
@@ -127,10 +150,12 @@ export function SiteHeader() {
         <Link
           href={orgSlug ? `/o/${orgSlug}` : '/'}
           className="flex items-center gap-2 font-bold tracking-tight transition-opacity hover:opacity-80"
-          style={{ color: organization ? 'var(--primary)' : 'var(--header-fg)' }}
+          style={{ color: shouldApplyTheme ? 'var(--primary)' : 'var(--header-fg)' }}
         >
-          <span className={cn('text-xl md:text-3xl font-bold', organization?.name ? '' : 'font-genty')}>
-            {organization?.name ?? (
+          <span className={cn('text-xl md:text-3xl font-bold', shouldApplyTheme && organization?.name ? '' : 'font-genty')}>
+            {shouldApplyTheme ? (
+              organization?.name
+            ) : (
               <div className="flex items-center">
                 <span className="text-white">Merch</span>
                 <span className="font-genty">kins</span>
@@ -187,7 +212,7 @@ export function SiteHeader() {
                 size="sm"
                 className={cn(
                   'gap-1.5 px-2.5 h-9 relative hover:bg-gray-100/20 hover:opacity-80 transition-all',
-                  organization ? 'text-primary hover:text-primary' : 'text-white hover:text-white'
+                  shouldApplyTheme ? 'text-primary hover:text-primary' : 'text-white hover:text-white'
                 )}
               >
                 <MessageSquare className="h-4 w-4" />
@@ -242,7 +267,7 @@ export function SiteHeader() {
                 size="sm"
                 className={cn(
                   'gap-1.5 px-2.5 h-9 hover:bg-accent/20 hover:opacity-80 transition-all',
-                  organization ? 'text-primary hover:text-primary' : 'text-white hover:text-white'
+                  shouldApplyTheme ? 'text-primary hover:text-primary' : 'text-white hover:text-white'
                 )}
               >
                 <ShoppingCart className="h-4 w-4" />

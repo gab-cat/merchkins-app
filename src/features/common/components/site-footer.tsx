@@ -10,9 +10,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Home, Search as SearchIcon, RotateCcw, HelpCircle, Globe, Mail, MessageSquare, Ticket, FileText, Shield } from 'lucide-react';
 import { showToast } from '@/lib/toast';
+import { useThemeExclusionAuto } from '../../../stores/theme-exclusion';
 
 export function SiteFooter() {
   const pathname = usePathname();
+  const { shouldApplyTheme } = useThemeExclusionAuto();
+
   const orgSlugFromPath = useMemo(() => {
     if (!pathname) return undefined;
     const segments = pathname.split('/').filter(Boolean);
@@ -58,15 +61,15 @@ export function SiteFooter() {
         <div className="max-w-7xl mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand / About */}
           <div className="space-y-3">
-            <div className={cn('text-lg font-semibold md:text-2xl', organization?.name ? '' : 'font-genty')}>
-              {organization?.name || (
+            <div className={cn('text-lg font-semibold md:text-2xl', shouldApplyTheme && organization?.name ? '' : 'font-genty')}>
+              {shouldApplyTheme ? organization?.name : (
                 <>
                   <span className="text-white">Merch</span>
                   <span className="text-brand-neon">kins</span>
                 </>
               )}
             </div>
-            {organization?.description ? (
+            {shouldApplyTheme && organization?.description ? (
               <p className="line-clamp-3 text-sm opacity-80 leading-relaxed">{organization.description}</p>
             ) : (
               <p className="text-sm opacity-80 leading-relaxed">
@@ -248,7 +251,7 @@ export function SiteFooter() {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs opacity-80">
           <p className="font-medium">
             &copy; {new Date().getFullYear()}{' '}
-            {organization?.name || (
+            {shouldApplyTheme ? organization?.name : (
               <span className="font-genty">
                 <span className="text-white">Merch</span>
                 <span className="text-brand-neon">kins</span>

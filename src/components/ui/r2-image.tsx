@@ -46,7 +46,7 @@ export function R2Image({ fileKey, alt, width, height, fill, className, priority
         {...rest}
       />
       {!isLoaded && (
-        <div className={cn('absolute inset-0 bg-muted skeleton', fill ? 'w-full h-full' : '', !fill && width && height ? '' : 'aspect-square')} />
+        <div className={cn('absolute inset-0 skeleton', fill ? 'w-full h-full' : '', !fill && width && height ? '' : 'aspect-square')} />
       )}
     </div>
   );

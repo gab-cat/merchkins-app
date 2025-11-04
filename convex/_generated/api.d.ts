@@ -29,6 +29,7 @@ import type * as carts_mutations_index from "../carts/mutations/index.js";
 import type * as carts_mutations_markAbandoned from "../carts/mutations/markAbandoned.js";
 import type * as carts_mutations_mergeCarts from "../carts/mutations/mergeCarts.js";
 import type * as carts_mutations_removeItem from "../carts/mutations/removeItem.js";
+import type * as carts_mutations_removeMultipleItems from "../carts/mutations/removeMultipleItems.js";
 import type * as carts_mutations_setItemNote from "../carts/mutations/setItemNote.js";
 import type * as carts_mutations_setItemSelected from "../carts/mutations/setItemSelected.js";
 import type * as carts_mutations_updateCartStats from "../carts/mutations/updateCartStats.js";
@@ -324,6 +325,7 @@ declare const fullApi: ApiFromModules<{
   "carts/mutations/markAbandoned": typeof carts_mutations_markAbandoned;
   "carts/mutations/mergeCarts": typeof carts_mutations_mergeCarts;
   "carts/mutations/removeItem": typeof carts_mutations_removeItem;
+  "carts/mutations/removeMultipleItems": typeof carts_mutations_removeMultipleItems;
   "carts/mutations/setItemNote": typeof carts_mutations_setItemNote;
   "carts/mutations/setItemSelected": typeof carts_mutations_setItemSelected;
   "carts/mutations/updateCartStats": typeof carts_mutations_updateCartStats;

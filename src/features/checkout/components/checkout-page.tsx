@@ -10,17 +10,21 @@ import { CreditCard, ListChecks, StickyNote, ShoppingBag } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { showToast, promiseToast } from '@/lib/toast';
+import { R2Image } from '@/src/components/ui/r2-image';
 
 export function CheckoutPage() {
   const { userId: clerkId } = useAuth();
   const cart = useQuery(api.carts.queries.index.getCartByUser, {});
   const createOrder = useMutation(api.orders.mutations.index.createOrder);
+  const removeMultipleCartItems = useMutation(api.carts.mutations.index.removeMultipleItems);
   const me = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip');
 
   const [notes, setNotes] = useState('');
   const [isPlacing, setIsPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   const selectedItems = useMemo(() => {
     const items = cart?.embeddedItems ?? [];
@@ -45,6 +49,18 @@ export function CheckoutPage() {
       amount: selectedItems.reduce((s, i) => s + i.quantity * i.productInfo.price, 0),
     };
   }, [selectedItems]);
+
+  const shopSubtotals = useMemo(() => {
+    return Object.entries(selectedByOrg).map(([orgId, group]) => {
+      const quantity = group.items.reduce((s, i) => s + i.quantity, 0);
+      const amount = group.items.reduce((s, i) => s + i.quantity * i.productInfo.price, 0);
+      return {
+        name: group.name,
+        quantity,
+        amount,
+      };
+    });
+  }, [selectedByOrg]);
 
   const canCheckout = !!cart && selectedItems.length > 0 && !!me;
 
@@ -84,9 +100,29 @@ export function CheckoutPage() {
 
       const results = await promiseToast(Promise.all(promises), {
         loading: 'Placing order…',
-        success: 'Order placed, redirecting to payment...',
+        success: 'Order placed, removing items from cart...',
         error: () => 'Failed to place order',
       });
+
+      // Remove the ordered items from cart
+      if (cart?._id) {
+        try {
+          const itemsToRemove = selectedItems.map((item) => ({
+            productId: item.productInfo.productId,
+            variantId: item.variantId,
+          }));
+
+          if (itemsToRemove.length > 0) {
+            await removeMultipleCartItems({
+              cartId: cart._id,
+              items: itemsToRemove,
+            });
+          }
+        } catch (cartError) {
+          console.error('Failed to remove items from cart:', cartError);
+          // Don't fail the order placement if cart removal fails
+        }
+      }
 
       // Check if any order has a Xendit invoice URL
       let xenditUrl: string | null = null;
@@ -165,21 +201,41 @@ export function CheckoutPage() {
                     {group.items.map((it) => (
                       <div
                         key={`${String(it.productInfo.productId)}::${it.productInfo.variantName ?? 'default'}`}
-                        className="flex items-center justify-between p-3 rounded-lg border bg-muted/30"
+                        className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30"
                       >
-                        <div className="flex-1">
-                          <div className="font-semibold text-sm">
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
+                          {it.productInfo.imageUrl?.[0] ? (
+                            <R2Image
+                              fileKey={it.productInfo.imageUrl[0]}
+                              alt={it.productInfo.title}
+                              width={64}
+                              height={64}
+                              className="h-full w-full object-cover bg-secondary"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-secondary rounded-lg" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm leading-tight">
                             {it.productInfo.title}
                             {it.productInfo.variantName && (
                               <span className="ml-2 text-xs text-muted-foreground font-normal">{it.productInfo.variantName}</span>
                             )}
                           </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Qty {it.quantity} ×{' '}
-                            {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(it.productInfo.price)}
+                          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                            <span>
+                              Qty {it.quantity} ×{' '}
+                              {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(it.productInfo.price)}
+                            </span>
+                            {'size' in it && it.size && (
+                              <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+                                Size: {it.size.label}
+                              </span>
+                            )}
                           </div>
                         </div>
-                        <div className="text-sm font-bold">
+                        <div className="text-sm font-bold shrink-0">
                           {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(it.quantity * it.productInfo.price)}
                         </div>
                       </div>
@@ -204,10 +260,12 @@ export function CheckoutPage() {
           <Card>
             <CardContent className="p-4">
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>Items ({totals.quantity})</span>
-                  <span>{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.amount)}</span>
-                </div>
+                {shopSubtotals.map((shop) => (
+                  <div key={shop.name} className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>{shop.name} ({shop.quantity})</span>
+                    <span>{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(shop.amount)}</span>
+                  </div>
+                ))}
                 <div className="h-px bg-border" />
                 <div className="flex items-center justify-between font-bold text-lg">
                   <span>Total</span>
@@ -221,7 +279,7 @@ export function CheckoutPage() {
                 <Button
                   className="w-full h-10 hover:scale-105 transition-all duration-200"
                   onClick={handlePlaceOrder}
-                  disabled={isPlacing}
+                  disabled={isPlacing || !agreeToTerms}
                   aria-label="Place order"
                 >
                   {isPlacing ? (
@@ -232,6 +290,40 @@ export function CheckoutPage() {
                     </>
                   )}
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                <div className="font-semibold text-sm">Terms of Service</div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  By placing this order, you agree to our terms of service and acknowledge that you have read and understood our privacy policy.
+                  All sales are final and refunds are processed according to our refund policy.
+                  We reserve the right to cancel orders due to unforeseen circumstances.
+                </p>
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="terms-agreement"
+                    checked={agreeToTerms}
+                    onCheckedChange={(checked) => setAgreeToTerms(checked === true)}
+                    className="mt-0.5"
+                  />
+                  <label
+                    htmlFor="terms-agreement"
+                    className="text-sm leading-relaxed cursor-pointer"
+                  >
+                    I agree to the{' '}
+                    <Link href="/terms" className="text-primary hover:underline">
+                      Terms of Service
+                    </Link>
+                    {' '}and{' '}
+                    <Link href="/privacy" className="text-primary hover:underline">
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
               </div>
             </CardContent>
           </Card>

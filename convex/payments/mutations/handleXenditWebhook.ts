@@ -17,6 +17,17 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
     return { processed: false, reason: 'Not a successful payment' };
   }
 
+  // Get the system admin user for webhook operations
+  const systemUser = await ctx.db
+    .query('users')
+    .withIndex('by_clerkId', (q) => q.eq('clerkId', 'seed_admin'))
+    .first();
+
+  if (!systemUser) {
+    console.error('System admin user not found');
+    throw new Error('System admin user not found');
+  }
+
   // Find the order by external_id (should match order number)
   const orderNumber = webhookEvent.external_id;
   const orders = await ctx.db
@@ -99,7 +110,7 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
     statusHistory: [
       {
         status: 'VERIFIED',
-        changedBy: undefined, // System
+        changedBy: systemUser._id,
         changedByName: 'Xendit Payment System',
         reason: 'Payment verified via webhook',
         changedAt: now,
@@ -122,7 +133,7 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
   // Update order status history
   const statusUpdate = {
     status: 'PROCESSING',
-    changedBy: undefined, // System
+    changedBy: systemUser._id,
     changedByName: 'Xendit Payment System',
     reason: 'Payment confirmed via webhook',
     changedAt: now,
@@ -140,7 +151,7 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
   // Recalculate order payment stats
   await ctx.runMutation(internal.payments.mutations.index.updatePaymentStats, {
     orderId: order._id,
-    actorId: undefined, // System
+    actorId: systemUser._id,
     actorName: 'Xendit Payment System',
   });
 

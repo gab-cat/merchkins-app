@@ -64,7 +64,7 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
           <motion.div className="min-w-0 flex-1 pt-0.5" variants={fadeInUpVariants.subtle}>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white drop-shadow-sm">{organization.name}</h1>
 
-            {organization.description && <p className="mt-1 text-sm sm:text-base text-white/90 line-clamp-1 max-w-2xl">{organization.description}</p>}
+            {organization.description && <p className="mt-1 text-sm sm:text-base text-white/90 line-clamp-2 max-w-2xl">{organization.description}</p>}
 
             {/* Metadata row */}
             <div className="mt-2 flex items-center gap-2 text-xs sm:text-sm text-white/80 flex-wrap">

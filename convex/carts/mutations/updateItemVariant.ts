@@ -95,11 +95,13 @@ export const updateItemVariantHandler = async (
     // Validate size selection if variant has sizes
     if (variant.sizes && variant.sizes.length > 0) {
       if (!args.newSize) {
-        throw new Error('Size selection required for this variant');
-      }
-      const sizeExists = variant.sizes.some((s) => s.id === args.newSize!.id);
-      if (!sizeExists) {
-        throw new Error('Selected size not found for this variant');
+        // Automatically select the first size if no size is provided
+        args.newSize = variant.sizes[0];
+      } else {
+        const sizeExists = variant.sizes.some((s) => s.id === args.newSize!.id);
+        if (!sizeExists) {
+          throw new Error('Selected size not found for this variant');
+        }
       }
     }
 

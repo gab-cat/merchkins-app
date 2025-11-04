@@ -54,7 +54,6 @@ export const createXenditInvoice = internalAction({
           successRedirectUrl: `${appUrl}/orders/payment/success?orderId=${args.orderId}`,
           failureRedirectUrl: `${appUrl}/orders/payment/failure?orderId=${args.orderId}`,
         },
-        forUserId: args.customerEmail,
       });
 
       if (!invoiceResponse.invoiceUrl || !invoiceResponse.id) {

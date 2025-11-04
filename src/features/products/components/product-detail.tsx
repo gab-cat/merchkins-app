@@ -146,20 +146,33 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
   }
 
   async function handleShare() {
-    if (!product) return;
+    if (!product || !organization) return;
+
+    const protocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
+    const host = typeof window !== 'undefined' ? window.location.host : '';
+
+    // Use subdomain format for production, regular path format for localhost
+    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
+    const shareUrl = isLocalhost
+      ? `${protocol}//${host}/o/${organization.slug}/p/${product.slug}`
+      : `${protocol}//${organization.slug}.${host}/o/${organization.slug}/p/${product.slug}`;
+
     const shareData = {
       title: product.title,
       text: product.description ?? product.title,
-      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      url: shareUrl,
     };
+
     try {
       if (navigator.share && shareData.url) {
         await navigator.share(shareData);
       } else if (shareData.url) {
         await navigator.clipboard.writeText(shareData.url);
+        showToast({ type: 'success', title: 'Link copied to clipboard!' });
       }
     } catch (err) {
       console.error('Share failed', err);
+      showToast({ type: 'error', title: 'Failed to share product' });
     }
   }
 
@@ -491,14 +504,14 @@ function ProductGallery({ imageKeys }: { imageKeys: string[] }) {
   return (
     <div className="w-full space-y-3">
       <div className="relative overflow-hidden rounded-xl shadow-lg group cursor-pointer" onClick={handleImageClick}>
-        <div className="h-[400px] md:h-[500px] w-[666px] md:w-[800px] max-w-full mx-auto flex items-center justify-center bg-secondary">
+        <div className="h-[400px] md:h-[500px] w-[400px] md:w-[500px] max-w-full mx-auto flex items-center justify-center bg-secondary">
           <R2Image
             key={imageKeys[current]}
             fileKey={imageKeys[current]}
             alt="Product image"
             width={800}
             height={600}
-            className="h-full w-full rounded-xl object-cover object-center animate-in fade-in zoom-in-50 transition-transform duration-300 group-hover:scale-105"
+            className="rounded-xl object-cover object-center animate-in fade-in zoom-in-50 transition-transform duration-300 group-hover:scale-105"
           />
         </div>
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-200 rounded-xl flex items-center justify-center pointer-events-none">
@@ -590,17 +603,21 @@ function ImageDialog({
   initialIndex: number;
 }) {
   const [currentIndex, setCurrentIndex] = React.useState(initialIndex);
+  const [imageLoaded, setImageLoaded] = React.useState(false);
 
   React.useEffect(() => {
     setCurrentIndex(initialIndex);
+    setImageLoaded(false); // Reset loading state when index changes
   }, [initialIndex]);
 
   const goPrev = React.useCallback(() => {
     setCurrentIndex((c) => (c - 1 + imageKeys.length) % imageKeys.length);
+    setImageLoaded(false);
   }, [imageKeys.length]);
 
   const goNext = React.useCallback(() => {
     setCurrentIndex((c) => (c + 1) % imageKeys.length);
+    setImageLoaded(false);
   }, [imageKeys.length]);
 
   React.useEffect(() => {
@@ -667,8 +684,11 @@ function ImageDialog({
               alt={`Product image ${currentIndex + 1}`}
               width={1200}
               height={1200}
-              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+              className={`max-w-full max-h-[85vh] object-contain rounded-lg transition-all duration-300 ${
+                imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`}
               priority
+              onLoad={() => setImageLoaded(true)}
             />
           </div>
           {imageKeys.length > 1 && (
@@ -703,15 +723,15 @@ function ImageDialog({
                 ))}
               </div>
               {imageKeys.length > 1 && (
-                <div className="absolute bottom-12 md:bottom-16 left-0 right-0 flex justify-center gap-1.5 md:gap-2 px-4 overflow-x-auto">
+                <div className="absolute bottom-12 md:bottom-16 left-0 right-0 flex justify-center gap-1.5 md:gap-2 px-4 py-2 overflow-x-auto">
                   {imageKeys.slice(0, 8).map((k, idx) => (
                     <button
                       key={k}
                       type="button"
                       onClick={() => setCurrentIndex(idx)}
                       className={[
-                        'flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation',
-                        idx === currentIndex ? 'border-white shadow-lg scale-105' : 'border-white/30 hover:border-white/60',
+                        'relative z-10 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation',
+                        idx === currentIndex ? 'border-primary shadow-lg scale-105' : 'border-primary/50 hover:border-primary/70',
                       ].join(' ')}
                     >
                       <R2Image fileKey={k} alt={`Thumbnail ${idx + 1}`} width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 object-cover" />

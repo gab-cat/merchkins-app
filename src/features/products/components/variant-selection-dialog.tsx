@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { R2Image } from '@/src/components/ui/r2-image';
-import { Check, X, Menu, Ruler, X as CloseIcon } from 'lucide-react';
+import { Check, Menu, Package, Ruler, X as CloseIcon } from 'lucide-react';
 import { computeEffectivePrice } from '@/lib/utils';
 
 interface ProductVariant {
@@ -20,10 +20,6 @@ interface ProductVariant {
     label: string;
     price?: number;
   }>;
-}
-
-interface ProductImage {
-  imageUrl: string[];
 }
 
 interface VariantSelectionDialogProps {
@@ -53,6 +49,8 @@ export function VariantSelectionDialog({
 }: VariantSelectionDialogProps) {
   const [tempVariantId, setTempVariantId] = useState<string | undefined>(selectedVariantId);
   const [tempSizeId, setTempSizeId] = useState<string | undefined>(selectedSizeId);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | undefined>(undefined);
 
   // Reset temp values when dialog opens
   React.useEffect(() => {
@@ -87,6 +85,11 @@ export function VariantSelectionDialog({
     setTempSizeId(sizeId);
   };
 
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
+    setImageDialogOpen(true);
+  };
+
   const handleConfirm = () => {
     onVariantChange(tempVariantId);
     onSizeChange(tempSizeId);
@@ -110,11 +113,9 @@ export function VariantSelectionDialog({
           {/* Top section: Image and current selection */}
           <div className="flex gap-4">
             <div className="w-24 h-24 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
-              {productImages[0] && (
-                <R2Image fileKey={productImages[0]} alt={productTitle} width={96} height={96} className="w-full h-full object-cover" />
-              )}
+              {productImages[0] && <R2Image fileKey={productImages[0]} alt={productTitle} fill className="w-full h-full object-cover" />}
             </div>
-            <div className="flex-1 space-y-2">
+            <div className="flex-1">
               <h3 className="font-semibold text-lg">{productTitle}</h3>
               <div className="text-sm text-muted-foreground">
                 {selectedVariant ? (
@@ -127,7 +128,7 @@ export function VariantSelectionDialog({
                 )}
               </div>
               {effectivePrice > 0 && (
-                <div className="text-lg font-bold">
+                <div className="text-lg font-bold mt-2">
                   {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(effectivePrice)}
                 </div>
               )}
@@ -137,7 +138,7 @@ export function VariantSelectionDialog({
           {/* Middle section: Variant selection */}
           <div className="space-y-3">
             <h4 className="font-semibold flex items-center gap-2">
-              <Menu className="h-4 w-4" />
+              <Package className="h-4 w-4" />
               Choose Variant
             </h4>
             {activeVariants.length <= 4 ? (
@@ -147,31 +148,38 @@ export function VariantSelectionDialog({
                     key={variant.variantId}
                     type="button"
                     onClick={() => handleVariantSelect(variant.variantId)}
-                    className={`cursor-pointer relative w-full rounded-lg border transition-all duration-200 touch-manipulation overflow-hidden group ${
+                    className={`cursor-pointer relative w-full rounded-lg border transition-all duration-200 touch-manipulation overflow-hidden group p-3 ${
                       tempVariantId === variant.variantId ? 'border-primary bg-accent/10' : 'border-border hover:border-primary/30 bg-card'
                     }`}
                   >
-                    {variant.imageUrl && (
-                      <div className="aspect-square w-full overflow-hidden bg-secondary">
-                        <R2Image
-                          fileKey={variant.imageUrl}
-                          alt={variant.variantName}
-                          width={120}
-                          height={120}
-                          className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
-                    <div className="p-3">
-                      <div className="text-sm font-semibold text-primary text-left truncate">{variant.variantName}</div>
-                      <div className="text-xs font-medium text-muted-foreground">
-                        {new Intl.NumberFormat(undefined, {
-                          style: 'currency',
-                          currency: 'PHP',
-                        }).format(variant.price)}
+                    <div className="flex gap-3 items-center">
+                      {variant.imageUrl && (
+                        <div
+                          className="w-16 h-16 rounded-lg overflow-hidden bg-white flex-shrink-0 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleImageClick(variant.imageUrl!);
+                          }}
+                        >
+                          <R2Image
+                            fileKey={variant.imageUrl}
+                            alt={variant.variantName}
+                            fill
+                            className="object-cover border rounded-lg group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 flex flex-col text-left">
+                        <div className="text-sm font-semibold text-primary">{variant.variantName}</div>
+                        <div className="text-xs font-medium text-muted-foreground">
+                          {new Intl.NumberFormat(undefined, {
+                            style: 'currency',
+                            currency: 'PHP',
+                          }).format(variant.price)}
+                        </div>
                       </div>
                       {tempVariantId === variant.variantId && (
-                        <div className="absolute top-1 right-1 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
+                        <div className="h-4 w-4 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                           <Check className="h-3 w-3 text-primary" />
                         </div>
                       )}
@@ -221,9 +229,9 @@ export function VariantSelectionDialog({
                     key={size.id}
                     type="button"
                     onClick={() => handleSizeSelect(size.id)}
-                    className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-200 ${
+                    className={`px-4 py-2 cursor-pointer rounded-lg border text-sm font-medium transition-all duration-200 ${
                       tempSizeId === size.id
-                        ? 'border-accent bg-accent text-accent'
+                        ? 'border-primary bg-primary/10 text-primary'
                         : 'border-border hover:border-primary/30 bg-card hover:bg-primary/5'
                     }`}
                   >
@@ -255,6 +263,48 @@ export function VariantSelectionDialog({
             <Check className="h-4 w-4" />
             Use Selection
           </Button>
+        </div>
+      </DialogContent>
+
+      {/* Image Dialog */}
+      <ImageDialog imageUrl={selectedImageUrl} open={imageDialogOpen} onOpenChange={setImageDialogOpen} />
+    </Dialog>
+  );
+}
+
+function ImageDialog({ imageUrl, open, onOpenChange }: { imageUrl?: string; open: boolean; onOpenChange: (open: boolean) => void }) {
+  React.useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onOpenChange(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, onOpenChange]);
+
+  if (!imageUrl) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[95vw] md:max-w-4xl lg:max-w-5xl p-0 gap-0 bg-black/50 backdrop-blur-sm border-0" showCloseButton={true}>
+        <DialogTitle className="sr-only">Variant Image</DialogTitle>
+        <div className="relative w-full h-[90vh] max-h-[90vh] flex items-center justify-center p-4 md:p-8">
+          <div className="relative w-full h-full flex items-center justify-center">
+            <R2Image
+              fileKey={imageUrl}
+              alt="Variant image"
+              width={1200}
+              height={1200}
+              className="max-w-full max-h-[85vh] object-contain rounded-lg cursor-pointer"
+              priority
+              onClick={() => onOpenChange(false)}
+            />
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -4,6 +4,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import { useQuery, usePreloadedQuery, type Preloaded } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import { useThemeExclusionAuto } from '../../../stores/theme-exclusion';
 
 /**
  * Applies organization theme variables globally when on /o/[orgSlug].
@@ -74,6 +75,7 @@ export function OrgThemeController({ preloadedOrganization }: OrgThemeController
 // Inner component that applies the theme
 function OrgThemeControllerInner({ organization }: { organization: any }) {
   const pathname = usePathname();
+  const { shouldApplyTheme } = useThemeExclusionAuto();
 
   const orgSlugFromPath = React.useMemo(() => {
     if (!pathname) return undefined;
@@ -118,8 +120,8 @@ function OrgThemeControllerInner({ organization }: { organization: any }) {
       }
     };
 
-    // Only activate theming on /o/* routes
-    if (slugToUse) {
+    // Only activate theming on /o/* routes and exclude specified paths
+    if (shouldApplyTheme) {
       setVar('--primary', t?.primaryColor);
       setVar('--accent', t?.secondaryColor);
       setVar('--font-sans', t?.fontFamily);

@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import { R2Image } from '@/src/components/ui/r2-image';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, ShoppingBag, Users } from 'lucide-react';
 
 type Organization = Doc<'organizations'>;
 
@@ -185,9 +185,36 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                       </div>
                       <Badge variant="secondary">{org.organizationType}</Badge>
                     </div>
+
+                    {/* Stats section */}
+                    <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        <span className="font-medium">{org.memberCount}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <ShoppingBag className="h-3 w-3" />
+                        <span className="font-medium">{org.totalOrderCount}</span>
+                      </div>
+                    </div>
+
                     <div className="mt-2 line-clamp-2 text-sm text-muted-foreground min-h-[2.5rem]">{org.description || '—'}</div>
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">{org.memberCount} members</span>
+                      <div className="flex items-center gap-2">
+                        {org.industry && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                            {org.industry}
+                          </Badge>
+                        )}
+                        {org.size && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                            {org.size}
+                          </Badge>
+                        )}
+                        {!org.industry && !org.size && (
+                          <span className="text-xs text-muted-foreground">Active organization</span>
+                        )}
+                      </div>
                       {org.organizationType === 'PUBLIC' ? (
                         <Button
                           size="sm"
