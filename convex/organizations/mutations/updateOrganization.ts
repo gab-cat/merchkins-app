@@ -7,6 +7,7 @@ import {
   validateNotEmpty,
   validateStringLength,
   isOrganizationSlugUnique,
+  buildPublicUrl,
 } from '../../helpers';
 
 // Update organization details
@@ -112,9 +113,19 @@ export const updateOrganizationHandler = async (
     }
   }
 
+  // Build URL fields from keys
+  const urlUpdates: { logoUrl?: string; bannerImageUrl?: string } = {};
+  if (updates.logo !== undefined) {
+    urlUpdates.logoUrl = buildPublicUrl(updates.logo) || undefined;
+  }
+  if (updates.bannerImage !== undefined) {
+    urlUpdates.bannerImageUrl = buildPublicUrl(updates.bannerImage) || undefined;
+  }
+
   // Update organization
   await ctx.db.patch(organizationId, {
     ...updates,
+    ...urlUpdates,
     updatedAt: Date.now(),
   });
   
@@ -127,6 +138,7 @@ export const updateOrganizationHandler = async (
     const newName = updates.name ?? organization.name;
     const newSlug = updates.slug ?? organization.slug;
     const newLogo = updates.logo ?? organization.logo;
+    const newLogoUrl = logoChanged ? urlUpdates.logoUrl : organization.logoUrl;
     const newType = updates.organizationType ?? organization.organizationType;
 
     // organizationMembers
@@ -140,6 +152,7 @@ export const updateOrganizationHandler = async (
           name: newName,
           slug: newSlug,
           logo: newLogo,
+          logoUrl: newLogoUrl,
           organizationType: newType,
         },
         updatedAt: Date.now(),
@@ -157,6 +170,7 @@ export const updateOrganizationHandler = async (
           name: newName,
           slug: newSlug,
           logo: newLogo,
+          logoUrl: newLogoUrl,
         },
         updatedAt: Date.now(),
       });
@@ -173,6 +187,7 @@ export const updateOrganizationHandler = async (
           name: newName,
           slug: newSlug,
           logo: newLogo,
+          logoUrl: newLogoUrl,
         },
         updatedAt: Date.now(),
       });
@@ -189,6 +204,7 @@ export const updateOrganizationHandler = async (
           name: newName,
           slug: newSlug,
           logo: newLogo,
+          logoUrl: newLogoUrl,
         },
         updatedAt: Date.now(),
       });
@@ -205,6 +221,7 @@ export const updateOrganizationHandler = async (
           name: newName,
           slug: newSlug,
           logo: newLogo,
+          logoUrl: newLogoUrl,
         },
         updatedAt: Date.now(),
       });
@@ -221,6 +238,7 @@ export const updateOrganizationHandler = async (
           name: newName,
           slug: newSlug,
           logo: newLogo,
+          logoUrl: newLogoUrl,
         },
         updatedAt: Date.now(),
       });
@@ -237,6 +255,7 @@ export const updateOrganizationHandler = async (
           name: newName,
           slug: newSlug,
           logo: newLogo,
+          logoUrl: newLogoUrl,
         },
         updatedAt: Date.now(),
       });
@@ -253,6 +272,7 @@ export const updateOrganizationHandler = async (
           name: newName,
           slug: newSlug,
           logo: newLogo,
+          logoUrl: newLogoUrl,
         },
         updatedAt: Date.now(),
       });
@@ -269,6 +289,7 @@ export const updateOrganizationHandler = async (
           name: newName,
           slug: newSlug,
           logo: newLogo,
+          logoUrl: newLogoUrl,
         },
       });
     }

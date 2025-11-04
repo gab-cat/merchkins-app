@@ -52,7 +52,7 @@ export function FeaturedCategories (
           ? new Array(6).fill(null).map((_, i) => (
               <div
                 key={`skeleton-${i}`}
-                className="h-9 w-24 rounded-sm bg-secondary animate-pulse"
+                className="h-9 w-24 rounded-sm bg-secondary skeleton"
               />
             ))
           : categories.map((c) => (

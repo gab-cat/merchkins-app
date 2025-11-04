@@ -16,6 +16,11 @@ export const addItemArgs = {
   cartId: v.optional(v.id("carts")),
   productId: v.id("products"),
   variantId: v.optional(v.string()),
+  size: v.optional(v.object({
+    id: v.string(),
+    label: v.string(),
+    price: v.optional(v.number()),
+  })),
   quantity: v.number(),
   selected: v.optional(v.boolean()),
   note: v.optional(v.string()),
@@ -27,6 +32,11 @@ export const addItemHandler = async (
     cartId?: Id<"carts">;
     productId: Id<"products">;
     variantId?: string;
+    size?: {
+      id: string;
+      label: string;
+      price?: number;
+    };
     quantity: number;
     selected?: boolean;
     note?: string;
@@ -94,7 +104,20 @@ export const addItemHandler = async (
     if (!variant.isActive) {
       throw new Error("Variant is not available");
     }
-    price = variant.price;
+
+    // Validate size selection if variant has sizes
+    if (variant.sizes && variant.sizes.length > 0) {
+      if (!args.size) {
+        throw new Error("Size selection required for this variant");
+      }
+      const sizeExists = variant.sizes.some((s) => s.id === args.size!.id);
+      if (!sizeExists) {
+        throw new Error("Selected size not found for this variant");
+      }
+    }
+
+    // Compute effective price: size.price || variant.price
+    price = args.size?.price ?? variant.price;
     variantName = variant.variantName;
     variantInventory = variant.inventory;
   }
@@ -113,6 +136,7 @@ export const addItemHandler = async (
   const newItems = [...cart.embeddedItems];
   newItems.push({
     variantId: args.variantId,
+    size: args.size,
     productInfo: {
       productId: product._id,
       organizationId: product.organizationId,
@@ -171,10 +195,10 @@ export const addItemHandler = async (
     "add_cart_item",
     "DATA_CHANGE",
     "LOW",
-    `Added item to cart: ${product.title}${variantName ? ` (${variantName})` : ""}`,
+    `Added item to cart: ${product.title}${variantName ? ` (${variantName})` : ""}${args.size ? ` - ${args.size.label}` : ""}`,
     currentUser._id,
     undefined,
-    { cartId: cart._id, productId: product._id, variantId: args.variantId, quantity: quantityToAdd }
+    { cartId: cart._id, productId: product._id, variantId: args.variantId, size: args.size, quantity: quantityToAdd }
   );
 
   return cart._id;

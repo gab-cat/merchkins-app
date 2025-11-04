@@ -1,6 +1,6 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { Webhook } from "svix";
 
 const http = httpRouter();
@@ -133,6 +133,41 @@ http.route({
       return new Response("Webhook processed successfully", { status: 200 });
     } catch (error) {
       console.error("Error handling Xendit webhook:", error);
+      return new Response("Internal server error", { status: 500 });
+    }
+  }),
+});
+
+// Organization slug resolver for middleware
+http.route({
+  path: "/resolve-org",
+  method: "GET",
+  handler: httpAction(async (ctx, request) => {
+    try {
+      const url = new URL(request.url);
+      const slug = url.searchParams.get("slug");
+      console.log("Resolving organization slug:", slug);
+
+      if (!slug) {
+        return new Response("Missing slug parameter", { status: 400 });
+      }
+
+      const organization = await ctx.runQuery(api.organizations.queries.index.getOrganizationBySlug, {
+        slug,
+      });
+
+      console.log("Organization:", organization);
+
+      if (organization) {
+        return new Response(JSON.stringify({ slug: organization.slug }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      } else {
+        return new Response("Organization not found", { status: 404 });
+      }
+    } catch (error) {
+      console.error("Error resolving organization:", error);
       return new Response("Internal server error", { status: 500 });
     }
   }),

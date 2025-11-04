@@ -222,7 +222,27 @@
       hsl(var(--muted)) 75%
     );
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+    animation: shimmer 1.2s infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton {
+      animation: none;
+      background: hsl(var(--muted));
+    }
+
+    /* Disable Tailwind animations for reduced motion */
+    .animate-pulse {
+      animation: none;
+    }
+
+    .animate-bounce {
+      animation: none;
+    }
+
+    .animate-spin {
+      animation: none;
+    }
   }
 
   @keyframes shimmer {
@@ -464,5 +484,15 @@
   * {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+  }
+
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

@@ -12,8 +12,8 @@ export function FileUploadExample() {
   const [uploading, setUploading] = useState(false);
   const [uploadedKey, setUploadedKey] = useState<string | null>(null);
 
-  // Use the R2 hook for file upload - pass the entire r2 module
-  const uploadFile = useUploadFile(api.files.r2);
+  // Use the R2 hook for file upload - pass the files module (single entry point)
+  const uploadFile = useUploadFile(api.files.index);
   
   // Get the file URL using query
   const fileUrl = useQuery(
@@ -91,7 +91,7 @@ export function FileUploadExample() {
 export function ProductCreateExample() {
   const [productImages, setProductImages] = useState<string[]>([]);
   
-  const uploadFile = useUploadFile(api.files.r2);
+  const uploadFile = useUploadFile(api.files.index);
 
   const uploadProductImage = async (file: File): Promise<string> => {
     const key = await uploadFile(file);
@@ -101,7 +101,7 @@ export function ProductCreateExample() {
   const handleCreateProduct = async () => {
     try {
       // Note: You would need to implement a createProduct mutation that accepts image keys
-      // instead of URLs, following the R2 component pattern
+      // and automatically computes URLs using the buildPublicUrl helper, following the R2 component pattern
       console.log('Product images (keys):', productImages);
       console.log('Creating product with images...');
     } catch (error) {

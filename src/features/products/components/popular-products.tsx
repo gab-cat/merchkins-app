@@ -63,16 +63,16 @@ export function PopularProducts ({ orgSlug, preloadedOrganization, preloadedProd
           ? new Array(8).fill(null).map((_, i) => (
               <Card
                 key={`skeleton-${i}`}
-                className="overflow-hidden rounded-xl border bg-card shadow-sm py-0 animate-pulse"
+                className="overflow-hidden rounded-xl border bg-card shadow-sm py-0"
               >
                 <div className="aspect-[4/3] bg-secondary skeleton" />
                 <CardHeader className="p-3 space-y-2">
-                  <CardTitle className="h-4 w-2/3 rounded bg-secondary" />
-                  <div className="h-3 w-full rounded bg-secondary" />
+                  <CardTitle className="h-4 w-2/3 rounded bg-secondary skeleton" />
+                  <div className="h-3 w-full rounded bg-secondary skeleton" />
                 </CardHeader>
                 <CardContent className="flex items-center justify-between p-3">
-                  <span className="h-4 w-16 rounded bg-secondary" />
-                  <span className="h-3 w-12 rounded bg-secondary" />
+                  <span className="h-4 w-16 rounded bg-secondary skeleton" />
+                  <span className="h-3 w-12 rounded bg-secondary skeleton" />
                 </CardContent>
               </Card>
             ))

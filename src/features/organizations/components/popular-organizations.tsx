@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { Id } from '@/convex/_generated/dataModel'
 import { R2Image } from '@/src/components/ui/r2-image'
-import { Users, ShoppingBag } from 'lucide-react'
+import { Users, ShoppingBag, UserPlus } from 'lucide-react'
 import { fadeInUpContainer, fadeInUp } from '@/lib/animations'
 
 interface PopularOrganizationsProps {
@@ -216,9 +216,10 @@ export function PopularOrganizations ({ limit = 8, preloadedOrganizations }: Pop
                               size="sm"
                               data-testid={`join-org-${org.id}`}
                               aria-label={`Join ${org.name}`}
-                              className="h-7 px-2.5 text-xs hover:scale-105 transition-all duration-200"
+                              className="h-7 px-2.5 text-xs hover:scale-105 transition-all duration-200 gap-1.5"
                               onClick={(e) => handleJoin(e, org.id, org.organizationType)}
                             >
+                              <UserPlus className="h-3.5 w-3.5" />
                               Join
                             </Button>
                           ) : org.organizationType === 'PRIVATE' ? (

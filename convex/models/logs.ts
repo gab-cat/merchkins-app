@@ -28,6 +28,7 @@ export const logs = defineTable({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
   })),
   
   createdDate: v.number(),

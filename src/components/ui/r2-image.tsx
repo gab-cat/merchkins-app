@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Image, { type ImageProps } from 'next/image'
-import { cn } from '@/lib/utils'
+import { cn, buildR2PublicUrl } from '@/lib/utils'
 
 interface R2ImageProps extends Omit<ImageProps, 'src'> {
   fileKey?: string | null
@@ -24,18 +24,7 @@ export function R2Image ({
   const [hasError, setHasError] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
 
-  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL
-  const joinUrl = (a: string, b: string) =>
-    `${a.replace(/\/+$/u, '')}/${String(b).replace(/^\/+/, '')}`
-
-  const computedUrl = (() => {
-    if (!fileKey) return null
-    if (typeof fileKey === 'string' && /^https?:\/\//u.test(fileKey)) {
-      return fileKey
-    }
-    if (!baseUrl) return null
-    return joinUrl(baseUrl, fileKey as string)
-  })()
+  const computedUrl = buildR2PublicUrl(fileKey)
 
   const placeholder = (
     <div

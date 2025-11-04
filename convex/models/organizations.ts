@@ -7,7 +7,9 @@ export const organizations = defineTable({
   slug: v.string(),
   description: v.optional(v.string()),
   logo: v.optional(v.string()),
+  logoUrl: v.optional(v.string()),
   bannerImage: v.optional(v.string()),
+  bannerImageUrl: v.optional(v.string()),
   themeSettings: v.optional(v.object({
     // Brand Colors
     primaryColor: v.string(), // Main brand color (hex)
@@ -76,6 +78,7 @@ export const organizationMembers = defineTable({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
     organizationType: v.string(),
   }),
   
@@ -128,6 +131,7 @@ export const organizationInviteLinks = defineTable({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
   }),
   
   expiresAt: v.optional(v.number()),

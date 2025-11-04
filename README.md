@@ -204,6 +204,12 @@ All environment variables are documented in `.env.example`. Copy this file to `.
 | `NEXT_PUBLIC_APP_URL`    | Your application's public URL     | Your deployment URL (e.g., `https://app.merchkins.com`) |
 | `MAILGUN_API_KEY`        | Mailgun API key                   | Mailgun Dashboard → API Keys                            |
 | `MAILGUN_DOMAIN`         | Your Mailgun sending domain       | Mailgun Dashboard → Domains                             |
+| `R2_TOKEN`               | Cloudflare R2 API token           | Cloudflare R2 Dashboard → API Tokens<br>**Set in Convex env, not app env** |
+| `R2_ACCESS_KEY_ID`       | Cloudflare R2 access key ID       | Cloudflare R2 Dashboard → API Tokens<br>**Set in Convex env, not app env** |
+| `R2_SECRET_ACCESS_KEY`   | Cloudflare R2 secret access key   | Cloudflare R2 Dashboard → API Tokens<br>**Set in Convex env, not app env** |
+| `R2_ENDPOINT`            | Cloudflare R2 endpoint URL        | Cloudflare R2 Dashboard → API Tokens<br>**Set in Convex env, not app env** |
+| `R2_BUCKET`              | Cloudflare R2 bucket name         | Cloudflare R2 Dashboard → Buckets<br>**Set in Convex env, not app env** |
+| `NEXT_PUBLIC_R2_PUBLIC_URL` | Cloudflare R2 public URL       | Your R2 bucket's public domain (e.g., `https://files.merchkins.com`) |
 
 ### Optional Variables
 
@@ -297,6 +303,22 @@ R2 stores product images and other files:
 - Image uploads via presigned URLs
 - Automatic metadata syncing
 - CDN-enabled delivery
+
+**Setup Instructions:**
+1. Create a Cloudflare R2 bucket
+2. Create an API token with Object Read & Write permissions
+3. Set environment variables in Convex:
+   ```bash
+   bunx convex env set R2_TOKEN "your_r2_token"
+   bunx convex env set R2_ACCESS_KEY_ID "your_access_key_id"
+   bunx convex env set R2_SECRET_ACCESS_KEY "your_secret_access_key"
+   bunx convex env set R2_ENDPOINT "your_r2_endpoint"
+   bunx convex env set R2_BUCKET "your_bucket_name"
+   ```
+4. Set the public URL in your app environment:
+   ```
+   NEXT_PUBLIC_R2_PUBLIC_URL=https://your-bucket.your-account.r2.cloudflarestorage.com
+   ```
 
 ## 🗄️ Database Schema
 

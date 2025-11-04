@@ -1,6 +1,47 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 export default clerkMiddleware(async (auth, req) => {
+  // Handle subdomain redirects before auth
+  const hostname = req.nextUrl.hostname;
+  const isLocalhost = hostname === 'localhost';
+
+
+  console.log("Hostname:", hostname);
+  console.log("Is localhost:", isLocalhost);
+
+  // Only process subdomains on production domains
+  if (!isLocalhost && hostname.includes('.merchkins.com')) {
+    const subdomain = hostname.split('.')[0];
+
+    // Skip if subdomain is app, staging, or starts with preview
+    if (subdomain !== 'app' && subdomain !== 'staging' && !subdomain.startsWith('preview')) {
+      try {
+        const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+        if (!convexUrl) {
+          console.error('NEXT_PUBLIC_CONVEX_URL not configured');
+        } else {
+          // Check if organization exists
+          const resolverResponse = await fetch(`${convexUrl}/resolve-org?slug=${subdomain}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (resolverResponse.ok) {
+            // Organization exists, rewrite to storefront
+            const newUrl = new URL(`/o/${subdomain}`, req.url);
+            return NextResponse.rewrite(newUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking organization:', error);
+        // Continue normally if resolver fails
+      }
+    }
+  }
+
   if (!isPublicRoute(req)) {
     await auth.protect();
   }

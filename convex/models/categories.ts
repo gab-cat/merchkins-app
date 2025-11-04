@@ -11,6 +11,7 @@ export const categories = defineTable({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
   })),
   
   name: v.string(),

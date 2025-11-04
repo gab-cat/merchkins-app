@@ -15,6 +15,16 @@ export const updateItemVariantArgs = {
   productId: v.id("products"),
   oldVariantId: v.optional(v.string()),
   newVariantId: v.optional(v.string()),
+  oldSize: v.optional(v.object({
+    id: v.string(),
+    label: v.string(),
+    price: v.optional(v.number()),
+  })),
+  newSize: v.optional(v.object({
+    id: v.string(),
+    label: v.string(),
+    price: v.optional(v.number()),
+  })),
 };
 
 export const updateItemVariantHandler = async (
@@ -24,6 +34,16 @@ export const updateItemVariantHandler = async (
     productId: Id<"products">;
     oldVariantId?: string;
     newVariantId?: string;
+    oldSize?: {
+      id: string;
+      label: string;
+      price?: number;
+    };
+    newSize?: {
+      id: string;
+      label: string;
+      price?: number;
+    };
   }
 ): Promise<Id<"carts">> => {
   const currentUser = await requireAuthentication(ctx);
@@ -33,8 +53,11 @@ export const updateItemVariantHandler = async (
     throw new Error("Cannot modify another user's cart");
   }
 
-  // If old and new variant are the same, do nothing
-  if ((args.oldVariantId ?? null) === (args.newVariantId ?? null)) {
+  // If old and new variant/size are the same, do nothing
+  const oldSizeId = args.oldSize?.id ?? null;
+  const newSizeId = args.newSize?.id ?? null;
+  if ((args.oldVariantId ?? null) === (args.newVariantId ?? null) &&
+      oldSizeId === newSizeId) {
     return cart._id;
   }
 
@@ -78,7 +101,20 @@ export const updateItemVariantHandler = async (
     if (!variant.isActive) {
       throw new Error("New variant is not available");
     }
-    newPrice = variant.price;
+
+    // Validate size selection if variant has sizes
+    if (variant.sizes && variant.sizes.length > 0) {
+      if (!args.newSize) {
+        throw new Error("Size selection required for this variant");
+      }
+      const sizeExists = variant.sizes.some((s) => s.id === args.newSize!.id);
+      if (!sizeExists) {
+        throw new Error("Selected size not found for this variant");
+      }
+    }
+
+    // Compute effective price: size.price || variant.price
+    newPrice = args.newSize?.price ?? variant.price;
     newVariantName = variant.variantName;
     newVariantInventory = variant.inventory;
   }
@@ -90,23 +126,26 @@ export const updateItemVariantHandler = async (
   const now = Date.now();
   const items = [...cart.embeddedItems];
 
-  // Find the item with the old variant
+  // Find the item with the old variant and size
   const index = items.findIndex((i) => {
     if (i.productInfo.productId !== product._id) return false;
-    return (i.variantId ?? null) === (args.oldVariantId ?? null);
+    if ((i.variantId ?? null) !== (args.oldVariantId ?? null)) return false;
+    const itemSizeId = i.size?.id ?? null;
+    return itemSizeId === (args.oldSize?.id ?? null);
   });
 
   if (index === -1) {
     throw new Error("Item not found in cart");
   }
 
-  // Update the item with new variant info
+  // Update the item with new variant and size info
   const existingItem = items[index];
   const newQuantity = Math.min(existingItem.quantity, newVariantInventory);
 
   items[index] = {
     ...existingItem,
     variantId: args.newVariantId,
+    size: args.newSize,
     quantity: newQuantity,
     productInfo: {
       ...existingItem.productInfo,
@@ -143,6 +182,7 @@ export const updateItemVariantHandler = async (
   });
 
   // Update product stats - decrement old variant, increment new variant
+  // Note: We don't track size-level inventory separately, only variant-level
   const variantUpdates: Array<{ variantId: string; incrementInCart: number }> = [];
 
   if (args.oldVariantId) {
@@ -165,14 +205,16 @@ export const updateItemVariantHandler = async (
     "update_cart_item_variant",
     "DATA_CHANGE",
     "LOW",
-    `Updated item variant in cart: ${product.title}${newVariantName ? ` (${newVariantName})` : ""}`,
+    `Updated item variant in cart: ${product.title}${newVariantName ? ` (${newVariantName})` : ""}${args.newSize ? ` - ${args.newSize.label}` : ""}`,
     currentUser._id,
     undefined,
     {
       cartId: cart._id,
       productId: product._id,
       oldVariantId: args.oldVariantId,
-      newVariantId: args.newVariantId
+      oldSize: args.oldSize,
+      newVariantId: args.newVariantId,
+      newSize: args.newSize
     }
   );
 

@@ -30,6 +30,7 @@ export const orders = defineTable({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
   })),
   
   orderDate: v.number(),

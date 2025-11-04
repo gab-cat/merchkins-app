@@ -305,11 +305,35 @@ export function generateUniqueFilename(originalFilename: string): string {
 }
 
 /**
+ * Build public URL from R2 file key
+ * Returns deterministic public URL if NEXT_PUBLIC_R2_PUBLIC_URL is configured,
+ * otherwise returns the key as-is (caller should use signed URLs)
+ */
+export function buildPublicUrl(key: string): string | null {
+  if (!key) return null;
+
+  // If it's already a full URL, return as-is
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    return key;
+  }
+
+  // If we have a public base URL configured, construct the public URL
+  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+  if (baseUrl) {
+    return `${baseUrl.replace(/\/+$/, '')}/${key.replace(/^\/+/, '')}`;
+  }
+
+  // Return null if no public URL base is configured
+  // Caller should use r2.getUrl() for signed URLs instead
+  return null;
+}
+
+/**
  * Deep merge two objects
  */
 export function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial<T>): T {
   const result = { ...target };
-  
+
   for (const key in source) {
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
       result[key] = deepMerge(
@@ -320,6 +344,6 @@ export function deepMerge<T extends Record<string, unknown>>(target: T, source: 
       result[key] = source[key] as T[Extract<keyof T, string>];
     }
   }
-  
+
   return result;
 }

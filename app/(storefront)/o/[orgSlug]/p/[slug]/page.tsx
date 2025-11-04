@@ -51,7 +51,6 @@ export default async function Page ({ params }: PageProps) {
     <ProductDetailBoundary
       slug={slug}
       orgSlug={orgSlug}
-      preloadedOrganization={preloadedOrganization}
       preloadedProduct={preloadedProduct}
       preloadedRecommendations={preloadedRecommendations}
     />

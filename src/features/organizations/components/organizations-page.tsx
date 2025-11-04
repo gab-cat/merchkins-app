@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Doc, Id } from '@/convex/_generated/dataModel'
 import { R2Image } from '@/src/components/ui/r2-image'
+import { UserPlus } from 'lucide-react'
 
 type Organization = Doc<'organizations'>
 
@@ -197,9 +198,12 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">{org.memberCount} members</span>
                       {org.organizationType === 'PUBLIC' ? (
-                        <Button size="sm" onClick={async () => {
+                        <Button size="sm" className="gap-1.5" onClick={async () => {
                           await joinPublic({ organizationId: org._id })
-                        }}>Join</Button>
+                        }}>
+                          <UserPlus className="h-3.5 w-3.5" />
+                          Join
+                        </Button>
                       ) : (
                         <Button size="sm" variant="outline" onClick={async () => {
                           await requestJoin({ organizationId: org._id })

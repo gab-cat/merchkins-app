@@ -17,7 +17,14 @@ export const carts = defineTable({
   embeddedItems: v.array(v.object({
     // Variant identifier for the specific product variant (string id from product.variants)
     variantId: v.optional(v.string()),
-    
+
+    // Size selection for the variant (when variant has sizes)
+    size: v.optional(v.object({
+      id: v.string(),
+      label: v.string(),
+      price: v.optional(v.number()),
+    })),
+
     // Embedded product/variant info to avoid multiple joins
     productInfo: v.object({
       productId: v.id("products"),
@@ -32,7 +39,7 @@ export const carts = defineTable({
       originalPrice: v.optional(v.number()),
       inventory: v.number(),
     }),
-    
+
     quantity: v.number(),
     selected: v.boolean(),
     note: v.optional(v.string()),
@@ -63,7 +70,14 @@ export const carts = defineTable({
 export const cartItems = defineTable({
   cartId: v.id("carts"),
   variantId: v.optional(v.string()), // For products with variants
-  
+
+  // Size selection for the variant (when variant has sizes)
+  size: v.optional(v.object({
+    id: v.string(),
+    label: v.string(),
+    price: v.optional(v.number()),
+  })),
+
   // Embedded product/variant info
   productInfo: v.object({
     productId: v.id("products"),
@@ -77,7 +91,7 @@ export const cartItems = defineTable({
     originalPrice: v.optional(v.number()),
     inventory: v.number(),
   }),
-  
+
   quantity: v.number(),
   selected: v.boolean(),
   note: v.optional(v.string()),

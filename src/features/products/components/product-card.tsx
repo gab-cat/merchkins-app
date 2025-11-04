@@ -51,6 +51,7 @@ export function ProductCard ({
       aria-label={`View ${title}`}
       className={`group block h-full ${className}`}
       data-testid="product-card"
+      prefetch
     >
       <motion.div
         variants={fadeInUp}
@@ -112,7 +113,7 @@ export function ProductCard ({
             ) : (
               <span className="flex items-center gap-1 text-xs text-muted-foreground/60">
                 <Star size={12} className="text-muted-foreground/40" />
-                <span className="text-muted-foreground/60">No reviews yet</span>
+                <span className="text-muted-foreground/60">No reviews</span>
               </span>
             )}
           </div>

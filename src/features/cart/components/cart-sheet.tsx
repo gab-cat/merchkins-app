@@ -334,7 +334,7 @@ function MiniCartLineItem ({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-7 text-xs justify-between border-muted hover:border-primary/30"
+                        className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white"
                         aria-label="Select variant"
                       >
                         <span className="truncate">
@@ -377,7 +377,7 @@ function MiniCartLineItem ({
                 onClick={handleDec}
                 data-testid="cart-item-qty-decrease"
                 aria-label="Decrease quantity"
-                className="h-7 w-7 p-0 hover:bg-primary/10"
+                className="h-7 w-7 p-0 hover:bg-primary/10 bg-white"
               >
                 <Minus className="h-3 w-3" />
               </Button>
@@ -388,7 +388,7 @@ function MiniCartLineItem ({
                 onClick={handleInc}
                 data-testid="cart-item-qty-increase"
                 aria-label="Increase quantity"
-                className="h-7 w-7 p-0 hover:bg-primary/10"
+                className="h-7 w-7 p-0 hover:bg-primary/10 bg-white"
               >
                 <Plus className="h-3 w-3" />
               </Button>

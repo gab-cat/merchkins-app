@@ -21,6 +21,11 @@ export const addVariantArgs = {
   inventory: v.number(),
   imageUrl: v.optional(v.string()),
   isActive: v.optional(v.boolean()),
+  sizes: v.optional(v.array(v.object({
+    id: v.string(),
+    label: v.string(),
+    price: v.optional(v.number()),
+  }))),
 };
 
 export const addVariantHandler = async (
@@ -32,6 +37,11 @@ export const addVariantHandler = async (
     inventory: number;
     imageUrl?: string;
     isActive?: boolean;
+    sizes?: Array<{
+      id: string;
+      label: string;
+      price?: number;
+    }>;
   }
 ) => {
   // Require authentication
@@ -71,6 +81,7 @@ export const addVariantHandler = async (
     inventory: args.inventory,
     imageUrl: args.imageUrl,
     isActive: args.isActive !== undefined ? args.isActive : true,
+    sizes: args.sizes,
     orderCount: 0,
     inCartCount: 0,
     isPopular: false,
@@ -189,6 +200,11 @@ export const updateVariantArgs = {
   inventory: v.optional(v.number()),
   imageUrl: v.optional(v.string()),
   isActive: v.optional(v.boolean()),
+  sizes: v.optional(v.array(v.object({
+    id: v.string(),
+    label: v.string(),
+    price: v.optional(v.number()),
+  }))),
 };
 
 export const updateVariantHandler = async (
@@ -201,6 +217,11 @@ export const updateVariantHandler = async (
     inventory?: number;
     imageUrl?: string;
     isActive?: boolean;
+    sizes?: Array<{
+      id: string;
+      label: string;
+      price?: number;
+    }>;
   }
 ) => {
   // Require authentication
@@ -258,6 +279,7 @@ export const updateVariantHandler = async (
     inventory: args.inventory !== undefined ? args.inventory : existingVariant.inventory,
     imageUrl: args.imageUrl !== undefined ? args.imageUrl : existingVariant.imageUrl,
     isActive: args.isActive !== undefined ? args.isActive : existingVariant.isActive,
+    sizes: args.sizes !== undefined ? args.sizes : existingVariant.sizes,
     updatedAt: now,
   };
   
@@ -286,7 +308,7 @@ export const updateVariantHandler = async (
     `Updated variant in product: ${product.title}`,
     currentUser._id,
     product.organizationId,
-    { 
+    {
       productId: args.productId,
       variantId: args.variantId,
       changes: {
@@ -294,7 +316,8 @@ export const updateVariantHandler = async (
         price: args.price,
         inventory: args.inventory,
         imageUrl: args.imageUrl,
-        isActive: args.isActive
+        isActive: args.isActive,
+        sizes: args.sizes
       }
     }
   );

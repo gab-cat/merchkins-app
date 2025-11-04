@@ -27,6 +27,7 @@ export const messages = defineTable({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
   })),
   
   // Embedded reply context

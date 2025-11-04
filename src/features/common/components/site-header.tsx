@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useRouter } from 'next/navigation'
-import { ShoppingCart, Search, Building2, Package, User as UserIcon, MessageSquare, Ticket, ArrowRight } from 'lucide-react'
+import { ShoppingCart, Search, Building2, Package, User as UserIcon, MessageSquare, Ticket, ArrowRight, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -102,6 +102,11 @@ export function SiteHeader () {
   const totalTicketUnread = (ticketsUnread as { count?: number } | undefined)?.count || 0
   const totalSupportUnread = totalChatUnread + totalTicketUnread
 
+  // Show home button if on storefront or using another store's theme
+  const showHomeButton = useMemo(() => {
+    return !!orgSlugFromPath || (!!persistedSlug && !orgSlugFromPath)
+  }, [orgSlugFromPath, persistedSlug])
+
   function handleSearchSubmit (e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const q = search.trim()
@@ -117,29 +122,29 @@ export function SiteHeader () {
   }
 
   const headerClassName = cn(
-    'sticky top-0 z-40 w-full border-b pt-4',
-    'supports-[backdrop-filter]:backdrop-blur-sm',
-    organization && 'border-primary/40'
+    'sticky top-0 z-40 w-full border-b',
+    'supports-[backdrop-filter]:backdrop-blur-md',
+    organization && 'border-primary/20 shadow-sm'
   )
 
   return (
     <header
       className={headerClassName}
       style={{
-        backgroundColor: 'var(--header-bg)',
-        color: 'var(--header-fg)'
+        backgroundColor: organization ? 'rgba(255, 255, 255, 0.95)' : 'var(--header-bg)',
+        color: organization ? 'var(--foreground)' : 'var(--header-fg)'
       }}
     >
       {/* Main Header */}
-      <div className="container max-w-7xl mx-auto flex h-12 items-center gap-3 px-4">
+      <div className="container max-w-7xl mx-auto flex h-14 items-center gap-2 px-4">
         {/* Logo */}
         <Link
           href={orgSlug ? `/o/${orgSlug}` : '/'}
-          className="flex items-center gap-2 text-lg font-bold tracking-tight hover:scale-105 transition-transform duration-200"
-          style={{ color: 'var(--header-fg)' }}
+          className="flex items-center gap-2 font-bold tracking-tight transition-opacity hover:opacity-80"
+          style={{ color: organization ? 'var(--primary)' : 'var(--header-fg)' }}
         >
           <span className={cn(
-            'text-base md:text-2xl font-bold',
+            'text-lg md:text-xl font-bold',
             organization?.name ? '' : 'font-genty'
           )}>
             {organization?.name ?? (
@@ -151,43 +156,61 @@ export function SiteHeader () {
           </span>
         </Link>
 
-        {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} role="search" className="ml-1 hidden md:flex flex-1 max-w-md">
-          <div className="relative w-full">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 z-10 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search products..."
-              aria-label="Search products"
-              className="h-8 pl-9 text-sm pr-10 bg-white/90 backdrop-blur-sm rounded-full border-0 shadow-sm hover:shadow-md focus:shadow-md focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all duration-200 placeholder:text-muted-foreground/70"
-            />
-            <Button
-              type="submit"
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 rounded-full hover:bg-primary/10 hover:scale-110 transition-all duration-200"
-            >
-              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="sr-only">Search</span>
-            </Button>
-          </div>
-        </form>
+        {/* Home button - shown when on storefront or using another store's theme */}
+        {showHomeButton && (
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-xs px-2.5 h-9 hover:opacity-80 transition-all text-primary"
+            aria-label="Go back home"
+          >
+            <Link className='!text-xs' href="/">
+              <ArrowLeft className="h-2 w-2" />
+              <span className="hidden sm:inline text-xs">Go back home</span>
+            </Link>
+          </Button>
+        )}
 
         {/* Right side actions */}
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-2">
+          {/* Search Bar */}
+          <form onSubmit={handleSearchSubmit} role="search" className="hidden md:flex">
+            <div className="relative w-64">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 z-10 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search products..."
+                aria-label="Search products"
+                className="h-9 pl-10 text-sm pr-10 bg-white text-black rounded-full border border-border hover:border-primary/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all placeholder:text-muted-foreground"
+              />
+              <Button
+                type="submit"
+                variant="ghost"
+                size="sm"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 w-6 p-0 rounded-full hover:bg-primary/10 hover:-translate-y-1/2 transition-all"
+              >
+                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="sr-only">Search</span>
+              </Button>
+            </div>
+          </form>
           {/* Support dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-2 px-2 h-8 relative hover:scale-105 transition-all duration-200"
+                className={cn(
+                  "gap-1.5 px-2.5 h-9 relative hover:bg-gray-100/20 hover:opacity-80 transition-all",
+                  organization ? "text-primary hover:text-primary" : "text-white hover:text-white"
+                )}
               >
                 <MessageSquare className="h-4 w-4" />
                 <span className="hidden sm:inline text-sm">Support</span>
                 {totalSupportUnread > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center animate-pulse font-medium">
+                  <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center animate-pulse font-medium">
                     {totalSupportUnread}
                   </span>
                 )}
@@ -228,14 +251,12 @@ export function SiteHeader () {
           <SignedIn>
             <CartSheet initialCount={totalItems}>
               <Button
-                variant={orgSlug ? "default" : "ghost"}
+                variant="ghost"
                 aria-label="Cart"
                 size="sm"
                 className={cn(
-                  "gap-2 px-2 h-8 hover:scale-105 transition-all duration-200",
-                  orgSlug
-                    ? "text-black bg-white hover:bg-gray-100 shadow-sm hover:shadow-md" // Storefront page
-                    : "text-white hover:text-white" // Main page
+                  "gap-1.5 px-2.5 h-9 hover:bg-accent/20 hover:opacity-80 transition-all",
+                  organization ? "text-primary hover:text-primary" : "text-white hover:text-white"
                 )}
               >
                 <ShoppingCart className="h-4 w-4" />
@@ -245,26 +266,20 @@ export function SiteHeader () {
           </SignedIn>
 
           <SignedOut>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <SignInButton mode="modal">
                 <Button
-                  variant={"secondary"}
+                  variant="ghost"
                   size="sm"
-                  className="h-8 px-3 text-sm hover:scale-105 transition-all duration-200"
+                  className="h-9 px-3 text-sm hover:bg-accent/50 transition-colors"
                 >
                   Sign in
                 </Button>
               </SignInButton>
               <SignUpButton mode="modal">
                 <Button
-                  variant={"default"}
                   size="sm"
-                  className={cn(
-                    "px-3 h-8 text-sm hover:scale-105 transition-all duration-200",
-                    orgSlug
-                      ? "text-black border-black hover:bg-black hover:text-white shadow-sm hover:shadow-md" // Storefront page
-                      : "bg-brand-neon text-black hover:bg-brand-neon/90 shadow-sm hover:shadow-md" // Main page
-                  )}
+                  className="px-3 h-9 text-sm bg-primary hover:bg-primary/90 shadow-sm"
                 >
                   Register
                 </Button>
@@ -275,7 +290,7 @@ export function SiteHeader () {
             <UserButton afterSignOutUrl="/"
             appearance={{
                 elements: {
-                  userButtonAvatarBox: "!size-8 hover:scale-110 transition-transform duration-200",
+                  userButtonAvatarBox: "!size-8 hover:scale-105 transition-transform duration-200",
                   userButtonPopoverCard: "bg-white border shadow-lg",
                   userButtonPopoverActionButton: "text-neutral-700 hover:bg-accent/50 transition-colors",
                 }
@@ -299,30 +314,37 @@ export function SiteHeader () {
       </div>
 
       {/* Categories Bar */}
-      <div className="bg-white/95 backdrop-blur-sm shadow-sm">
-        <div className="w-full px-4 py-1.5">
-          <nav className="flex items-center gap-1 overflow-x-auto max-w-7xl mx-auto scrollbar-hide">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-7 px-2.5 text-primary font-medium hover:bg-primary/10 hover:text-primary hover:scale-105 transition-all duration-200 text-sm">
-                  Categories
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 animate-in fade-in-0 zoom-in-95">
-                {(topCategories?.categories ?? []).map((c) => (
-                  c && (
-                    <DropdownMenuItem key={c._id} asChild>
-                      <Link
-                        href={orgSlug ? `/o/${orgSlug}/c/${c.slug}` : `/c/${c.slug}`}
-                        className="w-full text-left text-primary hover:bg-accent/50 transition-colors"
-                      >
-                        {c.name}
-                      </Link>
-                    </DropdownMenuItem>
-                  )
+      <div className="border-t border-border/50 bg-white">
+        <div className="container max-w-7xl mx-auto px-4 py-2">
+          <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
+            {topCategories === undefined ? (
+              // Loading skeleton
+              <>
+                {new Array(8).fill(null).map((_, i) => (
+                  <div
+                    key={`skeleton-${i}`}
+                    className="w-20 rounded skeleton flex-shrink-0"
+                  />
                 ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </>
+            ) : (
+              // Categories
+              (topCategories?.categories ?? []).map((c) => (
+                c && (
+                  <Button
+                    key={c._id}
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="px-3 text-sm font-medium hover:bg-accent/20 transition-all text-primary whitespace-nowrap flex-shrink-0"
+                  >
+                    <Link href={orgSlug ? `/o/${orgSlug}/c/${c.slug}` : `/c/${c.slug}`}>
+                      {c.name}
+                    </Link>
+                  </Button>
+                )
+              ))
+            )}
           </nav>
         </div>
       </div>

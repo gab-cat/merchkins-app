@@ -31,6 +31,7 @@ export const announcements = defineTable({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
   })),
   
   content: v.string(),

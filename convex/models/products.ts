@@ -27,6 +27,7 @@ export const products = defineTable({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
   })),
   
   slug: v.string(),
@@ -51,12 +52,19 @@ export const products = defineTable({
     price: v.number(),
     inventory: v.number(),
     imageUrl: v.optional(v.string()),
-    
+
+    // Optional sizes for this variant (e.g., "M", "XL", "160mm")
+    sizes: v.optional(v.array(v.object({
+      id: v.string(),
+      label: v.string(),
+      price: v.optional(v.number()), // Optional price override for this size
+    }))),
+
     // Variant metrics
     orderCount: v.number(),
     inCartCount: v.number(),
     isPopular: v.boolean(),
-    
+
     createdAt: v.number(),
     updatedAt: v.number(),
   })),
@@ -140,6 +148,7 @@ export const reviews = defineTable({
 })
   .index("by_product", ["productId"])
   .index("by_user", ["userId"])
+  .index("by_user_product", ["userId", "productId"])
   .index("by_rating", ["rating"])
   .index("by_product_rating", ["productId", "rating"])
   .index("by_verified", ["isVerifiedPurchase"])

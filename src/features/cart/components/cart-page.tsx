@@ -298,7 +298,7 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-7 text-xs justify-between border-muted hover:border-primary/30"
+                          className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white"
                           aria-label="Select variant"
                         >
                           <span className="truncate">
@@ -340,7 +340,7 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                   size="sm"
                   onClick={handleDec}
                   aria-label="Decrease quantity"
-                  className="h-7 w-7 p-0 hover:bg-primary/10"
+                  className="h-7 w-7 p-0 hover:bg-primary/10 bg-white"
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
@@ -350,7 +350,7 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                   size="sm"
                   onClick={handleInc}
                   aria-label="Increase quantity"
-                  className="h-7 w-7 p-0 hover:bg-primary/10"
+                  className="h-7 w-7 p-0 hover:bg-primary/10 bg-white"
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
