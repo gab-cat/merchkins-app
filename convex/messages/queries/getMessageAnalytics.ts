@@ -1,30 +1,26 @@
-import { QueryCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import { requireAuthentication, requireOrganizationPermission, isDateInRange } from "../../helpers";
+import { QueryCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireAuthentication, requireOrganizationPermission, isDateInRange } from '../../helpers';
 
 export const getMessageAnalyticsArgs = {
-  organizationId: v.optional(v.id("organizations")),
+  organizationId: v.optional(v.id('organizations')),
   startDate: v.optional(v.number()),
   endDate: v.optional(v.number()),
 };
 
 export const getMessageAnalyticsHandler = async (
   ctx: QueryCtx,
-  args: { organizationId?: Id<"organizations">; startDate?: number; endDate?: number }
+  args: { organizationId?: Id<'organizations'>; startDate?: number; endDate?: number }
 ) => {
   const user = await requireAuthentication(ctx);
 
   let query;
   if (args.organizationId) {
-    await requireOrganizationPermission(ctx, args.organizationId, "MANAGE_TICKETS", "read");
-    query = ctx.db
-      .query("messages")
-      .withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!));
+    await requireOrganizationPermission(ctx, args.organizationId, 'MANAGE_TICKETS', 'read');
+    query = ctx.db.query('messages').withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!));
   } else {
-    query = ctx.db
-      .query("messages")
-      .withIndex("by_sender", (q) => q.eq("sentBy", user._id));
+    query = ctx.db.query('messages').withIndex('by_sender', (q) => q.eq('sentBy', user._id));
   }
 
   const rows = await query.collect();
@@ -62,9 +58,7 @@ export const getMessageAnalyticsHandler = async (
       }
     }
   }
-  const avgFirstResponseMs = responseTimes.length
-    ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length)
-    : null;
+  const avgFirstResponseMs = responseTimes.length ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length) : null;
 
   return {
     total,
@@ -75,5 +69,3 @@ export const getMessageAnalyticsHandler = async (
     avgFirstResponseMs,
   };
 };
-
-

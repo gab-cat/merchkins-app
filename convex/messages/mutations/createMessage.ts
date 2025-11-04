@@ -1,6 +1,6 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
 import {
   getOptionalCurrentUser,
   logAction,
@@ -9,26 +9,15 @@ import {
   validateNotEmpty,
   validateStringLength,
   validateOrganizationExists,
-} from "../../helpers";
+} from '../../helpers';
 
 export const createMessageArgs = {
-  organizationId: v.optional(v.id("organizations")),
+  organizationId: v.optional(v.id('organizations')),
   email: v.string(),
   subject: v.string(),
   message: v.string(),
-  messageType: v.union(
-    v.literal("INQUIRY"),
-    v.literal("COMPLAINT"),
-    v.literal("SUPPORT"),
-    v.literal("FEEDBACK"),
-    v.literal("REPLY")
-  ),
-  priority: v.union(
-    v.literal("LOW"),
-    v.literal("NORMAL"),
-    v.literal("HIGH"),
-    v.literal("URGENT")
-  ),
+  messageType: v.union(v.literal('INQUIRY'), v.literal('COMPLAINT'), v.literal('SUPPORT'), v.literal('FEEDBACK'), v.literal('REPLY')),
+  priority: v.union(v.literal('LOW'), v.literal('NORMAL'), v.literal('HIGH'), v.literal('URGENT')),
   attachments: v.optional(
     v.array(
       v.object({
@@ -45,12 +34,12 @@ export const createMessageArgs = {
 export const createMessageHandler = async (
   ctx: MutationCtx,
   args: {
-    organizationId?: Id<"organizations">;
+    organizationId?: Id<'organizations'>;
     email: string;
     subject: string;
     message: string;
-    messageType: "INQUIRY" | "COMPLAINT" | "SUPPORT" | "FEEDBACK" | "REPLY";
-    priority: "LOW" | "NORMAL" | "HIGH" | "URGENT";
+    messageType: 'INQUIRY' | 'COMPLAINT' | 'SUPPORT' | 'FEEDBACK' | 'REPLY';
+    priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
     attachments?: Array<{
       filename: string;
       url: string;
@@ -65,12 +54,12 @@ export const createMessageHandler = async (
 
   // Validate inputs
   if (!validateEmail(args.email)) {
-    throw new Error("Invalid email format");
+    throw new Error('Invalid email format');
   }
-  validateNotEmpty(args.subject, "Subject");
-  validateStringLength(args.subject, "Subject", 1, 200);
-  validateNotEmpty(args.message, "Message");
-  validateStringLength(args.message, "Message", 1, 5000);
+  validateNotEmpty(args.subject, 'Subject');
+  validateStringLength(args.subject, 'Subject', 1, 200);
+  validateNotEmpty(args.message, 'Message');
+  validateStringLength(args.message, 'Message', 1, 5000);
 
   // Sanitize strings
   const subject = sanitizeString(args.subject);
@@ -80,11 +69,13 @@ export const createMessageHandler = async (
   const attachments = (args.attachments || []).slice(0, 10);
 
   // Optionally embed organization info
-  let organizationInfo: {
-    name: string;
-    slug: string;
-    logo?: string;
-  } | undefined = undefined;
+  let organizationInfo:
+    | {
+        name: string;
+        slug: string;
+        logo?: string;
+      }
+    | undefined = undefined;
 
   if (args.organizationId) {
     const organization = await validateOrganizationExists(ctx, args.organizationId);
@@ -110,7 +101,7 @@ export const createMessageHandler = async (
   const isSentByCustomer = !isSentByAdmin;
 
   // Create initial message (root of a conversation)
-  const messageId = await ctx.db.insert("messages", {
+  const messageId = await ctx.db.insert('messages', {
     organizationId: args.organizationId,
     isArchived: false,
     isRead: isSentByAdmin ? true : false,
@@ -143,18 +134,11 @@ export const createMessageHandler = async (
   // Use the created id as the conversation id
   await ctx.db.patch(messageId, { conversationId: messageId as unknown as string, updatedAt: Date.now() });
 
-  await logAction(
-    ctx,
-    "create_message",
-    "DATA_CHANGE",
-    "MEDIUM",
-    `Created message: ${subject}`,
-    currentUser?._id,
-    args.organizationId,
-    { messageId, priority: args.priority, type: args.messageType }
-  );
+  await logAction(ctx, 'create_message', 'DATA_CHANGE', 'MEDIUM', `Created message: ${subject}`, currentUser?._id, args.organizationId, {
+    messageId,
+    priority: args.priority,
+    type: args.messageType,
+  });
 
   return messageId;
 };
-
-

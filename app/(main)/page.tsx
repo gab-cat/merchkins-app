@@ -1,25 +1,16 @@
-import React from 'react'
-import { HomeHero } from '@/src/features/products/components/home-hero'
-import { PopularProducts } from '@/src/features/products/components/popular-products'
-import { FeaturedCategories } from '@/src/features/categories/components/featured-categories'
-import type { Metadata } from 'next'
-import { PopularOrganizations } from '@/src/features/organizations/components/popular-organizations'
-import { preloadQuery } from 'convex/nextjs'
-import { api } from '@/convex/_generated/api'
+import React from 'react';
+import { HomeHero } from '@/src/features/products/components/home-hero';
+import { PopularProducts } from '@/src/features/products/components/popular-products';
+import { FeaturedCategories } from '@/src/features/categories/components/featured-categories';
+import type { Metadata } from 'next';
+import { PopularOrganizations } from '@/src/features/organizations/components/popular-organizations';
+import { preloadQuery } from 'convex/nextjs';
+import { api } from '@/convex/_generated/api';
 
-export default async function Page () {
-  const preloadedPopularProducts = await preloadQuery(
-    api.products.queries.index.getPopularProducts,
-    { limit: 8 }
-  )
-  const preloadedFeaturedCategories = await preloadQuery(
-    api.categories.queries.index.getCategories,
-    { isFeatured: true, isActive: true, limit: 6 }
-  )
-  const preloadedPopularOrganizations = await preloadQuery(
-    api.organizations.queries.index.getPopularOrganizations,
-    { limit: 8 }
-  )
+export default async function Page() {
+  const preloadedPopularProducts = await preloadQuery(api.products.queries.index.getPopularProducts, { limit: 8 });
+  const preloadedFeaturedCategories = await preloadQuery(api.categories.queries.index.getCategories, { isFeatured: true, isActive: true, limit: 6 });
+  const preloadedPopularOrganizations = await preloadQuery(api.organizations.queries.index.getPopularOrganizations, { limit: 8 });
 
   return (
     <div className="w-full">
@@ -40,10 +31,10 @@ export default async function Page () {
         </div>
       </section>
     </div>
-  )
+  );
 }
 
 export const metadata: Metadata = {
   title: 'Merchkins Storefront',
   description: 'Discover popular products and categories on Merchkins.',
-}
+};

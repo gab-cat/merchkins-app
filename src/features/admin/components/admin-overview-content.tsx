@@ -1,18 +1,18 @@
-"use client"
+'use client';
 
-import { useQuery } from 'convex/react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { api } from '@/convex/_generated/api'
-import { Doc } from '@/convex/_generated/dataModel'
-import { Package, Users, Star, Megaphone, TrendingUp, ShoppingBag, type LucideIcon } from 'lucide-react'
+import { useQuery } from 'convex/react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { api } from '@/convex/_generated/api';
+import { Doc } from '@/convex/_generated/dataModel';
+import { Package, Users, Star, Megaphone, TrendingUp, ShoppingBag, type LucideIcon } from 'lucide-react';
 
 interface StatProps {
-  title: string
-  value: string
+  title: string;
+  value: string;
 }
 
-function Stat ({ title, value, icon: Icon, trend }: StatProps & { icon?: LucideIcon; trend?: string }) {
+function Stat({ title, value, icon: Icon, trend }: StatProps & { icon?: LucideIcon; trend?: string }) {
   return (
     <Card className="transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <CardContent className="p-4">
@@ -35,19 +35,16 @@ function Stat ({ title, value, icon: Icon, trend }: StatProps & { icon?: LucideI
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-export function AdminOverviewContent () {
-  const products = useQuery(
-    api.products.queries.index.getProducts,
-    { limit: 5 }
-  )
+export function AdminOverviewContent() {
+  const products = useQuery(api.products.queries.index.getProducts, { limit: 5 });
   const announcements = useQuery(api.announcements.queries.index.getAnnouncements, {
     targetAudience: 'ADMINS',
     limit: 5,
-  })
-  const loading = products === undefined || announcements === undefined
+  });
+  const loading = products === undefined || announcements === undefined;
 
   return (
     <div className="space-y-8">
@@ -99,33 +96,17 @@ export function AdminOverviewContent () {
           </>
         ) : (
           <>
-            <Stat
-              title="Total Products"
-              value={String(products?.total ?? 0)}
-              icon={Package}
-              trend="+12% this month"
-            />
+            <Stat title="Total Products" value={String(products?.total ?? 0)} icon={Package} trend="+12% this month" />
             <Stat
               title="Product Variants"
-              value={String(
-                products?.products.reduce(
-                  (count, p) => count + p.totalVariants,
-                  0
-                ) ?? 0
-              )}
+              value={String(products?.products.reduce((count, p) => count + p.totalVariants, 0) ?? 0)}
               icon={ShoppingBag}
               trend="+8% this week"
             />
             <Stat
               title="Average Rating"
               value={String(
-                Math.round(
-                  ((products?.products.reduce(
-                    (sum, p) => sum + p.rating,
-                    0
-                  ) ?? 0) /
-                    Math.max(1, products?.products.length ?? 1)) * 10
-                ) / 10
+                Math.round(((products?.products.reduce((sum, p) => sum + p.rating, 0) ?? 0) / Math.max(1, products?.products.length ?? 1)) * 10) / 10
               )}
               icon={Star}
               trend="4.7/5 overall"
@@ -161,18 +142,18 @@ export function AdminOverviewContent () {
               </div>
             ) : (announcements?.announcements || []).length > 0 ? (
               <div className="space-y-3">
-                {(announcements?.announcements || []).map((a: Doc<"announcements">) => (
+                {(announcements?.announcements || []).map((a: Doc<'announcements'>) => (
                   <div key={a._id} className="rounded-lg border bg-card p-4 shadow-sm hover:bg-accent/30 hover:shadow-md transition-all duration-200">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <Badge variant="outline" className="text-xs px-2 py-0.5">
                           {a.category || 'general'}
                         </Badge>
-                        <div className="truncate font-semibold text-sm" title={a.title}>{a.title}</div>
+                        <div className="truncate font-semibold text-sm" title={a.title}>
+                          {a.title}
+                        </div>
                       </div>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(a.publishedAt).toLocaleDateString()}
-                      </span>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">{new Date(a.publishedAt).toLocaleDateString()}</span>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{a.content}</p>
                   </div>
@@ -222,9 +203,7 @@ export function AdminOverviewContent () {
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
-export default AdminOverviewContent
-
-
+export default AdminOverviewContent;

@@ -1,38 +1,38 @@
-"use client"
+'use client';
 
-import React, { useEffect, useRef } from 'react'
-import { useParams } from 'next/navigation'
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import type { Id, Doc } from '@/convex/_generated/dataModel'
-import { ChatThread } from '@/src/features/chats/components/chat-thread'
-import { ChatInput } from '@/src/features/chats/components/chat-input'
-import { useAuth } from '@clerk/nextjs'
+import React, { useEffect, useRef } from 'react';
+import { useParams } from 'next/navigation';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id, Doc } from '@/convex/_generated/dataModel';
+import { ChatThread } from '@/src/features/chats/components/chat-thread';
+import { ChatInput } from '@/src/features/chats/components/chat-input';
+import { useAuth } from '@clerk/nextjs';
 
-type ChatMessage = Doc<"chatMessages">
+type ChatMessage = Doc<'chatMessages'>;
 
-export default function AdminChatDetailPage () {
-  const params = useParams() as { id: string }
-  const room = useQuery(api.chats.queries.index.getChatRoomById, { chatRoomId: params.id as Id<'chatRooms'> })
-  const messages = useQuery(api.chats.queries.index.getMessages, { chatRoomId: params.id as Id<'chatRooms'>, limit: 100 })
-  const sendMessage = useMutation(api.chats.mutations.index.sendMessage)
-  const { userId: clerkId } = useAuth()
-  const me = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip')
+export default function AdminChatDetailPage() {
+  const params = useParams() as { id: string };
+  const room = useQuery(api.chats.queries.index.getChatRoomById, { chatRoomId: params.id as Id<'chatRooms'> });
+  const messages = useQuery(api.chats.queries.index.getMessages, { chatRoomId: params.id as Id<'chatRooms'>, limit: 100 });
+  const sendMessage = useMutation(api.chats.mutations.index.sendMessage);
+  const { userId: clerkId } = useAuth();
+  const me = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip');
 
-  const listRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight
-  }, [messages])
+    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+  }, [messages]);
 
-  const messagesLoading = messages === undefined
-  const list = messages ?? []
+  const messagesLoading = messages === undefined;
+  const list = messages ?? [];
 
-  async function handleSend (content: string) {
-    await sendMessage({ chatRoomId: params.id as Id<'chatRooms'>, content })
+  async function handleSend(content: string) {
+    await sendMessage({ chatRoomId: params.id as Id<'chatRooms'>, content });
   }
 
-  if (room === null) return <div className="py-12">Chat not found.</div>
+  if (room === null) return <div className="py-12">Chat not found.</div>;
 
   return (
     <div className="flex h-full flex-col">
@@ -49,7 +49,5 @@ export default function AdminChatDetailPage () {
         <ChatInput onSend={handleSend} disabled={!me || messagesLoading} />
       </div>
     </div>
-  )
+  );
 }
-
-

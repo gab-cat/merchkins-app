@@ -1,13 +1,13 @@
-import { query } from "../../_generated/server";
+import { query } from '../../_generated/server';
 
-import { getChatRoomByIdArgs, getChatRoomByIdHandler } from "./getChatRoomById";
-import { getChatRoomsArgs, getChatRoomsHandler } from "./getChatRooms";
-import { getChatRoomsPageArgs, getChatRoomsPageHandler } from "./getChatRoomsPage";
-import { getMessagesArgs, getMessagesHandler } from "./getMessages";
-import { searchChatsArgs, searchChatsHandler } from "./searchChats";
-import { getTypingUsersArgs, getTypingUsersHandler } from "./getTypingUsers";
-import { getUnreadCountsArgs, getUnreadCountsHandler } from "./getUnreadCounts";
-import { getUnreadCountArgs, getUnreadCountHandler } from "./getUnreadCount";
+import { getChatRoomByIdArgs, getChatRoomByIdHandler } from './getChatRoomById';
+import { getChatRoomsArgs, getChatRoomsHandler } from './getChatRooms';
+import { getChatRoomsPageArgs, getChatRoomsPageHandler } from './getChatRoomsPage';
+import { getMessagesArgs, getMessagesHandler } from './getMessages';
+import { searchChatsArgs, searchChatsHandler } from './searchChats';
+import { getTypingUsersArgs, getTypingUsersHandler } from './getTypingUsers';
+import { getUnreadCountsArgs, getUnreadCountsHandler } from './getUnreadCounts';
+import { getUnreadCountArgs, getUnreadCountHandler } from './getUnreadCount';
 
 export const getChatRoomById = query({
   args: getChatRoomByIdArgs,
@@ -48,5 +48,3 @@ export const getUnreadCount = query({
   args: getUnreadCountArgs,
   handler: getUnreadCountHandler,
 });
-
-

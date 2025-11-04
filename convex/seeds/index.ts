@@ -14,13 +14,7 @@ export const seedAction = action({
       throw new Error('Invalid seed secret');
     }
 
-    const result: { ok: boolean } = await ctx.runMutation(
-      internal.seeds.seedData.seedData,
-      {},
-    );
+    const result: { ok: boolean } = await ctx.runMutation(internal.seeds.seedData.seedData, {});
     return result;
   },
 });
-
-
-

@@ -1,17 +1,17 @@
-"use client"
+'use client';
 
-import React, { PropsWithChildren } from 'react'
-import { Input } from '@/components/ui/input'
+import React, { PropsWithChildren } from 'react';
+import { Input } from '@/components/ui/input';
 
 interface ChatLayoutProps {
-  title: string
-  subtitle?: string
-  sidebar?: React.ReactNode
-  onSearch?: (value: string) => void
-  hideRightHeader?: boolean
+  title: string;
+  subtitle?: string;
+  sidebar?: React.ReactNode;
+  onSearch?: (value: string) => void;
+  hideRightHeader?: boolean;
 }
 
-export function ChatLayout ({ title, subtitle, sidebar, onSearch, hideRightHeader, children }: PropsWithChildren<ChatLayoutProps>) {
+export function ChatLayout({ title, subtitle, sidebar, onSearch, hideRightHeader, children }: PropsWithChildren<ChatLayoutProps>) {
   return (
     <div className={`grid h-[calc(100vh-8rem)] grid-cols-1 gap-4 ${sidebar ? 'md:grid-cols-[360px_1fr]' : ''}`}>
       {sidebar && (
@@ -24,9 +24,7 @@ export function ChatLayout ({ title, subtitle, sidebar, onSearch, hideRightHeade
               </div>
             )}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-2">
-            {sidebar}
-          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-2">{sidebar}</div>
         </aside>
       )}
       <section className="flex min-h-0 flex-col rounded-md border">
@@ -39,9 +37,7 @@ export function ChatLayout ({ title, subtitle, sidebar, onSearch, hideRightHeade
         <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       </section>
     </div>
-  )
+  );
 }
 
-export default ChatLayout
-
-
+export default ChatLayout;

@@ -1,6 +1,6 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
 import {
   requireAuthentication,
   validateUserExists,
@@ -10,11 +10,11 @@ import {
   validatePositiveNumber,
   logAction,
   requireOrganizationPermission,
-} from "../../helpers";
-import { internal } from "../../_generated/api";
+} from '../../helpers';
+import { internal } from '../../_generated/api';
 
 type OrderItemInput = {
-  productId: Id<"products">;
+  productId: Id<'products'>;
   variantId?: string;
   quantity: number;
   price?: number; // Optional override for staff/admin custom pricing
@@ -22,19 +22,19 @@ type OrderItemInput = {
 };
 
 export const createOrderArgs = {
-  organizationId: v.optional(v.id("organizations")),
-  customerId: v.id("users"),
-  processedById: v.optional(v.id("users")),
+  organizationId: v.optional(v.id('organizations')),
+  customerId: v.id('users'),
+  processedById: v.optional(v.id('users')),
   items: v.array(
     v.object({
-      productId: v.id("products"),
+      productId: v.id('products'),
       variantId: v.optional(v.string()),
       quantity: v.number(),
       price: v.optional(v.number()),
       customerNote: v.optional(v.string()),
     })
   ),
-  paymentPreference: v.optional(v.union(v.literal("FULL"), v.literal("DOWNPAYMENT"))),
+  paymentPreference: v.optional(v.union(v.literal('FULL'), v.literal('DOWNPAYMENT'))),
   estimatedDelivery: v.optional(v.number()),
   customerNotes: v.optional(v.string()),
 };
@@ -42,8 +42,8 @@ export const createOrderArgs = {
 function generateOrderNumber(now: number): string {
   const d = new Date(now);
   const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(d.getUTCDate()).padStart(2, "0");
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
   const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `ORD-${y}${m}${day}-${rand}`;
 }
@@ -51,11 +51,11 @@ function generateOrderNumber(now: number): string {
 export const createOrderHandler = async (
   ctx: MutationCtx,
   args: {
-    organizationId?: Id<"organizations">;
-    customerId: Id<"users">;
-    processedById?: Id<"users">;
+    organizationId?: Id<'organizations'>;
+    customerId: Id<'users'>;
+    processedById?: Id<'users'>;
     items: Array<OrderItemInput>;
-    paymentPreference?: "FULL" | "DOWNPAYMENT";
+    paymentPreference?: 'FULL' | 'DOWNPAYMENT';
     estimatedDelivery?: number;
     customerNotes?: string;
   }
@@ -63,11 +63,11 @@ export const createOrderHandler = async (
   const currentUser = await requireAuthentication(ctx);
 
   // Basic validation
-  validateArrayNotEmpty(args.items, "Order items");
+  validateArrayNotEmpty(args.items, 'Order items');
   for (const item of args.items) {
-    validatePositiveNumber(item.quantity, "Item quantity");
+    validatePositiveNumber(item.quantity, 'Item quantity');
     if (item.price !== undefined) {
-      validatePositiveNumber(item.price, "Item price");
+      validatePositiveNumber(item.price, 'Item price');
     }
   }
 
@@ -79,28 +79,20 @@ export const createOrderHandler = async (
   if (args.organizationId) {
     const organization = await validateOrganizationExists(ctx, args.organizationId);
     // Enforce organization visibility for purchase
-    if (organization.organizationType !== "PUBLIC") {
+    if (organization.organizationType !== 'PUBLIC') {
       const isPrivileged = currentUser.isAdmin || currentUser.isStaff;
       if (!isPrivileged) {
         // Customer must be a member to order within private/secret org scope
         const membership = await ctx.db
-          .query("organizationMembers")
-          .withIndex("by_user_organization", (q) =>
-            q
-              .eq("userId", customer._id)
-              .eq("organizationId", args.organizationId!),
-          )
-          .filter((q) => q.eq(q.field("isActive"), true))
+          .query('organizationMembers')
+          .withIndex('by_user_organization', (q) => q.eq('userId', customer._id).eq('organizationId', args.organizationId!))
+          .filter((q) => q.eq(q.field('isActive'), true))
           .first();
         if (!membership) {
-          if (organization.organizationType === "PRIVATE") {
-            throw new Error(
-              "Membership required to place orders in this private organization.",
-            );
+          if (organization.organizationType === 'PRIVATE') {
+            throw new Error('Membership required to place orders in this private organization.');
           }
-          throw new Error(
-            "This organization is invite-only. You must join via invite to place orders.",
-          );
+          throw new Error('This organization is invite-only. You must join via invite to place orders.');
         }
       }
     }
@@ -109,11 +101,11 @@ export const createOrderHandler = async (
       slug: organization.slug,
       logo: organization.logo,
     };
-    await requireOrganizationPermission(ctx, args.organizationId, "MANAGE_ORDERS", "create");
+    await requireOrganizationPermission(ctx, args.organizationId, 'MANAGE_ORDERS', 'create');
   } else {
     // If no organization scope, allow placing orders for self; staff/admin can place for others
     if (currentUser._id !== args.customerId && !currentUser.isStaff && !currentUser.isAdmin) {
-      throw new Error("You can only create orders for yourself");
+      throw new Error('You can only create orders for yourself');
     }
   }
 
@@ -139,7 +131,7 @@ export const createOrderHandler = async (
   // Build item snapshots and validate inventory
   type PreparedItem = {
     variantId?: string;
-    productId: Id<"products">;
+    productId: Id<'products'>;
     quantity: number;
     price: number;
     originalPrice: number;
@@ -151,7 +143,7 @@ export const createOrderHandler = async (
       imageUrl: string[];
       variantName?: string;
       categoryName?: string;
-      organizationId?: Id<"organizations">;
+      organizationId?: Id<'organizations'>;
     };
   };
 
@@ -165,33 +157,25 @@ export const createOrderHandler = async (
 
     // If organization-scoped, ensure product belongs to same organization (or product is global)
     if (args.organizationId && product.organizationId && product.organizationId !== args.organizationId) {
-      throw new Error("All items must belong to the same organization as the order");
+      throw new Error('All items must belong to the same organization as the order');
     }
 
     // If not organization-scoped (global order), enforce org visibility per product
     if (!args.organizationId && product.organizationId) {
       const org = await ctx.db.get(product.organizationId);
-      if (org && !org.isDeleted && org.organizationType !== "PUBLIC") {
+      if (org && !org.isDeleted && org.organizationType !== 'PUBLIC') {
         const isPrivileged = currentUser.isAdmin || currentUser.isStaff;
         if (!isPrivileged) {
           const membership = await ctx.db
-            .query("organizationMembers")
-            .withIndex("by_user_organization", (q) =>
-              q
-                .eq("userId", customer._id)
-                .eq("organizationId", product.organizationId!),
-            )
-            .filter((q) => q.eq(q.field("isActive"), true))
+            .query('organizationMembers')
+            .withIndex('by_user_organization', (q) => q.eq('userId', customer._id).eq('organizationId', product.organizationId!))
+            .filter((q) => q.eq(q.field('isActive'), true))
             .first();
           if (!membership) {
-            if (org.organizationType === "PRIVATE") {
-              throw new Error(
-                "Membership required to buy from this private organization.",
-              );
+            if (org.organizationType === 'PRIVATE') {
+              throw new Error('Membership required to buy from this private organization.');
             }
-            throw new Error(
-              "This organization is invite-only. You must join via invite to buy.",
-            );
+            throw new Error('This organization is invite-only. You must join via invite to buy.');
           }
         }
       }
@@ -202,12 +186,12 @@ export const createOrderHandler = async (
     let availableInventory = product.inventory;
 
     if (item.variantId) {
-      const variant = product.variants.find(vx => vx.variantId === item.variantId);
+      const variant = product.variants.find((vx) => vx.variantId === item.variantId);
       if (!variant) {
-        throw new Error("Variant not found for product");
+        throw new Error('Variant not found for product');
       }
       if (!variant.isActive) {
-        throw new Error("Variant is not available");
+        throw new Error('Variant is not available');
       }
       basePrice = variant.price;
       variantName = variant.variantName;
@@ -215,15 +199,15 @@ export const createOrderHandler = async (
     }
 
     // Enforce inventory for STOCK items
-    if (product.inventoryType === "STOCK") {
+    if (product.inventoryType === 'STOCK') {
       if (availableInventory < item.quantity) {
-        throw new Error("Insufficient inventory for one or more items");
+        throw new Error('Insufficient inventory for one or more items');
       }
     }
 
     const allowOverride = currentUser.isStaff || currentUser.isAdmin;
     const priceToCharge = item.price !== undefined && allowOverride ? item.price : basePrice;
-    const appliedRole = priceToCharge !== basePrice ? "STAFF_OVERRIDE" : "STANDARD";
+    const appliedRole = priceToCharge !== basePrice ? 'STAFF_OVERRIDE' : 'STANDARD';
 
     preparedItems.push({
       variantId: item.variantId,
@@ -281,27 +265,28 @@ export const createOrderHandler = async (
     processorInfo,
     organizationInfo,
     orderDate: now,
-    status: "PENDING" as const,
-    paymentStatus: "PENDING" as const,
+    status: 'PENDING' as const,
+    paymentStatus: 'PENDING' as const,
     cancellationReason: undefined,
-    embeddedItems: preparedItems.length <= 20
-      ? preparedItems.map((it) => ({
-          variantId: it.variantId,
-          productInfo: {
-            productId: it.productId,
-            title: it.productSnapshot.title,
-            slug: it.productSnapshot.slug,
-            imageUrl: it.productSnapshot.imageUrl,
-            variantName: it.productSnapshot.variantName,
-            categoryName: it.productSnapshot.categoryName,
-          },
-          quantity: it.quantity,
-          price: it.price,
-          originalPrice: it.originalPrice,
-          appliedRole: it.appliedRole,
-          customerNote: it.customerNote,
-        }))
-      : undefined,
+    embeddedItems:
+      preparedItems.length <= 20
+        ? preparedItems.map((it) => ({
+            variantId: it.variantId,
+            productInfo: {
+              productId: it.productId,
+              title: it.productSnapshot.title,
+              slug: it.productSnapshot.slug,
+              imageUrl: it.productSnapshot.imageUrl,
+              variantName: it.productSnapshot.variantName,
+              categoryName: it.productSnapshot.categoryName,
+            },
+            quantity: it.quantity,
+            price: it.price,
+            originalPrice: it.originalPrice,
+            appliedRole: it.appliedRole,
+            customerNote: it.customerNote,
+          }))
+        : undefined,
     totalAmount,
     discountAmount,
     itemCount: preparedItems.reduce((sum, it) => sum + it.quantity, 0),
@@ -312,10 +297,10 @@ export const createOrderHandler = async (
     paymentPreference: args.paymentPreference,
     recentStatusHistory: [
       {
-        status: "PENDING",
+        status: 'PENDING',
         changedBy: currentUser._id,
-        changedByName: `${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`.trim() || currentUser.email,
-        reason: "Order created",
+        changedByName: `${currentUser.firstName ?? ''} ${currentUser.lastName ?? ''}`.trim() || currentUser.email,
+        reason: 'Order created',
         changedAt: now,
       },
     ],
@@ -325,12 +310,12 @@ export const createOrderHandler = async (
   };
 
   // Insert order
-  const orderId = await ctx.db.insert("orders", orderDoc);
+  const orderId = await ctx.db.insert('orders', orderDoc);
 
   // For large orders, insert separate order items
   if (!orderDoc.embeddedItems) {
     for (const it of preparedItems) {
-      await ctx.db.insert("orderItems", {
+      await ctx.db.insert('orderItems', {
         orderId,
         variantId: it.variantId,
         productInfo: {
@@ -344,7 +329,7 @@ export const createOrderHandler = async (
         quantity: it.quantity,
         price: it.price,
         originalPrice: it.originalPrice,
-        appliedRole: "STANDARD",
+        appliedRole: 'STANDARD',
         customerNote: it.customerNote,
         createdAt: now,
         updatedAt: now,
@@ -357,7 +342,7 @@ export const createOrderHandler = async (
   // - Increment variant orderCount by quantity
   // - Decrement inventory for STOCK items
   for (const [productIdStr, totalQty] of productIdToQty.entries()) {
-    const productId = productIdStr as unknown as Id<"products">;
+    const productId = productIdStr as unknown as Id<'products'>;
     const product = await ctx.db.get(productId);
     if (!product) continue;
 
@@ -366,9 +351,9 @@ export const createOrderHandler = async (
 
     if (variantMap) {
       for (const [variantId, qty] of variantMap.entries()) {
-        const existing = product.variants.find(vx => vx.variantId === variantId);
+        const existing = product.variants.find((vx) => vx.variantId === variantId);
         let newInventory: number | undefined = undefined;
-        if (existing && product.inventoryType === "STOCK") {
+        if (existing && product.inventoryType === 'STOCK') {
           newInventory = Math.max(0, existing.inventory - qty);
         }
         variantUpdates.push({ variantId, incrementOrders: qty, newInventory });
@@ -382,7 +367,7 @@ export const createOrderHandler = async (
     });
 
     // Update product-level inventory if STOCK and product tracks aggregate inventory
-    if (product.inventoryType === "STOCK") {
+    if (product.inventoryType === 'STOCK') {
       const aggregateQty = totalQty;
       const newProductInventory = Math.max(0, (product.inventory || 0) - aggregateQty);
       await ctx.db.patch(productId, { inventory: newProductInventory, updatedAt: now });
@@ -420,7 +405,7 @@ export const createOrderHandler = async (
     });
     // Increment org member activity for processor/current user
     try {
-      const memberId = (args.processedById ?? (currentUser.isStaff || currentUser.isAdmin ? currentUser._id : undefined));
+      const memberId = args.processedById ?? (currentUser.isStaff || currentUser.isAdmin ? currentUser._id : undefined);
       if (memberId) {
         await ctx.runMutation(internal.organizations.mutations.index.updateMemberActivity, {
           userId: memberId,
@@ -438,9 +423,9 @@ export const createOrderHandler = async (
   try {
     // Note: We can't call runAction from a mutation in Convex
     // The invoice creation will be handled by the frontend or a separate action
-    console.log("Xendit invoice creation will be handled by frontend");
+    console.log('Xendit invoice creation will be handled by frontend');
   } catch (error) {
-    console.error("Failed to create Xendit invoice:", error);
+    console.error('Failed to create Xendit invoice:', error);
     // Don't fail order creation if payment invoice creation fails
     // User can still pay manually or refresh invoice later
   }
@@ -448,9 +433,9 @@ export const createOrderHandler = async (
   // Log action
   await logAction(
     ctx,
-    "create_order",
-    "DATA_CHANGE",
-    "MEDIUM",
+    'create_order',
+    'DATA_CHANGE',
+    'MEDIUM',
     `Created order ${orderNumber} for ${customer.email}`,
     currentUser._id,
     args.organizationId,
@@ -466,7 +451,7 @@ export const createOrderHandler = async (
   // Return order details including Xendit invoice info
   const createdOrder = await ctx.db.get(orderId);
   if (!createdOrder) {
-    throw new Error("Order creation failed");
+    throw new Error('Order creation failed');
   }
 
   return {
@@ -477,5 +462,3 @@ export const createOrderHandler = async (
     totalAmount: createdOrder.totalAmount,
   };
 };
-
-

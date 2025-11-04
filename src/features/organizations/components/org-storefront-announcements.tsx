@@ -1,38 +1,38 @@
-"use client"
+'use client';
 
-import React, { useMemo } from 'react'
-import { useAuth } from '@clerk/nextjs'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import type { Id, Doc } from '@/convex/_generated/dataModel'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useMemo } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id, Doc } from '@/convex/_generated/dataModel';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-type Announcement = Doc<'announcements'>
+type Announcement = Doc<'announcements'>;
 
 interface Props {
-  organizationId: Id<'organizations'>
+  organizationId: Id<'organizations'>;
 }
 
-export function OrgStorefrontAnnouncements ({ organizationId }: Props) {
-  const { userId: clerkId } = useAuth()
-  const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }))
+export function OrgStorefrontAnnouncements({ organizationId }: Props) {
+  const { userId: clerkId } = useAuth();
+  const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }));
 
   const orgs = useQuery(
     api.organizations.queries.index.getOrganizationsByUser,
     currentUser?._id ? { userId: currentUser._id } : ('skip' as unknown as { userId: Id<'users'> })
-  )
+  );
 
   const isMember = useMemo(() => {
-    if (!orgs) return false
-    return orgs.some((o) => o._id === organizationId)
-  }, [orgs, organizationId])
+    if (!orgs) return false;
+    return orgs.some((o) => o._id === organizationId);
+  }, [orgs, organizationId]);
 
   const pinned = useQuery(
     api.announcements.queries.index.getPinnedAnnouncements,
     isMember ? { organizationId } : ('skip' as unknown as { organizationId: Id<'organizations'> })
-  )
+  );
 
-  if (!isMember || !pinned || pinned.length === 0) return null
+  if (!isMember || !pinned || pinned.length === 0) return null;
 
   return (
     <div className="mt-6">
@@ -50,7 +50,9 @@ export function OrgStorefrontAnnouncements ({ organizationId }: Props) {
                       <span className="inline-block h-2 w-2 rounded-full bg-primary/70" />
                       <span className="truncate max-w-[120px]">{a.category || 'general'}</span>
                     </span>
-                    <div className="truncate font-medium" title={a.title}>{a.title}</div>
+                    <div className="truncate font-medium" title={a.title}>
+                      {a.title}
+                    </div>
                   </div>
                   <span className="text-xs text-muted-foreground whitespace-nowrap">{new Date(a.publishedAt).toLocaleDateString()}</span>
                 </div>
@@ -61,7 +63,5 @@ export function OrgStorefrontAnnouncements ({ organizationId }: Props) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
-

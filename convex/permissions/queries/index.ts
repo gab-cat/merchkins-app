@@ -1,16 +1,16 @@
-import { query } from "../../_generated/server";
+import { query } from '../../_generated/server';
 
 // Import args and handlers
-import { getPermissionsArgs, getPermissionsHandler } from "./getPermissions";
-import { getPermissionUsageSummaryArgs, getPermissionUsageSummaryHandler } from "./getPermissionUsageSummary";
-import { checkEntityPermissionArgs, checkEntityPermissionHandler } from "./checkEntityPermission";
-import { getOrganizationMemberPermissionsArgs, getOrganizationMemberPermissionsHandler } from "./getOrganizationMemberPermissions";
-import { getPermissionAnalyticsArgs, getPermissionAnalyticsHandler } from "./getPermissionAnalytics";
-import { getPermissionByCodeArgs, getPermissionByCodeHandler } from "./getPermissionByCode";
-import { getPermissionByIdArgs, getPermissionByIdHandler } from "./getPermissionById";
-import { getPermissionsByCategoryArgs, getPermissionsByCategoryHandler } from "./getPermissionsByCategory";
-import { getUserPermissionsArgs, getUserPermissionsHandler } from "./getUserPermissions";
-import { searchPermissionsArgs, searchPermissionsHandler } from "./searchPermissions";
+import { getPermissionsArgs, getPermissionsHandler } from './getPermissions';
+import { getPermissionUsageSummaryArgs, getPermissionUsageSummaryHandler } from './getPermissionUsageSummary';
+import { checkEntityPermissionArgs, checkEntityPermissionHandler } from './checkEntityPermission';
+import { getOrganizationMemberPermissionsArgs, getOrganizationMemberPermissionsHandler } from './getOrganizationMemberPermissions';
+import { getPermissionAnalyticsArgs, getPermissionAnalyticsHandler } from './getPermissionAnalytics';
+import { getPermissionByCodeArgs, getPermissionByCodeHandler } from './getPermissionByCode';
+import { getPermissionByIdArgs, getPermissionByIdHandler } from './getPermissionById';
+import { getPermissionsByCategoryArgs, getPermissionsByCategoryHandler } from './getPermissionsByCategory';
+import { getUserPermissionsArgs, getUserPermissionsHandler } from './getUserPermissions';
+import { searchPermissionsArgs, searchPermissionsHandler } from './searchPermissions';
 
 // Export query functions
 export const getPermissions = query({

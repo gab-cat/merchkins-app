@@ -1,18 +1,12 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import {
-  requireAuthentication,
-  validateOrderExists,
-  validateStringLength,
-  validateNonNegativeNumber,
-  logAction,
-} from "../../helpers";
-import { internal } from "../../_generated/api";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireAuthentication, validateOrderExists, validateStringLength, validateNonNegativeNumber, logAction } from '../../helpers';
+import { internal } from '../../_generated/api';
 
 export const submitSurveyResponseArgs = {
-  orderId: v.id("orders"),
-  categoryId: v.id("surveyCategories"),
+  orderId: v.id('orders'),
+  categoryId: v.id('surveyCategories'),
   // Answers 1-4 numeric: rating/scale expected 1-5; yesno expected 0/1 but we accept 1-5 and normalize
   answers: v.object({
     question1: v.number(),
@@ -30,9 +24,9 @@ function clampToRange(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function normalizeAnswer(type: "rating" | "scale" | "yesno", value: number): number {
+function normalizeAnswer(type: 'rating' | 'scale' | 'yesno', value: number): number {
   // Normalize to 0..5 scale for uniform scoring
-  if (type === "yesno") {
+  if (type === 'yesno') {
     // treat <=2 as No(0), >2 as Yes(5), and interpolate in between
     return value >= 3 ? 5 : 0;
   }
@@ -41,10 +35,10 @@ function normalizeAnswer(type: "rating" | "scale" | "yesno", value: number): num
 
 function computeWeightedAverage(
   questions: {
-    question1: { type: "rating" | "scale" | "yesno"; weight: number };
-    question2: { type: "rating" | "scale" | "yesno"; weight: number };
-    question3: { type: "rating" | "scale" | "yesno"; weight: number };
-    question4: { type: "rating" | "scale" | "yesno"; weight: number };
+    question1: { type: 'rating' | 'scale' | 'yesno'; weight: number };
+    question2: { type: 'rating' | 'scale' | 'yesno'; weight: number };
+    question3: { type: 'rating' | 'scale' | 'yesno'; weight: number };
+    question4: { type: 'rating' | 'scale' | 'yesno'; weight: number };
   },
   answers: Answers
 ): number {
@@ -63,8 +57,8 @@ function computeWeightedAverage(
 export const submitSurveyResponseHandler = async (
   ctx: MutationCtx,
   args: {
-    orderId: Id<"orders">;
-    categoryId: Id<"surveyCategories">;
+    orderId: Id<'orders'>;
+    categoryId: Id<'surveyCategories'>;
     answers: Answers;
     comments?: string;
     metadata?: unknown;
@@ -75,41 +69,41 @@ export const submitSurveyResponseHandler = async (
 
   // Ownership/permission: order owner or staff/admin can submit
   if (!(currentUser.isAdmin || currentUser.isStaff || currentUser._id === order.customerId)) {
-    throw new Error("Permission denied: you can only submit a survey for your own order");
+    throw new Error('Permission denied: you can only submit a survey for your own order');
   }
 
   const category = await ctx.db.get(args.categoryId);
   if (!category || category.isDeleted || !category.isActive) {
-    throw new Error("Survey category not found or inactive");
+    throw new Error('Survey category not found or inactive');
   }
 
   // Validate answers within reasonable range (0..5) then clamp/normalize in scoring
-  validateNonNegativeNumber(args.answers.question1, "Answer 1");
-  validateNonNegativeNumber(args.answers.question2, "Answer 2");
-  validateNonNegativeNumber(args.answers.question3, "Answer 3");
-  validateNonNegativeNumber(args.answers.question4, "Answer 4");
+  validateNonNegativeNumber(args.answers.question1, 'Answer 1');
+  validateNonNegativeNumber(args.answers.question2, 'Answer 2');
+  validateNonNegativeNumber(args.answers.question3, 'Answer 3');
+  validateNonNegativeNumber(args.answers.question4, 'Answer 4');
 
-  if (args.comments) validateStringLength(args.comments, "Comments", 0, 2000);
+  if (args.comments) validateStringLength(args.comments, 'Comments', 0, 2000);
 
   // Prevent duplicate submission for same order
   if (order.customerSatisfactionSurveyId) {
     const existing = await ctx.db.get(order.customerSatisfactionSurveyId);
     if (existing) {
-      throw new Error("A survey response has already been submitted for this order");
+      throw new Error('A survey response has already been submitted for this order');
     }
   }
   // Best-effort additional guard via index
   const existingByOrder = await ctx.db
-    .query("surveyResponses")
-    .withIndex("by_order", (ix) => ix.eq("orderId", args.orderId))
+    .query('surveyResponses')
+    .withIndex('by_order', (ix) => ix.eq('orderId', args.orderId))
     .first();
   if (existingByOrder) {
-    throw new Error("A survey response has already been submitted for this order");
+    throw new Error('A survey response has already been submitted for this order');
   }
 
   // Build embedded snapshots
   const orderInfo = {
-    customerName: `${order.customerInfo.firstName ?? ""} ${order.customerInfo.lastName ?? ""}`.trim() || order.customerInfo.email,
+    customerName: `${order.customerInfo.firstName ?? ''} ${order.customerInfo.lastName ?? ''}`.trim() || order.customerInfo.email,
     customerEmail: order.customerInfo.email,
     organizationName: order.organizationInfo?.name,
     totalAmount: order.totalAmount,
@@ -155,7 +149,7 @@ export const submitSurveyResponseHandler = async (
     updatedAt: submitDate,
   };
 
-  const surveyId = await ctx.db.insert("surveyResponses", doc);
+  const surveyId = await ctx.db.insert('surveyResponses', doc);
 
   // Link to order
   await ctx.db.patch(args.orderId, { customerSatisfactionSurveyId: surveyId, updatedAt: Date.now() });
@@ -170,9 +164,9 @@ export const submitSurveyResponseHandler = async (
   // Log
   await logAction(
     ctx,
-    "submit_survey_response",
-    "DATA_CHANGE",
-    "MEDIUM",
+    'submit_survey_response',
+    'DATA_CHANGE',
+    'MEDIUM',
     `Submitted survey for order ${order.orderNumber ?? String(args.orderId)}`,
     currentUser._id,
     order.organizationId,
@@ -181,5 +175,3 @@ export const submitSurveyResponseHandler = async (
 
   return surveyId;
 };
-
-

@@ -1,57 +1,49 @@
-import { MutationCtx } from "../../_generated/server";
-import { logAction } from "../../helpers";
-import { internal } from "../../_generated/api";
-import type { XenditWebhookEvent } from "../../../types/xendit";
-import { v } from "convex/values";
-import { Doc } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { logAction } from '../../helpers';
+import { internal } from '../../_generated/api';
+import type { XenditWebhookEvent } from '../../../types/xendit';
+import { v } from 'convex/values';
+import { Doc } from '../../_generated/dataModel';
 
 export const handleXenditWebhookArgs = {
   webhookEvent: v.any(), // Allow any webhook data from Xendit
 };
 
-
-export const handleXenditWebhookHandler = async (
-  ctx: MutationCtx,
-  args: { webhookEvent: XenditWebhookEvent },
-) => {
+export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webhookEvent: XenditWebhookEvent }) => {
   const webhookEvent = args.webhookEvent;
   // Only process successful payments
-  if (webhookEvent.status !== "PAID") {
+  if (webhookEvent.status !== 'PAID') {
     console.log(`Ignoring webhook event with status: ${webhookEvent.status}`);
-    return { processed: false, reason: "Not a successful payment" };
+    return { processed: false, reason: 'Not a successful payment' };
   }
 
   // Find the order by external_id (should match order number)
   const orderNumber = webhookEvent.external_id;
   const orders = await ctx.db
-    .query("orders")
-    .withIndex("by_isDeleted", (q) => q.eq("isDeleted", false))
-    .filter((q) => q.eq(q.field("orderNumber"), orderNumber))
+    .query('orders')
+    .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
+    .filter((q) => q.eq(q.field('orderNumber'), orderNumber))
     .first();
 
   if (!orders) {
     console.error(`Order not found for external_id: ${orderNumber}`);
-    throw new Error("Order not found");
+    throw new Error('Order not found');
   }
 
   const order = orders;
 
   // Check if payment already exists for this order and transaction
   const existingPayment = await ctx.db
-    .query("payments")
-    .withIndex("by_order", (q) => q.eq("orderId", order._id))
+    .query('payments')
+    .withIndex('by_order', (q) => q.eq('orderId', order._id))
     .filter((q) =>
-      q.and(
-        q.eq(q.field("isDeleted"), false),
-        q.eq(q.field("transactionId"), webhookEvent.id),
-        q.eq(q.field("paymentProvider"), "XENDIT"),
-      ),
+      q.and(q.eq(q.field('isDeleted'), false), q.eq(q.field('transactionId'), webhookEvent.id), q.eq(q.field('paymentProvider'), 'XENDIT'))
     )
     .first();
 
   if (existingPayment) {
     console.log(`Payment already processed for transaction: ${webhookEvent.id}`);
-    return { processed: true, reason: "Payment already exists" };
+    return { processed: true, reason: 'Payment already exists' };
   }
 
   // Create payment record
@@ -70,13 +62,13 @@ export const handleXenditWebhookHandler = async (
     amount: paymentAmount,
     processingFee: processingFee || undefined,
     netAmount,
-    paymentMethod: "XENDIT" as const,
-    paymentSite: "OFFSITE" as const,
-    paymentStatus: "VERIFIED" as const,
+    paymentMethod: 'XENDIT' as const,
+    paymentSite: 'OFFSITE' as const,
+    paymentStatus: 'VERIFIED' as const,
     referenceNo: `XENDIT-${webhookEvent.id}`,
     currency: webhookEvent.currency,
     transactionId: webhookEvent.id,
-    paymentProvider: "XENDIT",
+    paymentProvider: 'XENDIT',
     xenditInvoiceId: webhookEvent.id,
     metadata: webhookEvent as unknown as Record<string, unknown>,
 
@@ -84,7 +76,7 @@ export const handleXenditWebhookHandler = async (
     orderInfo: {
       orderNumber: order.orderNumber,
       customerName: order.customerInfo.firstName
-        ? `${order.customerInfo.firstName} ${order.customerInfo.lastName || ""}`.trim()
+        ? `${order.customerInfo.firstName} ${order.customerInfo.lastName || ''}`.trim()
         : order.customerInfo.email,
       customerEmail: order.customerInfo.email,
       totalAmount: order.totalAmount,
@@ -102,14 +94,14 @@ export const handleXenditWebhookHandler = async (
     },
 
     verificationDate: now,
-    reconciliationStatus: "MATCHED" as const,
+    reconciliationStatus: 'MATCHED' as const,
 
     statusHistory: [
       {
-        status: "VERIFIED",
+        status: 'VERIFIED',
         changedBy: undefined, // System
-        changedByName: "Xendit Payment System",
-        reason: "Payment verified via webhook",
+        changedByName: 'Xendit Payment System',
+        reason: 'Payment verified via webhook',
         changedAt: now,
       },
     ],
@@ -118,21 +110,21 @@ export const handleXenditWebhookHandler = async (
     updatedAt: now,
   };
 
-  const paymentId = await ctx.db.insert("payments", paymentDoc);
+  const paymentId = await ctx.db.insert('payments', paymentDoc);
 
   // Update order status to CONFIRMED and payment status to PAID
   await ctx.db.patch(order._id, {
-    status: "PROCESSING", // Move to processing as payment is confirmed
-    paymentStatus: "PAID",
+    status: 'PROCESSING', // Move to processing as payment is confirmed
+    paymentStatus: 'PAID',
     updatedAt: now,
   });
 
   // Update order status history
   const statusUpdate = {
-    status: "PROCESSING",
+    status: 'PROCESSING',
     changedBy: undefined, // System
-    changedByName: "Xendit Payment System",
-    reason: "Payment confirmed via webhook",
+    changedByName: 'Xendit Payment System',
+    reason: 'Payment confirmed via webhook',
     changedAt: now,
   };
 
@@ -141,7 +133,7 @@ export const handleXenditWebhookHandler = async (
   const updatedHistory = [statusUpdate, ...currentHistory.slice(0, 4)]; // Keep last 5 entries
 
   await ctx.db.patch(order._id, {
-    recentStatusHistory: updatedHistory as Doc<"orders">["recentStatusHistory"], // Type assertion needed due to Convex schema limitations
+    recentStatusHistory: updatedHistory as Doc<'orders'>['recentStatusHistory'], // Type assertion needed due to Convex schema limitations
     updatedAt: now,
   });
 
@@ -149,15 +141,15 @@ export const handleXenditWebhookHandler = async (
   await ctx.runMutation(internal.payments.mutations.index.updatePaymentStats, {
     orderId: order._id,
     actorId: undefined, // System
-    actorName: "Xendit Payment System",
+    actorName: 'Xendit Payment System',
   });
 
   // Log the payment event
   await logAction(
     ctx,
-    "xendit_payment_received",
-    "SYSTEM_EVENT",
-    "HIGH",
+    'xendit_payment_received',
+    'SYSTEM_EVENT',
+    'HIGH',
     `Payment of ${paymentAmount} ${webhookEvent.currency} received via Xendit for order ${orderNumber}`,
     undefined, // System action
     order.organizationId,
@@ -166,8 +158,8 @@ export const handleXenditWebhookHandler = async (
       orderId: order._id,
       amount: paymentAmount,
       transactionId: webhookEvent.id,
-      provider: "XENDIT",
-    },
+      provider: 'XENDIT',
+    }
   );
 
   console.log(`Successfully processed Xendit payment for order ${orderNumber}`);

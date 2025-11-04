@@ -35,4 +35,3 @@ This domain provides robust audit and activity logging with powerful filtering a
 - Core fields are immutable. Use archive/restore rather than editing log content.
 - Leverages indexes defined in `convex/models/logs.ts` for efficient queries.
 - Uses shared helpers for authentication, organization validation, permission checks, and validation.
-

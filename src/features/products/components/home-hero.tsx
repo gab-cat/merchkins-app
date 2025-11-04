@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import React from 'react'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { createFadeInUpVariant } from '@/lib/animations'
+import React from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { createFadeInUpVariant } from '@/lib/animations';
 
-export function HomeHero () {
+export function HomeHero() {
   return (
     <section className="bg-brand-gradient-subtle border-b relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
@@ -28,10 +28,10 @@ export function HomeHero () {
               animate="animate"
             >
               Bring your brand to life with{' '}
-              <span className='inline-block bg-primary px-4 py-1 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300'>
-                <span className='font-genty'>
-                  <span className='text-white'>Merch</span>
-                  <span className='text-brand-neon'>kins</span>
+              <span className="inline-block bg-primary px-4 py-1 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <span className="font-genty">
+                  <span className="text-white">Merch</span>
+                  <span className="text-brand-neon">kins</span>
                 </span>
               </span>
             </motion.h1>
@@ -42,8 +42,7 @@ export function HomeHero () {
             initial="initial"
             animate="animate"
           >
-            Design, order, and fulfill on-brand merchandise. Fast lead times,
-            premium quality, and scalable fulfillment.
+            Design, order, and fulfill on-brand merchandise. Fast lead times, premium quality, and scalable fulfillment.
           </motion.p>
           <motion.div
             className="flex flex-col sm:flex-row gap-3 pt-2"
@@ -59,12 +58,7 @@ export function HomeHero () {
             </Button>
           </motion.div>
         </div>
-        <motion.div
-          className="hidden lg:block relative"
-          variants={createFadeInUpVariant({ delay: 0.5 })}
-          initial="initial"
-          animate="animate"
-        >
+        <motion.div className="hidden lg:block relative" variants={createFadeInUpVariant({ delay: 0.5 })} initial="initial" animate="animate">
           <div className="aspect-[16/9] rounded-xl bg-brand-gradient shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/10" />
             <div className="absolute inset-4 border border-white/20 rounded-lg" />
@@ -72,6 +66,5 @@ export function HomeHero () {
         </motion.div>
       </div>
     </section>
-  )
+  );
 }
-

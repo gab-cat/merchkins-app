@@ -1,34 +1,34 @@
-"use client"
+'use client';
 
-import React from 'react'
-import Link from 'next/link'
-import type { Doc } from '@/convex/_generated/dataModel'
-import { useCursorPagination } from '@/src/hooks/use-pagination'
-import { api } from '@/convex/_generated/api'
-import { LoadMore } from '@/src/components/ui/pagination'
+import React from 'react';
+import Link from 'next/link';
+import type { Doc } from '@/convex/_generated/dataModel';
+import { useCursorPagination } from '@/src/hooks/use-pagination';
+import { api } from '@/convex/_generated/api';
+import { LoadMore } from '@/src/components/ui/pagination';
 
 interface ChatsSidebarListProps {
-  rooms: Array<Doc<'chatRooms'>>
-  baseHref?: string
+  rooms: Array<Doc<'chatRooms'>>;
+  baseHref?: string;
 }
 
-type RoomListItem = Doc<'chatRooms'>
+type RoomListItem = Doc<'chatRooms'>;
 
-export function ChatsSidebarList ({ rooms, baseHref = '/chats' }: ChatsSidebarListProps) {
+export function ChatsSidebarList({ rooms, baseHref = '/chats' }: ChatsSidebarListProps) {
   const { items, isLoading, hasMore, loadMore } = useCursorPagination<RoomListItem, Record<string, never>>({
     query: api.chats.queries.index.getChatRoomsPage,
     baseArgs: {},
     limit: 25,
     selectPage: (res: unknown) => {
-      const result = res as { page?: ReadonlyArray<RoomListItem>, isDone?: boolean, continueCursor?: string | null }
+      const result = res as { page?: ReadonlyArray<RoomListItem>; isDone?: boolean; continueCursor?: string | null };
       return {
         page: (result.page || []) as ReadonlyArray<RoomListItem>,
         isDone: !!result.isDone,
         continueCursor: result.continueCursor ?? null,
-      }
-    }
-  })
-  const list: ReadonlyArray<RoomListItem> = (items && items.length > 0) ? items : rooms
+      };
+    },
+  });
+  const list: ReadonlyArray<RoomListItem> = items && items.length > 0 ? items : rooms;
 
   return (
     <div className="space-y-1">
@@ -40,14 +40,10 @@ export function ChatsSidebarList ({ rooms, baseHref = '/chats' }: ChatsSidebarLi
           </Link>
         </React.Suspense>
       ))}
-      {list.length === 0 && (
-        <div className="p-4 text-center text-sm text-muted-foreground">No chats yet.</div>
-      )}
+      {list.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No chats yet.</div>}
       <LoadMore onClick={loadMore} disabled={isLoading} isVisible={hasMore} />
     </div>
-  )
+  );
 }
 
-export default ChatsSidebarList
-
-
+export default ChatsSidebarList;

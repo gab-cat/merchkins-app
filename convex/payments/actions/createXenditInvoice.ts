@@ -1,9 +1,9 @@
-"use node";
+'use node';
 
-import { action, ActionCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { internal } from "../../_generated/api";
-import { api } from "../../_generated/api";
+import { action, ActionCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { internal } from '../../_generated/api';
+import { api } from '../../_generated/api';
 
 /**
  * Public action wrapper for creating Xendit invoices
@@ -11,7 +11,7 @@ import { api } from "../../_generated/api";
  */
 export const createXenditInvoice = action({
   args: {
-    orderId: v.id("orders"),
+    orderId: v.id('orders'),
     amount: v.number(),
     customerEmail: v.string(),
     externalId: v.string(),
@@ -25,7 +25,7 @@ export const createXenditInvoice = action({
     // Get current user
     const userId = await ctx.auth.getUserIdentity();
     if (!userId) {
-      throw new Error("Not authenticated");
+      throw new Error('Not authenticated');
     }
 
     // Get current user data
@@ -33,7 +33,7 @@ export const createXenditInvoice = action({
       clerkId: userId.subject,
     });
     if (!currentUser) {
-      throw new Error("User not found");
+      throw new Error('User not found');
     }
 
     // Get order data
@@ -41,19 +41,15 @@ export const createXenditInvoice = action({
       orderId: args.orderId,
     });
     if (!order) {
-      throw new Error("Order not found");
+      throw new Error('Order not found');
     }
     if (order.isDeleted) {
-      throw new Error("Order not found");
+      throw new Error('Order not found');
     }
 
     // Check permissions - user can create invoices for their own orders, staff/admin can create for any
-    if (
-      currentUser._id !== order.customerId &&
-      !currentUser.isStaff &&
-      !currentUser.isAdmin
-    ) {
-      throw new Error("You can only create payment links for your own orders");
+    if (currentUser._id !== order.customerId && !currentUser.isStaff && !currentUser.isAdmin) {
+      throw new Error('You can only create payment links for your own orders');
     }
 
     // Call the internal action
@@ -65,4 +61,3 @@ export const createXenditInvoice = action({
     });
   },
 });
-

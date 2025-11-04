@@ -1,14 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import {
-  logAction,
-  sanitizeString,
-  validateNotEmpty,
-  validateStringLength,
-  isOrganizationSlugUnique,
-  buildPublicUrl,
-} from '../../helpers';
+import { logAction, sanitizeString, validateNotEmpty, validateStringLength, isOrganizationSlugUnique, buildPublicUrl } from '../../helpers';
 
 // Update organization details
 export const updateOrganizationArgs = {
@@ -21,9 +14,7 @@ export const updateOrganizationArgs = {
   website: v.optional(v.string()),
   industry: v.optional(v.string()),
   size: v.optional(v.string()),
-  organizationType: v.optional(
-    v.union(v.literal('PUBLIC'), v.literal('PRIVATE'), v.literal('SECRET')),
-  ),
+  organizationType: v.optional(v.union(v.literal('PUBLIC'), v.literal('PRIVATE'), v.literal('SECRET'))),
   themeSettings: v.optional(
     v.object({
       primaryColor: v.string(),
@@ -35,15 +26,8 @@ export const updateOrganizationArgs = {
       footerForegroundColor: v.optional(v.string()),
       mode: v.optional(v.union(v.literal('light'), v.literal('dark'), v.literal('auto'))),
       fontFamily: v.optional(v.string()),
-      borderRadius: v.optional(
-        v.union(
-          v.literal('none'),
-          v.literal('small'),
-          v.literal('medium'),
-          v.literal('large'),
-        ),
-      ),
-    }),
+      borderRadius: v.optional(v.union(v.literal('none'), v.literal('small'), v.literal('medium'), v.literal('large'))),
+    })
   ),
 };
 
@@ -72,14 +56,14 @@ export const updateOrganizationHandler = async (
       fontFamily?: string;
       borderRadius?: 'none' | 'small' | 'medium' | 'large';
     };
-  },
+  }
 ) => {
   const { organizationId, ...updates } = args;
-  
+
   // Get current organization
   const organization = await ctx.db.get(organizationId);
   if (!organization || organization.isDeleted) {
-    throw new Error("Organization not found");
+    throw new Error('Organization not found');
   }
 
   // Handle slug update: sanitize, validate, uniqueness
@@ -88,18 +72,14 @@ export const updateOrganizationHandler = async (
     validateNotEmpty(desired, 'Organization slug');
     validateStringLength(desired, 'Organization slug', 2, 50);
     if (desired !== organization.slug) {
-      const unique = await isOrganizationSlugUnique(
-        ctx,
-        desired,
-        organizationId as unknown as string,
-      );
+      const unique = await isOrganizationSlugUnique(ctx, desired, organizationId as unknown as string);
       if (!unique) {
         throw new Error('Organization slug already exists');
       }
     }
     updates.slug = desired;
   }
-  
+
   // Compute diff for audit trail
   const changed: Record<string, { previous: unknown; next: unknown }> = {};
   for (const key of Object.keys(updates) as Array<keyof typeof updates>) {
@@ -128,7 +108,7 @@ export const updateOrganizationHandler = async (
     ...urlUpdates,
     updatedAt: Date.now(),
   });
-  
+
   // If name/logo/type/slug changed, update embedded organization info across tables
   const nameChanged = updates.name !== undefined;
   const slugChanged = updates.slug !== undefined;
@@ -294,7 +274,7 @@ export const updateOrganizationHandler = async (
       });
     }
   }
-  
+
   // Audit log only when there are meaningful changes
   if (Object.keys(changed).length > 0) {
     await logAction(
@@ -309,13 +289,9 @@ export const updateOrganizationHandler = async (
       {
         resourceType: 'organization',
         resourceId: organizationId as unknown as string,
-        previousValue: Object.fromEntries(
-          Object.entries(changed).map(([k, v]) => [k, v.previous]),
-        ),
-        newValue: Object.fromEntries(
-          Object.entries(changed).map(([k, v]) => [k, v.next]),
-        ),
-      },
+        previousValue: Object.fromEntries(Object.entries(changed).map(([k, v]) => [k, v.previous])),
+        newValue: Object.fromEntries(Object.entries(changed).map(([k, v]) => [k, v.next])),
+      }
     );
   }
 

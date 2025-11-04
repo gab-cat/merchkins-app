@@ -1,54 +1,45 @@
-"use client"
+'use client';
 
-import React, { useMemo, useState } from 'react'
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
-import { Doc, Id } from '@/convex/_generated/dataModel'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import React, { useMemo, useState } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Doc, Id } from '@/convex/_generated/dataModel';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-type Announcement = Doc<"announcements">
+type Announcement = Doc<'announcements'>;
 
-export default function AdminAnnouncementsPage () {
-  const [search, setSearch] = useState('')
-  const [onlyActive, setOnlyActive] = useState(true)
-  const [categoryFilter, setCategoryFilter] = useState('')
+export default function AdminAnnouncementsPage() {
+  const [search, setSearch] = useState('');
+  const [onlyActive, setOnlyActive] = useState(true);
+  const [categoryFilter, setCategoryFilter] = useState('');
 
   const result = useQuery(api.announcements.queries.index.getAnnouncements, {
     includeInactive: !onlyActive,
     category: categoryFilter.trim() || undefined,
     limit: 100,
     offset: 0,
-  })
-  const update = useMutation(api.announcements.mutations.index.updateAnnouncement)
+  });
+  const update = useMutation(api.announcements.mutations.index.updateAnnouncement);
 
-  const loading = result === undefined
-  const announcements = useMemo(() => result?.page ?? [], [result?.page])
+  const loading = result === undefined;
+  const announcements = useMemo(() => result?.page ?? [], [result?.page]);
 
   const filtered = useMemo(() => {
-    if (!search) return announcements
-    const q = search.toLowerCase()
-    return announcements.filter((a: Announcement) =>
-      [a.title || '', a.content || ''].join(' ').toLowerCase().includes(q)
-    )
-  }, [announcements, search])
+    if (!search) return announcements;
+    const q = search.toLowerCase();
+    return announcements.filter((a: Announcement) => [a.title || '', a.content || ''].join(' ').toLowerCase().includes(q));
+  }, [announcements, search]);
 
-  async function toggleActive (id: Id<"announcements">, isActive: boolean) {
-    await update({ announcementId: id, isActive: !isActive })
+  async function toggleActive(id: Id<'announcements'>, isActive: boolean) {
+    await update({ announcementId: id, isActive: !isActive });
   }
 
-  async function togglePinned (id: Id<"announcements">, isPinned: boolean) {
-    await update({ announcementId: id, isPinned: !isPinned })
+  async function togglePinned(id: Id<'announcements'>, isPinned: boolean) {
+    await update({ announcementId: id, isPinned: !isPinned });
   }
 
   return (
@@ -62,12 +53,10 @@ export default function AdminAnnouncementsPage () {
           <Input placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
           <Input placeholder="Filter by category" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="w-48" />
           <div className="flex items-center gap-2">
-            <Checkbox
-              id="onlyActive"
-              checked={onlyActive}
-              onCheckedChange={(checked) => setOnlyActive(checked as boolean)}
-            />
-            <label htmlFor="onlyActive" className="text-sm font-medium">Only active</label>
+            <Checkbox id="onlyActive" checked={onlyActive} onCheckedChange={(checked) => setOnlyActive(checked as boolean)} />
+            <label htmlFor="onlyActive" className="text-sm font-medium">
+              Only active
+            </label>
           </div>
         </div>
       </div>
@@ -119,32 +108,18 @@ export default function AdminAnnouncementsPage () {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={a.isActive ? "default" : "secondary"}>
-                        {a.isActive ? "Active" : "Inactive"}
-                      </Badge>
+                      <Badge variant={a.isActive ? 'default' : 'secondary'}>{a.isActive ? 'Active' : 'Inactive'}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={a.isPinned ? "default" : "outline"}>
-                        {a.isPinned ? "Pinned" : "Not pinned"}
-                      </Badge>
+                      <Badge variant={a.isPinned ? 'default' : 'outline'}>{a.isPinned ? 'Pinned' : 'Not pinned'}</Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground max-w-md truncate">
-                      {a.content}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground max-w-md truncate">{a.content}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center gap-2 justify-end">
-                        <Button
-                          size="sm"
-                          variant={a.isPinned ? 'secondary' : 'outline'}
-                          onClick={() => togglePinned(a._id, !!a.isPinned)}
-                        >
+                        <Button size="sm" variant={a.isPinned ? 'secondary' : 'outline'} onClick={() => togglePinned(a._id, !!a.isPinned)}>
                           {a.isPinned ? 'Unpin' : 'Pin'}
                         </Button>
-                        <Button
-                          size="sm"
-                          variant={a.isActive ? 'secondary' : 'outline'}
-                          onClick={() => toggleActive(a._id, !!a.isActive)}
-                        >
+                        <Button size="sm" variant={a.isActive ? 'secondary' : 'outline'} onClick={() => toggleActive(a._id, !!a.isActive)}>
                           {a.isActive ? 'Deactivate' : 'Activate'}
                         </Button>
                       </div>
@@ -154,11 +129,7 @@ export default function AdminAnnouncementsPage () {
           </TableBody>
         </Table>
       </div>
-      {!loading && filtered.length === 0 && (
-        <div className="py-12 text-center text-sm text-muted-foreground">No announcements found.</div>
-      )}
+      {!loading && filtered.length === 0 && <div className="py-12 text-center text-sm text-muted-foreground">No announcements found.</div>}
     </div>
-  )
+  );
 }
-
-

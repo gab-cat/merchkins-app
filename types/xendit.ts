@@ -6,7 +6,7 @@ export interface XenditInvoiceResponse {
   id: string;
   external_id: string;
   user_id: string;
-  status: "PENDING" | "PAID" | "EXPIRED" | "FAILED";
+  status: 'PENDING' | 'PAID' | 'EXPIRED' | 'FAILED';
   merchant_name: string;
   merchant_profile_picture_url: string;
   amount: number;
@@ -82,7 +82,7 @@ export interface XenditWebhookEvent {
   id: string;
   external_id: string;
   user_id: string;
-  status: "PENDING" | "PAID" | "EXPIRED" | "FAILED";
+  status: 'PENDING' | 'PAID' | 'EXPIRED' | 'FAILED';
   merchant_name: string;
   merchant_profile_picture_url: string;
   amount: number;

@@ -85,13 +85,13 @@ import { requireAnyPermission, requireAllPermissions } from '../helpers';
 // Require any of the specified permissions
 const user = await requireAnyPermission(ctx, [
   { code: 'USER_MANAGEMENT', action: 'read' },
-  { code: 'ADMIN_ACCESS', action: 'read' }
+  { code: 'ADMIN_ACCESS', action: 'read' },
 ]);
 
 // Require all specified permissions
 const user = await requireAllPermissions(ctx, [
   { code: 'USER_MANAGEMENT', action: 'create' },
-  { code: 'USER_MANAGEMENT', action: 'update' }
+  { code: 'USER_MANAGEMENT', action: 'update' },
 ]);
 ```
 
@@ -100,11 +100,7 @@ const user = await requireAllPermissions(ctx, [
 ### Organization Membership
 
 ```typescript
-import { 
-  requireOrganizationMember, 
-  requireOrganizationAdmin, 
-  requireOrganizationAdminOrStaff 
-} from '../helpers';
+import { requireOrganizationMember, requireOrganizationAdmin, requireOrganizationAdminOrStaff } from '../helpers';
 
 // Require organization membership
 const { user, membership } = await requireOrganizationMember(ctx, organizationId);
@@ -122,19 +118,10 @@ const { user, membership } = await requireOrganizationAdminOrStaff(ctx, organiza
 import { requireOrganizationPermission, hasOrganizationPermission } from '../helpers';
 
 // Require specific organization permission
-const { user, membership } = await requireOrganizationPermission(
-  ctx, 
-  organizationId, 
-  'PRODUCT_MANAGEMENT', 
-  'create'
-);
+const { user, membership } = await requireOrganizationPermission(ctx, organizationId, 'PRODUCT_MANAGEMENT', 'create');
 
 // Check organization permission (returns boolean)
-const canEdit = await hasOrganizationPermission(
-  membership, 
-  'PRODUCT_MANAGEMENT', 
-  'update'
-);
+const canEdit = await hasOrganizationPermission(membership, 'PRODUCT_MANAGEMENT', 'update');
 ```
 
 ### Organization Ownership
@@ -151,11 +138,7 @@ const { user, membership, organization } = await requireOrganizationOwner(ctx, o
 ### Entity Validation
 
 ```typescript
-import { 
-  validateUserExists, 
-  validateOrganizationExists, 
-  validateProductExists 
-} from '../helpers';
+import { validateUserExists, validateOrganizationExists, validateProductExists } from '../helpers';
 
 // Validate entities exist and are active
 const user = await validateUserExists(ctx, userId);
@@ -166,21 +149,15 @@ const product = await validateProductExists(ctx, productId);
 ### Input Validation
 
 ```typescript
-import { 
-  validateNotEmpty, 
-  validateEmail, 
-  validatePhone, 
-  validateStringLength,
-  validatePositiveNumber 
-} from '../helpers';
+import { validateNotEmpty, validateEmail, validatePhone, validateStringLength, validatePositiveNumber } from '../helpers';
 
 // Validate input data
-validateNotEmpty(name, "Name");
-validateStringLength(description, "Description", 10, 500);
-validatePositiveNumber(price, "Price");
+validateNotEmpty(name, 'Name');
+validateStringLength(description, 'Description', 10, 500);
+validatePositiveNumber(price, 'Price');
 
 if (!validateEmail(email)) {
-  throw new Error("Invalid email format");
+  throw new Error('Invalid email format');
 }
 ```
 
@@ -192,16 +169,10 @@ if (!validateEmail(email)) {
 import { logAction } from '../helpers';
 
 // Log actions for audit trail
-await logAction(
-  ctx,
-  "create_product",
-  "DATA_CHANGE",
-  "MEDIUM",
-  `Created product: ${productName}`,
-  userId,
-  organizationId,
-  { productId, category: "electronics" }
-);
+await logAction(ctx, 'create_product', 'DATA_CHANGE', 'MEDIUM', `Created product: ${productName}`, userId, organizationId, {
+  productId,
+  category: 'electronics',
+});
 ```
 
 ### Slug Generation and Validation
@@ -210,7 +181,7 @@ await logAction(
 import { generateSlug, isOrganizationSlugUnique, isProductSlugUnique } from '../helpers';
 
 // Generate and validate slugs
-const slug = generateSlug("My Organization Name"); // "my-organization-name"
+const slug = generateSlug('My Organization Name'); // "my-organization-name"
 
 const isUnique = await isOrganizationSlugUnique(ctx, slug);
 const isProductSlugUnique = await isProductSlugUnique(ctx, slug, organizationId);
@@ -219,17 +190,12 @@ const isProductSlugUnique = await isProductSlugUnique(ctx, slug, organizationId)
 ### Utility Functions
 
 ```typescript
-import { 
-  formatCurrency, 
-  generateInviteCode, 
-  sanitizeString,
-  getTimeAgo 
-} from '../helpers';
+import { formatCurrency, generateInviteCode, sanitizeString, getTimeAgo } from '../helpers';
 
 // Utility operations
 const price = formatCurrency(2999, 'PHP'); // "₱29.99"
 const inviteCode = generateInviteCode(8); // "ABC12345"
-const clean = sanitizeString("  Extra   spaces  "); // "Extra spaces"
+const clean = sanitizeString('  Extra   spaces  '); // "Extra spaces"
 const timeAgo = getTimeAgo(timestamp); // "2h ago"
 ```
 
@@ -238,14 +204,9 @@ const timeAgo = getTimeAgo(timestamp); // "2h ago"
 ### Mutation Pattern
 
 ```typescript
-import { mutation } from "../_generated/server";
-import { v } from "convex/values";
-import { 
-  requireAuthentication, 
-  requirePermission, 
-  validateNotEmpty,
-  logAction 
-} from "../helpers";
+import { mutation } from '../_generated/server';
+import { v } from 'convex/values';
+import { requireAuthentication, requirePermission, validateNotEmpty, logAction } from '../helpers';
 
 export const createSomething = mutation({
   args: {
@@ -255,33 +216,24 @@ export const createSomething = mutation({
   handler: async (ctx, args) => {
     // 1. Authentication
     const user = await requireAuthentication(ctx);
-    
+
     // 2. Authorization (if needed)
     await requirePermission(ctx, 'RESOURCE_MANAGEMENT', 'create');
-    
+
     // 3. Validation
-    validateNotEmpty(args.name, "Name");
-    
+    validateNotEmpty(args.name, 'Name');
+
     // 4. Business logic
-    const resourceId = await ctx.db.insert("resources", {
+    const resourceId = await ctx.db.insert('resources', {
       name: args.name,
       description: args.description,
       createdBy: user._id,
       createdAt: Date.now(),
     });
-    
+
     // 5. Logging
-    await logAction(
-      ctx,
-      "create_resource",
-      "DATA_CHANGE",
-      "MEDIUM",
-      `Created resource: ${args.name}`,
-      user._id,
-      undefined,
-      { resourceId }
-    );
-    
+    await logAction(ctx, 'create_resource', 'DATA_CHANGE', 'MEDIUM', `Created resource: ${args.name}`, user._id, undefined, { resourceId });
+
     return resourceId;
   },
 });
@@ -290,18 +242,18 @@ export const createSomething = mutation({
 ### Query Pattern
 
 ```typescript
-import { query } from "../_generated/server";
-import { v } from "convex/values";
-import { requireStaffOrAdmin } from "../helpers";
+import { query } from '../_generated/server';
+import { v } from 'convex/values';
+import { requireStaffOrAdmin } from '../helpers';
 
 export const getSensitiveData = query({
   args: {
-    resourceId: v.id("resources"),
+    resourceId: v.id('resources'),
   },
   handler: async (ctx, args) => {
     // Check permissions for sensitive data
     await requireStaffOrAdmin(ctx);
-    
+
     // Return data
     return await ctx.db.get(args.resourceId);
   },
@@ -311,41 +263,38 @@ export const getSensitiveData = query({
 ### Organization-Specific Pattern
 
 ```typescript
-import { mutation } from "../_generated/server";
-import { v } from "convex/values";
-import { 
-  requireOrganizationAdmin, 
-  logAction 
-} from "../helpers";
+import { mutation } from '../_generated/server';
+import { v } from 'convex/values';
+import { requireOrganizationAdmin, logAction } from '../helpers';
 
 export const updateOrganizationSetting = mutation({
   args: {
-    organizationId: v.id("organizations"),
+    organizationId: v.id('organizations'),
     setting: v.string(),
     value: v.string(),
   },
   handler: async (ctx, args) => {
     // Require organization admin
     const { user, organization } = await requireOrganizationAdmin(ctx, args.organizationId);
-    
+
     // Update setting
     await ctx.db.patch(args.organizationId, {
       [args.setting]: args.value,
       updatedAt: Date.now(),
     });
-    
+
     // Log action
     await logAction(
       ctx,
-      "update_organization_setting",
-      "DATA_CHANGE",
-      "LOW",
+      'update_organization_setting',
+      'DATA_CHANGE',
+      'LOW',
       `Updated ${args.setting} for ${organization.name}`,
       user._id,
       args.organizationId,
       { setting: args.setting, newValue: args.value }
     );
-    
+
     return { success: true };
   },
 });
@@ -385,17 +334,20 @@ To update existing functions to use these helpers:
 5. Use consistent error messages
 
 ### Before:
+
 ```typescript
 const identity = await ctx.auth.getUserIdentity();
-if (!identity) throw new Error("Not authenticated");
+if (!identity) throw new Error('Not authenticated');
 
-const user = await ctx.db.query("users")
-  .withIndex("by_clerkId", q => q.eq("clerkId", identity.subject))
+const user = await ctx.db
+  .query('users')
+  .withIndex('by_clerkId', (q) => q.eq('clerkId', identity.subject))
   .first();
-if (!user) throw new Error("User not found");
+if (!user) throw new Error('User not found');
 ```
 
 ### After:
+
 ```typescript
 const user = await requireAuthentication(ctx);
 ```

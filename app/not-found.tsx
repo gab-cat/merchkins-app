@@ -1,9 +1,9 @@
-import Link from 'next/link'
-import { Home, Search } from 'lucide-react'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import Link from 'next/link';
+import { Home, Search } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-export default function NotFound () {
+export default function NotFound() {
   return (
     <section className="relative isolate min-h-dvh overflow-hidden">
       {/* Background aesthetics */}
@@ -27,13 +27,10 @@ export default function NotFound () {
             Something went off the grid
           </div>
 
-          <h1 className="mb-2 text-7xl font-extrabold tracking-tight gradient-text sm:text-8xl">
-            404
-          </h1>
+          <h1 className="mb-2 text-7xl font-extrabold tracking-tight gradient-text sm:text-8xl">404</h1>
           <p className="mb-1 text-2xl font-semibold">Page not found</p>
           <p className="mx-auto mb-8 max-w-md text-balance text-sm text-muted-foreground">
-            The page you are looking for might have been moved, renamed, or
-            might never have existed.
+            The page you are looking for might have been moved, renamed, or might never have existed.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -51,16 +48,12 @@ export default function NotFound () {
             <div className="flex items-start gap-3">
               <div className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
               <div className="space-y-1 text-sm">
-                <p className="text-muted-foreground">
-                  Tip: Check the URL for typos or explore our latest products from the homepage.
-                </p>
+                <p className="text-muted-foreground">Tip: Check the URL for typos or explore our latest products from the homepage.</p>
               </div>
             </div>
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }
-
-

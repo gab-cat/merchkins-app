@@ -1,22 +1,14 @@
-import { QueryCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import { requireAuthentication, requireOrganizationMember } from "../../helpers";
+import { QueryCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireAuthentication, requireOrganizationMember } from '../../helpers';
 
 export const getAnnouncementsArgs = {
-  organizationId: v.optional(v.id("organizations")),
+  organizationId: v.optional(v.id('organizations')),
   category: v.optional(v.string()),
-  visibility: v.optional(v.union(v.literal("PUBLIC"), v.literal("INTERNAL"))),
-  targetAudience: v.optional(
-    v.union(
-      v.literal("ALL"),
-      v.literal("STAFF"),
-      v.literal("CUSTOMERS"),
-      v.literal("MERCHANTS"),
-      v.literal("ADMINS")
-    )
-  ),
-  level: v.optional(v.union(v.literal("INFO"), v.literal("WARNING"), v.literal("CRITICAL"))),
+  visibility: v.optional(v.union(v.literal('PUBLIC'), v.literal('INTERNAL'))),
+  targetAudience: v.optional(v.union(v.literal('ALL'), v.literal('STAFF'), v.literal('CUSTOMERS'), v.literal('MERCHANTS'), v.literal('ADMINS'))),
+  level: v.optional(v.union(v.literal('INFO'), v.literal('WARNING'), v.literal('CRITICAL'))),
   includeInactive: v.optional(v.boolean()),
   limit: v.optional(v.number()),
   // Support both legacy offset-based pagination and new cursor-based pagination
@@ -27,11 +19,11 @@ export const getAnnouncementsArgs = {
 export const getAnnouncementsHandler = async (
   ctx: QueryCtx,
   args: {
-    organizationId?: Id<"organizations">;
+    organizationId?: Id<'organizations'>;
     category?: string;
-    visibility?: "PUBLIC" | "INTERNAL";
-    targetAudience?: "ALL" | "STAFF" | "CUSTOMERS" | "MERCHANTS" | "ADMINS";
-    level?: "INFO" | "WARNING" | "CRITICAL";
+    visibility?: 'PUBLIC' | 'INTERNAL';
+    targetAudience?: 'ALL' | 'STAFF' | 'CUSTOMERS' | 'MERCHANTS' | 'ADMINS';
+    level?: 'INFO' | 'WARNING' | 'CRITICAL';
     includeInactive?: boolean;
     limit?: number;
     offset?: number;
@@ -41,42 +33,40 @@ export const getAnnouncementsHandler = async (
   const user = await requireAuthentication(ctx);
   // Determine if user is an org admin anywhere to allow visibility of global admin-targeted announcements
   const memberships = await ctx.db
-    .query("organizationMembers")
-    .withIndex("by_user", (q) => q.eq("userId", user._id))
-    .filter((q) => q.eq(q.field("isActive"), true))
+    .query('organizationMembers')
+    .withIndex('by_user', (q) => q.eq('userId', user._id))
+    .filter((q) => q.eq(q.field('isActive'), true))
     .collect();
-  const isOrgAdminAnywhere = memberships.some((m) => m.role === "ADMIN");
+  const isOrgAdminAnywhere = memberships.some((m) => m.role === 'ADMIN');
 
   let query;
   if (args.organizationId) {
     // For organization announcements, require membership unless explicitly requesting PUBLIC ones
-    if (args.visibility !== "PUBLIC") {
+    if (args.visibility !== 'PUBLIC') {
       await requireOrganizationMember(ctx, args.organizationId);
     }
     // Start from by_organization index and filter by optional visibility/category
-    query = ctx.db
-      .query("announcements")
-      .withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!));
+    query = ctx.db.query('announcements').withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!));
   } else {
     // Global announcements (organizationId is undefined)
     query = ctx.db
-      .query("announcements")
-      .withIndex("by_published_at")
-      .filter((q) => q.eq(q.field("organizationId"), undefined));
+      .query('announcements')
+      .withIndex('by_published_at')
+      .filter((q) => q.eq(q.field('organizationId'), undefined));
   }
 
   const now = Date.now();
   const filtered = query.filter((q) => {
     const conditions = [] as Array<any>;
-    if (!args.includeInactive) conditions.push(q.eq(q.field("isActive"), true));
+    if (!args.includeInactive) conditions.push(q.eq(q.field('isActive'), true));
     // publication window
-    conditions.push(q.lte(q.field("publishedAt"), now));
-    conditions.push(q.or(q.eq(q.field("scheduledAt"), undefined), q.lte(q.field("scheduledAt"), now)));
-    conditions.push(q.or(q.eq(q.field("expiresAt"), undefined), q.gt(q.field("expiresAt"), now)));
-    if (args.category !== undefined) conditions.push(q.eq(q.field("category"), args.category));
-    if (args.visibility !== undefined) conditions.push(q.eq(q.field("visibility"), args.visibility));
-    if (args.level !== undefined) conditions.push(q.eq(q.field("level"), args.level));
-    if (args.targetAudience !== undefined) conditions.push(q.eq(q.field("targetAudience"), args.targetAudience));
+    conditions.push(q.lte(q.field('publishedAt'), now));
+    conditions.push(q.or(q.eq(q.field('scheduledAt'), undefined), q.lte(q.field('scheduledAt'), now)));
+    conditions.push(q.or(q.eq(q.field('expiresAt'), undefined), q.gt(q.field('expiresAt'), now)));
+    if (args.category !== undefined) conditions.push(q.eq(q.field('category'), args.category));
+    if (args.visibility !== undefined) conditions.push(q.eq(q.field('visibility'), args.visibility));
+    if (args.level !== undefined) conditions.push(q.eq(q.field('level'), args.level));
+    if (args.targetAudience !== undefined) conditions.push(q.eq(q.field('targetAudience'), args.targetAudience));
     return conditions.length ? q.and(...conditions) : q.and();
   });
 
@@ -93,7 +83,7 @@ export const getAnnouncementsHandler = async (
   const isMerchant = !!user.isMerchant;
   const visible = results.filter((ann) => {
     // For org announcements: enforce INTERNAL visibility requires membership
-    if (ann.organizationId && ann.visibility === "INTERNAL") {
+    if (ann.organizationId && ann.visibility === 'INTERNAL') {
       // We cannot query membership here without orgId; but this query is already scoped by org when provided.
       // If organizationId arg is not provided but announcement has orgId INTERNAL, hide unless user is member of that org.
       if (!args.organizationId) {
@@ -101,11 +91,11 @@ export const getAnnouncementsHandler = async (
       }
     }
     const allowed =
-      ann.targetAudience === "ALL" ||
-      (ann.targetAudience === "ADMINS" && (user.isAdmin || isOrgAdminAnywhere)) ||
-      (ann.targetAudience === "STAFF" && isStaffLike) ||
-      (ann.targetAudience === "MERCHANTS" && isMerchant) ||
-      (ann.targetAudience === "CUSTOMERS" && !isStaffLike);
+      ann.targetAudience === 'ALL' ||
+      (ann.targetAudience === 'ADMINS' && (user.isAdmin || isOrgAdminAnywhere)) ||
+      (ann.targetAudience === 'STAFF' && isStaffLike) ||
+      (ann.targetAudience === 'MERCHANTS' && isMerchant) ||
+      (ann.targetAudience === 'CUSTOMERS' && !isStaffLike);
     return allowed;
   });
 
@@ -124,5 +114,3 @@ export const getAnnouncementsHandler = async (
 
   return { page, isDone, continueCursor } as any;
 };
-
-

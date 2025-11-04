@@ -1,26 +1,33 @@
-"use client"
+'use client';
 
-import { useState } from 'react'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { useState } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-type Timeframe = 'day' | 'week' | 'month' | 'quarter' | 'year' | 'all'
+type Timeframe = 'day' | 'week' | 'month' | 'quarter' | 'year' | 'all';
 
-export default function SuperAdminAnalyticsPage () {
-  const [timeframe, setTimeframe] = useState<Timeframe>('month')
+export default function SuperAdminAnalyticsPage() {
+  const [timeframe, setTimeframe] = useState<Timeframe>('month');
 
   const productAnalytics = useQuery(api.products.queries.index.getProductAnalytics, {
     timeframe,
-  })
-  const orderAnalytics = useQuery(api.orders.queries.index.getOrderAnalytics, {})
+  });
+  const orderAnalytics = useQuery(api.orders.queries.index.getOrderAnalytics, {});
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <div className="md:col-span-2">
-        <label className="mb-2 block text-sm font-medium" htmlFor="tf">Timeframe</label>
-        <select id="tf" className="h-10 rounded-md border bg-background px-3 text-sm" value={timeframe} onChange={(e) => setTimeframe(e.target.value as Timeframe)}>
+        <label className="mb-2 block text-sm font-medium" htmlFor="tf">
+          Timeframe
+        </label>
+        <select
+          id="tf"
+          className="h-10 rounded-md border bg-background px-3 text-sm"
+          value={timeframe}
+          onChange={(e) => setTimeframe(e.target.value as Timeframe)}
+        >
           <option value="day">Day</option>
           <option value="week">Week</option>
           <option value="month">Month</option>
@@ -32,32 +39,32 @@ export default function SuperAdminAnalyticsPage () {
           <Button
             variant="outline"
             onClick={() => {
-              const rows: Array<Record<string, unknown>> = []
+              const rows: Array<Record<string, unknown>> = [];
               if (productAnalytics) {
-                rows.push({ section: 'products', ...productAnalytics })
+                rows.push({ section: 'products', ...productAnalytics });
               }
               if (orderAnalytics) {
-                rows.push({ section: 'orders', ...orderAnalytics })
+                rows.push({ section: 'orders', ...orderAnalytics });
               }
               const headers = Array.from(
                 rows.reduce((set, r) => {
-                  Object.keys(r).forEach((k) => set.add(k))
-                  return set
+                  Object.keys(r).forEach((k) => set.add(k));
+                  return set;
                 }, new Set<string>())
-              )
+              );
               const csv = [
                 headers.join(','),
                 ...rows.map((r) => headers.map((h) => JSON.stringify((r as Record<string, unknown>)[h] ?? '')).join(',')),
-              ].join('\n')
-              const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.href = url
-              a.download = `analytics-${Date.now()}.csv`
-              document.body.appendChild(a)
-              a.click()
-              document.body.removeChild(a)
-              URL.revokeObjectURL(url)
+              ].join('\n');
+              const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `analytics-${Date.now()}.csv`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
             }}
           >
             Export CSV
@@ -107,17 +114,15 @@ export default function SuperAdminAnalyticsPage () {
             </div>
             <div>
               <div className="text-muted-foreground">Average order value</div>
-              <div className="text-lg font-semibold">{
-                orderAnalytics && orderAnalytics.orderCount
+              <div className="text-lg font-semibold">
+                {orderAnalytics && orderAnalytics.orderCount
                   ? Math.round((orderAnalytics.totalRevenue / orderAnalytics.orderCount) * 100) / 100
-                  : '—'
-              }</div>
+                  : '—'}
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
-

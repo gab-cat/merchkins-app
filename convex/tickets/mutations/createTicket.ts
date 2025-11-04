@@ -1,6 +1,6 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
 import {
   requireAuthentication,
   logAction,
@@ -9,25 +9,17 @@ import {
   validateStringLength,
   validateUserExists,
   requireActiveOrganization,
-} from "../../helpers";
+} from '../../helpers';
 
 export const createTicketArgs = {
   title: v.string(),
   description: v.string(),
-  priority: v.union(v.literal("LOW"), v.literal("MEDIUM"), v.literal("HIGH")),
-  category: v.optional(
-    v.union(
-      v.literal("BUG"),
-      v.literal("FEATURE_REQUEST"),
-      v.literal("SUPPORT"),
-      v.literal("QUESTION"),
-      v.literal("OTHER")
-    )
-  ),
+  priority: v.union(v.literal('LOW'), v.literal('MEDIUM'), v.literal('HIGH')),
+  category: v.optional(v.union(v.literal('BUG'), v.literal('FEATURE_REQUEST'), v.literal('SUPPORT'), v.literal('QUESTION'), v.literal('OTHER'))),
   tags: v.optional(v.array(v.string())),
-  assignedToId: v.optional(v.id("users")),
+  assignedToId: v.optional(v.id('users')),
   dueDate: v.optional(v.number()),
-  organizationId: v.optional(v.id("organizations")),
+  organizationId: v.optional(v.id('organizations')),
 };
 
 export const createTicketHandler = async (
@@ -35,20 +27,20 @@ export const createTicketHandler = async (
   args: {
     title: string;
     description: string;
-    priority: "LOW" | "MEDIUM" | "HIGH";
-    category?: "BUG" | "FEATURE_REQUEST" | "SUPPORT" | "QUESTION" | "OTHER";
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    category?: 'BUG' | 'FEATURE_REQUEST' | 'SUPPORT' | 'QUESTION' | 'OTHER';
     tags?: string[];
-    assignedToId?: Id<"users">;
+    assignedToId?: Id<'users'>;
     dueDate?: number;
-    organizationId?: Id<"organizations">;
+    organizationId?: Id<'organizations'>;
   }
 ) => {
   const currentUser = await requireAuthentication(ctx);
 
-  validateNotEmpty(args.title, "Title");
-  validateStringLength(args.title, "Title", 1, 180);
-  validateNotEmpty(args.description, "Description");
-  validateStringLength(args.description, "Description", 1, 8000);
+  validateNotEmpty(args.title, 'Title');
+  validateStringLength(args.title, 'Title', 1, 180);
+  validateNotEmpty(args.description, 'Description');
+  validateStringLength(args.description, 'Description', 1, 8000);
 
   const title = sanitizeString(args.title);
   const description = sanitizeString(args.description);
@@ -81,11 +73,11 @@ export const createTicketHandler = async (
     await requireActiveOrganization(ctx, args.organizationId);
   }
 
-  const ticketId = await ctx.db.insert("tickets", {
+  const ticketId = await ctx.db.insert('tickets', {
     organizationId: args.organizationId,
     title,
     description,
-    status: "OPEN",
+    status: 'OPEN',
     priority: args.priority,
     createdById: currentUser._id,
     assignedToId: args.assignedToId,
@@ -106,16 +98,16 @@ export const createTicketHandler = async (
   });
 
   // Append first update
-  const updateId = await ctx.db.insert("ticketUpdates", {
+  const updateId = await ctx.db.insert('ticketUpdates', {
     ticketId,
-    update: "OPEN",
+    update: 'OPEN',
     createdById: currentUser._id,
     creatorInfo,
     ticketInfo: { title, priority: args.priority, category: args.category },
-    content: "Ticket created",
-    updateType: "STATUS_CHANGE",
+    content: 'Ticket created',
+    updateType: 'STATUS_CHANGE',
     previousValue: undefined,
-    newValue: "OPEN",
+    newValue: 'OPEN',
     attachments: undefined,
     isInternal: false,
     createdAt: now,
@@ -126,28 +118,22 @@ export const createTicketHandler = async (
     recentUpdates: [
       {
         updateId,
-        update: "OPEN",
-        content: "Ticket created",
+        update: 'OPEN',
+        content: 'Ticket created',
         createdById: currentUser._id,
-        creatorName: `${creatorInfo.firstName || ""} ${creatorInfo.lastName || ""}`.trim() || creatorInfo.email,
+        creatorName: `${creatorInfo.firstName || ''} ${creatorInfo.lastName || ''}`.trim() || creatorInfo.email,
         createdAt: now,
       },
     ],
     updatedAt: Date.now(),
   });
 
-  await logAction(
-    ctx,
-    "create_ticket",
-    "DATA_CHANGE",
-    "MEDIUM",
-    `Created ticket: ${title}`,
-    currentUser._id,
-    undefined,
-    { ticketId, priority: args.priority, category: args.category, assignedToId: args.assignedToId }
-  );
+  await logAction(ctx, 'create_ticket', 'DATA_CHANGE', 'MEDIUM', `Created ticket: ${title}`, currentUser._id, undefined, {
+    ticketId,
+    priority: args.priority,
+    category: args.category,
+    assignedToId: args.assignedToId,
+  });
 
   return ticketId;
 };
-
-

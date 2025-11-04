@@ -1,13 +1,13 @@
-import { query } from "../../_generated/server";
+import { query } from '../../_generated/server';
 
 // Import args and handlers
-import { getProductsArgs, getProductsHandler } from "./getProducts";
-import { getProductByIdArgs, getProductByIdHandler } from "./getProductById";
-import { getProductBySlugArgs, getProductBySlugHandler } from "./getProductBySlug";
-import { searchProductsArgs, searchProductsHandler } from "./searchProducts";
-import { getPopularProductsArgs, getPopularProductsHandler } from "./getPopularProducts";
-import { getProductAnalyticsArgs, getProductAnalyticsHandler } from "./getProductAnalytics";
-import { getProductRecommendationsArgs, getProductRecommendationsHandler } from "./getProductRecommendations";
+import { getProductsArgs, getProductsHandler } from './getProducts';
+import { getProductByIdArgs, getProductByIdHandler } from './getProductById';
+import { getProductBySlugArgs, getProductBySlugHandler } from './getProductBySlug';
+import { searchProductsArgs, searchProductsHandler } from './searchProducts';
+import { getPopularProductsArgs, getPopularProductsHandler } from './getPopularProducts';
+import { getProductAnalyticsArgs, getProductAnalyticsHandler } from './getProductAnalytics';
+import { getProductRecommendationsArgs, getProductRecommendationsHandler } from './getProductRecommendations';
 
 // Export query functions
 export const getProducts = query({

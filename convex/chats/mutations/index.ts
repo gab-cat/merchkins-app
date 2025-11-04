@@ -1,13 +1,8 @@
-import { mutation } from "../../_generated/server";
+import { mutation } from '../../_generated/server';
 
-import { createChatRoomArgs, createChatRoomHandler } from "./createChatRoom";
-import { sendMessageArgs, sendMessageHandler } from "./sendMessage";
-import {
-  addParticipantsArgs,
-  removeParticipantsArgs,
-  addParticipantsHandler,
-  removeParticipantsHandler,
-} from "./manageParticipants";
+import { createChatRoomArgs, createChatRoomHandler } from './createChatRoom';
+import { sendMessageArgs, sendMessageHandler } from './sendMessage';
+import { addParticipantsArgs, removeParticipantsArgs, addParticipantsHandler, removeParticipantsHandler } from './manageParticipants';
 import {
   editMessageArgs,
   deleteMessageArgs,
@@ -19,9 +14,9 @@ import {
   togglePinMessageHandler,
   reactToMessageHandler,
   markRoomReadHandler,
-} from "./manageMessage";
-import { setTypingArgs, setTypingHandler } from "./updateTyping";
-import { updateRoomArgs, updateRoomHandler } from "./updateRoom";
+} from './manageMessage';
+import { setTypingArgs, setTypingHandler } from './updateTyping';
+import { updateRoomArgs, updateRoomHandler } from './updateRoom';
 
 export const createChatRoom = mutation({
   args: createChatRoomArgs,
@@ -77,5 +72,3 @@ export const updateRoom = mutation({
   args: updateRoomArgs,
   handler: updateRoomHandler,
 });
-
-

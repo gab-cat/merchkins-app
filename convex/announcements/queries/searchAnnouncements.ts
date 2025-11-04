@@ -1,10 +1,10 @@
-import { QueryCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import { requireAuthentication, requireOrganizationMember } from "../../helpers";
+import { QueryCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireAuthentication, requireOrganizationMember } from '../../helpers';
 
 export const searchAnnouncementsArgs = {
-  organizationId: v.optional(v.id("organizations")),
+  organizationId: v.optional(v.id('organizations')),
   category: v.optional(v.string()),
   query: v.string(),
   limit: v.optional(v.number()),
@@ -13,7 +13,7 @@ export const searchAnnouncementsArgs = {
 
 export const searchAnnouncementsHandler = async (
   ctx: QueryCtx,
-  args: { organizationId?: Id<"organizations">; category?: string; query: string; limit?: number; offset?: number }
+  args: { organizationId?: Id<'organizations'>; category?: string; query: string; limit?: number; offset?: number }
 ) => {
   const user = await requireAuthentication(ctx);
   const qLower = args.query.trim().toLowerCase();
@@ -23,20 +23,23 @@ export const searchAnnouncementsHandler = async (
   if (args.organizationId) {
     // Allow PUBLIC to everyone; INTERNAL only to members (enforced by membership requirement)
     await requireOrganizationMember(ctx, args.organizationId);
-    query = ctx.db.query("announcements").withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId!));
+    query = ctx.db.query('announcements').withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!));
   } else {
-    query = ctx.db.query("announcements").withIndex("by_published_at").filter((q) => q.eq(q.field("organizationId"), undefined));
+    query = ctx.db
+      .query('announcements')
+      .withIndex('by_published_at')
+      .filter((q) => q.eq(q.field('organizationId'), undefined));
   }
 
   const now = Date.now();
   const base = await query
     .filter((q) =>
       q.and(
-        q.eq(q.field("isActive"), true),
-        q.lte(q.field("publishedAt"), now),
-        q.or(q.eq(q.field("scheduledAt"), undefined), q.lte(q.field("scheduledAt"), now)),
-        q.or(q.eq(q.field("expiresAt"), undefined), q.gt(q.field("expiresAt"), now)),
-        args.category !== undefined ? q.eq(q.field("category"), args.category) : q.eq(q.field("isActive"), true)
+        q.eq(q.field('isActive'), true),
+        q.lte(q.field('publishedAt'), now),
+        q.or(q.eq(q.field('scheduledAt'), undefined), q.lte(q.field('scheduledAt'), now)),
+        q.or(q.eq(q.field('expiresAt'), undefined), q.gt(q.field('expiresAt'), now)),
+        args.category !== undefined ? q.eq(q.field('category'), args.category) : q.eq(q.field('isActive'), true)
       )
     )
     .collect();
@@ -45,11 +48,11 @@ export const searchAnnouncementsHandler = async (
   const isMerchant = !!user.isMerchant;
   const visible = base.filter((ann) => {
     const allowed =
-      ann.targetAudience === "ALL" ||
-      (ann.targetAudience === "ADMINS" && user.isAdmin) ||
-      (ann.targetAudience === "STAFF" && isStaffLike) ||
-      (ann.targetAudience === "MERCHANTS" && isMerchant) ||
-      (ann.targetAudience === "CUSTOMERS" && !isStaffLike);
+      ann.targetAudience === 'ALL' ||
+      (ann.targetAudience === 'ADMINS' && user.isAdmin) ||
+      (ann.targetAudience === 'STAFF' && isStaffLike) ||
+      (ann.targetAudience === 'MERCHANTS' && isMerchant) ||
+      (ann.targetAudience === 'CUSTOMERS' && !isStaffLike);
     if (!allowed) return false;
     const haystack = `${ann.title} ${ann.content}`.toLowerCase();
     return haystack.includes(qLower);
@@ -62,5 +65,3 @@ export const searchAnnouncementsHandler = async (
   const page = visible.slice(offset, offset + limit);
   return { announcements: page, total, offset, limit, hasMore: offset + limit < total };
 };
-
-

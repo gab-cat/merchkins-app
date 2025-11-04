@@ -1,16 +1,16 @@
-import type { Metadata } from 'next'
-import { Poppins } from 'next/font/google'
-import './globals.css'
-import ConvexClientProvider from '@/components/ConvexClientProvider'
-import { ClerkProvider } from '@clerk/nextjs'
-import { Toaster } from '@/components/ui/sonner'
-import { OrgThemeController } from '@/src/features/organizations/components/org-theme-controller'
-import { LoadingProvider } from '@/src/components/loading-provider'
+import type { Metadata } from 'next';
+import { Poppins } from 'next/font/google';
+import './globals.css';
+import ConvexClientProvider from '@/components/ConvexClientProvider';
+import { ClerkProvider } from '@clerk/nextjs';
+import { Toaster } from '@/components/ui/sonner';
+import { OrgThemeController } from '@/src/features/organizations/components/org-theme-controller';
+import { LoadingProvider } from '@/src/components/loading-provider';
 
 const poppins = Poppins({
-  variable: "--font-poppins",
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"]
+  variable: '--font-poppins',
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
 });
 
 export const metadata: Metadata = {
@@ -19,25 +19,25 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
-}
+};
 
-export default function RootLayout ({
+export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
       <body className={`${poppins.variable} antialiased font-sans`}>
-        <ClerkProvider 
-          dynamic 
-          signInUrl="/sign-in" 
+        <ClerkProvider
+          dynamic
+          signInUrl="/sign-in"
           signUpUrl="/sign-up"
-                    afterSignOutUrl='https://merchkins.com'
-          supportEmail='support@merchkins.com'
-          signUpForceRedirectUrl='https://app.merchkins.com'
-          signInFallbackRedirectUrl='https://app.merchkins.com'
-          signUpFallbackRedirectUrl='https://app.merchkins.com'
+          afterSignOutUrl="https://merchkins.com"
+          supportEmail="support@merchkins.com"
+          signUpForceRedirectUrl="https://app.merchkins.com"
+          signInFallbackRedirectUrl="https://app.merchkins.com"
+          signUpFallbackRedirectUrl="https://app.merchkins.com"
           appearance={{
             variables: {
               colorPrimary: '#1d43d8',
@@ -61,9 +61,7 @@ export default function RootLayout ({
             <LoadingProvider>
               <div className="min-h-dvh flex flex-col">
                 <OrgThemeController />
-                <main className="flex flex-col bg-white text-black min-h-[80vh] w-full relative">
-                  {children}
-                </main>
+                <main className="flex flex-col bg-white text-black min-h-[80vh] w-full relative">{children}</main>
               </div>
               <Toaster />
             </LoadingProvider>
@@ -71,5 +69,5 @@ export default function RootLayout ({
         </ClerkProvider>
       </body>
     </html>
-  )
+  );
 }

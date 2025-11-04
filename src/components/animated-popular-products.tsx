@@ -1,16 +1,16 @@
-"use client"
+'use client';
 
-import React from 'react'
-import { motion } from 'framer-motion'
-import { PopularProducts } from '@/src/features/products/components/popular-products'
-import { fadeInUpContainer } from '@/lib/animations'
-import type { Preloaded } from 'convex/react'
-import type { api } from '@/convex/_generated/api'
+import React from 'react';
+import { motion } from 'framer-motion';
+import { PopularProducts } from '@/src/features/products/components/popular-products';
+import { fadeInUpContainer } from '@/lib/animations';
+import type { Preloaded } from 'convex/react';
+import type { api } from '@/convex/_generated/api';
 
 interface AnimatedPopularProductsProps {
-  orgSlug?: string
-  preloadedOrganization?: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug>
-  preloadedProducts?: Preloaded<typeof api.products.queries.index.getPopularProducts>
+  orgSlug?: string;
+  preloadedOrganization?: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug>;
+  preloadedProducts?: Preloaded<typeof api.products.queries.index.getPopularProducts>;
 }
 
 export function AnimatedPopularProducts(props: AnimatedPopularProductsProps) {
@@ -24,5 +24,5 @@ export function AnimatedPopularProducts(props: AnimatedPopularProductsProps) {
     >
       <PopularProducts {...props} />
     </motion.section>
-  )
+  );
 }

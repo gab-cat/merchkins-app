@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-export default function Loading () {
+export default function Loading() {
   return (
     <div className="container mx-auto px-3 py-6">
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -21,7 +21,5 @@ export default function Loading () {
         ))}
       </div>
     </div>
-  )
+  );
 }
-
-

@@ -1,24 +1,24 @@
-"use client"
+'use client';
 
-import React from 'react'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Megaphone, ExternalLink, MessageSquare, Ticket, ShoppingBag } from 'lucide-react'
-import { fadeInUp, fadeInUpContainer, fadeInUpVariants } from '@/lib/animations'
+import React from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Megaphone, ExternalLink, MessageSquare, Ticket, ShoppingBag } from 'lucide-react';
+import { fadeInUp, fadeInUpContainer, fadeInUpVariants } from '@/lib/animations';
 
 interface AnimatedBannerProps {
-  bannerUrl?: string
-  logoUrl?: string
+  bannerUrl?: string;
+  logoUrl?: string;
   organization: {
-    name: string
-    description?: string
-    website?: string
-    industry?: string
-    memberCount?: number
-  }
-  orgSlug: string
+    name: string;
+    description?: string;
+    website?: string;
+    industry?: string;
+    memberCount?: number;
+  };
+  orgSlug: string;
 }
 
 export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: AnimatedBannerProps) {
@@ -34,13 +34,7 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
       {/* Banner background image */}
       {bannerUrl && (
         <div className="absolute inset-0 opacity-30">
-          <Image
-            src={bannerUrl as string}
-            alt={`${organization.name} banner`}
-            fill
-            className="object-cover object-center"
-            priority
-          />
+          <Image src={bannerUrl as string} alt={`${organization.name} banner`} fill className="object-cover object-center" priority />
         </div>
       )}
 
@@ -68,15 +62,9 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
 
           {/* Organization info */}
           <motion.div className="min-w-0 flex-1 pt-0.5" variants={fadeInUpVariants.subtle}>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white drop-shadow-sm">
-              {organization.name}
-            </h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white drop-shadow-sm">{organization.name}</h1>
 
-            {organization.description && (
-              <p className="mt-1 text-sm sm:text-base text-white/90 line-clamp-1 max-w-2xl">
-                {organization.description}
-              </p>
-            )}
+            {organization.description && <p className="mt-1 text-sm sm:text-base text-white/90 line-clamp-1 max-w-2xl">{organization.description}</p>}
 
             {/* Metadata row */}
             <div className="mt-2 flex items-center gap-2 text-xs sm:text-sm text-white/80 flex-wrap">
@@ -92,17 +80,13 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
                   <span className="sm:hidden">Website</span>
                 </a>
               )}
-              {organization.website && (organization.industry || organization.memberCount) && (
-                <span className="text-white/40">•</span>
-              )}
-              {organization.industry && (
-                <span>{organization.industry}</span>
-              )}
-              {organization.industry && organization.memberCount && (
-                <span className="text-white/40">•</span>
-              )}
+              {organization.website && (organization.industry || organization.memberCount) && <span className="text-white/40">•</span>}
+              {organization.industry && <span>{organization.industry}</span>}
+              {organization.industry && organization.memberCount && <span className="text-white/40">•</span>}
               {organization.memberCount && (
-                <span>{organization.memberCount} {organization.memberCount === 1 ? 'Member' : 'Members'}</span>
+                <span>
+                  {organization.memberCount} {organization.memberCount === 1 ? 'Member' : 'Members'}
+                </span>
               )}
             </div>
 
@@ -125,5 +109,5 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
         </div>
       </div>
     </motion.section>
-  )
+  );
 }

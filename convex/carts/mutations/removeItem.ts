@@ -1,25 +1,20 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import {
-  requireAuthentication,
-  validateCartExists,
-  validateProductExists,
-  logAction,
-} from "../../helpers";
-import { internal } from "../../_generated/api";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireAuthentication, validateCartExists, validateProductExists, logAction } from '../../helpers';
+import { internal } from '../../_generated/api';
 
 export const removeItemArgs = {
-  cartId: v.id("carts"),
-  productId: v.id("products"),
+  cartId: v.id('carts'),
+  productId: v.id('products'),
   variantId: v.optional(v.string()),
 };
 
 export const removeItemHandler = async (
   ctx: MutationCtx,
   args: {
-    cartId: Id<"carts">;
-    productId: Id<"products">;
+    cartId: Id<'carts'>;
+    productId: Id<'products'>;
     variantId?: string;
   }
 ) => {
@@ -35,7 +30,7 @@ export const removeItemHandler = async (
   if (args.variantId) {
     const variant = product.variants.find((v) => v.variantId === args.variantId);
     if (!variant) {
-      throw new Error("Variant not found");
+      throw new Error('Variant not found');
     }
     variantName = variant.variantName;
   }
@@ -59,7 +54,7 @@ export const removeItemHandler = async (
     return !match;
   });
   if (items.length === beforeLength) {
-    throw new Error("Item not found in cart");
+    throw new Error('Item not found in cart');
   }
 
   let totalItems = 0;
@@ -89,24 +84,15 @@ export const removeItemHandler = async (
   if (args.variantId && removedQuantity > 0) {
     await ctx.runMutation(internal.products.mutations.index.updateProductStats, {
       productId: product._id,
-      variantUpdates: [
-        { variantId: args.variantId, incrementInCart: -removedQuantity },
-      ],
+      variantUpdates: [{ variantId: args.variantId, incrementInCart: -removedQuantity }],
     });
   }
 
-  await logAction(
-    ctx,
-    "remove_cart_item",
-    "DATA_CHANGE",
-    "LOW",
-    `Removed item from cart: ${product.title}`,
-    currentUser._id,
-    undefined,
-    { cartId: cart._id, productId: product._id, variantId: args.variantId }
-  );
+  await logAction(ctx, 'remove_cart_item', 'DATA_CHANGE', 'LOW', `Removed item from cart: ${product.title}`, currentUser._id, undefined, {
+    cartId: cart._id,
+    productId: product._id,
+    variantId: args.variantId,
+  });
 
   return cart._id;
 };
-
-

@@ -1,54 +1,51 @@
-"use client"
+'use client';
 
-import React from 'react'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useQuery, usePreloadedQuery, Preloaded } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { ProductCard } from './product-card'
-import { fadeInUpContainer } from '@/lib/animations'
+import React from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery, usePreloadedQuery, Preloaded } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { ProductCard } from './product-card';
+import { fadeInUpContainer } from '@/lib/animations';
 
 type ProductCardData = {
-  _id: string
-  slug: string
-  title: string
-  description?: string
-  imageUrl?: string[]
-  minPrice?: number
-  rating?: number
-  reviewsCount?: number
-  isBestPrice?: boolean
-  discountLabel?: string
-}
+  _id: string;
+  slug: string;
+  title: string;
+  description?: string;
+  imageUrl?: string[];
+  minPrice?: number;
+  rating?: number;
+  reviewsCount?: number;
+  isBestPrice?: boolean;
+  discountLabel?: string;
+};
 
 interface PopularProductsProps {
-  orgSlug?: string
-  preloadedOrganization?: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug>
-  preloadedProducts?: Preloaded<typeof api.products.queries.index.getPopularProducts>
+  orgSlug?: string;
+  preloadedOrganization?: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug>;
+  preloadedProducts?: Preloaded<typeof api.products.queries.index.getPopularProducts>;
 }
 
-export function PopularProducts ({ orgSlug, preloadedOrganization, preloadedProducts }: PopularProductsProps = {}) {
+export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProducts }: PopularProductsProps = {}) {
   const organization = preloadedOrganization
     ? usePreloadedQuery(preloadedOrganization)
-    : useQuery(
-        api.organizations.queries.index.getOrganizationBySlug,
-        orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
-      )
+    : useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string }));
   const result = preloadedProducts
     ? usePreloadedQuery(preloadedProducts)
-    : useQuery(
-        api.products.queries.index.getPopularProducts,
-        organization?._id ? { limit: 8, organizationId: organization._id } : { limit: 8 }
-      )
-  const loading = result === undefined
-  const products = (result?.products ?? []) as unknown as ProductCardData[]
+    : useQuery(api.products.queries.index.getPopularProducts, organization?._id ? { limit: 8, organizationId: organization._id } : { limit: 8 });
+  const loading = result === undefined;
+  const products = (result?.products ?? []) as unknown as ProductCardData[];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-3xl font-bold text-primary tracking-tight">Popular products</h2>
-        <Link className="text-sm text-primary hover:text-primary/80 font-semibold hover:underline transition-all duration-200 whitespace-nowrap" href={orgSlug ? `/o/${orgSlug}/search` : '/search'}>
+        <Link
+          className="text-sm text-primary hover:text-primary/80 font-semibold hover:underline transition-all duration-200 whitespace-nowrap"
+          href={orgSlug ? `/o/${orgSlug}/search` : '/search'}
+        >
           View all →
         </Link>
       </div>
@@ -61,10 +58,7 @@ export function PopularProducts ({ orgSlug, preloadedOrganization, preloadedProd
       >
         {loading
           ? new Array(8).fill(null).map((_, i) => (
-              <Card
-                key={`skeleton-${i}`}
-                className="overflow-hidden rounded-xl border bg-card shadow-sm py-0"
-              >
+              <Card key={`skeleton-${i}`} className="overflow-hidden rounded-xl border bg-card shadow-sm py-0">
                 <div className="aspect-[4/3] bg-secondary skeleton" />
                 <CardHeader className="p-3 space-y-2">
                   <CardTitle className="h-4 w-2/3 rounded bg-secondary skeleton" />
@@ -100,6 +94,5 @@ export function PopularProducts ({ orgSlug, preloadedOrganization, preloadedProd
         </div>
       )}
     </div>
-  )
+  );
 }
-

@@ -1,60 +1,48 @@
-"use client"
+'use client';
 
-import React, { useMemo } from 'react'
-import Link from 'next/link'
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Checkbox } from '@/components/ui/checkbox'
-import { cn } from '@/lib/utils'
-import { useCartSheetStore } from '@/src/stores/cart-sheet'
-import { ShoppingCart, Trash2, Plus, Minus, CreditCard } from 'lucide-react'
-import { R2Image } from '@/src/components/ui/r2-image'
-import { showToast, promiseToast } from '@/lib/toast'
+import React, { useMemo } from 'react';
+import Link from 'next/link';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Id } from '@/convex/_generated/dataModel';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
+import { useCartSheetStore } from '@/src/stores/cart-sheet';
+import { ShoppingCart, Trash2, Plus, Minus, CreditCard } from 'lucide-react';
+import { R2Image } from '@/src/components/ui/r2-image';
+import { showToast, promiseToast } from '@/lib/toast';
 
 type CartItem = {
-  variantId?: string
+  variantId?: string;
   productInfo: {
-    productId: Id<'products'>
-    title: string
-    slug: string
-    imageUrl: string[]
-    variantName?: string
-    price: number
-    originalPrice?: number
-    inventory: number
-    organizationId?: Id<'organizations'>
-    organizationName?: string
-  }
-  quantity: number
-  selected: boolean
-  note?: string
-  addedAt: number
-}
+    productId: Id<'products'>;
+    title: string;
+    slug: string;
+    imageUrl: string[];
+    variantName?: string;
+    price: number;
+    originalPrice?: number;
+    inventory: number;
+    organizationId?: Id<'organizations'>;
+    organizationName?: string;
+  };
+  quantity: number;
+  selected: boolean;
+  note?: string;
+  addedAt: number;
+};
 
-export function CartSheet ({
-  children,
-  initialCount,
-}: {
-  children?: React.ReactNode
-  initialCount?: number
-}) {
-  const isOpen = useCartSheetStore((s) => s.isOpen)
-  const openSheet = useCartSheetStore((s) => s.open)
-  const closeSheet = useCartSheetStore((s) => s.close)
-  const cart = useQuery(api.carts.queries.index.getCartByUser, {})
-  const clearCart = useMutation(api.carts.mutations.index.clearCart)
+export function CartSheet({ children, initialCount }: { children?: React.ReactNode; initialCount?: number }) {
+  const isOpen = useCartSheetStore((s) => s.isOpen);
+  const openSheet = useCartSheetStore((s) => s.open);
+  const closeSheet = useCartSheetStore((s) => s.close);
+  const cart = useQuery(api.carts.queries.index.getCartByUser, {});
+  const clearCart = useMutation(api.carts.mutations.index.clearCart);
 
   const totals = useMemo(() => {
     return {
@@ -62,31 +50,32 @@ export function CartSheet ({
       totalValue: cart?.totalValue ?? 0,
       selectedItems: cart?.selectedItems ?? 0,
       selectedValue: cart?.selectedValue ?? 0,
-    }
-  }, [cart])
+    };
+  }, [cart]);
 
-  const hasItems = (cart?.embeddedItems?.length ?? 0) > 0
-  const badgeCount = (cart ? cart.totalItems : initialCount) ?? 0
+  const hasItems = (cart?.embeddedItems?.length ?? 0) > 0;
+  const badgeCount = (cart ? cart.totalItems : initialCount) ?? 0;
 
   const groupedByOrg = useMemo(() => {
-    const groups: Record<string, { name: string; items: Array<CartItem> }> = {}
+    const groups: Record<string, { name: string; items: Array<CartItem> }> = {};
     for (const raw of cart?.embeddedItems ?? []) {
-      const item = raw as CartItem
-      const orgId = String(item.productInfo.organizationId ?? 'global')
-      const orgName = item.productInfo.organizationName ?? 'Storefront'
-      if (!groups[orgId]) groups[orgId] = { name: orgName, items: [] }
-      groups[orgId].items.push(item)
+      const item = raw as CartItem;
+      const orgId = String(item.productInfo.organizationId ?? 'global');
+      const orgName = item.productInfo.organizationName ?? 'Storefront';
+      if (!groups[orgId]) groups[orgId] = { name: orgName, items: [] };
+      groups[orgId].items.push(item);
     }
-    return groups
-  }, [cart])
+    return groups;
+  }, [cart]);
 
-  async function handleClear () {
-    if (!cart) return
+  async function handleClear() {
+    if (!cart) return;
     try {
-      await promiseToast(
-        clearCart({ cartId: cart._id }),
-        { loading: 'Clearing cart…', success: 'Cart cleared', error: () => 'Failed to clear cart' },
-      )
+      await promiseToast(clearCart({ cartId: cart._id }), {
+        loading: 'Clearing cart…',
+        success: 'Cart cleared',
+        error: () => 'Failed to clear cart',
+      });
     } catch {
       // no-op
     }
@@ -97,7 +86,10 @@ export function CartSheet ({
       <SheetTrigger asChild>
         <div className="relative inline-flex" data-testid="cart-trigger">
           {children ?? (
-            <Button variant="default" aria-label="Cart"><ShoppingCart className="mr-2 h-4 w-4" />Cart</Button>
+            <Button variant="default" aria-label="Cart">
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Cart
+            </Button>
           )}
           {badgeCount > 0 && (
             <span
@@ -113,7 +105,9 @@ export function CartSheet ({
 
       <SheetContent side="right" className="p-0 bg-white border-none text-black">
         <SheetHeader className="border-b bg-primary py-2">
-          <SheetTitle className="px-4 py-2 inline-flex items-center gap-3 text-base font-bold"><ShoppingCart className="h-4 w-4" /> Your cart</SheetTitle>
+          <SheetTitle className="px-4 py-2 inline-flex items-center gap-3 text-base font-bold">
+            <ShoppingCart className="h-4 w-4" /> Your cart
+          </SheetTitle>
         </SheetHeader>
 
         {cart === undefined ? (
@@ -140,9 +134,7 @@ export function CartSheet ({
               <div className="space-y-4">
                 {Object.entries(groupedByOrg).map(([orgId, group]) => (
                   <div key={orgId} className="space-y-3">
-                    <div className="px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-b pb-1">
-                      {group.name}
-                    </div>
+                    <div className="px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-b pb-1">{group.name}</div>
                     {group.items.map((item) => (
                       <MiniCartLineItem
                         key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
@@ -163,19 +155,16 @@ export function CartSheet ({
                 </div>
                 <div className="flex items-center justify-between font-semibold text-base">
                   <span>Selected total</span>
-                  <span className="text-primary">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.selectedValue)}</span>
+                  <span className="text-primary">
+                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.selectedValue)}
+                  </span>
                 </div>
               </div>
             </div>
 
             <SheetFooter className="gap-2 p-4 border-t">
               <div className="flex w-full items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="shrink-0 hover:bg-destructive/10 hover:text-destructive"
-                  onClick={handleClear}
-                >
+                <Button variant="ghost" size="sm" className="shrink-0 hover:bg-destructive/10 hover:text-destructive" onClick={handleClear}>
                   <Trash2 className="mr-2 h-4 w-4" /> Clear
                 </Button>
                 <div className="ml-auto flex items-center gap-2">
@@ -198,46 +187,37 @@ export function CartSheet ({
         )}
       </SheetContent>
     </Sheet>
-  )
+  );
 }
 
-function MiniCartLineItem ({
-  cartId,
-  item,
-}: {
-  cartId: Id<'carts'>
-  item: CartItem
-}) {
-  const setSelected = useMutation(api.carts.mutations.index.setItemSelected)
-  const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity)
-  const setItemNote = useMutation(api.carts.mutations.index.setItemNote)
-  const updateItemVariant = useMutation(api.carts.mutations.index.updateItemVariant)
-  const product = useQuery(
-    api.products.queries.index.getProductById,
-    { productId: item.productInfo.productId }
-  )
+function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }) {
+  const setSelected = useMutation(api.carts.mutations.index.setItemSelected);
+  const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity);
+  const setItemNote = useMutation(api.carts.mutations.index.setItemNote);
+  const updateItemVariant = useMutation(api.carts.mutations.index.updateItemVariant);
+  const product = useQuery(api.products.queries.index.getProductById, { productId: item.productInfo.productId });
 
-  async function handleDec () {
+  async function handleDec() {
     await updateQty({
       cartId: cartId,
       productId: item.productInfo.productId,
       variantId: item.variantId,
       quantity: Math.max(0, item.quantity - 1),
-    })
+    });
   }
 
-  async function handleInc () {
+  async function handleInc() {
     await updateQty({
       cartId: cartId,
       productId: item.productInfo.productId,
       variantId: item.variantId,
       quantity: Math.min(item.quantity + 1, item.productInfo.inventory),
-    })
+    });
   }
 
   // selection toggled inline via Checkbox onCheckedChange
 
-  async function handleRemove () {
+  async function handleRemove() {
     try {
       await promiseToast(
         updateQty({
@@ -246,29 +226,29 @@ function MiniCartLineItem ({
           variantId: item.variantId,
           quantity: 0,
         }),
-        { loading: 'Removing item…', success: 'Item removed', error: () => 'Failed to remove item' },
-      )
+        { loading: 'Removing item…', success: 'Item removed', error: () => 'Failed to remove item' }
+      );
     } catch {
       // no-op
     }
   }
 
-  async function handleSaveNote (note: string) {
+  async function handleSaveNote(note: string) {
     try {
       await setItemNote({
         cartId: cartId,
         productId: item.productInfo.productId,
         variantId: item.variantId,
         note: note.trim() || undefined,
-      })
-      showToast({ type: 'success', title: 'Note saved' })
+      });
+      showToast({ type: 'success', title: 'Note saved' });
     } catch {
-      showToast({ type: 'error', title: 'Failed to save note' })
+      showToast({ type: 'error', title: 'Failed to save note' });
     }
   }
 
-  async function handleVariantChange (newVariantId?: string) {
-    if ((newVariantId ?? null) === (item.variantId ?? null)) return
+  async function handleVariantChange(newVariantId?: string) {
+    if ((newVariantId ?? null) === (item.variantId ?? null)) return;
     // update variant directly without removing/adding
     try {
       await promiseToast(
@@ -278,8 +258,8 @@ function MiniCartLineItem ({
           oldVariantId: item.variantId,
           newVariantId: newVariantId,
         }),
-        { loading: 'Updating variant…', success: 'Variant updated', error: () => 'Failed to update variant' },
-      )
+        { loading: 'Updating variant…', success: 'Variant updated', error: () => 'Failed to update variant' }
+      );
     } catch {
       // no-op
     }
@@ -297,7 +277,7 @@ function MiniCartLineItem ({
                 productId: item.productInfo.productId,
                 variantId: item.variantId,
                 selected: Boolean(checked),
-              })
+              });
             }}
             aria-label="Select item"
             className="mt-0.5"
@@ -321,9 +301,7 @@ function MiniCartLineItem ({
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold leading-tight">
-                {item.productInfo.title}
-              </div>
+              <div className="truncate text-sm font-semibold leading-tight">{item.productInfo.title}</div>
               <div className="text-xs text-muted-foreground mt-0.5">
                 {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price)} each
               </div>
@@ -337,24 +315,23 @@ function MiniCartLineItem ({
                         className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white"
                         aria-label="Select variant"
                       >
-                        <span className="truncate">
-                          {item.productInfo.variantName ?? 'Select variant'}
+                        <span className="truncate">{item.productInfo.variantName ?? 'Select variant'}</span>
+                        <span aria-hidden className="ml-1">
+                          ▾
                         </span>
-                        <span aria-hidden className="ml-1">▾</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="min-w-[10rem] animate-in fade-in-0 zoom-in-95">
-                      <DropdownMenuRadioGroup
-                        value={item.variantId ?? ''}
-                        onValueChange={(val) => handleVariantChange(val || undefined)}
-                      >
+                      <DropdownMenuRadioGroup value={item.variantId ?? ''} onValueChange={(val) => handleVariantChange(val || undefined)}>
                         {product.variants
                           .filter((v) => v.isActive)
                           .map((v) => (
                             <DropdownMenuRadioItem key={v.variantId} value={v.variantId} className="text-xs">
                               <div className="flex items-center justify-between w-full">
                                 <span>{v.variantName}</span>
-                                <span className="ml-2 font-medium text-primary">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}</span>
+                                <span className="ml-2 font-medium text-primary">
+                                  {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}
+                                </span>
                               </div>
                             </DropdownMenuRadioItem>
                           ))}
@@ -365,7 +342,9 @@ function MiniCartLineItem ({
               )}
             </div>
             <div className="text-right">
-              <div className="text-sm font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price * item.quantity)}</div>
+              <div className="text-sm font-bold">
+                {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price * item.quantity)}
+              </div>
             </div>
           </div>
 
@@ -412,10 +391,10 @@ function MiniCartLineItem ({
               className="h-7 text-xs max-w-xs"
               onBlur={async (e) => {
                 try {
-                  await handleSaveNote(e.target.value)
-                  showToast({ type: 'success', title: 'Note saved' })
+                  await handleSaveNote(e.target.value);
+                  showToast({ type: 'success', title: 'Note saved' });
                 } catch {
-                  showToast({ type: 'error', title: 'Failed to save note' })
+                  showToast({ type: 'error', title: 'Failed to save note' });
                 }
               }}
             />
@@ -423,7 +402,5 @@ function MiniCartLineItem ({
         </div>
       </div>
     </div>
-  )
+  );
 }
-
-

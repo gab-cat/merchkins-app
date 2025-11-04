@@ -1,7 +1,7 @@
-import { query } from "../../_generated/server";
+import { query } from '../../_generated/server';
 
-import { getUserReviewArgs, getUserReviewHandler } from "./getUserReview";
-import { getReviewsByProductArgs, getReviewsByProductHandler } from "./getReviewsByProduct";
+import { getUserReviewArgs, getUserReviewHandler } from './getUserReview';
+import { getReviewsByProductArgs, getReviewsByProductHandler } from './getReviewsByProduct';
 
 export const getUserReview = query({
   args: getUserReviewArgs,

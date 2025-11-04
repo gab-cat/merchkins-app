@@ -13,13 +13,7 @@ type MutationCtx = GenericMutationCtx<DataModel>;
 export async function logAction(
   ctx: MutationCtx,
   action: string,
-  logType:
-    | 'USER_ACTION'
-    | 'SYSTEM_EVENT'
-    | 'SECURITY_EVENT'
-    | 'DATA_CHANGE'
-    | 'ERROR_EVENT'
-    | 'AUDIT_TRAIL',
+  logType: 'USER_ACTION' | 'SYSTEM_EVENT' | 'SECURITY_EVENT' | 'DATA_CHANGE' | 'ERROR_EVENT' | 'AUDIT_TRAIL',
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
   reason: string,
   userId?: Id<'users'>,
@@ -38,12 +32,14 @@ export async function logAction(
 ): Promise<void> {
   const creator = await getOptionalCurrentUser(ctx);
 
-  let userInfo: {
-    firstName?: string;
-    lastName?: string;
-    email: string;
-    imageUrl?: string;
-  } | undefined;
+  let userInfo:
+    | {
+        firstName?: string;
+        lastName?: string;
+        email: string;
+        imageUrl?: string;
+      }
+    | undefined;
 
   let organizationInfo:
     | {
@@ -84,18 +80,10 @@ export async function logAction(
   const now = Date.now();
   const sanitizedReason = sanitizeString(reason);
   const sanitizedAction = sanitizeString(action);
-  const resourceType = extras?.resourceType
-    ? sanitizeString(extras.resourceType)
-    : undefined;
-  const resourceId = extras?.resourceId
-    ? sanitizeString(extras.resourceId)
-    : undefined;
-  const correlationId = extras?.correlationId
-    ? sanitizeString(extras.correlationId)
-    : undefined;
-  const sessionId = extras?.sessionId
-    ? sanitizeString(extras.sessionId)
-    : undefined;
+  const resourceType = extras?.resourceType ? sanitizeString(extras.resourceType) : undefined;
+  const resourceId = extras?.resourceId ? sanitizeString(extras.resourceId) : undefined;
+  const correlationId = extras?.correlationId ? sanitizeString(extras.correlationId) : undefined;
+  const sessionId = extras?.sessionId ? sanitizeString(extras.sessionId) : undefined;
 
   await ctx.db.insert('logs', {
     organizationId,
@@ -156,21 +144,17 @@ export function generateInviteCode(length: number = 8): string {
 /**
  * Check if a slug is unique for organizations
  */
-export async function isOrganizationSlugUnique(
-  ctx: QueryCtx | MutationCtx,
-  slug: string,
-  excludeId?: string
-): Promise<boolean> {
+export async function isOrganizationSlugUnique(ctx: QueryCtx | MutationCtx, slug: string, excludeId?: string): Promise<boolean> {
   const existing = await ctx.db
-    .query("organizations")
-    .withIndex("by_slug", (q) => q.eq("slug", slug))
-    .filter((q) => q.eq(q.field("isDeleted"), false))
+    .query('organizations')
+    .withIndex('by_slug', (q) => q.eq('slug', slug))
+    .filter((q) => q.eq(q.field('isDeleted'), false))
     .first();
-    
+
   if (!existing) {
     return true;
   }
-  
+
   // If excludeId is provided, allow the slug if it belongs to that organization
   return excludeId ? existing._id === excludeId : false;
 }
@@ -181,22 +165,19 @@ export async function isOrganizationSlugUnique(
 export async function isProductSlugUnique(
   ctx: QueryCtx | MutationCtx,
   slug: string,
-  organizationId: Id<"organizations">,
-  excludeId?: Id<"products">
+  organizationId: Id<'organizations'>,
+  excludeId?: Id<'products'>
 ): Promise<boolean> {
   const existing = await ctx.db
-    .query("products")
-    .withIndex("by_organization", (q) => q.eq("organizationId", organizationId))
-    .filter((q) => q.and(
-      q.eq(q.field("slug"), slug),
-      q.eq(q.field("isDeleted"), false)
-    ))
+    .query('products')
+    .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+    .filter((q) => q.and(q.eq(q.field('slug'), slug), q.eq(q.field('isDeleted'), false)))
     .first();
-    
+
   if (!existing) {
     return true;
   }
-  
+
   // If excludeId is provided, allow the slug if it belongs to that product
   return excludeId ? existing._id === excludeId : false;
 }
@@ -207,29 +188,25 @@ export async function isProductSlugUnique(
 export async function isCategorySlugUnique(
   ctx: QueryCtx | MutationCtx,
   slug: string,
-  organizationId?: Id<"organizations">,
-  excludeId?: Id<"categories">
+  organizationId?: Id<'organizations'>,
+  excludeId?: Id<'categories'>
 ): Promise<boolean> {
   const query = organizationId
-    ? ctx.db.query("categories")
-        .withIndex("by_organization", (q) => q.eq("organizationId", organizationId))
-        .filter((q) => q.and(
-          q.eq(q.field("slug"), slug),
-          q.eq(q.field("isDeleted"), false)
-        ))
-    : ctx.db.query("categories")
-        .withIndex("by_slug", (q) => q.eq("slug", slug))
-        .filter((q) => q.and(
-          q.eq(q.field("organizationId"), undefined),
-          q.eq(q.field("isDeleted"), false)
-        ));
-        
+    ? ctx.db
+        .query('categories')
+        .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+        .filter((q) => q.and(q.eq(q.field('slug'), slug), q.eq(q.field('isDeleted'), false)))
+    : ctx.db
+        .query('categories')
+        .withIndex('by_slug', (q) => q.eq('slug', slug))
+        .filter((q) => q.and(q.eq(q.field('organizationId'), undefined), q.eq(q.field('isDeleted'), false)));
+
   const existing = await query.first();
-    
+
   if (!existing) {
     return true;
   }
-  
+
   // If excludeId is provided, allow the slug if it belongs to that category
   return excludeId ? existing._id === excludeId : false;
 }
@@ -261,11 +238,7 @@ export function sanitizeString(input: string): string {
 /**
  * Check if a date is within a range
  */
-export function isDateInRange(
-  date: number,
-  startDate?: number,
-  endDate?: number
-): boolean {
+export function isDateInRange(date: number, startDate?: number, endDate?: number): boolean {
   if (startDate && date < startDate) return false;
   if (endDate && date > endDate) return false;
   return true;
@@ -277,14 +250,14 @@ export function isDateInRange(
 export function getTimeAgo(timestamp: number): string {
   const now = Date.now();
   const diff = now - timestamp;
-  
+
   const minute = 60 * 1000;
   const hour = minute * 60;
   const day = hour * 24;
   const week = day * 7;
   const month = day * 30;
   const year = day * 365;
-  
+
   if (diff < minute) return 'just now';
   if (diff < hour) return `${Math.floor(diff / minute)}m ago`;
   if (diff < day) return `${Math.floor(diff / hour)}h ago`;
@@ -336,10 +309,7 @@ export function deepMerge<T extends Record<string, unknown>>(target: T, source: 
 
   for (const key in source) {
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      result[key] = deepMerge(
-        (result[key] as Record<string, unknown>) || {},
-        source[key] as Record<string, unknown>
-      ) as T[Extract<keyof T, string>];
+      result[key] = deepMerge((result[key] as Record<string, unknown>) || {}, source[key] as Record<string, unknown>) as T[Extract<keyof T, string>];
     } else if (source[key] !== undefined) {
       result[key] = source[key] as T[Extract<keyof T, string>];
     }

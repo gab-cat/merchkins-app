@@ -1,10 +1,10 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import { validateCartExists, validateNonNegativeNumber } from "../../helpers";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { validateCartExists, validateNonNegativeNumber } from '../../helpers';
 
 export const updateCartStatsArgs = {
-  cartId: v.id("carts"),
+  cartId: v.id('carts'),
   totalItems: v.optional(v.number()),
   selectedItems: v.optional(v.number()),
   totalValue: v.optional(v.number()),
@@ -16,7 +16,7 @@ export const updateCartStatsArgs = {
 export const updateCartStatsHandler = async (
   ctx: MutationCtx,
   args: {
-    cartId: Id<"carts">;
+    cartId: Id<'carts'>;
     totalItems?: number;
     selectedItems?: number;
     totalValue?: number;
@@ -27,10 +27,10 @@ export const updateCartStatsHandler = async (
 ) => {
   const cart = await validateCartExists(ctx, args.cartId);
 
-  if (args.totalItems !== undefined) validateNonNegativeNumber(args.totalItems, "totalItems");
-  if (args.selectedItems !== undefined) validateNonNegativeNumber(args.selectedItems, "selectedItems");
-  if (args.totalValue !== undefined) validateNonNegativeNumber(args.totalValue, "totalValue");
-  if (args.selectedValue !== undefined) validateNonNegativeNumber(args.selectedValue, "selectedValue");
+  if (args.totalItems !== undefined) validateNonNegativeNumber(args.totalItems, 'totalItems');
+  if (args.selectedItems !== undefined) validateNonNegativeNumber(args.selectedItems, 'selectedItems');
+  if (args.totalValue !== undefined) validateNonNegativeNumber(args.totalValue, 'totalValue');
+  if (args.selectedValue !== undefined) validateNonNegativeNumber(args.selectedValue, 'selectedValue');
 
   const updates: Record<string, unknown> = { updatedAt: Date.now() };
   if (args.totalItems !== undefined) updates.totalItems = args.totalItems;
@@ -43,5 +43,3 @@ export const updateCartStatsHandler = async (
   await ctx.db.patch(cart._id, updates);
   return cart._id;
 };
-
-

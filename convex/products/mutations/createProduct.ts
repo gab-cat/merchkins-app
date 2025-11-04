@@ -1,9 +1,9 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import { 
-  requireAuthentication, 
-  logAction, 
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import {
+  requireAuthentication,
+  logAction,
   validateNotEmpty,
   validateStringLength,
   validatePositiveNumber,
@@ -14,13 +14,13 @@ import {
   validateOrganizationExists,
   validateCategoryExists,
   requireOrganizationPermission,
-  isProductSlugUnique
-} from "../../helpers";
+  isProductSlugUnique,
+} from '../../helpers';
 
 // Create new product
 export const createProductArgs = {
-  organizationId: v.optional(v.id("organizations")),
-  categoryId: v.optional(v.id("categories")),
+  organizationId: v.optional(v.id('organizations')),
+  categoryId: v.optional(v.id('categories')),
   title: v.string(),
   description: v.optional(v.string()),
   slug: v.optional(v.string()),
@@ -30,21 +30,23 @@ export const createProductArgs = {
   tags: v.optional(v.array(v.string())),
   isBestPrice: v.optional(v.boolean()),
   inventory: v.number(),
-  inventoryType: v.union(v.literal("PREORDER"), v.literal("STOCK")),
-  variants: v.array(v.object({
-    variantName: v.string(),
-    price: v.number(),
-    inventory: v.number(),
-    imageUrl: v.optional(v.string()),
-    isActive: v.optional(v.boolean()),
-  })),
+  inventoryType: v.union(v.literal('PREORDER'), v.literal('STOCK')),
+  variants: v.array(
+    v.object({
+      variantName: v.string(),
+      price: v.number(),
+      inventory: v.number(),
+      imageUrl: v.optional(v.string()),
+      isActive: v.optional(v.boolean()),
+    })
+  ),
 };
 
 export const createProductHandler = async (
   ctx: MutationCtx,
   args: {
-    organizationId?: Id<"organizations">;
-    categoryId?: Id<"categories">;
+    organizationId?: Id<'organizations'>;
+    categoryId?: Id<'categories'>;
     title: string;
     description?: string;
     slug?: string;
@@ -54,7 +56,7 @@ export const createProductHandler = async (
     tags?: string[];
     isBestPrice?: boolean;
     inventory: number;
-    inventoryType: "PREORDER" | "STOCK";
+    inventoryType: 'PREORDER' | 'STOCK';
     variants: Array<{
       variantName: string;
       price: number;
@@ -66,26 +68,26 @@ export const createProductHandler = async (
 ) => {
   // Require authentication
   const currentUser = await requireAuthentication(ctx);
-  
+
   // Validate required inputs
-  validateNotEmpty(args.title, "Product title");
-  validateStringLength(args.title, "Product title", 2, 200);
-  validateArrayNotEmpty(args.imageUrl, "Product images");
-  validateArrayNotEmpty(args.variants, "Product variants");
-  validateNonNegativeNumber(args.inventory, "Inventory");
-  
+  validateNotEmpty(args.title, 'Product title');
+  validateStringLength(args.title, 'Product title', 2, 200);
+  validateArrayNotEmpty(args.imageUrl, 'Product images');
+  validateArrayNotEmpty(args.variants, 'Product variants');
+  validateNonNegativeNumber(args.inventory, 'Inventory');
+
   if (args.description) {
-    validateStringLength(args.description, "Product description", 0, 2000);
+    validateStringLength(args.description, 'Product description', 0, 2000);
   }
-  
+
   if (args.discountLabel) {
-    validateStringLength(args.discountLabel, "Discount label", 0, 50);
+    validateStringLength(args.discountLabel, 'Discount label', 0, 50);
   }
-  
+
   if (args.supposedPrice) {
-    validatePositiveNumber(args.supposedPrice, "Supposed price");
+    validatePositiveNumber(args.supposedPrice, 'Supposed price');
   }
-  
+
   // Validate variants
   args.variants.forEach((variant, index) => {
     validateNotEmpty(variant.variantName, `Variant ${index + 1} name`);
@@ -93,14 +95,14 @@ export const createProductHandler = async (
     validatePositiveNumber(variant.price, `Variant ${index + 1} price`);
     validateNonNegativeNumber(variant.inventory, `Variant ${index + 1} inventory`);
   });
-  
+
   // Check for duplicate variant names
-  const variantNames = args.variants.map(v => v.variantName.toLowerCase());
+  const variantNames = args.variants.map((v) => v.variantName.toLowerCase());
   const uniqueVariantNames = new Set(variantNames);
   if (variantNames.length !== uniqueVariantNames.size) {
-    throw new Error("Variant names must be unique");
+    throw new Error('Variant names must be unique');
   }
-  
+
   // Sanitize inputs
   const productData = {
     title: sanitizeString(args.title),
@@ -114,50 +116,50 @@ export const createProductHandler = async (
     inventory: args.inventory,
     inventoryType: args.inventoryType,
   };
-  
+
   let organizationInfo = undefined;
   let categoryInfo = undefined;
-  
+
   // Validate organization if provided
   if (args.organizationId) {
     const organization = await validateOrganizationExists(ctx, args.organizationId);
-    
+
     // Check if user has permission to create products in this organization
-    await requireOrganizationPermission(ctx, args.organizationId, "MANAGE_PRODUCTS", "create");
-    
+    await requireOrganizationPermission(ctx, args.organizationId, 'MANAGE_PRODUCTS', 'create');
+
     organizationInfo = {
       name: organization.name,
       slug: organization.slug,
       logo: organization.logo,
     };
-    
+
     // Check if slug is unique within organization
     const isUnique = await isProductSlugUnique(ctx, productData.slug, args.organizationId);
     if (!isUnique) {
-      throw new Error("Product slug already exists in this organization");
+      throw new Error('Product slug already exists in this organization');
     }
   } else {
     // For global products, only system admins can create
     if (!currentUser.isAdmin) {
-      throw new Error("Only system administrators can create global products");
+      throw new Error('Only system administrators can create global products');
     }
   }
-  
+
   // Validate category if provided
   if (args.categoryId) {
     const category = await validateCategoryExists(ctx, args.categoryId);
-    
+
     // Ensure category belongs to same organization (or both are global)
     if (category.organizationId !== args.organizationId) {
-      throw new Error("Category must belong to the same organization");
+      throw new Error('Category must belong to the same organization');
     }
-    
+
     categoryInfo = {
       name: category.name,
       description: category.description,
     };
   }
-  
+
   // Prepare creator info
   const creatorInfo = {
     firstName: currentUser.firstName,
@@ -165,12 +167,12 @@ export const createProductHandler = async (
     email: currentUser.email,
     imageUrl: currentUser.imageUrl,
   };
-  
+
   // Calculate variant metrics
-  const variantPrices = args.variants.map(v => v.price);
+  const variantPrices = args.variants.map((v) => v.price);
   const minPrice = Math.min(...variantPrices);
   const maxPrice = Math.max(...variantPrices);
-  
+
   // Prepare variants with additional data
   const now = Date.now();
   const processedVariants = args.variants.map((variant, index) => ({
@@ -186,9 +188,9 @@ export const createProductHandler = async (
     createdAt: now,
     updatedAt: now,
   }));
-  
+
   // Create product
-  const productId = await ctx.db.insert("products", {
+  const productId = await ctx.db.insert('products', {
     isDeleted: false,
     categoryId: args.categoryId,
     postedById: currentUser._id,
@@ -219,7 +221,7 @@ export const createProductHandler = async (
     createdAt: now,
     updatedAt: now,
   });
-  
+
   // Update category product count if category exists
   if (args.categoryId) {
     const category = await ctx.db.get(args.categoryId);
@@ -231,23 +233,14 @@ export const createProductHandler = async (
       });
     }
   }
-  
+
   // Log the action
-  await logAction(
-    ctx,
-    "create_product",
-    "DATA_CHANGE",
-    "MEDIUM",
-    `Created product: ${productData.title}`,
-    currentUser._id,
-    args.organizationId,
-    { 
-      productId,
-      productSlug: productData.slug,
-      categoryId: args.categoryId,
-      variantCount: processedVariants.length
-    }
-  );
-  
+  await logAction(ctx, 'create_product', 'DATA_CHANGE', 'MEDIUM', `Created product: ${productData.title}`, currentUser._id, args.organizationId, {
+    productId,
+    productSlug: productData.slug,
+    categoryId: args.categoryId,
+    variantCount: processedVariants.length,
+  });
+
   return productId;
 };

@@ -1,4 +1,5 @@
 <!-- b88ebd68-24a6-42e7-a8d7-6a862cd07442 aa064eb9-89da-4346-834b-976993ef28f2 -->
+
 # Add Framer Motion Animations to Index Page
 
 ## Overview

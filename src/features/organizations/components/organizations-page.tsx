@@ -1,34 +1,34 @@
-"use client"
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Doc, Id } from '@/convex/_generated/dataModel'
-import { R2Image } from '@/src/components/ui/r2-image'
-import { UserPlus } from 'lucide-react'
+import { useState } from 'react';
+import Link from 'next/link';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Doc, Id } from '@/convex/_generated/dataModel';
+import { R2Image } from '@/src/components/ui/r2-image';
+import { UserPlus } from 'lucide-react';
 
-type Organization = Doc<'organizations'>
+type Organization = Doc<'organizations'>;
 
 interface OrganizationsPageProps {
-  clerkId: string
+  clerkId: string;
 }
 
-export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
-  const currentUser = useQuery(api.users.queries.index.getCurrentUser, { clerkId })
+export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
+  const currentUser = useQuery(api.users.queries.index.getCurrentUser, { clerkId });
   const orgs = useQuery(
     api.organizations.queries.index.getOrganizationsByUser,
     currentUser?._id ? { userId: currentUser._id } : ('skip' as unknown as { userId: Id<'users'> })
-  )
-  const loading = currentUser === undefined || orgs === undefined
+  );
+  const loading = currentUser === undefined || orgs === undefined;
 
   // Explore: search public/private organizations
-  const [search, setSearch] = useState('')
-  const [orgType, setOrgType] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL')
+  const [search, setSearch] = useState('');
+  const [orgType, setOrgType] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
   const searchResult = useQuery(
     api.organizations.queries.index.searchOrganizations,
     search.trim().length >= 2
@@ -37,10 +37,10 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
           limit: 24,
           ...(orgType !== 'ALL' ? { organizationType: orgType } : {}),
         }
-      : ('skip' as unknown as { searchTerm: string }),
-  )
-  const joinPublic = useMutation(api.organizations.mutations.index.joinPublicOrganization)
-  const requestJoin = useMutation(api.organizations.mutations.index.requestToJoinOrganization)
+      : ('skip' as unknown as { searchTerm: string })
+  );
+  const joinPublic = useMutation(api.organizations.mutations.index.joinPublicOrganization);
+  const requestJoin = useMutation(api.organizations.mutations.index.requestToJoinOrganization);
 
   if (loading) {
     return (
@@ -57,22 +57,15 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
             </div>
           </CardContent>
         </Card>
-        <div
-          className="mt-6 rounded-xl border bg-card p-6 text-center shadow-sm"
-          data-testid="orgs-cta"
-        >
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight">
-            Want your own organization?
-          </h2>
-          <p className="mt-2 text-muted-foreground">
-            We can help set up a branded store for your organization.
-          </p>
+        <div className="mt-6 rounded-xl border bg-card p-6 text-center shadow-sm" data-testid="orgs-cta">
+          <h2 className="text-xl md:text-2xl font-semibold tracking-tight">Want your own organization?</h2>
+          <p className="mt-2 text-muted-foreground">We can help set up a branded store for your organization.</p>
           <Button asChild size="lg" className="mt-4">
             <a href="mailto:business@merchkins.com">Email business@merchkins.com</a>
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   if (!currentUser) {
@@ -80,7 +73,7 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
       <div className="container mx-auto px-3 py-16 text-center">
         <p className="text-muted-foreground">Please sign in to view organizations.</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -95,17 +88,17 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
             {orgs && orgs.length > 0 ? (
               <ul className="divide-y">
                 {orgs.map((org) => {
-                  const role = org.membershipInfo?.role as 'ADMIN' | 'STAFF' | 'MEMBER' | undefined
-                  const elevated = role === 'ADMIN' || role === 'STAFF'
+                  const role = org.membershipInfo?.role as 'ADMIN' | 'STAFF' | 'MEMBER' | undefined;
+                  const elevated = role === 'ADMIN' || role === 'STAFF';
                   return (
                     <li key={org._id} className="flex items-center justify-between gap-4 py-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="h-10 w-10 overflow-hidden rounded border bg-secondary flex-shrink-0">
                           {org.logo ? (
-                            <R2Image 
+                            <R2Image
                               fileKey={org.logo}
-                              alt={`${org.name || 'Organization'} logo`} 
-                              width={40} 
+                              alt={`${org.name || 'Organization'} logo`}
+                              width={40}
                               height={40}
                               className="h-full w-full object-cover"
                             />
@@ -125,9 +118,7 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
                             )}
                           </div>
                           <div className="text-xs text-muted-foreground truncate">/{org.slug}</div>
-                          {org.description && (
-                            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground max-w-prose">{org.description}</p>
-                          )}
+                          {org.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground max-w-prose">{org.description}</p>}
                         </div>
                       </div>
                       <div className="flex flex-shrink-0 items-center gap-2">
@@ -136,12 +127,14 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
                         </Link>
                         {elevated && (
                           <Link href={`/admin/org-settings?org=${org.slug}`}>
-                            <Button size="sm" variant="outline">Manage</Button>
+                            <Button size="sm" variant="outline">
+                              Manage
+                            </Button>
                           </Link>
                         )}
                       </div>
                     </li>
-                  )
+                  );
                 })}
               </ul>
             ) : (
@@ -192,22 +185,30 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
                       </div>
                       <Badge variant="secondary">{org.organizationType}</Badge>
                     </div>
-                    <div className="mt-2 line-clamp-2 text-sm text-muted-foreground min-h-[2.5rem]">
-                      {org.description || '—'}
-                    </div>
+                    <div className="mt-2 line-clamp-2 text-sm text-muted-foreground min-h-[2.5rem]">{org.description || '—'}</div>
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">{org.memberCount} members</span>
                       {org.organizationType === 'PUBLIC' ? (
-                        <Button size="sm" className="gap-1.5" onClick={async () => {
-                          await joinPublic({ organizationId: org._id })
-                        }}>
+                        <Button
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={async () => {
+                            await joinPublic({ organizationId: org._id });
+                          }}
+                        >
                           <UserPlus className="h-3.5 w-3.5" />
                           Join
                         </Button>
                       ) : (
-                        <Button size="sm" variant="outline" onClick={async () => {
-                          await requestJoin({ organizationId: org._id })
-                        }}>Request</Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            await requestJoin({ organizationId: org._id });
+                          }}
+                        >
+                          Request
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -219,23 +220,14 @@ export function OrganizationsPage ({ clerkId }: OrganizationsPageProps) {
             )}
           </CardContent>
         </Card>
-        <div
-          className="rounded-xl border bg-card p-6 text-center shadow-sm"
-          data-testid="orgs-cta"
-        >
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight">
-            Want your own organization?
-          </h2>
-          <p className="mt-2 text-muted-foreground">
-            We can help set up a branded store for your organization.
-          </p>
+        <div className="rounded-xl border bg-card p-6 text-center shadow-sm" data-testid="orgs-cta">
+          <h2 className="text-xl md:text-2xl font-semibold tracking-tight">Want your own organization?</h2>
+          <p className="mt-2 text-muted-foreground">We can help set up a branded store for your organization.</p>
           <Button asChild size="lg" className="mt-4">
             <a href="mailto:business@merchkins.com">Email business@merchkins.com</a>
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
-
-

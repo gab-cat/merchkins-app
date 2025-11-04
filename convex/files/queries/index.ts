@@ -1,7 +1,7 @@
-import { query } from "../../_generated/server";
-import { v } from "convex/values";
-import { r2 } from "../r2";
-import { requireAuthentication } from "../../helpers";
+import { query } from '../../_generated/server';
+import { v } from 'convex/values';
+import { r2 } from '../r2';
+import { requireAuthentication } from '../../helpers';
 
 // Get file URL by key
 export const getFileUrl = query({
@@ -35,7 +35,7 @@ export const listFiles = query({
   handler: async (ctx, args) => {
     // Require authentication to list files
     await requireAuthentication(ctx);
-    
+
     return await r2.listMetadata(ctx, args.limit || 10);
   },
 });

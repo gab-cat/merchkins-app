@@ -1,16 +1,16 @@
-import { query } from "../../_generated/server";
+import { query } from '../../_generated/server';
 
 // Import args and handlers
-import { checkUserPermissionArgs, checkUserPermissionHandler } from "./checkUserPermission";
-import { getCurrentUserArgs, getCurrentUserHandler } from "./getCurrentUser";
-import { getRecentlyActiveUsersArgs, getRecentlyActiveUsersHandler } from "./getRecentlyActiveUsers";
-import { getUserAnalyticsArgs, getUserAnalyticsHandler } from "./getUserAnalytics";
-import { getUserByIdArgs, getUserByIdHandler } from "./getUserById";
-import { getUserByEmailArgs, getUserByEmailHandler } from "./getUserByEmail";
-import { getUsersArgs, getUsersHandler } from "./getUsers";
-import { getUsersByManagerArgs, getUsersByManagerHandler } from "./getUsersByManager";
-import { getUsersByOrganizationArgs, getUsersByOrganizationHandler } from "./getUsersByOrganization";
-import { searchUsersArgs, searchUsersHandler } from "./searchUsers";
+import { checkUserPermissionArgs, checkUserPermissionHandler } from './checkUserPermission';
+import { getCurrentUserArgs, getCurrentUserHandler } from './getCurrentUser';
+import { getRecentlyActiveUsersArgs, getRecentlyActiveUsersHandler } from './getRecentlyActiveUsers';
+import { getUserAnalyticsArgs, getUserAnalyticsHandler } from './getUserAnalytics';
+import { getUserByIdArgs, getUserByIdHandler } from './getUserById';
+import { getUserByEmailArgs, getUserByEmailHandler } from './getUserByEmail';
+import { getUsersArgs, getUsersHandler } from './getUsers';
+import { getUsersByManagerArgs, getUsersByManagerHandler } from './getUsersByManager';
+import { getUsersByOrganizationArgs, getUsersByOrganizationHandler } from './getUsersByOrganization';
+import { searchUsersArgs, searchUsersHandler } from './searchUsers';
 
 // Export query functions
 export const checkUserPermission = query({

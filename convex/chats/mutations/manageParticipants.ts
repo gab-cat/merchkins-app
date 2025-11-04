@@ -1,55 +1,48 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id, Doc } from "../../_generated/dataModel";
-import {
-  requireAuthentication,
-  validateUserExists,
-  logAction,
-} from "../../helpers";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id, Doc } from '../../_generated/dataModel';
+import { requireAuthentication, validateUserExists, logAction } from '../../helpers';
 
 export const addParticipantsArgs = {
-  chatRoomId: v.id("chatRooms"),
-  userIds: v.array(v.id("users")),
+  chatRoomId: v.id('chatRooms'),
+  userIds: v.array(v.id('users')),
 };
 
 export const removeParticipantsArgs = {
-  chatRoomId: v.id("chatRooms"),
-  userIds: v.array(v.id("users")),
+  chatRoomId: v.id('chatRooms'),
+  userIds: v.array(v.id('users')),
 };
 
-export const addParticipantsHandler = async (
-  ctx: MutationCtx,
-  args: { chatRoomId: Id<"chatRooms">; userIds: Array<Id<"users">> }
-) => {
+export const addParticipantsHandler = async (ctx: MutationCtx, args: { chatRoomId: Id<'chatRooms'>; userIds: Array<Id<'users'>> }) => {
   const currentUser = await requireAuthentication(ctx);
   const chatRoom = await ctx.db.get(args.chatRoomId);
   if (!chatRoom || !chatRoom.isActive) {
-    throw new Error("Chat room not found or inactive");
+    throw new Error('Chat room not found or inactive');
   }
 
-  if (chatRoom.type === "direct") {
-    throw new Error("Cannot add participants to a direct chat");
+  if (chatRoom.type === 'direct') {
+    throw new Error('Cannot add participants to a direct chat');
   }
 
   // Require admin or moderator role in this room (embedded or via participants)
   const embeddedRole = (chatRoom.embeddedParticipants || []).find((p) => p.userId === currentUser._id)?.role;
-  let isPrivileged = embeddedRole === "admin" || embeddedRole === "moderator";
+  let isPrivileged = embeddedRole === 'admin' || embeddedRole === 'moderator';
   if (!isPrivileged) {
     const membership = await ctx.db
-      .query("chatParticipants")
-      .withIndex("by_chat_and_user", (q) => q.eq("chatRoomId", args.chatRoomId).eq("userId", currentUser._id))
+      .query('chatParticipants')
+      .withIndex('by_chat_and_user', (q) => q.eq('chatRoomId', args.chatRoomId).eq('userId', currentUser._id))
       .first();
-    isPrivileged = !!membership && (membership.role === "admin" || membership.role === "moderator");
+    isPrivileged = !!membership && (membership.role === 'admin' || membership.role === 'moderator');
   }
   if (!isPrivileged) {
-    throw new Error("Only admins or moderators can add participants");
+    throw new Error('Only admins or moderators can add participants');
   }
 
   const now = Date.now();
 
   // Validate users and deduplicate
   const uniqueUserIds = Array.from(new Set(args.userIds));
-  const usersToAdd: Record<string, Doc<"users">> = {};
+  const usersToAdd: Record<string, Doc<'users'>> = {};
   for (const uid of uniqueUserIds) {
     const user = await validateUserExists(ctx, uid);
     usersToAdd[uid] = user;
@@ -60,7 +53,7 @@ export const addParticipantsHandler = async (
   const embeddedIds = new Set(embedded.map((p) => p.userId));
   const newEmbedded = [...embedded];
   for (const uid of uniqueUserIds) {
-    if (!embeddedIds.has(uid) && (embedded.length + uniqueUserIds.length) <= 10) {
+    if (!embeddedIds.has(uid) && embedded.length + uniqueUserIds.length <= 10) {
       const u = usersToAdd[uid];
       newEmbedded.push({
         userId: uid,
@@ -68,7 +61,7 @@ export const addParticipantsHandler = async (
         lastName: u.lastName,
         imageUrl: u.imageUrl,
         email: u.email,
-        role: "member",
+        role: 'member',
         joinedAt: now,
         lastReadAt: undefined,
         isActive: true,
@@ -87,15 +80,20 @@ export const addParticipantsHandler = async (
   // Add to chatParticipants table regardless to support large rooms
   for (const uid of uniqueUserIds) {
     const existing = await ctx.db
-      .query("chatParticipants")
-      .withIndex("by_chat_and_user", (q) => q.eq("chatRoomId", args.chatRoomId).eq("userId", uid))
+      .query('chatParticipants')
+      .withIndex('by_chat_and_user', (q) => q.eq('chatRoomId', args.chatRoomId).eq('userId', uid))
       .first();
     if (!existing) {
-      await ctx.db.insert("chatParticipants", {
+      await ctx.db.insert('chatParticipants', {
         chatRoomId: args.chatRoomId,
         userId: uid,
-        userInfo: { firstName: usersToAdd[uid].firstName, lastName: usersToAdd[uid].lastName, imageUrl: usersToAdd[uid].imageUrl, email: usersToAdd[uid].email },
-        role: "member",
+        userInfo: {
+          firstName: usersToAdd[uid].firstName,
+          lastName: usersToAdd[uid].lastName,
+          imageUrl: usersToAdd[uid].imageUrl,
+          email: usersToAdd[uid].email,
+        },
+        role: 'member',
         joinedAt: now,
         lastReadAt: undefined,
         isActive: true,
@@ -108,8 +106,8 @@ export const addParticipantsHandler = async (
 
   // Update room state unread entries
   const state = await ctx.db
-    .query("chatRoomState")
-    .withIndex("by_chat_room", (q) => q.eq("chatRoomId", args.chatRoomId))
+    .query('chatRoomState')
+    .withIndex('by_chat_room', (q) => q.eq('chatRoomId', args.chatRoomId))
     .unique();
   if (state) {
     const stateIds = new Set(state.unreadCounts.map((u) => u.userId));
@@ -126,9 +124,9 @@ export const addParticipantsHandler = async (
 
   await logAction(
     ctx,
-    "add_chat_participants",
-    "DATA_CHANGE",
-    "LOW",
+    'add_chat_participants',
+    'DATA_CHANGE',
+    'LOW',
     `Added ${uniqueUserIds.length} participants to room ${args.chatRoomId}`,
     currentUser._id,
     chatRoom.organizationId,
@@ -138,28 +136,25 @@ export const addParticipantsHandler = async (
   return true;
 };
 
-export const removeParticipantsHandler = async (
-  ctx: MutationCtx,
-  args: { chatRoomId: Id<"chatRooms">; userIds: Array<Id<"users">> }
-) => {
+export const removeParticipantsHandler = async (ctx: MutationCtx, args: { chatRoomId: Id<'chatRooms'>; userIds: Array<Id<'users'>> }) => {
   const currentUser = await requireAuthentication(ctx);
   const chatRoom = await ctx.db.get(args.chatRoomId);
   if (!chatRoom || !chatRoom.isActive) {
-    throw new Error("Chat room not found or inactive");
+    throw new Error('Chat room not found or inactive');
   }
 
   // Require admin or moderator role
   const embeddedRole = (chatRoom.embeddedParticipants || []).find((p) => p.userId === currentUser._id)?.role;
-  let isPrivileged = embeddedRole === "admin" || embeddedRole === "moderator";
+  let isPrivileged = embeddedRole === 'admin' || embeddedRole === 'moderator';
   if (!isPrivileged) {
     const membership = await ctx.db
-      .query("chatParticipants")
-      .withIndex("by_chat_and_user", (q) => q.eq("chatRoomId", args.chatRoomId).eq("userId", currentUser._id))
+      .query('chatParticipants')
+      .withIndex('by_chat_and_user', (q) => q.eq('chatRoomId', args.chatRoomId).eq('userId', currentUser._id))
       .first();
-    isPrivileged = !!membership && (membership.role === "admin" || membership.role === "moderator");
+    isPrivileged = !!membership && (membership.role === 'admin' || membership.role === 'moderator');
   }
   if (!isPrivileged) {
-    throw new Error("Only admins or moderators can remove participants");
+    throw new Error('Only admins or moderators can remove participants');
   }
 
   const uniqueUserIds = Array.from(new Set(args.userIds));
@@ -180,8 +175,8 @@ export const removeParticipantsHandler = async (
   // Deactivate in chatParticipants
   for (const uid of uniqueUserIds) {
     const membership = await ctx.db
-      .query("chatParticipants")
-      .withIndex("by_chat_and_user", (q) => q.eq("chatRoomId", args.chatRoomId).eq("userId", uid))
+      .query('chatParticipants')
+      .withIndex('by_chat_and_user', (q) => q.eq('chatRoomId', args.chatRoomId).eq('userId', uid))
       .first();
     if (membership && membership.isActive) {
       await ctx.db.patch(membership._id, { isActive: false });
@@ -190,8 +185,8 @@ export const removeParticipantsHandler = async (
 
   // Update room state unread entries
   const state = await ctx.db
-    .query("chatRoomState")
-    .withIndex("by_chat_room", (q) => q.eq("chatRoomId", args.chatRoomId))
+    .query('chatRoomState')
+    .withIndex('by_chat_room', (q) => q.eq('chatRoomId', args.chatRoomId))
     .unique();
   if (state) {
     const remaining = state.unreadCounts.filter((u) => !uniqueUserIds.includes(u.userId));
@@ -202,9 +197,9 @@ export const removeParticipantsHandler = async (
 
   await logAction(
     ctx,
-    "remove_chat_participants",
-    "DATA_CHANGE",
-    "LOW",
+    'remove_chat_participants',
+    'DATA_CHANGE',
+    'LOW',
     `Removed ${uniqueUserIds.length} participants from room ${args.chatRoomId}`,
     currentUser._id,
     chatRoom.organizationId,
@@ -213,5 +208,3 @@ export const removeParticipantsHandler = async (
 
   return true;
 };
-
-

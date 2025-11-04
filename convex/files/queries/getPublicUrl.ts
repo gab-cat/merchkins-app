@@ -1,6 +1,6 @@
-import { query } from "../../_generated/server";
-import { v } from "convex/values";
-import { r2 } from "../r2";
+import { query } from '../../_generated/server';
+import { v } from 'convex/values';
+import { r2 } from '../r2';
 
 // Get public URL for a file key or return URL as-is if already a URL
 export const getPublicUrl = query({

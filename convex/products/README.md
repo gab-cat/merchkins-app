@@ -9,6 +9,7 @@ The products domain manages product information, variants, inventory, and analyt
 ## Features
 
 ### Product Management
+
 - Create, update, delete, and restore products
 - Support for multiple product variants with individual pricing and inventory
 - Category assignment and organization scoping
@@ -17,6 +18,7 @@ The products domain manages product information, variants, inventory, and analyt
 - Automatic slug generation and uniqueness validation
 
 ### Product Analytics
+
 - View counts and order tracking
 - Revenue calculations per product and variant
 - Rating and review aggregation
@@ -25,6 +27,7 @@ The products domain manages product information, variants, inventory, and analyt
 - Time-based filtering for analytics
 
 ### Search & Discovery
+
 - Full-text search across titles, descriptions, and tags
 - Advanced filtering by price, rating, category, organization
 - Popular products with configurable timeframes
@@ -34,6 +37,7 @@ The products domain manages product information, variants, inventory, and analyt
 ## Data Model
 
 ### Products Table
+
 ```typescript
 {
   // Basic Info
@@ -41,12 +45,12 @@ The products domain manages product information, variants, inventory, and analyt
   categoryId?: Id<"categories">,
   postedById: Id<"users">,
   organizationId?: Id<"organizations">,
-  
+
   // Embedded Information
   categoryInfo?: { name: string, description?: string },
   creatorInfo: { firstName?: string, lastName?: string, email: string, imageUrl?: string },
   organizationInfo?: { name: string, slug: string, logo?: string },
-  
+
   // Product Details
   slug: string,
   title: string,
@@ -60,7 +64,7 @@ The products domain manages product information, variants, inventory, and analyt
   isBestPrice: boolean,
   inventory: number,
   inventoryType: "PREORDER" | "STOCK",
-  
+
   // Variants
   variants: Array<{
     variantId: string,
@@ -73,14 +77,14 @@ The products domain manages product information, variants, inventory, and analyt
     createdAt: number,
     updatedAt: number,
   }>,
-  
+
   // Analytics
   totalVariants: number,
   minPrice?: number,
   maxPrice?: number,
   totalOrders: number,
   viewCount: number,
-  
+
   // Recent Reviews (embedded for quick access)
   recentReviews: Array<{
     reviewId: Id<"reviews">,
@@ -91,7 +95,7 @@ The products domain manages product information, variants, inventory, and analyt
     comment?: string,
     createdAt: number,
   }>,
-  
+
   createdAt: number,
   updatedAt: number,
 }
@@ -100,9 +104,11 @@ The products domain manages product information, variants, inventory, and analyt
 ## Mutations
 
 ### createProduct
+
 Creates a new product with variants.
 
 **Parameters:**
+
 - `organizationId?: Id<"organizations">` - Organization context (optional for global products)
 - `categoryId?: Id<"categories">` - Product category
 - `title: string` - Product title (2-200 chars)
@@ -118,47 +124,59 @@ Creates a new product with variants.
 - `variants: Array<{ variantName: string, price: number, inventory: number }>` - Product variants (required, at least 1)
 
 **Permissions:**
+
 - Organization products: Requires `MANAGE_PRODUCTS` permission
 - Global products: System admin only
 
 **Validations:**
+
 - Unique slug within organization/global scope
 - Unique variant names
 - Positive prices and non-negative inventory
 - Category belongs to same organization
 
 ### updateProduct
+
 Updates an existing product.
 
 **Parameters:**
+
 - `productId: Id<"products">` - Product to update
 - All create parameters as optional updates
 
 **Permissions:**
+
 - Organization products: Requires `MANAGE_PRODUCTS` permission
 - Own products: Creator can update
 - Global products: System admin only
 
 ### deleteProduct
+
 Soft deletes a product.
 
 **Parameters:**
+
 - `productId: Id<"products">` - Product to delete
 
 **Effects:**
+
 - Updates category product counts
 - Sets `isDeleted: true`
 
 ### restoreProduct
+
 Restores a soft-deleted product.
 
 **Parameters:**
+
 - `productId: Id<"products">` - Product to restore
 
 ### updateProductStats
+
 Updates product statistics (typically called by system).
 
 **Parameters:**
+
 - `productId: Id<"products">` - Product to update
 - `incrementViews?: number` - Views to add
 - `incrementOrders?: number` - Orders to add
@@ -169,9 +187,11 @@ Updates product statistics (typically called by system).
 ## Queries
 
 ### getProducts
+
 Retrieves products with comprehensive filtering and pagination.
 
 **Parameters:**
+
 - `organizationId?: Id<"organizations">` - Filter by organization
 - `categoryId?: Id<"categories">` - Filter by category
 - `postedById?: Id<"users">` - Filter by creator
@@ -189,6 +209,7 @@ Retrieves products with comprehensive filtering and pagination.
 - `offset?: number` - Page offset
 
 **Returns:**
+
 ```typescript
 {
   products: Doc<"products">[],
@@ -200,24 +221,30 @@ Retrieves products with comprehensive filtering and pagination.
 ```
 
 ### getProductById
+
 Retrieves a product by ID.
 
 **Parameters:**
+
 - `productId: Id<"products">` - Product ID
 - `includeDeleted?: boolean` - Include if soft-deleted
 
 ### getProductBySlug
+
 Retrieves a product by slug within organization or global scope.
 
 **Parameters:**
+
 - `slug: string` - Product slug
 - `organizationId?: Id<"organizations">` - Organization context
 - `includeDeleted?: boolean` - Include if soft-deleted
 
 ### searchProducts
+
 Full-text search across products.
 
 **Parameters:**
+
 - `query: string` - Search query (required)
 - `organizationId?: Id<"organizations">` - Scope to organization
 - `categoryId?: Id<"categories">` - Scope to category
@@ -226,6 +253,7 @@ Full-text search across products.
 - `offset?: number` - Page offset
 
 **Search Fields:**
+
 - Product title
 - Product description
 - Tags
@@ -234,6 +262,7 @@ Full-text search across products.
 - Category name
 
 **Returns:**
+
 ```typescript
 {
   products: Doc<"products">[],
@@ -246,9 +275,11 @@ Full-text search across products.
 ```
 
 ### getPopularProducts
+
 Retrieves popular products based on weighted scoring.
 
 **Parameters:**
+
 - `organizationId?: Id<"organizations">` - Scope to organization
 - `categoryId?: Id<"categories">` - Scope to category
 - `timeframe?: "day" | "week" | "month" | "all"` - Time-based filtering
@@ -256,15 +287,18 @@ Retrieves popular products based on weighted scoring.
 - `offset?: number` - Page offset
 
 **Popularity Scoring:**
+
 - Orders: 40% weight
 - Rating × Reviews: 30% weight
 - Views: 20% weight
 - Review count: 10% weight
 
 ### getProductAnalytics
+
 Comprehensive product analytics.
 
 **Parameters:**
+
 - `productId?: Id<"products">` - Specific product analytics
 - `organizationId?: Id<"organizations">` - Organization scope
 - `categoryId?: Id<"categories">` - Category scope
@@ -272,6 +306,7 @@ Comprehensive product analytics.
 - `groupBy?: "day" | "week" | "month"` - Future: time series grouping
 
 **Single Product Returns:**
+
 ```typescript
 {
   totalProducts: 1,
@@ -296,6 +331,7 @@ Comprehensive product analytics.
 ```
 
 **Aggregate Returns:**
+
 ```typescript
 {
   totalProducts: number,
@@ -354,35 +390,35 @@ All mutations and queries include comprehensive error handling:
 ```typescript
 // Create a product
 const productId = await ctx.runMutation(api.products.mutations.createProduct, {
-  organizationId: "org123",
-  categoryId: "cat456",
-  title: "Gaming Laptop",
-  description: "High-performance laptop for gaming",
-  imageUrl: ["https://example.com/image1.jpg"],
+  organizationId: 'org123',
+  categoryId: 'cat456',
+  title: 'Gaming Laptop',
+  description: 'High-performance laptop for gaming',
+  imageUrl: ['https://example.com/image1.jpg'],
   inventory: 50,
-  inventoryType: "STOCK",
+  inventoryType: 'STOCK',
   variants: [
-    { variantName: "16GB RAM", price: 129999, inventory: 25 },
-    { variantName: "32GB RAM", price: 149999, inventory: 25 }
-  ]
+    { variantName: '16GB RAM', price: 129999, inventory: 25 },
+    { variantName: '32GB RAM', price: 149999, inventory: 25 },
+  ],
 });
 
 // Search products
 const results = await ctx.runQuery(api.products.queries.searchProducts, {
-  query: "gaming laptop",
-  organizationId: "org123",
-  limit: 20
+  query: 'gaming laptop',
+  organizationId: 'org123',
+  limit: 20,
 });
 
 // Get popular products
 const popular = await ctx.runQuery(api.products.queries.getPopularProducts, {
-  timeframe: "week",
-  limit: 10
+  timeframe: 'week',
+  limit: 10,
 });
 
 // Get analytics
 const analytics = await ctx.runQuery(api.products.queries.getProductAnalytics, {
-  organizationId: "org123",
-  timeframe: "month"
+  organizationId: 'org123',
+  timeframe: 'month',
 });
 ```

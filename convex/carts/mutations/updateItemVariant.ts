@@ -1,37 +1,36 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import {
-  requireAuthentication,
-  validateCartExists,
-  validateProductExists,
-  logAction,
-} from "../../helpers";
-import { isOrganizationMember } from "../../helpers/organizations";
-import { internal } from "../../_generated/api";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireAuthentication, validateCartExists, validateProductExists, logAction } from '../../helpers';
+import { isOrganizationMember } from '../../helpers/organizations';
+import { internal } from '../../_generated/api';
 
 export const updateItemVariantArgs = {
-  cartId: v.id("carts"),
-  productId: v.id("products"),
+  cartId: v.id('carts'),
+  productId: v.id('products'),
   oldVariantId: v.optional(v.string()),
   newVariantId: v.optional(v.string()),
-  oldSize: v.optional(v.object({
-    id: v.string(),
-    label: v.string(),
-    price: v.optional(v.number()),
-  })),
-  newSize: v.optional(v.object({
-    id: v.string(),
-    label: v.string(),
-    price: v.optional(v.number()),
-  })),
+  oldSize: v.optional(
+    v.object({
+      id: v.string(),
+      label: v.string(),
+      price: v.optional(v.number()),
+    })
+  ),
+  newSize: v.optional(
+    v.object({
+      id: v.string(),
+      label: v.string(),
+      price: v.optional(v.number()),
+    })
+  ),
 };
 
 export const updateItemVariantHandler = async (
   ctx: MutationCtx,
   args: {
-    cartId: Id<"carts">;
-    productId: Id<"products">;
+    cartId: Id<'carts'>;
+    productId: Id<'products'>;
     oldVariantId?: string;
     newVariantId?: string;
     oldSize?: {
@@ -45,7 +44,7 @@ export const updateItemVariantHandler = async (
       price?: number;
     };
   }
-): Promise<Id<"carts">> => {
+): Promise<Id<'carts'>> => {
   const currentUser = await requireAuthentication(ctx);
 
   const cart = await validateCartExists(ctx, args.cartId);
@@ -56,8 +55,7 @@ export const updateItemVariantHandler = async (
   // If old and new variant/size are the same, do nothing
   const oldSizeId = args.oldSize?.id ?? null;
   const newSizeId = args.newSize?.id ?? null;
-  if ((args.oldVariantId ?? null) === (args.newVariantId ?? null) &&
-      oldSizeId === newSizeId) {
+  if ((args.oldVariantId ?? null) === (args.newVariantId ?? null) && oldSizeId === newSizeId) {
     return cart._id;
   }
 
@@ -66,23 +64,15 @@ export const updateItemVariantHandler = async (
   // Enforce organization visibility
   if (product.organizationId) {
     const org = await ctx.db.get(product.organizationId);
-    if (org && !org.isDeleted && org.organizationType !== "PUBLIC") {
+    if (org && !org.isDeleted && org.organizationType !== 'PUBLIC') {
       const isPrivileged = currentUser.isAdmin || currentUser.isStaff;
       if (!isPrivileged) {
-        const member = await isOrganizationMember(
-          ctx,
-          currentUser._id,
-          product.organizationId,
-        );
+        const member = await isOrganizationMember(ctx, currentUser._id, product.organizationId);
         if (!member) {
-          if (org.organizationType === "PRIVATE") {
-            throw new Error(
-              "Membership required to purchase from this private organization.",
-            );
+          if (org.organizationType === 'PRIVATE') {
+            throw new Error('Membership required to purchase from this private organization.');
           }
-          throw new Error(
-            "This organization is invite-only. You must join via invite to purchase.",
-          );
+          throw new Error('This organization is invite-only. You must join via invite to purchase.');
         }
       }
     }
@@ -96,20 +86,20 @@ export const updateItemVariantHandler = async (
   if (args.newVariantId) {
     const variant = product.variants.find((v) => v.variantId === args.newVariantId);
     if (!variant) {
-      throw new Error("New variant not found");
+      throw new Error('New variant not found');
     }
     if (!variant.isActive) {
-      throw new Error("New variant is not available");
+      throw new Error('New variant is not available');
     }
 
     // Validate size selection if variant has sizes
     if (variant.sizes && variant.sizes.length > 0) {
       if (!args.newSize) {
-        throw new Error("Size selection required for this variant");
+        throw new Error('Size selection required for this variant');
       }
       const sizeExists = variant.sizes.some((s) => s.id === args.newSize!.id);
       if (!sizeExists) {
-        throw new Error("Selected size not found for this variant");
+        throw new Error('Selected size not found for this variant');
       }
     }
 
@@ -120,7 +110,7 @@ export const updateItemVariantHandler = async (
   }
 
   if (newVariantInventory <= 0) {
-    throw new Error("New variant is out of stock");
+    throw new Error('New variant is out of stock');
   }
 
   const now = Date.now();
@@ -135,7 +125,7 @@ export const updateItemVariantHandler = async (
   });
 
   if (index === -1) {
-    throw new Error("Item not found in cart");
+    throw new Error('Item not found in cart');
   }
 
   // Update the item with new variant and size info
@@ -202,10 +192,10 @@ export const updateItemVariantHandler = async (
 
   await logAction(
     ctx,
-    "update_cart_item_variant",
-    "DATA_CHANGE",
-    "LOW",
-    `Updated item variant in cart: ${product.title}${newVariantName ? ` (${newVariantName})` : ""}${args.newSize ? ` - ${args.newSize.label}` : ""}`,
+    'update_cart_item_variant',
+    'DATA_CHANGE',
+    'LOW',
+    `Updated item variant in cart: ${product.title}${newVariantName ? ` (${newVariantName})` : ''}${args.newSize ? ` - ${args.newSize.label}` : ''}`,
     currentUser._id,
     undefined,
     {
@@ -214,7 +204,7 @@ export const updateItemVariantHandler = async (
       oldVariantId: args.oldVariantId,
       oldSize: args.oldSize,
       newVariantId: args.newVariantId,
-      newSize: args.newSize
+      newSize: args.newSize,
     }
   );
 

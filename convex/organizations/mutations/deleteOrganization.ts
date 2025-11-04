@@ -12,49 +12,49 @@ export const deleteOrganizationHandler = async (
   ctx: MutationCtx,
   args: {
     organizationId: Id<'organizations'>;
-  },
+  }
 ) => {
   const { organizationId } = args;
-  
+
   // Require organization owner permissions
   const { user, organization } = await requireOrganizationOwner(ctx, organizationId);
-  
+
   if (organization.isDeleted) {
-    throw new Error("Organization already deleted");
+    throw new Error('Organization already deleted');
   }
-  
+
   // Soft delete organization
   await ctx.db.patch(organizationId, {
     isDeleted: true,
     updatedAt: Date.now(),
   });
-  
+
   // Deactivate all members
   const members = await ctx.db
-    .query("organizationMembers")
-    .withIndex("by_organization", (q) => q.eq("organizationId", organizationId))
+    .query('organizationMembers')
+    .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
     .collect();
-  
+
   for (const member of members) {
     await ctx.db.patch(member._id, {
       isActive: false,
       updatedAt: Date.now(),
     });
   }
-  
+
   // Deactivate all invite links
   const inviteLinks = await ctx.db
-    .query("organizationInviteLinks")
-    .withIndex("by_organization", (q) => q.eq("organizationId", organizationId))
+    .query('organizationInviteLinks')
+    .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
     .collect();
-  
+
   for (const inviteLink of inviteLinks) {
     await ctx.db.patch(inviteLink._id, {
       isActive: false,
       updatedAt: Date.now(),
     });
   }
-  
+
   // Log the action
   await logAction(
     ctx,
@@ -74,8 +74,8 @@ export const deleteOrganizationHandler = async (
       resourceId: organizationId as unknown as string,
       previousValue: { isDeleted: false },
       newValue: { isDeleted: true },
-    },
+    }
   );
-  
+
   return { success: true };
 };

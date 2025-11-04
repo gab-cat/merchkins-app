@@ -1,8 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -25,15 +25,14 @@ export function computeEffectivePrice(
  * @returns The computed public URL or null if invalid
  */
 export function buildR2PublicUrl(fileKey: string | null | undefined): string | null {
-  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL
+  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
 
-  const joinUrl = (a: string, b: string): string =>
-    `${a.replace(/\/+$/u, '')}/${String(b).replace(/^\/+/, '')}`
+  const joinUrl = (a: string, b: string): string => `${a.replace(/\/+$/u, '')}/${String(b).replace(/^\/+/, '')}`;
 
-  if (!fileKey) return null
+  if (!fileKey) return null;
   if (typeof fileKey === 'string' && /^https?:\/\//u.test(fileKey)) {
-    return fileKey
+    return fileKey;
   }
-  if (!baseUrl) return null
-  return joinUrl(baseUrl, fileKey)
+  if (!baseUrl) return null;
+  return joinUrl(baseUrl, fileKey);
 }

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
@@ -14,10 +14,7 @@ export default function PaymentSuccessPage() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
-  const order = useQuery(
-    api.orders.queries.index.getOrderById,
-    orderId ? { orderId: orderId as Id<'orders'> } : 'skip'
-  );
+  const order = useQuery(api.orders.queries.index.getOrderById, orderId ? { orderId: orderId as Id<'orders'> } : 'skip');
 
   useEffect(() => {
     // Scroll to top when page loads
@@ -32,9 +29,7 @@ export default function PaymentSuccessPage() {
             <CheckCircle className="h-16 w-16 mx-auto" />
           </div>
           <h1 className="text-2xl font-bold mb-4">Invalid Request</h1>
-          <p className="text-muted-foreground mb-6">
-            No order ID provided. Please check your payment confirmation email.
-          </p>
+          <p className="text-muted-foreground mb-6">No order ID provided. Please check your payment confirmation email.</p>
           <Link href="/orders">
             <Button>View My Orders</Button>
           </Link>
@@ -82,12 +77,8 @@ export default function PaymentSuccessPage() {
             <div className="text-green-600 mb-4">
               <CheckCircle className="h-20 w-20 mx-auto" />
             </div>
-            <CardTitle className="text-3xl text-green-800">
-              Payment Successful!
-            </CardTitle>
-            <p className="text-green-700 mt-2">
-              Your payment has been processed successfully.
-            </p>
+            <CardTitle className="text-3xl text-green-800">Payment Successful!</CardTitle>
+            <p className="text-green-700 mt-2">Your payment has been processed successfully.</p>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="bg-white rounded-lg p-6 border border-green-200">
@@ -99,21 +90,19 @@ export default function PaymentSuccessPage() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Amount</span>
-                  <span className="font-semibold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(order.totalAmount || 0)}</span>
+                  <span className="font-semibold">
+                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(order.totalAmount || 0)}
+                  </span>
                 </div>
 
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Payment Status</span>
-                  <span className={`font-semibold ${isPaid ? 'text-green-600' : 'text-yellow-600'}`}>
-                    {isPaid ? 'Paid' : 'Processing'}
-                  </span>
+                  <span className={`font-semibold ${isPaid ? 'text-green-600' : 'text-yellow-600'}`}>{isPaid ? 'Paid' : 'Processing'}</span>
                 </div>
 
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Order Date</span>
-                  <span className="font-semibold">
-                    {new Date(order.orderDate).toLocaleDateString()}
-                  </span>
+                  <span className="font-semibold">{new Date(order.orderDate).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>

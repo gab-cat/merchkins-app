@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "PR Number to clean up"
+        description: 'PR Number to clean up'
         required: true
 
 jobs:

@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import React from 'react'
+import React from 'react';
 
-import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react'
-import { type ExternalToast, toast } from 'sonner'
+import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react';
+import { type ExternalToast, toast } from 'sonner';
 
 type ShowToastParams = {
-  type: 'success' | 'error' | 'warning' | 'info'
-  title: string
-} & ExternalToast
+  type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
+} & ExternalToast;
 
 // Brand-consistent styling for toasts
 const toastStyles = {
@@ -40,7 +40,7 @@ const toastStyles = {
       }),
     defaultDuration: 3500,
   },
-} as const
+} as const;
 
 const brandClassNames = {
   toast:
@@ -48,24 +48,14 @@ const brandClassNames = {
   title: 'text-sm font-semibold',
   description: 'text-xs text-muted-foreground',
   closeButton: 'text-muted-foreground hover:text-foreground transition-colors',
-  actionButton:
-    'bg-secondary text-foreground hover:bg-secondary/80 transition-colors',
-  cancelButton:
-    'bg-secondary text-foreground hover:bg-secondary/80 transition-colors',
-} as const
+  actionButton: 'bg-secondary text-foreground hover:bg-secondary/80 transition-colors',
+  cancelButton: 'bg-secondary text-foreground hover:bg-secondary/80 transition-colors',
+} as const;
 
 export const showToast = ({ type, title, ...options }: ShowToastParams) => {
-  const defaults = toastStyles[type]
+  const defaults = toastStyles[type];
 
-  const {
-    description,
-    duration,
-    position,
-    richColors,
-    unstyled,
-    classNames,
-    ...restOptions
-  } = options
+  const { description, duration, position, richColors, unstyled, classNames, ...restOptions } = options;
 
   toast[type](title, {
     description,
@@ -76,33 +66,30 @@ export const showToast = ({ type, title, ...options }: ShowToastParams) => {
     closeButton: true,
     classNames: unstyled ? classNames : { ...brandClassNames, ...classNames },
     ...restOptions,
-  })
-}
+  });
+};
 
 // Promise-based toast utility for action flows (loading → success/error)
 export async function promiseToast<T>(
   promise: Promise<T>,
   messages: {
-    loading: string
-    success: string | ((value: T) => string)
-    error?: string | ((error: unknown) => string)
+    loading: string;
+    success: string | ((value: T) => string);
+    error?: string | ((error: unknown) => string);
   },
   options: Partial<ExternalToast> = {}
 ): Promise<T> {
-  const { position, richColors, unstyled, classNames, ...rest } = options
+  const { position, richColors, unstyled, classNames, ...rest } = options;
   const id = toast.loading(messages.loading, {
     position: position ?? 'top-right',
     richColors: richColors ?? false,
     classNames: unstyled ? classNames : { ...brandClassNames, ...classNames },
     closeButton: true,
     ...rest,
-  })
+  });
   try {
-    const value = await promise
-    const successText =
-      typeof messages.success === 'function'
-        ? messages.success(value)
-        : messages.success
+    const value = await promise;
+    const successText = typeof messages.success === 'function' ? messages.success(value) : messages.success;
     toast.success(successText, {
       id,
       position: position ?? 'top-right',
@@ -110,13 +97,10 @@ export async function promiseToast<T>(
       classNames: unstyled ? classNames : { ...brandClassNames, ...classNames },
       closeButton: true,
       ...rest,
-    })
-    return value
+    });
+    return value;
   } catch (error: unknown) {
-    const errorText =
-      typeof messages.error === 'function'
-        ? messages.error(error)
-        : messages.error || 'Something went wrong'
+    const errorText = typeof messages.error === 'function' ? messages.error(error) : messages.error || 'Something went wrong';
     toast.error(errorText, {
       id,
       position: position ?? 'top-right',
@@ -124,7 +108,7 @@ export async function promiseToast<T>(
       classNames: unstyled ? classNames : { ...brandClassNames, ...classNames },
       closeButton: true,
       ...rest,
-    })
-    throw error
+    });
+    throw error;
   }
 }

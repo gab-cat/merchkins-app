@@ -1,19 +1,13 @@
-"use client"
+'use client';
 
-import React from 'react'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
+import React from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
-export default function AdminAnalyticsPage () {
-  const productAnalytics = useQuery(
-    api.products.queries.index.getProductAnalytics,
-    { timeframe: 'month' }
-  )
-  const orderAnalytics = useQuery(
-    api.orders.queries.index.getOrderAnalytics,
-    {}
-  )
-  const loading = productAnalytics === undefined || orderAnalytics === undefined
+export default function AdminAnalyticsPage() {
+  const productAnalytics = useQuery(api.products.queries.index.getProductAnalytics, { timeframe: 'month' });
+  const orderAnalytics = useQuery(api.orders.queries.index.getOrderAnalytics, {});
+  const loading = productAnalytics === undefined || orderAnalytics === undefined;
 
   return (
     <div>
@@ -41,16 +35,14 @@ export default function AdminAnalyticsPage () {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-function Stat ({ title, value }: { title: string; value: string }) {
+function Stat({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-md border p-4">
       <div className="text-sm text-muted-foreground">{title}</div>
       <div className="text-2xl font-semibold">{value}</div>
     </div>
-  )
+  );
 }
-
-

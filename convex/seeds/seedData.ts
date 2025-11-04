@@ -138,13 +138,9 @@ export const seedData = internalMutation({
     for (const cat of categoriesSeed) {
       const inOrg = await ctx.db
         .query('categories')
-        .withIndex('by_organization', (q) =>
-          q.eq('organizationId', organization!._id),
-        )
+        .withIndex('by_organization', (q) => q.eq('organizationId', organization!._id))
         .collect();
-      let existing = inOrg.find(
-        (c) => c.slug === cat.slug && c.isDeleted === false,
-      );
+      let existing = inOrg.find((c) => c.slug === cat.slug && c.isDeleted === false);
 
       if (!existing) {
         const id = await ctx.db.insert('categories', {
@@ -193,24 +189,24 @@ export const seedData = internalMutation({
     ];
 
     type VariantSeed = {
-      variantName: string,
-      price: number,
-      inventory: number,
-    }
+      variantName: string;
+      price: number;
+      inventory: number;
+    };
 
     type ProductSeed = {
-      slug: string,
-      title: string,
-      description: string,
-      categorySlug: string,
-      tags: string[],
-      isBestPrice: boolean,
-      inventory: number,
-      inventoryType: 'STOCK' | 'PREORDER',
-      imageUrl: string[],
-      variants: Array<VariantSeed>,
-      discountLabel?: string,
-    }
+      slug: string;
+      title: string;
+      description: string;
+      categorySlug: string;
+      tags: string[];
+      isBestPrice: boolean;
+      inventory: number;
+      inventoryType: 'STOCK' | 'PREORDER';
+      imageUrl: string[];
+      variants: Array<VariantSeed>;
+      discountLabel?: string;
+    };
 
     const productsSeed: Array<ProductSeed> = [
       {
@@ -282,13 +278,9 @@ export const seedData = internalMutation({
     for (const p of productsSeed) {
       const inOrg = await ctx.db
         .query('products')
-        .withIndex('by_organization', (q) =>
-          q.eq('organizationId', organization!._id),
-        )
+        .withIndex('by_organization', (q) => q.eq('organizationId', organization!._id))
         .collect();
-      const existingInOrg = inOrg.find(
-        (prod) => prod.slug === p.slug && prod.isDeleted === false,
-      );
+      const existingInOrg = inOrg.find((prod) => prod.slug === p.slug && prod.isDeleted === false);
 
       if (existingInOrg) {
         productDocs.push(existingInOrg);
@@ -318,9 +310,7 @@ export const seedData = internalMutation({
         categoryId: categoryDoc?._id as Id<'categories'> | undefined,
         postedById: adminUser._id,
         organizationId: organization._id,
-        categoryInfo: categoryDoc
-          ? { name: categoryDoc.name, description: categoryDoc.description }
-          : undefined,
+        categoryInfo: categoryDoc ? { name: categoryDoc.name, description: categoryDoc.description } : undefined,
         creatorInfo: {
           firstName: adminUser.firstName,
           lastName: adminUser.lastName,
@@ -462,12 +452,9 @@ export const seedData = internalMutation({
       const role = user.email === adminEmail ? 'ADMIN' : user.isStaff ? 'STAFF' : 'MEMBER';
       const membershipInOrg = await ctx.db
         .query('organizationMembers')
-        .withIndex('by_user_organization', (q) =>
-          q.eq('userId', user._id).eq('organizationId', organization._id),
-        )
+        .withIndex('by_user_organization', (q) => q.eq('userId', user._id).eq('organizationId', organization._id))
         .first();
-      let memberId: Id<'organizationMembers'> | undefined =
-        membershipInOrg?._id;
+      let memberId: Id<'organizationMembers'> | undefined = membershipInOrg?._id;
       if (!membershipInOrg) {
         memberId = await ctx.db.insert('organizationMembers', {
           userId: user._id,
@@ -510,9 +497,7 @@ export const seedData = internalMutation({
       // Patch user with membership reference
       const userDoc = await ctx.db.get(user._id);
       const memberships = userDoc?.organizationMemberships ?? [];
-      const exists = memberships.some(
-        (m) => m.organizationId === organization._id,
-      );
+      const exists = memberships.some((m) => m.organizationId === organization._id);
       if (!exists) {
         memberships.push({
           organizationId: organization._id,
@@ -718,10 +703,7 @@ export const seedData = internalMutation({
             customerNote: undefined,
           },
         ];
-        const totalAmount = embeddedItems.reduce(
-          (sum, it) => sum + it.price * it.quantity,
-          0,
-        );
+        const totalAmount = embeddedItems.reduce((sum, it) => sum + it.price * it.quantity, 0);
         createdOrderId = await ctx.db.insert('orders', {
           isDeleted: false,
           organizationId: organization._id,
@@ -763,18 +745,14 @@ export const seedData = internalMutation({
             {
               status: 'PENDING',
               changedBy: processor._id,
-              changedByName: `${processor.firstName ?? ''} ${
-                processor.lastName ?? ''
-              }`.trim(),
+              changedByName: `${processor.firstName ?? ''} ${processor.lastName ?? ''}`.trim(),
               reason: 'Order created',
               changedAt: now - 1000 * 60 * 60,
             },
             {
               status: 'PROCESSING',
               changedBy: processor._id,
-              changedByName: `${processor.firstName ?? ''} ${
-                processor.lastName ?? ''
-              }`.trim(),
+              changedByName: `${processor.firstName ?? ''} ${processor.lastName ?? ''}`.trim(),
               reason: 'Preparing items',
               changedAt: now - 1000 * 60 * 30,
             },
@@ -811,9 +789,7 @@ export const seedData = internalMutation({
             },
             orderInfo: {
               orderNumber: `ORD-${now}`,
-              customerName: `${orderCustomer.firstName ?? ''} ${
-                orderCustomer.lastName ?? ''
-              }`.trim(),
+              customerName: `${orderCustomer.firstName ?? ''} ${orderCustomer.lastName ?? ''}`.trim(),
               status: 'PROCESSING',
               totalAmount,
             },
@@ -849,9 +825,7 @@ export const seedData = internalMutation({
             processedById: processor._id,
             orderInfo: {
               orderNumber: order.orderNumber,
-              customerName: `${order.customerInfo.firstName ?? ''} ${
-                order.customerInfo.lastName ?? ''
-              }`.trim(),
+              customerName: `${order.customerInfo.firstName ?? ''} ${order.customerInfo.lastName ?? ''}`.trim(),
               customerEmail: order.customerInfo.email,
               totalAmount: order.totalAmount,
               orderDate: order.orderDate,
@@ -894,18 +868,14 @@ export const seedData = internalMutation({
               {
                 status: 'PENDING',
                 changedBy: processor._id,
-                changedByName: `${processor.firstName ?? ''} ${
-                  processor.lastName ?? ''
-                }`.trim(),
+                changedByName: `${processor.firstName ?? ''} ${processor.lastName ?? ''}`.trim(),
                 reason: 'Awaiting payment',
                 changedAt: now - 1000 * 60 * 10,
               },
               {
                 status: 'VERIFIED',
                 changedBy: processor._id,
-                changedByName: `${processor.firstName ?? ''} ${
-                  processor.lastName ?? ''
-                }`.trim(),
+                changedByName: `${processor.firstName ?? ''} ${processor.lastName ?? ''}`.trim(),
                 reason: 'Payment verified',
                 changedAt: now,
               },
@@ -961,9 +931,7 @@ export const seedData = internalMutation({
             recent.unshift({
               reviewId,
               userId: reviewer._id,
-              userName: `${reviewer.firstName ?? ''} ${
-                reviewer.lastName ?? ''
-              }`.trim(),
+              userName: `${reviewer.firstName ?? ''} ${reviewer.lastName ?? ''}`.trim(),
               userImage: reviewer.imageUrl,
               rating: 5,
               comment: 'Great quality and fit!',
@@ -1062,9 +1030,7 @@ export const seedData = internalMutation({
           replyToInfo: {
             subject: 'Order inquiry',
             message: 'Can I change the delivery address?',
-            senderName: `${orderCustomer.firstName ?? ''} ${
-              orderCustomer.lastName ?? ''
-            }`.trim(),
+            senderName: `${orderCustomer.firstName ?? ''} ${orderCustomer.lastName ?? ''}`.trim(),
             sentAt: now,
           },
           email: assigned.email,
@@ -1179,9 +1145,7 @@ export const seedData = internalMutation({
           orderId: order._id,
           categoryId: surveyCategoryId,
           orderInfo: {
-            customerName: `${order.customerInfo.firstName ?? ''} ${
-              order.customerInfo.lastName ?? ''
-            }`.trim(),
+            customerName: `${order.customerInfo.firstName ?? ''} ${order.customerInfo.lastName ?? ''}`.trim(),
             customerEmail: order.customerInfo.email,
             organizationName: organization.name,
             totalAmount: order.totalAmount,
@@ -1293,9 +1257,7 @@ export const seedData = internalMutation({
           update: 'OPEN',
           content: 'Ticket created and assigned to support staff.',
           createdById: processor._id,
-          creatorName: `${processor.firstName ?? ''} ${
-            processor.lastName ?? ''
-          }`.trim(),
+          creatorName: `${processor.firstName ?? ''} ${processor.lastName ?? ''}`.trim(),
           createdAt: now,
         });
         await ctx.db.patch(ticketId, {
@@ -1348,9 +1310,7 @@ export const seedData = internalMutation({
       for (const p of participants) {
         const exists = await ctx.db
           .query('chatParticipants')
-          .withIndex('by_chat_and_user', (q) =>
-            q.eq('chatRoomId', chatRoomId!).eq('userId', p._id),
-          )
+          .withIndex('by_chat_and_user', (q) => q.eq('chatRoomId', chatRoomId!).eq('userId', p._id))
           .first();
         if (!exists) {
           await ctx.db.insert('chatParticipants', {
@@ -1474,5 +1434,3 @@ export const seedData = internalMutation({
     return { ok: true } as const;
   },
 });
-
-

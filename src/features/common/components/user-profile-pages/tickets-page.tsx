@@ -1,44 +1,34 @@
-"use client"
+'use client';
 
-import React from 'react'
-import { useAuth } from '@clerk/nextjs'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Ticket, Clock } from 'lucide-react'
-import { Doc, Id } from '@/convex/_generated/dataModel'
-import Link from 'next/link'
-import { SettingsHeader, SettingsList, SettingsRow } from './settings'
+import React from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Ticket, Clock } from 'lucide-react';
+import { Doc, Id } from '@/convex/_generated/dataModel';
+import Link from 'next/link';
+import { SettingsHeader, SettingsList, SettingsRow } from './settings';
 
-type Ticket = Doc<'tickets'>
+type Ticket = Doc<'tickets'>;
 
 function StatusBadge({ value }: { value: string }) {
-  const color =
-    value === 'OPEN'
-      ? 'secondary'
-      : value === 'CLOSED'
-      ? 'destructive'
-      : 'default'
-  return <Badge variant={color as 'secondary' | 'destructive' | 'default'}>{value}</Badge>
+  const color = value === 'OPEN' ? 'secondary' : value === 'CLOSED' ? 'destructive' : 'default';
+  return <Badge variant={color as 'secondary' | 'destructive' | 'default'}>{value}</Badge>;
 }
 
 export function TicketsPage() {
-  const { userId: clerkId } = useAuth()
-  const currentUser = useQuery(
-    api.users.queries.index.getCurrentUser,
-    clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }),
-  )
+  const { userId: clerkId } = useAuth();
+  const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }));
 
   const personal = useQuery(
     api.tickets.queries.index.getTickets,
-    currentUser?._id
-      ? { createdById: currentUser._id }
-      : ('skip' as unknown as { createdById: Id<'users'> }),
-  )
+    currentUser?._id ? { createdById: currentUser._id } : ('skip' as unknown as { createdById: Id<'users'> })
+  );
 
-  const personalTickets = personal?.tickets || []
-  const loading = currentUser === undefined || personal === undefined
+  const personalTickets = personal?.tickets || [];
+  const loading = currentUser === undefined || personal === undefined;
 
   if (loading) {
     return (
@@ -47,7 +37,7 @@ export function TicketsPage() {
         <div className="h-16 w-full bg-muted animate-pulse rounded" />
         <div className="h-16 w-full bg-muted animate-pulse rounded" />
       </div>
-    )
+    );
   }
 
   if (!personalTickets || personalTickets.length === 0) {
@@ -60,7 +50,7 @@ export function TicketsPage() {
           <Link href="/tickets/new">Create Ticket</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -82,9 +72,7 @@ export function TicketsPage() {
                 <div className="flex items-center gap-3">
                   <Ticket className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">
-                      {ticket.title || `Ticket ${ticket._id.slice(-6)}`}
-                    </p>
+                    <p className="text-sm font-medium">{ticket.title || `Ticket ${ticket._id.slice(-6)}`}</p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
                       {new Date(ticket._creationTime).toLocaleDateString()}
@@ -103,6 +91,5 @@ export function TicketsPage() {
         </SettingsRow>
       </SettingsList>
     </div>
-  )
+  );
 }
-

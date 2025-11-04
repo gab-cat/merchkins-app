@@ -1,10 +1,10 @@
-import { query } from "../../_generated/server";
+import { query } from '../../_generated/server';
 
-import { getOrdersArgs, getOrdersHandler } from "./getOrders";
-import { getOrdersPageArgs, getOrdersPageHandler } from "./getOrdersPage";
-import { getOrderByIdArgs, getOrderByIdHandler } from "./getOrderById";
-import { getOrderAnalyticsArgs, getOrderAnalyticsHandler } from "./getOrderAnalytics";
-import { searchOrdersArgs, searchOrdersHandler } from "./searchOrders";
+import { getOrdersArgs, getOrdersHandler } from './getOrders';
+import { getOrdersPageArgs, getOrdersPageHandler } from './getOrdersPage';
+import { getOrderByIdArgs, getOrderByIdHandler } from './getOrderById';
+import { getOrderAnalyticsArgs, getOrderAnalyticsHandler } from './getOrderAnalytics';
+import { searchOrdersArgs, searchOrdersHandler } from './searchOrders';
 
 export const getOrders = query({
   args: getOrdersArgs,
@@ -30,5 +30,3 @@ export const searchOrders = query({
   args: searchOrdersArgs,
   handler: searchOrdersHandler,
 });
-
-

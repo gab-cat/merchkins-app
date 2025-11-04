@@ -16,8 +16,8 @@ export const updateMemberRoleArgs = {
         canRead: v.boolean(),
         canUpdate: v.boolean(),
         canDelete: v.boolean(),
-      }),
-    ),
+      })
+    )
   ),
 };
 
@@ -34,68 +34,64 @@ export const updateMemberRoleHandler = async (
       canUpdate: boolean;
       canDelete: boolean;
     }>;
-  },
+  }
 ) => {
   const { organizationId, userId, role, permissions = [] } = args;
   // Ensure actor has admin rights for this org
   await requireOrganizationAdmin(ctx, organizationId);
-  
+
   // Get membership
   const membership = await ctx.db
-    .query("organizationMembers")
-    .withIndex("by_user_organization", (q) => 
-      q.eq("userId", userId).eq("organizationId", organizationId)
-    )
-    .filter((q) => q.eq(q.field("isActive"), true))
+    .query('organizationMembers')
+    .withIndex('by_user_organization', (q) => q.eq('userId', userId).eq('organizationId', organizationId))
+    .filter((q) => q.eq(q.field('isActive'), true))
     .first();
-  
+
   if (!membership) {
-    throw new Error("User is not a member of this organization");
+    throw new Error('User is not a member of this organization');
   }
-  
+
   const oldRole = membership.role;
-  
+
   // Check if removing admin role would leave no admins
-  if (oldRole === "ADMIN" && role !== "ADMIN") {
+  if (oldRole === 'ADMIN' && role !== 'ADMIN') {
     const adminCount = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_role", (q) => 
-        q.eq("organizationId", organizationId).eq("role", "ADMIN")
-      )
-      .filter((q) => q.eq(q.field("isActive"), true))
+      .query('organizationMembers')
+      .withIndex('by_organization_role', (q) => q.eq('organizationId', organizationId).eq('role', 'ADMIN'))
+      .filter((q) => q.eq(q.field('isActive'), true))
       .collect();
-    
+
     if (adminCount.length <= 1) {
-      throw new Error("Cannot remove admin role from the last admin");
+      throw new Error('Cannot remove admin role from the last admin');
     }
   }
-  
+
   // Update member role and permissions
   await ctx.db.patch(membership._id, {
     role,
     permissions,
     updatedAt: Date.now(),
   });
-  
+
   // Update organization admin count if role changed
   if (oldRole !== role) {
     const organization = await ctx.db.get(organizationId);
     if (organization) {
       let newAdminCount = organization.adminCount;
-      
-      if (oldRole === "ADMIN" && role !== "ADMIN") {
+
+      if (oldRole === 'ADMIN' && role !== 'ADMIN') {
         newAdminCount = Math.max(0, organization.adminCount - 1);
-      } else if (oldRole !== "ADMIN" && role === "ADMIN") {
+      } else if (oldRole !== 'ADMIN' && role === 'ADMIN') {
         newAdminCount = organization.adminCount + 1;
       }
-      
+
       await ctx.db.patch(organizationId, {
         adminCount: newAdminCount,
         updatedAt: Date.now(),
       });
     }
   }
-  
+
   // Audit log
   await logAction(
     ctx,
@@ -111,7 +107,7 @@ export const updateMemberRoleHandler = async (
       resourceId: membership._id as unknown as string,
       previousValue: { role: oldRole },
       newValue: { role },
-    },
+    }
   );
 
   return { success: true };

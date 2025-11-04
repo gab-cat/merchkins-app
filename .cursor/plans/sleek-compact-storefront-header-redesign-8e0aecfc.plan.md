@@ -1,4 +1,5 @@
 <!-- 8e0aecfc-3fe9-48ab-961d-cdf1c0e42776 7e77d835-aa75-442a-86bc-e6b2e980fdec -->
+
 # Sleek Compact Storefront Header Redesign
 
 ## Overview

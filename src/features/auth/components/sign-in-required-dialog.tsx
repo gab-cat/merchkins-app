@@ -1,27 +1,20 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { useRouter, usePathname } from 'next/navigation'
-import { User, ShoppingCart, X } from 'lucide-react'
+import React from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { User, ShoppingCart, X } from 'lucide-react';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface SignInRequiredDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  title?: string
-  description?: string
-  continueLabel?: string
-  cancelLabel?: string
-  onContinue?: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  continueLabel?: string;
+  cancelLabel?: string;
+  onContinue?: () => void;
 }
 
 export const SignInRequiredDialog: React.FC<SignInRequiredDialogProps> = ({
@@ -33,20 +26,20 @@ export const SignInRequiredDialog: React.FC<SignInRequiredDialogProps> = ({
   cancelLabel = 'Cancel',
   onContinue,
 }) => {
-  const router = useRouter()
-  const pathname = usePathname()
+  const router = useRouter();
+  const pathname = usePathname();
 
   const handleContinue = () => {
     if (onContinue) {
-      onContinue()
+      onContinue();
     } else {
       // Default behavior: navigate to sign-in with return URL
-      const searchParams = new URLSearchParams(window.location.search)
-      searchParams.set('next', pathname)
-      router.push(`/sign-in?${searchParams.toString()}`)
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.set('next', pathname);
+      router.push(`/sign-in?${searchParams.toString()}`);
     }
-    onOpenChange(false)
-  }
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,33 +51,22 @@ export const SignInRequiredDialog: React.FC<SignInRequiredDialogProps> = ({
             </div>
           </div>
           <div className="text-center space-y-2">
-            <DialogTitle className="text-xl font-semibold text-primary">
-              {title}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              {description}
-            </DialogDescription>
+            <DialogTitle className="text-xl font-semibold text-primary">{title}</DialogTitle>
+            <DialogDescription className="text-muted-foreground">{description}</DialogDescription>
           </div>
         </DialogHeader>
 
         <DialogFooter className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            className="flex-1"
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
             <X className="w-4 h-4 mr-2" />
             {cancelLabel}
           </Button>
-          <Button
-            onClick={handleContinue}
-            className="flex-1 bg-primary text-white hover:bg-primary/90"
-          >
+          <Button onClick={handleContinue} className="flex-1 bg-primary text-white hover:bg-primary/90">
             <ShoppingCart className="w-4 h-4 mr-2" />
             {continueLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

@@ -1,4 +1,5 @@
 <!-- 29aada79-fad5-4744-8a5e-27589af1798b 4bacc663-668c-4b96-a5f4-aaa6251981cb -->
+
 # Storefront: On-Scroll Entrance Animations + Skeleton Corrections
 
 ## Scope
@@ -16,7 +17,6 @@
 ## Key Changes (Files)
 
 1. `app/(storefront)/o/[orgSlug]/page.tsx`
-
    - Import `motion` from `framer-motion` and variants from `lib/animations`.
    - Wrap sections with `motion.section` / `motion.div` using:
      - `initial="initial"`
@@ -24,6 +24,7 @@
      - `viewport={{ once: true, margin: '0px 0px -80px 0px' }}`
      - Parent containers use `fadeInUpContainer`; children use `fadeInUp`/`fadeInUpVariants.subtle`.
    - Example pattern (non-obvious):
+
      ```tsx
      <motion.section variants={fadeInUpContainer} initial="initial" whileInView="animate" viewport={{ once: true }}>
        <motion.div variants={fadeInUpVariants.subtle}>...</motion.div>
@@ -36,7 +37,6 @@
    - Popular products and Featured categories: wrap their root section and (optionally) their grids if accessible via wrapper div.
 
 2. Skeleton corrections (where defined)
-
    - Ensure skeletons mirror final layout dimensions to prevent layout shift.
    - Normalize spacing and border radius to match cards and list items.
    - Use a consistent shimmer animation duration (e.g., 1.2s) and color tokens.
@@ -47,7 +47,6 @@
      - Announcements list skeleton in `page.tsx` if present; otherwise, add a minimal inline skeleton wrapper.
 
 3. Optional (only if needed for finer control)
-
    - Add a wrapper `className`/`containerProps` prop to feature components to place a `motion.div` internally if external wrapping isn’t sufficient. Prefer wrapping in page to avoid component edits.
 
 ## Accessibility & Motion

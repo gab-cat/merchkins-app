@@ -1,10 +1,10 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
 
 // Complete user onboarding
 export const completeOnboardingArgs = {
-  userId: v.id("users"),
+  userId: v.id('users'),
   firstName: v.string(),
   lastName: v.string(),
   phone: v.string(),
@@ -13,24 +13,24 @@ export const completeOnboardingArgs = {
 export const completeOnboardingHandler = async (
   ctx: MutationCtx,
   args: {
-    userId: Id<"users">;
+    userId: Id<'users'>;
     firstName: string;
     lastName: string;
     phone: string;
   }
 ) => {
   const { userId, firstName, lastName, phone } = args;
-  
+
   // Get current user
   const user = await ctx.db.get(userId);
   if (!user || user.isDeleted) {
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
-  
+
   if (user.isOnboarded) {
-    throw new Error("User already onboarded");
+    throw new Error('User already onboarded');
   }
-  
+
   // Update user with onboarding data
   await ctx.db.patch(userId, {
     firstName,
@@ -40,6 +40,6 @@ export const completeOnboardingHandler = async (
     isSetupDone: true,
     updatedAt: Date.now(),
   });
-  
+
   return { success: true };
 };

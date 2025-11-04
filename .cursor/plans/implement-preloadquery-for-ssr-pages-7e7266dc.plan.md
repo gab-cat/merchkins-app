@@ -1,4 +1,5 @@
 <!-- 7e7266dc-cbf9-4883-af99-c4b612d00561 46d1cab7-4b3d-41aa-a9e4-9a37ab511a54 -->
+
 # Implement preloadQuery for SSR Crucial Pages
 
 This plan implements Convex `preloadQuery` for all SSR crucial pages that take URL parameters: home page, categories page, product page, and storefront page.
@@ -128,8 +129,9 @@ Currently, these pages use client-side `useQuery` hooks which causes loading sta
 For each client component:
 
 1. **Add props for preloaded queries:**
+
 ```typescript
-import { Preloaded } from "convex/react";
+import { Preloaded } from 'convex/react';
 
 interface Props {
   // ... existing props
@@ -140,23 +142,21 @@ interface Props {
 ```
 
 2. **Use conditional hooks:**
+
 ```typescript
 // Use preloaded query if available, otherwise fall back to useQuery
-const organization = preloadedOrganization 
+const organization = preloadedOrganization
   ? usePreloadedQuery(preloadedOrganization)
   : useQuery(api.organizations.queries.index.getOrganizationBySlug, ...);
 ```
 
 3. **In server components:**
+
 ```typescript
-import { preloadQuery } from "convex/nextjs";
+import { preloadQuery } from 'convex/nextjs';
 
-const preloadedProducts = await preloadQuery(
-  api.products.queries.index.getPopularProducts,
-  { limit: 8 }
-);
+const preloadedProducts = await preloadQuery(api.products.queries.index.getPopularProducts, { limit: 8 });
 ```
-
 
 ## Notes
 

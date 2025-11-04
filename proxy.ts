@@ -6,9 +6,8 @@ export default clerkMiddleware(async (auth, req) => {
   const hostname = req.nextUrl.hostname;
   const isLocalhost = hostname === 'localhost';
 
-
-  console.log("Hostname:", hostname);
-  console.log("Is localhost:", isLocalhost);
+  console.log('Hostname:', hostname);
+  console.log('Is localhost:', isLocalhost);
 
   // Only process subdomains on production domains
   if (!isLocalhost && hostname.includes('.merchkins.com')) {

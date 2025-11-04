@@ -1,4 +1,5 @@
 <!-- 34e48d2d-9e47-4414-812f-6312cc250622 1aac37e0-b371-42a7-ae5c-594a54f28216 -->
+
 # Gate Add-to-Cart for Public Org Products with Join Dialog
 
 ## What we’ll build
@@ -22,20 +23,20 @@
 
 ## Implementation outline
 
-1) Create `JoinOrganizationDialog` component
+1. Create `JoinOrganizationDialog` component
 
 - Uses `components/ui/dialog` and existing `components/ui/button`.
 - Props: `open`, `onOpenChange`, `organizationId`, `organizationName`, `organizationLogoUrl?`, `onJoined`.
 - Content: playful mascot/emoji, concise brand-consistent copy, benefits bullets, actions: Cancel, Join Organization (primary), subtle Learn More link to `/(storefront)/o/[slug]` when slug present.
 - Behavior: On Join → call `useMutation(api.organizations.mutations.joinPublicOrganization)`; show loading, handle errors; on success: `onJoined()` and close.
 
-2) Add `useOrganizationMembership` helper
+2. Add `useOrganizationMembership` helper
 
 - Accepts `organizationId`.
 - `useQuery(api.organizations.queries.getOrganizationsByUser, { userId: currentUserId, isActive: true })` → derive `isMember` by `some(m => m._id === organizationId)`.
 - If user not logged in, return `{ isAuthenticated: false, isMember: false }`.
 
-3) Wire into product-card add
+3. Wire into product-card add
 
 - In `product-card.tsx`, find the add-to-cart handler.
 - Determine `organizationId` and `organizationType` (from product, else `getOrganizationById`).
@@ -44,20 +45,20 @@
 - Open `JoinOrganizationDialog` with product’s org details
 - After join success, retry original add-to-cart with same payload
 
-4) Wire into product-detail add
+4. Wire into product-detail add
 
 - Mirror the same guard and dialog flow in `product-detail.tsx`.
 
-5) Auth redirect
+5. Auth redirect
 
 - If unauthenticated, pressing Join should first navigate to `/(main)/(auth)/sign-in` with a `returnUrl` back to the product page, then continue flow.
 
-6) UX polish
+6. UX polish
 
 - Disable add-to-cart button while join dialog is trying; use `aria-busy` and `aria-disabled` appropriately.
 - Toasts for success/failure via existing `lib/toast.ts`.
 
-7) (Optional) Retry strategy
+7. (Optional) Retry strategy
 
 - After join completes, immediately call the same add-to-cart mutation; on success, show success toast and close dialog.
 

@@ -1,31 +1,25 @@
-"use client"
+'use client';
 
-import React, { useMemo } from 'react'
-import Link from 'next/link'
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { R2Image } from '@/src/components/ui/r2-image'
-import { showToast, promiseToast } from '@/lib/toast'
-import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react'
-import { Checkbox } from '@/components/ui/checkbox'
-import { cn } from '@/lib/utils'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import React, { useMemo } from 'react';
+import Link from 'next/link';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Id } from '@/convex/_generated/dataModel';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { R2Image } from '@/src/components/ui/r2-image';
+import { showToast, promiseToast } from '@/lib/toast';
+import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-export function CartPage () {
-  const cart = useQuery(api.carts.queries.index.getCartByUser, {})
-  const clearCart = useMutation(api.carts.mutations.index.clearCart)
+export function CartPage() {
+  const cart = useQuery(api.carts.queries.index.getCartByUser, {});
+  const clearCart = useMutation(api.carts.mutations.index.clearCart);
 
-  const hasItems = (cart?.embeddedItems?.length ?? 0) > 0
+  const hasItems = (cart?.embeddedItems?.length ?? 0) > 0;
 
   const totals = useMemo(() => {
     return {
@@ -33,28 +27,29 @@ export function CartPage () {
       totalValue: cart?.totalValue ?? 0,
       selectedItems: cart?.selectedItems ?? 0,
       selectedValue: cart?.selectedValue ?? 0,
-    }
-  }, [cart])
+    };
+  }, [cart]);
 
   const groupedByOrg = useMemo(() => {
-    const groups: Record<string, { name: string; items: Array<CartItem> }> = {}
+    const groups: Record<string, { name: string; items: Array<CartItem> }> = {};
     for (const raw of cart?.embeddedItems ?? []) {
-      const item = raw as CartItem
-      const orgId = String(item.productInfo.organizationId ?? 'global')
-      const orgName = item.productInfo.organizationName ?? 'Storefront'
-      if (!groups[orgId]) groups[orgId] = { name: orgName, items: [] }
-      groups[orgId].items.push(item)
+      const item = raw as CartItem;
+      const orgId = String(item.productInfo.organizationId ?? 'global');
+      const orgName = item.productInfo.organizationName ?? 'Storefront';
+      if (!groups[orgId]) groups[orgId] = { name: orgName, items: [] };
+      groups[orgId].items.push(item);
     }
-    return groups
-  }, [cart])
+    return groups;
+  }, [cart]);
 
-  async function handleClear () {
-    if (!cart) return
+  async function handleClear() {
+    if (!cart) return;
     try {
-      await promiseToast(
-        clearCart({ cartId: cart._id }),
-        { loading: 'Clearing cart…', success: 'Cart cleared', error: () => 'Failed to clear cart' },
-      )
+      await promiseToast(clearCart({ cartId: cart._id }), {
+        loading: 'Clearing cart…',
+        success: 'Cart cleared',
+        error: () => 'Failed to clear cart',
+      });
     } catch {
       // no-op
     }
@@ -74,7 +69,7 @@ export function CartPage () {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   if (!cart || !hasItems) {
@@ -91,7 +86,7 @@ export function CartPage () {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -105,9 +100,7 @@ export function CartPage () {
         <div className="lg:col-span-2 space-y-4">
           {Object.entries(groupedByOrg).map(([orgId, group]) => (
             <div key={orgId} className="space-y-3">
-              <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">
-                {group.name}
-              </div>
+              <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wide border-b pb-2">{group.name}</div>
               {group.items.map((item) => (
                 <CartLineItem
                   key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
@@ -119,11 +112,7 @@ export function CartPage () {
           ))}
 
           <div className="pt-4 border-t">
-            <Button
-              variant="ghost"
-              onClick={handleClear}
-              className="hover:bg-destructive/10 hover:text-destructive transition-colors"
-            >
+            <Button variant="ghost" onClick={handleClear} className="hover:bg-destructive/10 hover:text-destructive transition-colors">
               <Trash2 className="mr-2 h-4 w-4" /> Clear cart
             </Button>
           </div>
@@ -140,14 +129,13 @@ export function CartPage () {
                 <div className="h-px bg-border" />
                 <div className="flex items-center justify-between font-bold text-lg">
                   <span>Selected total</span>
-                  <span className="text-primary">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.selectedValue)}</span>
+                  <span className="text-primary">
+                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.selectedValue)}
+                  </span>
                 </div>
 
                 <Link href="/checkout">
-                  <Button
-                    className="w-full h-10 hover:scale-105 transition-all duration-200"
-                    disabled={totals.selectedItems === 0}
-                  >
+                  <Button className="w-full h-10 hover:scale-105 transition-all duration-200" disabled={totals.selectedItems === 0}>
                     Checkout ({totals.selectedItems} items)
                   </Button>
                 </Link>
@@ -157,62 +145,57 @@ export function CartPage () {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 type CartItem = {
-  variantId?: string
+  variantId?: string;
   productInfo: {
-    productId: Id<'products'>
-    organizationId?: Id<'organizations'>
-    organizationName?: string
-    title: string
-    slug: string
-    imageUrl: string[]
-    variantName?: string
-    price: number
-    originalPrice?: number
-    inventory: number
-  }
-  quantity: number
-  selected: boolean
-  note?: string
-  addedAt: number
-}
+    productId: Id<'products'>;
+    organizationId?: Id<'organizations'>;
+    organizationName?: string;
+    title: string;
+    slug: string;
+    imageUrl: string[];
+    variantName?: string;
+    price: number;
+    originalPrice?: number;
+    inventory: number;
+  };
+  quantity: number;
+  selected: boolean;
+  note?: string;
+  addedAt: number;
+};
 
-function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }) {
-  const setSelected = useMutation(api.carts.mutations.index.setItemSelected)
-  const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity)
-  const setItemNote = useMutation(api.carts.mutations.index.setItemNote)
-  const addItem = useMutation(api.carts.mutations.index.addItem)
-  const product = useQuery(
-    api.products.queries.index.getProductById,
-    { productId: item.productInfo.productId }
-  )
+function CartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }) {
+  const setSelected = useMutation(api.carts.mutations.index.setItemSelected);
+  const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity);
+  const setItemNote = useMutation(api.carts.mutations.index.setItemNote);
+  const addItem = useMutation(api.carts.mutations.index.addItem);
+  const product = useQuery(api.products.queries.index.getProductById, { productId: item.productInfo.productId });
 
   // note input is uncontrolled; saving on blur
 
-  async function handleDec () {
+  async function handleDec() {
     await updateQty({
       cartId: cartId,
       productId: item.productInfo.productId,
       variantId: item.variantId,
       quantity: Math.max(0, item.quantity - 1),
-    })
+    });
   }
 
-  async function handleInc () {
+  async function handleInc() {
     await updateQty({
       cartId: cartId,
       productId: item.productInfo.productId,
       variantId: item.variantId,
       quantity: Math.min(item.quantity + 1, item.productInfo.inventory),
-    })
+    });
   }
 
-  
-
-  async function handleRemove () {
+  async function handleRemove() {
     try {
       await promiseToast(
         updateQty({
@@ -221,8 +204,8 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
           variantId: item.variantId,
           quantity: 0,
         }),
-        { loading: 'Removing item…', success: 'Item removed', error: () => 'Failed to remove item' },
-      )
+        { loading: 'Removing item…', success: 'Item removed', error: () => 'Failed to remove item' }
+      );
     } catch {
       // no-op
     }
@@ -230,14 +213,14 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
 
   // note saved inline onBlur; no separate save handler
 
-  async function handleVariantChange (newVariantId?: string) {
-    if ((newVariantId ?? null) === (item.variantId ?? null)) return
+  async function handleVariantChange(newVariantId?: string) {
+    if ((newVariantId ?? null) === (item.variantId ?? null)) return;
     await updateQty({
       cartId: cartId,
       productId: item.productInfo.productId,
       variantId: item.variantId,
       quantity: 0,
-    })
+    });
     await addItem({
       cartId: cartId,
       productId: item.productInfo.productId,
@@ -245,7 +228,7 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
       quantity: item.quantity,
       selected: item.selected,
       note: item.note,
-    })
+    });
   }
 
   return (
@@ -261,7 +244,7 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                   productId: item.productInfo.productId,
                   variantId: item.variantId,
                   selected: Boolean(checked),
-                })
+                });
               }}
               aria-label="Select item"
               className="mt-0.5"
@@ -285,9 +268,7 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
           <div className="flex-1 space-y-2">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold leading-tight">
-                  {item.productInfo.title}
-                </div>
+                <div className="text-sm font-semibold leading-tight">{item.productInfo.title}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">
                   {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price)} each
                 </div>
@@ -301,24 +282,23 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                           className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white"
                           aria-label="Select variant"
                         >
-                          <span className="truncate">
-                            {item.productInfo.variantName ?? 'Select variant'}
+                          <span className="truncate">{item.productInfo.variantName ?? 'Select variant'}</span>
+                          <span aria-hidden className="ml-1">
+                            ▾
                           </span>
-                          <span aria-hidden className="ml-1">▾</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="min-w-[10rem] animate-in fade-in-0 zoom-in-95">
-                        <DropdownMenuRadioGroup
-                          value={item.variantId ?? ''}
-                          onValueChange={(val) => handleVariantChange(val || undefined)}
-                        >
+                        <DropdownMenuRadioGroup value={item.variantId ?? ''} onValueChange={(val) => handleVariantChange(val || undefined)}>
                           {product.variants
                             .filter((v) => v.isActive)
                             .map((v) => (
                               <DropdownMenuRadioItem key={v.variantId} value={v.variantId} className="text-xs">
                                 <div className="flex items-center justify-between w-full">
                                   <span>{v.variantName}</span>
-                                  <span className="ml-2 font-medium text-primary">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}</span>
+                                  <span className="ml-2 font-medium text-primary">
+                                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}
+                                  </span>
                                 </div>
                               </DropdownMenuRadioItem>
                             ))}
@@ -329,7 +309,9 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                 )}
               </div>
               <div className="text-right">
-                <div className="text-sm font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price * item.quantity)}</div>
+                <div className="text-sm font-bold">
+                  {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price * item.quantity)}
+                </div>
               </div>
             </div>
 
@@ -378,10 +360,10 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                       productId: item.productInfo.productId,
                       variantId: item.variantId,
                       note: e.target.value.trim() || undefined,
-                    })
-                    showToast({ type: 'success', title: 'Note saved' })
+                    });
+                    showToast({ type: 'success', title: 'Note saved' });
                   } catch {
-                    showToast({ type: 'error', title: 'Failed to save note' })
+                    showToast({ type: 'error', title: 'Failed to save note' });
                   }
                 }}
               />
@@ -390,7 +372,5 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
-
-

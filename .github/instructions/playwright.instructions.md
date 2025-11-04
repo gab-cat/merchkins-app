@@ -4,6 +4,7 @@ applyTo: '**'
 ---
 
 # Frontend Development Rules — Playwright MCP with Cursor & VS Code Copilot
+
 This document defines **strict instructions** for using **Cursor** and **VS Code Copilot** when developing and testing the frontend with **Playwright MCP**.
 
 ---
@@ -73,19 +74,20 @@ When using **Copilot** in VS Code:
 - Prefer `getByTestId()` over text-based selectors.
 - Group related tests using `describe()` blocks.
 - Always include:
+
 ```ts
-  expect(await page.screenshot()).toMatchSnapshot();
-````
+expect(await page.screenshot()).toMatchSnapshot();
+```
 
 for visual regression when applicable.
 
-* Handle async flows with explicit `await` on **every** Playwright call.
+- Handle async flows with explicit `await` on **every** Playwright call.
 
 ---
 
 ## 5. File & Commit Rules
 
-* All code must pass:
+- All code must pass:
 
   ```bash
   npm run lint
@@ -95,7 +97,7 @@ for visual regression when applicable.
 
   **before committing**.
 
-* Commit messages must follow:
+- Commit messages must follow:
 
   ```
   feat(frontend): add feature X with Playwright MCP test
@@ -129,14 +131,12 @@ Add Playwright MCP tests in /tests/e2e/loginForm.spec.ts that:
 
 ## 8. Final Checklist Before Merge
 
-* [ ] Code reviewed and approved.
-* [ ] All unit tests pass.
-* [ ] All Playwright MCP E2E tests pass.
-* [ ] Accessibility attributes verified.
-* [ ] No unused code or console logs.
-* [ ] Commit message follows convention.
-
+- [ ] Code reviewed and approved.
+- [ ] All unit tests pass.
+- [ ] All Playwright MCP E2E tests pass.
+- [ ] Accessibility attributes verified.
+- [ ] No unused code or console logs.
+- [ ] Commit message follows convention.
 
 **Version:** 1.0
 **Last Updated:** 2025-08-14
-

@@ -1,13 +1,13 @@
-import { internalMutation, mutation } from "../../_generated/server";
+import { internalMutation, mutation } from '../../_generated/server';
 
-import { createTicketArgs, createTicketHandler } from "./createTicket";
-import { updateTicketArgs, updateTicketHandler } from "./updateTicket";
-import { deleteTicketArgs, deleteTicketHandler } from "./deleteTicket";
-import { restoreTicketArgs, restoreTicketHandler } from "./restoreTicket";
-import { updateTicketStatsArgs, updateTicketStatsHandler } from "./updateTicketStats";
-import { addTicketUpdateArgs, addTicketUpdateHandler } from "./manageTicketUpdates";
-import { assignTicketArgs, assignTicketHandler } from "./manageAssignee";
-import { markTicketReadArgs, markTicketReadHandler } from "./manageReads";
+import { createTicketArgs, createTicketHandler } from './createTicket';
+import { updateTicketArgs, updateTicketHandler } from './updateTicket';
+import { deleteTicketArgs, deleteTicketHandler } from './deleteTicket';
+import { restoreTicketArgs, restoreTicketHandler } from './restoreTicket';
+import { updateTicketStatsArgs, updateTicketStatsHandler } from './updateTicketStats';
+import { addTicketUpdateArgs, addTicketUpdateHandler } from './manageTicketUpdates';
+import { assignTicketArgs, assignTicketHandler } from './manageAssignee';
+import { markTicketReadArgs, markTicketReadHandler } from './manageReads';
 
 export const createTicket = mutation({ args: createTicketArgs, handler: createTicketHandler });
 export const updateTicket = mutation({ args: updateTicketArgs, handler: updateTicketHandler });
@@ -19,6 +19,3 @@ export const assignTicket = mutation({ args: assignTicketArgs, handler: assignTi
 export const markTicketRead = mutation({ args: markTicketReadArgs, handler: markTicketReadHandler });
 
 export const updateTicketStats = internalMutation({ args: updateTicketStatsArgs, handler: updateTicketStatsHandler });
-
-
-

@@ -1,9 +1,9 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
 
 export const updateOrderXenditInvoiceArgs = {
-  orderId: v.id("orders"),
+  orderId: v.id('orders'),
   xenditInvoiceId: v.string(),
   xenditInvoiceUrl: v.string(),
   xenditInvoiceExpiryDate: v.number(),
@@ -12,11 +12,11 @@ export const updateOrderXenditInvoiceArgs = {
 export const updateOrderXenditInvoiceHandler = async (
   ctx: MutationCtx,
   args: {
-    orderId: Id<"orders">;
+    orderId: Id<'orders'>;
     xenditInvoiceId: string;
     xenditInvoiceUrl: string;
     xenditInvoiceExpiryDate: number;
-  },
+  }
 ) => {
   await ctx.db.patch(args.orderId, {
     xenditInvoiceId: args.xenditInvoiceId,

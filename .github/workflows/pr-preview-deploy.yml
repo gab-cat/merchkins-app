@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "Pull request number to deploy"
+        description: 'Pull request number to deploy'
         required: true
         type: number
   pull_request:
@@ -27,8 +27,8 @@ jobs:
         uses: peter-evans/find-comment@v3
         with:
           issue-number: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
-          comment-author: "github-actions[bot]"
-          body-includes: "Deployment"
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Deployment'
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Initial Deployment Notification
@@ -71,7 +71,7 @@ jobs:
           edit-mode: ${{ steps.find_comment.outputs.comment-id != '' && 'replace' || 'append' }}
 
   build:
-    runs-on: "ubuntu-latest"
+    runs-on: 'ubuntu-latest'
     environment: Staging
     outputs:
       pr_number: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}

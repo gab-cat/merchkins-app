@@ -26,14 +26,14 @@ convex/chats/
 ```
 
 All functions follow the shared project pattern:
+
 - Each implementation file exports an `Args` and `Handler` symbol
 - Each folder has an `index.ts` that wraps them with Convex `query` or `mutation`
 
 ## Highlights
+
 - Authentication required for all operations
 - Membership checks for room access
 - Embedded participants for small rooms; `chatParticipants` for large rooms
 - Unread counts and typing users handled in `chatRoomState`
 - Edge cases: dedupe direct rooms, validate replies, prevent adding to direct chats, robust permission checks for admin/mod actions
-
-

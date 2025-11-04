@@ -1,36 +1,36 @@
-import { MutationCtx } from "../../_generated/server"
-import { v } from "convex/values"
-import { Id } from "../../_generated/dataModel"
-import { requireOrganizationAdmin } from "../../helpers/organizations"
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireOrganizationAdmin } from '../../helpers/organizations';
 
 export const reviewJoinRequestArgs = {
   organizationId: v.id('organizations'),
   requestId: v.id('organizationJoinRequests'),
   approve: v.boolean(),
   note: v.optional(v.string()),
-}
+};
 
 export const reviewJoinRequestHandler = async (
   ctx: MutationCtx,
   args: {
-    organizationId: Id<'organizations'>
-    requestId: Id<'organizationJoinRequests'>
-    approve: boolean
-    note?: string
-  },
+    organizationId: Id<'organizations'>;
+    requestId: Id<'organizationJoinRequests'>;
+    approve: boolean;
+    note?: string;
+  }
 ) => {
-  const { user: reviewer } = await requireOrganizationAdmin(ctx, args.organizationId)
+  const { user: reviewer } = await requireOrganizationAdmin(ctx, args.organizationId);
 
-  const request = await ctx.db.get(args.requestId)
+  const request = await ctx.db.get(args.requestId);
   if (!request || request.organizationId !== args.organizationId) {
-    throw new Error('Join request not found')
+    throw new Error('Join request not found');
   }
 
   if (request.status !== 'PENDING') {
-    return { success: true, status: request.status }
+    return { success: true, status: request.status };
   }
 
-  const now = Date.now()
+  const now = Date.now();
 
   if (!args.approve) {
     await ctx.db.patch(request._id, {
@@ -39,17 +39,15 @@ export const reviewJoinRequestHandler = async (
       reviewedById: reviewer._id as Id<'users'>,
       reviewedAt: now,
       updatedAt: now,
-    })
-    return { success: true, status: 'REJECTED' as const }
+    });
+    return { success: true, status: 'REJECTED' as const };
   }
 
   // Approve: create membership as MEMBER if not already active
   const existingMembership = await ctx.db
     .query('organizationMembers')
-    .withIndex('by_user_organization', (q) =>
-      q.eq('userId', request.userId).eq('organizationId', args.organizationId),
-    )
-    .first()
+    .withIndex('by_user_organization', (q) => q.eq('userId', request.userId).eq('organizationId', args.organizationId))
+    .first();
 
   if (existingMembership) {
     await ctx.db.patch(existingMembership._id, {
@@ -57,12 +55,12 @@ export const reviewJoinRequestHandler = async (
       role: existingMembership.role || 'MEMBER',
       lastActiveAt: now,
       updatedAt: now,
-    })
+    });
   } else {
-    const org = await ctx.db.get(args.organizationId)
-    const user = await ctx.db.get(request.userId)
+    const org = await ctx.db.get(args.organizationId);
+    const user = await ctx.db.get(request.userId);
     if (!org || !user) {
-      throw new Error('Invalid organization or user')
+      throw new Error('Invalid organization or user');
     }
     await ctx.db.insert('organizationMembers', {
       userId: request.userId,
@@ -89,7 +87,7 @@ export const reviewJoinRequestHandler = async (
       orderCount: 0,
       messageCount: 0,
       updatedAt: now,
-    })
+    });
   }
 
   // Update request
@@ -99,23 +97,19 @@ export const reviewJoinRequestHandler = async (
     reviewedById: reviewer._id as Id<'users'>,
     reviewedAt: now,
     updatedAt: now,
-  })
+  });
 
   // Recompute org member/admin counts
   const activeMembers = await ctx.db
     .query('organizationMembers')
-    .withIndex('by_organization_active', (q) =>
-      q.eq('organizationId', args.organizationId).eq('isActive', true),
-    )
-    .collect()
-  const adminCount = activeMembers.filter((m) => m.role === 'ADMIN').length
+    .withIndex('by_organization_active', (q) => q.eq('organizationId', args.organizationId).eq('isActive', true))
+    .collect();
+  const adminCount = activeMembers.filter((m) => m.role === 'ADMIN').length;
   await ctx.db.patch(args.organizationId, {
     memberCount: activeMembers.length,
     adminCount,
     updatedAt: now,
-  })
+  });
 
-  return { success: true, status: 'APPROVED' as const }
-}
-
-
+  return { success: true, status: 'APPROVED' as const };
+};

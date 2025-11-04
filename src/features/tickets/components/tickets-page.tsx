@@ -1,160 +1,155 @@
-"use client"
+'use client';
 
-import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { useCursorPagination } from '@/src/hooks/use-pagination'
-import { LoadMore } from '@/src/components/ui/pagination'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useMutation } from 'convex/react'
-import { showToast, promiseToast } from '@/lib/toast'
-import { TicketIcon, ChevronRight, User, Activity, Search, Plus, Filter } from 'lucide-react'
+import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { useCursorPagination } from '@/src/hooks/use-pagination';
+import { LoadMore } from '@/src/components/ui/pagination';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMutation } from 'convex/react';
+import { showToast, promiseToast } from '@/lib/toast';
+import { TicketIcon, ChevronRight, User, Activity, Search, Plus, Filter } from 'lucide-react';
 
-type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
+type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 
-function StatusBadge ({ value }: { value: TicketStatus }) {
+function StatusBadge({ value }: { value: TicketStatus }) {
   const getStatusConfig = (status: TicketStatus) => {
     switch (status) {
       case 'OPEN':
-        return { variant: 'secondary' as const, icon: '🆕', color: 'bg-blue-100 text-blue-800' }
+        return { variant: 'secondary' as const, icon: '🆕', color: 'bg-blue-100 text-blue-800' };
       case 'IN_PROGRESS':
-        return { variant: 'default' as const, icon: '⚡', color: 'bg-orange-100 text-orange-800' }
+        return { variant: 'default' as const, icon: '⚡', color: 'bg-orange-100 text-orange-800' };
       case 'RESOLVED':
-        return { variant: 'outline' as const, icon: '✅', color: 'bg-green-100 text-green-800' }
+        return { variant: 'outline' as const, icon: '✅', color: 'bg-green-100 text-green-800' };
       case 'CLOSED':
-        return { variant: 'destructive' as const, icon: '❌', color: 'bg-red-100 text-red-800' }
+        return { variant: 'destructive' as const, icon: '❌', color: 'bg-red-100 text-red-800' };
       default:
-        return { variant: 'outline' as const, icon: '❓', color: 'bg-gray-100 text-gray-800' }
+        return { variant: 'outline' as const, icon: '❓', color: 'bg-gray-100 text-gray-800' };
     }
-  }
+  };
 
-  const config = getStatusConfig(value)
+  const config = getStatusConfig(value);
   return (
     <Badge variant={config.variant} className={`text-xs px-2 py-1 font-medium ${config.color}`}>
       <span className="mr-1">{config.icon}</span>
       {value}
     </Badge>
-  )
+  );
 }
 
-export function TicketsPage () {
-  const pathname = usePathname()
+export function TicketsPage() {
+  const pathname = usePathname();
   const orgSlug = useMemo(() => {
-    if (!pathname) return undefined
-    const segments = pathname.split('/').filter(Boolean)
-    if (segments[0] === 'o' && segments[1]) return segments[1]
-    return undefined
-  }, [pathname])
+    if (!pathname) return undefined;
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments[0] === 'o' && segments[1]) return segments[1];
+    return undefined;
+  }, [pathname]);
 
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
-  )
+  );
 
-  const { items: ticketsPage, isLoading: ticketsLoading, hasMore, loadMore } = useCursorPagination<TicketListItem, { organizationId: Id<'organizations'> }>({
+  const {
+    items: ticketsPage,
+    isLoading: ticketsLoading,
+    hasMore,
+    loadMore,
+  } = useCursorPagination<TicketListItem, { organizationId: Id<'organizations'> }>({
     query: api.tickets.queries.index.getTicketsPage,
     baseArgs: organization?._id ? { organizationId: organization._id } : 'skip',
     limit: 25,
     selectPage: (res: unknown) => {
-      const result = res as { page?: readonly TicketListItem[]; isDone?: boolean; continueCursor?: string | null }
+      const result = res as { page?: readonly TicketListItem[]; isDone?: boolean; continueCursor?: string | null };
       return {
         page: (result.page || []) as ReadonlyArray<TicketListItem>,
         isDone: !!result.isDone,
         continueCursor: result.continueCursor ?? null,
-      }
+      };
     },
-  })
+  });
 
   interface TicketListItem {
-    _id: Id<'tickets'>
-    title?: string
-    status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
-    priority: 'LOW' | 'MEDIUM' | 'HIGH'
-    updatedAt?: number
+    _id: Id<'tickets'>;
+    title?: string;
+    status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    updatedAt?: number;
   }
 
-  const [search, setSearch] = useState('')
-  const [activeId, setActiveId] = useState<Id<'tickets'> | null>(null)
+  const [search, setSearch] = useState('');
+  const [activeId, setActiveId] = useState<Id<'tickets'> | null>(null);
 
   const filtered: ReadonlyArray<TicketListItem> = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    const base: ReadonlyArray<TicketListItem> = (ticketsPage as ReadonlyArray<TicketListItem>) || []
-    if (!q) return base
-    return base.filter((t) => (t.title || '').toLowerCase().includes(q))
-  }, [ticketsPage, search])
+    const q = search.trim().toLowerCase();
+    const base: ReadonlyArray<TicketListItem> = (ticketsPage as ReadonlyArray<TicketListItem>) || [];
+    if (!q) return base;
+    return base.filter((t) => (t.title || '').toLowerCase().includes(q));
+  }, [ticketsPage, search]);
 
-  const loading = ticketsLoading
+  const loading = ticketsLoading;
 
   const activeTicket = useQuery(
     api.tickets.queries.index.getTicketById,
-    activeId
-      ? { ticketId: activeId }
-      : ('skip' as unknown as { ticketId: Id<'tickets'> })
-  )
+    activeId ? { ticketId: activeId } : ('skip' as unknown as { ticketId: Id<'tickets'> })
+  );
 
   const updates = useQuery(
     api.tickets.queries.index.getTicketUpdates,
     activeId
       ? { ticketId: activeId, limit: 50, offset: 0 }
       : ('skip' as unknown as {
-          ticketId: Id<'tickets'>
-          limit: number
-          offset: number
+          ticketId: Id<'tickets'>;
+          limit: number;
+          offset: number;
         })
-  )
+  );
 
-  const assignTicket = useMutation(api.tickets.mutations.index.assignTicket)
+  const assignTicket = useMutation(api.tickets.mutations.index.assignTicket);
   const orgMembers = useQuery(
     api.organizations.queries.index.getOrganizationMembers,
     activeTicket?.organizationId
       ? { organizationId: activeTicket.organizationId, isActive: true, limit: 100 }
       : ('skip' as unknown as { organizationId: Id<'organizations'> })
-  )
+  );
   interface OrganizationMemberLite {
-    userId: Id<'users'>
-    role: 'ADMIN' | 'STAFF' | 'MEMBER'
-    userInfo: { firstName?: string; lastName?: string; email: string }
+    userId: Id<'users'>;
+    role: 'ADMIN' | 'STAFF' | 'MEMBER';
+    userInfo: { firstName?: string; lastName?: string; email: string };
   }
   const eligibleAssignees = useMemo<ReadonlyArray<OrganizationMemberLite>>(() => {
-    const page = (orgMembers as { page?: ReadonlyArray<OrganizationMemberLite> } | undefined)?.page || []
-    return page.filter((m) => m.role === 'STAFF' || m.role === 'MEMBER')
-  }, [orgMembers])
-  async function handleAssign (assigneeId: string) {
-    if (!activeTicket) return
+    const page = (orgMembers as { page?: ReadonlyArray<OrganizationMemberLite> } | undefined)?.page || [];
+    return page.filter((m) => m.role === 'STAFF' || m.role === 'MEMBER');
+  }, [orgMembers]);
+  async function handleAssign(assigneeId: string) {
+    if (!activeTicket) return;
 
     try {
-      await promiseToast(
-        assignTicket({ ticketId: activeTicket._id as Id<'tickets'>, assigneeId: assigneeId as Id<'users'> }),
-        {
-          loading: 'Assigning ticket...',
-          success: 'Ticket assigned successfully!',
-          error: 'Failed to assign ticket'
-        }
-      )
+      await promiseToast(assignTicket({ ticketId: activeTicket._id as Id<'tickets'>, assigneeId: assigneeId as Id<'users'> }), {
+        loading: 'Assigning ticket...',
+        success: 'Ticket assigned successfully!',
+        error: 'Failed to assign ticket',
+      });
     } catch (err: unknown) {
-      const message = typeof err === 'object' && err && 'message' in err ? String((err as { message?: string }).message) : 'Failed to assign ticket'
-      showToast({ type: 'error', title: message })
+      const message = typeof err === 'object' && err && 'message' in err ? String((err as { message?: string }).message) : 'Failed to assign ticket';
+      showToast({ type: 'error', title: message });
     }
   }
 
   interface TicketUpdate {
-    _id: Id<'ticketUpdates'>
-    createdAt: number
-    updateType: 'STATUS_CHANGE' | 'COMMENT' | 'ASSIGNMENT' | 'PRIORITY_CHANGE' | 'ESCALATION'
-    content: string
+    _id: Id<'ticketUpdates'>;
+    createdAt: number;
+    updateType: 'STATUS_CHANGE' | 'COMMENT' | 'ASSIGNMENT' | 'PRIORITY_CHANGE' | 'ESCALATION';
+    content: string;
   }
 
   return (
@@ -165,19 +160,12 @@ export function TicketsPage () {
             <TicketIcon className="h-8 w-8" />
             {organization?.name ? `${organization.name} Tickets` : 'My Tickets'}
           </h1>
-          <p className="text-muted-foreground">
-            {organization?.name ? 'Tickets filed with this organization' : 'Your support tickets'}
-          </p>
+          <p className="text-muted-foreground">{organization?.name ? 'Tickets filed with this organization' : 'Your support tickets'}</p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search tickets..."
-              className="pl-9 h-9"
-            />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tickets..." className="pl-9 h-9" />
           </div>
           <Link href={orgSlug ? `/o/${orgSlug}/tickets/new` : `/tickets/new`}>
             <Button size="sm" className="hover:scale-105 transition-all duration-200">
@@ -225,9 +213,7 @@ export function TicketsPage () {
                       <TicketIcon className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-sm group-hover:text-primary transition-colors">
-                        {t.title}
-                      </div>
+                      <div className="font-semibold text-sm group-hover:text-primary transition-colors">{t.title}</div>
                       <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                         <StatusBadge value={t.status} />
                         <span className="inline-flex items-center gap-1">
@@ -275,13 +261,10 @@ export function TicketsPage () {
       <Dialog
         open={!!activeId}
         onOpenChange={(v) => {
-          if (!v) setActiveId(null)
+          if (!v) setActiveId(null);
         }}
       >
-        <DialogContent
-          className="sm:max-w-3xl"
-          data-testid="ticket-detail-dialog"
-        >
+        <DialogContent className="sm:max-w-3xl" data-testid="ticket-detail-dialog">
           {activeId && (activeTicket === undefined || updates === undefined) ? (
             <div className="space-y-4">
               <div className="h-6 w-1/2 animate-pulse rounded bg-secondary" />
@@ -289,17 +272,13 @@ export function TicketsPage () {
               <div className="h-24 w-full animate-pulse rounded bg-secondary" />
             </div>
           ) : activeId && activeTicket === null ? (
-            <div className="py-8 text-sm text-muted-foreground">
-              Ticket not found.
-            </div>
+            <div className="py-8 text-sm text-muted-foreground">Ticket not found.</div>
           ) : activeId && activeTicket ? (
             <div className="space-y-6">
               <div className="rounded-xl border bg-gradient-to-r from-primary/10 to-transparent p-4 shadow-sm">
                 <DialogHeader className="space-y-3">
                   <DialogTitle className="flex items-start justify-between gap-3 text-lg">
-                    <span className="truncate">
-                      {activeTicket.title}
-                    </span>
+                    <span className="truncate">{activeTicket.title}</span>
                     <StatusBadge value={activeTicket.status as TicketStatus} />
                   </DialogTitle>
                   <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -309,7 +288,9 @@ export function TicketsPage () {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${activeTicket.priority === 'HIGH' ? 'bg-red-100 text-red-700' : activeTicket.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${activeTicket.priority === 'HIGH' ? 'bg-red-100 text-red-700' : activeTicket.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}
+                      >
                         Priority: {activeTicket.priority}
                       </span>
                     </div>
@@ -334,7 +315,9 @@ export function TicketsPage () {
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Priority</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${activeTicket.priority === 'HIGH' ? 'bg-red-100 text-red-700' : activeTicket.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${activeTicket.priority === 'HIGH' ? 'bg-red-100 text-red-700' : activeTicket.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}
+                      >
                         {activeTicket.priority}
                       </span>
                     </div>
@@ -360,7 +343,7 @@ export function TicketsPage () {
                           <SelectContent>
                             {eligibleAssignees.map((m) => (
                               <SelectItem key={String(m.userId)} value={String(m.userId)} className="text-sm">
-                                {(m.userInfo.firstName || m.userInfo.lastName)
+                                {m.userInfo.firstName || m.userInfo.lastName
                                   ? `${m.userInfo.firstName || ''} ${m.userInfo.lastName || ''}`.trim()
                                   : m.userInfo.email}
                               </SelectItem>
@@ -378,9 +361,7 @@ export function TicketsPage () {
                   <CardHeader>
                     <CardTitle>Description</CardTitle>
                   </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {activeTicket.description}
-                  </CardContent>
+                  <CardContent className="text-sm text-muted-foreground whitespace-pre-wrap">{activeTicket.description}</CardContent>
                 </Card>
               ) : null}
 
@@ -397,18 +378,12 @@ export function TicketsPage () {
                         <div className="absolute left-[-6px] top-2 h-2 w-2 rounded-full bg-primary" />
                         <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                           <span>{new Date(u.createdAt).toLocaleDateString()}</span>
-                          <span className="px-2 py-0.5 rounded-full bg-muted text-xs font-medium">
-                            {u.updateType.replace('_', ' ')}
-                          </span>
+                          <span className="px-2 py-0.5 rounded-full bg-muted text-xs font-medium">{u.updateType.replace('_', ' ')}</span>
                         </div>
                         <div className="text-sm leading-relaxed">{u.content}</div>
                       </div>
                     ))}
-                    {updates && updates.updates.length === 0 && (
-                      <div className="text-center py-4 text-sm text-muted-foreground">
-                        No updates yet.
-                      </div>
-                    )}
+                    {updates && updates.updates.length === 0 && <div className="text-center py-4 text-sm text-muted-foreground">No updates yet.</div>}
                   </div>
                 </CardContent>
               </Card>
@@ -423,52 +398,24 @@ export function TicketsPage () {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 
-function TicketProgress ({
-  status,
-}: {
-  status: TicketStatus
-}) {
-  const steps: TicketStatus[] = [
-    'OPEN',
-    'IN_PROGRESS',
-    'RESOLVED',
-    'CLOSED',
-  ]
-  const current = steps.indexOf(status)
+function TicketProgress({ status }: { status: TicketStatus }) {
+  const steps: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
+  const current = steps.indexOf(status);
 
   return (
     <div className="flex items-center">
       {steps.map((s, i) => {
-        const done = i <= current
+        const done = i <= current;
         return (
           <div key={s} className="flex items-center">
-            <div
-              className={
-                'size-5 rounded-full border ' +
-                (done
-                  ? 'bg-primary border-primary'
-                  : 'bg-muted border-muted-foreground/30')
-              }
-              title={s}
-            />
-            {i < steps.length - 1 && (
-              <div
-                className={
-                  'mx-2 h-0.5 w-10 sm:w-16 ' +
-                  (i < current
-                    ? 'bg-primary'
-                    : 'bg-muted-foreground/20')
-                }
-              />
-            )}
+            <div className={'size-5 rounded-full border ' + (done ? 'bg-primary border-primary' : 'bg-muted border-muted-foreground/30')} title={s} />
+            {i < steps.length - 1 && <div className={'mx-2 h-0.5 w-10 sm:w-16 ' + (i < current ? 'bg-primary' : 'bg-muted-foreground/20')} />}
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
-
-

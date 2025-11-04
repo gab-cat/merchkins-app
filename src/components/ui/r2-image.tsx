@@ -1,30 +1,19 @@
-"use client"
+'use client';
 
-import React, { useState } from 'react'
-import Image, { type ImageProps } from 'next/image'
-import { cn, buildR2PublicUrl } from '@/lib/utils'
+import React, { useState } from 'react';
+import Image, { type ImageProps } from 'next/image';
+import { cn, buildR2PublicUrl } from '@/lib/utils';
 
 interface R2ImageProps extends Omit<ImageProps, 'src'> {
-  fileKey?: string | null
-  fallbackClassName?: string
+  fileKey?: string | null;
+  fallbackClassName?: string;
 }
 
-export function R2Image ({
-  fileKey,
-  alt,
-  width,
-  height,
-  fill,
-  className,
-  priority,
-  sizes,
-  fallbackClassName,
-  ...rest
-}: R2ImageProps) {
-  const [hasError, setHasError] = useState(false)
-  const [isLoaded, setIsLoaded] = useState(false)
+export function R2Image({ fileKey, alt, width, height, fill, className, priority, sizes, fallbackClassName, ...rest }: R2ImageProps) {
+  const [hasError, setHasError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const computedUrl = buildR2PublicUrl(fileKey)
+  const computedUrl = buildR2PublicUrl(fileKey);
 
   const placeholder = (
     <div
@@ -39,9 +28,9 @@ export function R2Image ({
       role="img"
       aria-label={alt || 'image placeholder'}
     />
-  )
+  );
 
-  if (!computedUrl || hasError) return placeholder
+  if (!computedUrl || hasError) return placeholder;
 
   return (
     <div className={cn('relative overflow-hidden', fill && 'h-full w-full')}>
@@ -49,12 +38,7 @@ export function R2Image ({
         src={computedUrl}
         alt={alt}
         {...(fill ? { fill: true } : { width, height })}
-        className={cn(
-          'object-cover transition-all duration-300',
-          !isLoaded && 'opacity-0 scale-105',
-          isLoaded && 'opacity-100 scale-100',
-          className
-        )}
+        className={cn('object-cover transition-all duration-300', !isLoaded && 'opacity-0 scale-105', isLoaded && 'opacity-100 scale-100', className)}
         priority={priority}
         sizes={sizes}
         onError={() => setHasError(true)}
@@ -62,16 +46,8 @@ export function R2Image ({
         {...rest}
       />
       {!isLoaded && (
-        <div
-          className={cn(
-            'absolute inset-0 bg-muted skeleton',
-            fill ? 'w-full h-full' : '',
-            !fill && width && height ? '' : 'aspect-square'
-          )}
-        />
+        <div className={cn('absolute inset-0 bg-muted skeleton', fill ? 'w-full h-full' : '', !fill && width && height ? '' : 'aspect-square')} />
       )}
     </div>
-  )
+  );
 }
-
-

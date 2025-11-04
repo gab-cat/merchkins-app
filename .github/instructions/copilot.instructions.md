@@ -1,6 +1,7 @@
 ---
 applyTo: '**'
 ---
+
 This comprehensive guide outlines best practices, conventions, and standards for development with modern web technologies including ReactJS, NextJS, Redux, TypeScript, JavaScript, HTML, CSS, and UI frameworks.
 
     Development Philosophy
@@ -76,8 +77,8 @@ This comprehensive guide outlines best practices, conventions, and standards for
       - The app directory will only contain the page.tsx and other relevant details.
       - A feature folder will be implemented. In this folder, there will be a separation of views, for example client, and admins.
       - The feature folder will contain feature specific server actions, hooks, components, types, utils and zod form schemas.
-      - Shared components will be placed in the src/components folder. 
-      - Shared utilities folder 
+      - Shared components will be placed in the src/components folder.
+      - Shared utilities folder
 
     Specific Naming Patterns
     - Prefix event handlers with 'handle': handleClick, handleSubmit

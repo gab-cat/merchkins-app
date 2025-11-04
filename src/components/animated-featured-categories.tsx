@@ -1,16 +1,16 @@
-"use client"
+'use client';
 
-import React from 'react'
-import { motion } from 'framer-motion'
-import { FeaturedCategories } from '@/src/features/categories/components/featured-categories'
-import { fadeInUpContainer } from '@/lib/animations'
-import type { Preloaded } from 'convex/react'
-import type { api } from '@/convex/_generated/api'
+import React from 'react';
+import { motion } from 'framer-motion';
+import { FeaturedCategories } from '@/src/features/categories/components/featured-categories';
+import { fadeInUpContainer } from '@/lib/animations';
+import type { Preloaded } from 'convex/react';
+import type { api } from '@/convex/_generated/api';
 
 interface AnimatedFeaturedCategoriesProps {
-  orgSlug?: string
-  preloadedOrganization?: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug>
-  preloadedCategories?: Preloaded<typeof api.categories.queries.index.getCategories>
+  orgSlug?: string;
+  preloadedOrganization?: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug>;
+  preloadedCategories?: Preloaded<typeof api.categories.queries.index.getCategories>;
 }
 
 export function AnimatedFeaturedCategories(props: AnimatedFeaturedCategoriesProps) {
@@ -24,5 +24,5 @@ export function AnimatedFeaturedCategories(props: AnimatedFeaturedCategoriesProp
     >
       <FeaturedCategories {...props} />
     </motion.section>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-import { R2 } from "@convex-dev/r2";
-import { components } from "../_generated/api";
+import { R2 } from '@convex-dev/r2';
+import { components } from '../_generated/api';
 
 export const r2 = new R2(components.r2);
 
@@ -8,7 +8,7 @@ export const { generateUploadUrl, syncMetadata } = r2.clientApi({
     // For testing purposes, let's allow all uploads
     // In production, you should implement proper authentication
     console.log(`Upload check for bucket: ${bucket}`);
-    
+
     // Try to get the current user from auth, but don't require it for testing
     try {
       const identity = await ctx.auth.getUserIdentity();
@@ -27,7 +27,7 @@ export const { generateUploadUrl, syncMetadata } = r2.clientApi({
     // - Updating related entities
     // - Sending notifications
     // - Processing the file (e.g., image resizing)
-    
+
     console.log(`File uploaded successfully: ${key} to bucket: ${bucket}`);
   },
 });

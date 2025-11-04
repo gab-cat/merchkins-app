@@ -1,11 +1,11 @@
-import { mutation, internalMutation } from "../../_generated/server";
+import { mutation, internalMutation } from '../../_generated/server';
 
 // Import args and handlers
-import { createCategoryArgs, createCategoryHandler } from "./createCategory";
-import { updateCategoryArgs, updateCategoryHandler } from "./updateCategory";
-import { deleteCategoryArgs, deleteCategoryHandler } from "./deleteCategory";
-import { restoreCategoryArgs, restoreCategoryHandler } from "./restoreCategory";
-import { updateCategoryStatsArgs, updateCategoryStatsHandler } from "./updateCategoryStats";
+import { createCategoryArgs, createCategoryHandler } from './createCategory';
+import { updateCategoryArgs, updateCategoryHandler } from './updateCategory';
+import { deleteCategoryArgs, deleteCategoryHandler } from './deleteCategory';
+import { restoreCategoryArgs, restoreCategoryHandler } from './restoreCategory';
+import { updateCategoryStatsArgs, updateCategoryStatsHandler } from './updateCategoryStats';
 
 // Export mutation functions
 export const createCategory = mutation({

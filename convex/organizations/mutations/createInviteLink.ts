@@ -18,33 +18,33 @@ export const createInviteLinkHandler = async (
     createdById: Id<'users'>;
     expiresAt?: number;
     usageLimit?: number;
-  },
+  }
 ) => {
   const { organizationId, createdById, expiresAt, usageLimit } = args;
-  
+
   // Get organization
   const organization = await ctx.db.get(organizationId);
   if (!organization || organization.isDeleted) {
-    throw new Error("Organization not found");
+    throw new Error('Organization not found');
   }
-  
+
   // Get creator
   const creator = await ctx.db.get(createdById);
   if (!creator || creator.isDeleted) {
-    throw new Error("Creator not found");
+    throw new Error('Creator not found');
   }
-  
+
   // Ensure actor has admin or staff rights (and is current user)
   const { user: actor } = await requireOrganizationAdminOrStaff(ctx, organizationId);
   if (createdById !== actor._id) {
     throw new Error('createdById must match the authenticated user');
   }
-  
+
   // Generate unique invite code
   const code = generateInviteCode();
-  
+
   // Create invite link
-  const inviteLinkId = await ctx.db.insert("organizationInviteLinks", {
+  const inviteLinkId = await ctx.db.insert('organizationInviteLinks', {
     organizationId,
     code,
     createdById,
@@ -67,7 +67,7 @@ export const createInviteLinkHandler = async (
     createdAt: Date.now(),
     updatedAt: Date.now(),
   });
-  
+
   // Audit log
   await logAction(
     ctx,
@@ -78,9 +78,9 @@ export const createInviteLinkHandler = async (
     createdById,
     organizationId,
     { code, expiresAt, usageLimit },
-    { resourceType: 'organization_invite', resourceId: inviteLinkId as unknown as string },
+    { resourceType: 'organization_invite', resourceId: inviteLinkId as unknown as string }
   );
-  
+
   return { inviteLinkId, code };
 };
 

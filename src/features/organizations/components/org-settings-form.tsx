@@ -1,16 +1,16 @@
-"use client"
+'use client';
 
-import React, { useMemo, useState } from 'react'
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { useUploadFile } from '@convex-dev/r2/react'
-import { compressToWebP } from '@/lib/compress'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import React, { useMemo, useState } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import type { Id } from '@/convex/_generated/dataModel';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { useUploadFile } from '@convex-dev/r2/react';
+import { compressToWebP } from '@/lib/compress';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 const INDUSTRIES: Array<string> = [
   'Retail',
@@ -23,18 +23,9 @@ const INDUSTRIES: Array<string> = [
   'Non-profit',
   'Media',
   'Real Estate',
-]
+];
 
-const SIZES: Array<string> = [
-  '1-10',
-  '11-50',
-  '51-200',
-  '201-500',
-  '501-1,000',
-  '1,001-5,000',
-  '5,001-10,000',
-  '10,000+',
-]
+const SIZES: Array<string> = ['1-10', '11-50', '51-200', '201-500', '501-1,000', '1,001-5,000', '5,001-10,000', '10,000+'];
 
 const FONT_STACKS: Array<{ label: string; value: string }> = [
   { label: 'Poppins', value: 'Poppins, system-ui, -apple-system, sans-serif' },
@@ -51,129 +42,126 @@ const FONT_STACKS: Array<{ label: string; value: string }> = [
   { label: 'Work Sans', value: 'Work Sans, system-ui, -apple-system, sans-serif' },
   { label: 'DM Sans', value: 'DM Sans, system-ui, -apple-system, sans-serif' },
   { label: 'System UI', value: 'system-ui, -apple-system, sans-serif' },
-]
+];
 
 interface OrganizationDoc {
-  _id: Id<'organizations'>
-  name: string
-  slug: string
-  description?: string
-  logo?: string
-  bannerImage?: string
-  website?: string
-  industry?: string
-  size?: string
-  organizationType: 'PUBLIC' | 'PRIVATE' | 'SECRET'
+  _id: Id<'organizations'>;
+  name: string;
+  slug: string;
+  description?: string;
+  logo?: string;
+  bannerImage?: string;
+  website?: string;
+  industry?: string;
+  size?: string;
+  organizationType: 'PUBLIC' | 'PRIVATE' | 'SECRET';
   themeSettings?: {
-    primaryColor: string
-    secondaryColor?: string
-    headerBackgroundColor?: string
-    headerForegroundColor?: string
-    headerTitleColor?: string
-    footerBackgroundColor?: string
-    footerForegroundColor?: string
-    mode?: 'light' | 'dark' | 'auto'
-    fontFamily?: string
-    borderRadius?: 'none' | 'small' | 'medium' | 'large'
-  }
+    primaryColor: string;
+    secondaryColor?: string;
+    headerBackgroundColor?: string;
+    headerForegroundColor?: string;
+    headerTitleColor?: string;
+    footerBackgroundColor?: string;
+    footerForegroundColor?: string;
+    mode?: 'light' | 'dark' | 'auto';
+    fontFamily?: string;
+    borderRadius?: 'none' | 'small' | 'medium' | 'large';
+  };
 }
 
-export function OrgSettingsForm ({ organization }: { organization: OrganizationDoc }) {
-  const updateOrganization = useMutation(api.organizations.mutations.index.updateOrganization)
-  const router = useRouter()
+export function OrgSettingsForm({ organization }: { organization: OrganizationDoc }) {
+  const updateOrganization = useMutation(api.organizations.mutations.index.updateOrganization);
+  const router = useRouter();
 
-  const [name, setName] = useState(organization.name)
-  const [slug, setSlug] = useState(organization.slug)
-  const [description, setDescription] = useState(organization.description || '')
-  const [logo, setLogo] = useState(organization.logo || '')
-  const [bannerImage, setBannerImage] = useState(organization.bannerImage || '')
-  const [website, setWebsite] = useState(organization.website || '')
-  const [industry, setIndustry] = useState(organization.industry || '')
-  const [size, setSize] = useState(organization.size || '')
-  const [primaryColor, setPrimaryColor] = useState(organization.themeSettings?.primaryColor || '')
-  const [secondaryColor, setSecondaryColor] = useState(organization.themeSettings?.secondaryColor || '')
-  const [headerBg, setHeaderBg] = useState(organization.themeSettings?.headerBackgroundColor || '')
-  const [headerFg, setHeaderFg] = useState(organization.themeSettings?.headerForegroundColor || '')
-  const [headerTitle, setHeaderTitle] = useState(organization.themeSettings?.headerTitleColor || '')
-  const [footerBg, setFooterBg] = useState(organization.themeSettings?.footerBackgroundColor || '')
-  const [footerFg, setFooterFg] = useState(organization.themeSettings?.footerForegroundColor || '')
-  const [mode, setMode] = useState<'light' | 'dark' | 'auto'>(organization.themeSettings?.mode || 'auto')
-  const [fontFamily, setFontFamily] = useState(organization.themeSettings?.fontFamily || '')
-  const [borderRadius, setBorderRadius] = useState<'none' | 'small' | 'medium' | 'large'>(organization.themeSettings?.borderRadius || 'medium')
-  const [saving, setSaving] = useState(false)
-  const uploadFile = useUploadFile(api.files.r2)
-  const deleteFile = useMutation(api.files.mutations.index.deleteFile)
-  const [pendingDeleteKeys, setPendingDeleteKeys] = useState<string[]>([])
+  const [name, setName] = useState(organization.name);
+  const [slug, setSlug] = useState(organization.slug);
+  const [description, setDescription] = useState(organization.description || '');
+  const [logo, setLogo] = useState(organization.logo || '');
+  const [bannerImage, setBannerImage] = useState(organization.bannerImage || '');
+  const [website, setWebsite] = useState(organization.website || '');
+  const [industry, setIndustry] = useState(organization.industry || '');
+  const [size, setSize] = useState(organization.size || '');
+  const [primaryColor, setPrimaryColor] = useState(organization.themeSettings?.primaryColor || '');
+  const [secondaryColor, setSecondaryColor] = useState(organization.themeSettings?.secondaryColor || '');
+  const [headerBg, setHeaderBg] = useState(organization.themeSettings?.headerBackgroundColor || '');
+  const [headerFg, setHeaderFg] = useState(organization.themeSettings?.headerForegroundColor || '');
+  const [headerTitle, setHeaderTitle] = useState(organization.themeSettings?.headerTitleColor || '');
+  const [footerBg, setFooterBg] = useState(organization.themeSettings?.footerBackgroundColor || '');
+  const [footerFg, setFooterFg] = useState(organization.themeSettings?.footerForegroundColor || '');
+  const [mode, setMode] = useState<'light' | 'dark' | 'auto'>(organization.themeSettings?.mode || 'auto');
+  const [fontFamily, setFontFamily] = useState(organization.themeSettings?.fontFamily || '');
+  const [borderRadius, setBorderRadius] = useState<'none' | 'small' | 'medium' | 'large'>(organization.themeSettings?.borderRadius || 'medium');
+  const [saving, setSaving] = useState(false);
+  const uploadFile = useUploadFile(api.files.r2);
+  const deleteFile = useMutation(api.files.mutations.index.deleteFile);
+  const [pendingDeleteKeys, setPendingDeleteKeys] = useState<string[]>([]);
 
-  function scheduleDeleteKey (key?: string) {
-    if (!key) return
-    if (!isKey(key)) return
-    setPendingDeleteKeys((prev) => (prev.includes(key) ? prev : [...prev, key]))
+  function scheduleDeleteKey(key?: string) {
+    if (!key) return;
+    if (!isKey(key)) return;
+    setPendingDeleteKeys((prev) => (prev.includes(key) ? prev : [...prev, key]));
   }
 
-  function toSlug (value: string): string {
+  function toSlug(value: string): string {
     return value
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
+      .replace(/(^-|-$)/g, '');
   }
 
   const canSubmit = useMemo(() => {
-    const s = toSlug(slug)
-    return name.trim().length >= 2 && s.length >= 2
-  }, [name, slug])
+    const s = toSlug(slug);
+    return name.trim().length >= 2 && s.length >= 2;
+  }, [name, slug]);
 
-  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/')
-  const logoPreview = useQuery(
-    api.files.queries.index.getFileUrl,
-    isKey(logo) ? { key: logo } : ('skip' as unknown as { key: string })
-  )
+  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
+  const logoPreview = useQuery(api.files.queries.index.getFileUrl, isKey(logo) ? { key: logo } : ('skip' as unknown as { key: string }));
   const bannerPreview = useQuery(
     api.files.queries.index.getFileUrl,
     isKey(bannerImage) ? { key: bannerImage } : ('skip' as unknown as { key: string })
-  )
+  );
 
-  const logoSrc = isKey(logo) ? (logoPreview || undefined) : (logo || undefined)
-  const bannerSrc = isKey(bannerImage) ? (bannerPreview || undefined) : (bannerImage || undefined)
+  const logoSrc = isKey(logo) ? logoPreview || undefined : logo || undefined;
+  const bannerSrc = isKey(bannerImage) ? bannerPreview || undefined : bannerImage || undefined;
 
-  async function handleLogoFileChange (e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function handleLogoFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
     try {
-      const old = logo
-      const compressed = await compressToWebP(file)
-      const key = await uploadFile(compressed)
-      setLogo(key)
-      if (old && old !== key) scheduleDeleteKey(old)
-      e.target.value = ''
+      const old = logo;
+      const compressed = await compressToWebP(file);
+      const key = await uploadFile(compressed);
+      setLogo(key);
+      if (old && old !== key) scheduleDeleteKey(old);
+      e.target.value = '';
     } catch (err) {
-      console.error(err)
-      alert('Failed to upload logo')
+      console.error(err);
+      alert('Failed to upload logo');
     }
   }
 
-  async function handleBannerFileChange (e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function handleBannerFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
     try {
-      const old = bannerImage
-      const compressed = await compressToWebP(file)
-      const key = await uploadFile(compressed)
-      setBannerImage(key)
-      if (old && old !== key) scheduleDeleteKey(old)
-      e.target.value = ''
+      const old = bannerImage;
+      const compressed = await compressToWebP(file);
+      const key = await uploadFile(compressed);
+      setBannerImage(key);
+      if (old && old !== key) scheduleDeleteKey(old);
+      e.target.value = '';
     } catch (err) {
-      console.error(err)
-      alert('Failed to upload banner image')
+      console.error(err);
+      alert('Failed to upload banner image');
     }
   }
 
-  async function handleSubmit (e: React.FormEvent) {
-    e.preventDefault()
-    if (!canSubmit) return
-    setSaving(true)
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+    setSaving(true);
     try {
-      const normalizedSlug = toSlug(slug)
+      const normalizedSlug = toSlug(slug);
       await updateOrganization({
         organizationId: organization._id,
         name: name.trim(),
@@ -196,29 +184,28 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           fontFamily: fontFamily.trim() || undefined,
           borderRadius,
         },
-      })
+      });
       if (normalizedSlug && normalizedSlug !== organization.slug) {
         try {
-          router.replace(`/admin/org-settings?org=${normalizedSlug}`)
+          router.replace(`/admin/org-settings?org=${normalizedSlug}`);
         } catch {}
       }
       // After a successful update, delete any keys scheduled for removal
-      const uniqueKeys = Array.from(new Set(pendingDeleteKeys))
-        .filter((k) => k !== logo && k !== bannerImage)
+      const uniqueKeys = Array.from(new Set(pendingDeleteKeys)).filter((k) => k !== logo && k !== bannerImage);
       if (uniqueKeys.length > 0) {
         try {
-          await Promise.all(uniqueKeys.map((k) => deleteFile({ key: k })))
+          await Promise.all(uniqueKeys.map((k) => deleteFile({ key: k })));
         } catch (err) {
-          console.error('Failed deleting old files', err)
+          console.error('Failed deleting old files', err);
         }
       }
-      setPendingDeleteKeys([])
+      setPendingDeleteKeys([]);
     } catch (err: unknown) {
-      console.error(err)
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save changes'
-      alert(errorMessage)
+      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
+      alert(errorMessage);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
@@ -226,25 +213,28 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
     <form className="space-y-4 animate-in fade-in slide-in-from-bottom-2" onSubmit={handleSubmit}>
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-name">Name</label>
+          <label className="mb-1 block text-sm font-medium" htmlFor="org-name">
+            Name
+          </label>
           <Input id="org-name" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-slug">Slug</label>
-          <Input
-            id="org-slug"
-            value={slug}
-            onChange={(e) => setSlug(toSlug(e.target.value))}
-            placeholder="your-org"
-          />
+          <label className="mb-1 block text-sm font-medium" htmlFor="org-slug">
+            Slug
+          </label>
+          <Input id="org-slug" value={slug} onChange={(e) => setSlug(toSlug(e.target.value))} placeholder="your-org" />
           <p className="mt-1 text-xs text-muted-foreground">Used in URLs like /o/{slug || 'your-org'}</p>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-website">Website</label>
+          <label className="mb-1 block text-sm font-medium" htmlFor="org-website">
+            Website
+          </label>
           <Input id="org-website" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-industry">Industry</label>
+          <label className="mb-1 block text-sm font-medium" htmlFor="org-industry">
+            Industry
+          </label>
           <select
             id="org-industry"
             className="h-9 w-full rounded-md border px-3 text-sm"
@@ -253,53 +243,52 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           >
             <option value="">Select industry</option>
             {INDUSTRIES.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
-            {industry && !INDUSTRIES.includes(industry) && (
-              <option value={industry}>{industry}</option>
-            )}
+            {industry && !INDUSTRIES.includes(industry) && <option value={industry}>{industry}</option>}
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-size">Size</label>
-          <select
-            id="org-size"
-            className="h-9 w-full rounded-md border  px-3 text-sm"
-            value={size}
-            onChange={(e) => setSize(e.target.value)}
-          >
+          <label className="mb-1 block text-sm font-medium" htmlFor="org-size">
+            Size
+          </label>
+          <select id="org-size" className="h-9 w-full rounded-md border  px-3 text-sm" value={size} onChange={(e) => setSize(e.target.value)}>
             <option value="">Select size</option>
             {SIZES.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
-            {size && !SIZES.includes(size) && (
-              <option value={size}>{size}</option>
-            )}
+            {size && !SIZES.includes(size) && <option value={size}>{size}</option>}
           </select>
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium" htmlFor="org-desc">Description</label>
-        <textarea id="org-desc" className="h-24 w-full rounded-md border  px-3 py-2 text-sm" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <label className="mb-1 block text-sm font-medium" htmlFor="org-desc">
+          Description
+        </label>
+        <textarea
+          id="org-desc"
+          className="h-24 w-full rounded-md border  px-3 py-2 text-sm"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-logo">Logo</label>
+          <label className="mb-1 block text-sm font-medium" htmlFor="org-logo">
+            Logo
+          </label>
           <div className="flex items-center gap-4">
             <div className="relative h-20 w-20 overflow-hidden rounded-lg border bg-secondary shadow-modern">
               {logoSrc ? (
-                <Image
-                  src={logoSrc}
-                  alt="Logo preview"
-                  fill
-                  className="object-cover"
-                />
+                <Image src={logoSrc} alt="Logo preview" fill className="object-cover" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                  No logo
-                </div>
+                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">No logo</div>
               )}
             </div>
             <div className="flex flex-1 flex-col gap-2">
@@ -315,20 +304,15 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-banner">Banner</label>
+          <label className="mb-1 block text-sm font-medium" htmlFor="org-banner">
+            Banner
+          </label>
           <div className="flex items-center gap-4">
             <div className="relative h-24 w-44 overflow-hidden rounded-lg border bg-secondary shadow-modern">
               {bannerSrc ? (
-                <Image
-                  src={bannerSrc}
-                  alt="Banner preview"
-                  fill
-                  className="object-cover"
-                />
+                <Image src={bannerSrc} alt="Banner preview" fill className="object-cover" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                  No banner
-                </div>
+                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">No banner</div>
               )}
             </div>
             <div className="flex flex-1 flex-col gap-2">
@@ -349,7 +333,9 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="primary">Primary Color</label>
+          <label className="mb-1 block text-sm font-medium" htmlFor="primary">
+            Primary Color
+          </label>
           <div className="flex items-center gap-2">
             <input
               id="primary"
@@ -359,15 +345,13 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
               onChange={(e) => setPrimaryColor(e.target.value)}
               aria-label="Primary color"
             />
-            <Input
-              value={primaryColor}
-              onChange={(e) => setPrimaryColor(e.target.value)}
-              placeholder="#1d43d8"
-            />
+            <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} placeholder="#1d43d8" />
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="secondary">Secondary Color</label>
+          <label className="mb-1 block text-sm font-medium" htmlFor="secondary">
+            Secondary Color
+          </label>
           <div className="flex items-center gap-2">
             <input
               id="secondary"
@@ -377,31 +361,26 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
               onChange={(e) => setSecondaryColor(e.target.value)}
               aria-label="Secondary color"
             />
-            <Input
-              value={secondaryColor}
-              onChange={(e) => setSecondaryColor(e.target.value)}
-              placeholder="#1d43d8"
-            />
+            <Input value={secondaryColor} onChange={(e) => setSecondaryColor(e.target.value)} placeholder="#1d43d8" />
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="font">Font</label>
-          <select
-            id="font"
-            className="h-9 w-full rounded-md border  px-3 text-sm"
-            value={fontFamily}
-            onChange={(e) => setFontFamily(e.target.value)}
-          >
+          <label className="mb-1 block text-sm font-medium" htmlFor="font">
+            Font
+          </label>
+          <select id="font" className="h-9 w-full rounded-md border  px-3 text-sm" value={fontFamily} onChange={(e) => setFontFamily(e.target.value)}>
             {FONT_STACKS.map((f) => (
-              <option key={f.label} value={f.value}>{f.label}</option>
+              <option key={f.label} value={f.value}>
+                {f.label}
+              </option>
             ))}
-            {fontFamily && !FONT_STACKS.some((f) => f.value === fontFamily) && (
-              <option value={fontFamily}>{fontFamily}</option>
-            )}
+            {fontFamily && !FONT_STACKS.some((f) => f.value === fontFamily) && <option value={fontFamily}>{fontFamily}</option>}
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="mode">Mode</label>
+          <label className="mb-1 block text-sm font-medium" htmlFor="mode">
+            Mode
+          </label>
           <select
             id="mode"
             className="h-9 w-full rounded-md border  px-3 text-sm"
@@ -414,7 +393,9 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="radius">Border Radius</label>
+          <label className="mb-1 block text-sm font-medium" htmlFor="radius">
+            Border Radius
+          </label>
           <select
             id="radius"
             className="h-9 w-full rounded-md border  px-3 text-sm"
@@ -434,7 +415,9 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="header-bg">Header Background</label>
+            <label className="mb-1 block text-sm font-medium" htmlFor="header-bg">
+              Header Background
+            </label>
             <div className="flex items-center gap-2">
               <input
                 id="header-bg"
@@ -444,15 +427,13 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
                 onChange={(e) => setHeaderBg(e.target.value)}
                 aria-label="Header background color"
               />
-              <Input
-                value={headerBg}
-                onChange={(e) => setHeaderBg(e.target.value)}
-                placeholder="#ffffff"
-              />
+              <Input value={headerBg} onChange={(e) => setHeaderBg(e.target.value)} placeholder="#ffffff" />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="header-fg">Header Text</label>
+            <label className="mb-1 block text-sm font-medium" htmlFor="header-fg">
+              Header Text
+            </label>
             <div className="flex items-center gap-2">
               <input
                 id="header-fg"
@@ -462,15 +443,13 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
                 onChange={(e) => setHeaderFg(e.target.value)}
                 aria-label="Header text color"
               />
-              <Input
-                value={headerFg}
-                onChange={(e) => setHeaderFg(e.target.value)}
-                placeholder="#111111"
-              />
+              <Input value={headerFg} onChange={(e) => setHeaderFg(e.target.value)} placeholder="#111111" />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="header-title">Header Title Text</label>
+            <label className="mb-1 block text-sm font-medium" htmlFor="header-title">
+              Header Title Text
+            </label>
             <div className="flex items-center gap-2">
               <input
                 id="header-title"
@@ -480,17 +459,15 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
                 onChange={(e) => setHeaderTitle(e.target.value)}
                 aria-label="Header title color"
               />
-              <Input
-                value={headerTitle}
-                onChange={(e) => setHeaderTitle(e.target.value)}
-                placeholder="#111111"
-              />
+              <Input value={headerTitle} onChange={(e) => setHeaderTitle(e.target.value)} placeholder="#111111" />
             </div>
           </div>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="footer-bg">Footer Background</label>
+            <label className="mb-1 block text-sm font-medium" htmlFor="footer-bg">
+              Footer Background
+            </label>
             <div className="flex items-center gap-2">
               <input
                 id="footer-bg"
@@ -500,15 +477,13 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
                 onChange={(e) => setFooterBg(e.target.value)}
                 aria-label="Footer background color"
               />
-              <Input
-                value={footerBg}
-                onChange={(e) => setFooterBg(e.target.value)}
-                placeholder="#ffffff"
-              />
+              <Input value={footerBg} onChange={(e) => setFooterBg(e.target.value)} placeholder="#ffffff" />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="footer-fg">Footer Text</label>
+            <label className="mb-1 block text-sm font-medium" htmlFor="footer-fg">
+              Footer Text
+            </label>
             <div className="flex items-center gap-2">
               <input
                 id="footer-fg"
@@ -518,21 +493,17 @@ export function OrgSettingsForm ({ organization }: { organization: OrganizationD
                 onChange={(e) => setFooterFg(e.target.value)}
                 aria-label="Footer text color"
               />
-              <Input
-                value={footerFg}
-                onChange={(e) => setFooterFg(e.target.value)}
-                placeholder="#111111"
-              />
+              <Input value={footerFg} onChange={(e) => setFooterFg(e.target.value)} placeholder="#111111" />
             </div>
           </div>
         </div>
       </div>
 
       <div>
-        <Button type="submit" disabled={!canSubmit || saving}>{saving ? 'Saving...' : 'Save changes'}</Button>
+        <Button type="submit" disabled={!canSubmit || saving}>
+          {saving ? 'Saving...' : 'Save changes'}
+        </Button>
       </div>
     </form>
-  )
+  );
 }
-
-

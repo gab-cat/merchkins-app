@@ -1,12 +1,12 @@
-import { mutation, internalMutation } from "../../_generated/server";
+import { mutation, internalMutation } from '../../_generated/server';
 
-import { createPaymentArgs, createPaymentHandler } from "./createPayment";
-import { updatePaymentArgs, updatePaymentHandler } from "./updatePayment";
-import { deletePaymentArgs, deletePaymentHandler } from "./deletePayment";
-import { refundPaymentArgs, refundPaymentHandler } from "./refundPayment";
-import { updatePaymentStatsArgs, updatePaymentStatsHandler } from "./updatePaymentStats";
-import { restorePaymentArgs, restorePaymentHandler } from "./restorePayment";
-import { handleXenditWebhookArgs, handleXenditWebhookHandler } from "./handleXenditWebhook";
+import { createPaymentArgs, createPaymentHandler } from './createPayment';
+import { updatePaymentArgs, updatePaymentHandler } from './updatePayment';
+import { deletePaymentArgs, deletePaymentHandler } from './deletePayment';
+import { refundPaymentArgs, refundPaymentHandler } from './refundPayment';
+import { updatePaymentStatsArgs, updatePaymentStatsHandler } from './updatePaymentStats';
+import { restorePaymentArgs, restorePaymentHandler } from './restorePayment';
+import { handleXenditWebhookArgs, handleXenditWebhookHandler } from './handleXenditWebhook';
 
 export const createPayment = mutation({
   args: createPaymentArgs,
@@ -42,5 +42,3 @@ export const handleXenditWebhook = internalMutation({
   args: handleXenditWebhookArgs,
   handler: handleXenditWebhookHandler,
 });
-
-

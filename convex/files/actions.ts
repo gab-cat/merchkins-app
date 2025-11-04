@@ -1,8 +1,8 @@
-"use node";
+'use node';
 
-import { action } from "../_generated/server";
-import { v } from "convex/values";
-import { r2 } from "./r2";
+import { action } from '../_generated/server';
+import { v } from 'convex/values';
+import { r2 } from './r2';
 // Note: Server-side image conversion is disabled to maintain compatibility with Convex runtime.
 // Images should be compressed to WebP on the client before upload.
 
@@ -20,7 +20,7 @@ export const storeFileFromUrl = action({
     if (!response.ok) {
       throw new Error(`Failed to download file from ${args.url}`);
     }
-    
+
     const blob = await response.blob();
     const contentType = args.mimeType || response.headers.get('content-type') || undefined;
 

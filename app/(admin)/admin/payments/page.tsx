@@ -1,101 +1,109 @@
-"use client"
+'use client';
 
-import React, { useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { showToast } from '@/lib/toast'
-import { useOffsetPagination } from '@/src/hooks/use-pagination'
-import { Doc, Id } from '@/convex/_generated/dataModel'
+import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { showToast } from '@/lib/toast';
+import { useOffsetPagination } from '@/src/hooks/use-pagination';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 
-type PaymentMethod = 'CASH' | 'BANK_TRANSFER' | 'GCASH' | 'MAYA' | 'OTHERS'
-type PaymentStatus = 'VERIFIED' | 'PENDING' | 'DECLINED' | 'PROCESSING' | 'FAILED' | 'REFUND_PENDING' | 'REFUNDED' | 'CANCELLED'
+type PaymentMethod = 'CASH' | 'BANK_TRANSFER' | 'GCASH' | 'MAYA' | 'OTHERS';
+type PaymentStatus = 'VERIFIED' | 'PENDING' | 'DECLINED' | 'PROCESSING' | 'FAILED' | 'REFUND_PENDING' | 'REFUNDED' | 'CANCELLED';
 
-type Payment = Doc<"payments">
+type Payment = Doc<'payments'>;
 
 type PaymentQueryArgs = {
-  organizationId?: Id<"organizations">
-  paymentStatus?: PaymentStatus
-  paymentMethod?: PaymentMethod
-  limit?: number
-  offset?: number
-}
+  organizationId?: Id<'organizations'>;
+  paymentStatus?: PaymentStatus;
+  paymentMethod?: PaymentMethod;
+  limit?: number;
+  offset?: number;
+};
 
 type PaymentQueryResult = {
-  payments: Payment[]
-  total: number
-  offset: number
-  limit: number
-  hasMore: boolean
-}
+  payments: Payment[];
+  total: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+};
 
-function StatusBadge ({ value }: { value: string }) {
+function StatusBadge({ value }: { value: string }) {
   const variant: 'default' | 'secondary' | 'destructive' =
-    value === 'DECLINED' || value === 'FAILED' || value === 'CANCELLED' ? 'destructive' :
-    value === 'PENDING' || value === 'PROCESSING' || value === 'REFUND_PENDING' ? 'secondary' : 'default'
-  return <Badge variant={variant}>{value}</Badge>
+    value === 'DECLINED' || value === 'FAILED' || value === 'CANCELLED'
+      ? 'destructive'
+      : value === 'PENDING' || value === 'PROCESSING' || value === 'REFUND_PENDING'
+        ? 'secondary'
+        : 'default';
+  return <Badge variant={variant}>{value}</Badge>;
 }
 
-function formatCurrency (amount: number | undefined, currency?: string) {
-  if (amount === undefined) return ''
+function formatCurrency(amount: number | undefined, currency?: string) {
+  if (amount === undefined) return '';
   try {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'PHP' }).format(amount)
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'PHP' }).format(amount);
   } catch {
-    return `₱${amount.toFixed(2)}`
+    return `₱${amount.toFixed(2)}`;
   }
 }
 
-export default function AdminPaymentsPage () {
-  const searchParams = useSearchParams()
-  const org = searchParams.get('org')
+export default function AdminPaymentsPage() {
+  const searchParams = useSearchParams();
+  const org = searchParams.get('org');
 
-  const [status, setStatus] = useState<PaymentStatus | 'ALL'>('ALL')
-  const [method, setMethod] = useState<PaymentMethod | 'ALL'>('ALL')
-  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState<PaymentStatus | 'ALL'>('ALL');
+  const [method, setMethod] = useState<PaymentMethod | 'ALL'>('ALL');
+  const [search, setSearch] = useState('');
 
-  const organization = useQuery(
-    api.organizations.queries.index.getOrganizationBySlug,
-    org ? { slug: org } : ('skip' as unknown as { slug: string }),
-  )
+  const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, org ? { slug: org } : ('skip' as unknown as { slug: string }));
 
-  const baseArgs = useMemo((): PaymentQueryArgs => ({
-    organizationId: org ? organization?._id : undefined,
-    paymentStatus: status === 'ALL' ? undefined : status,
-    paymentMethod: method === 'ALL' ? undefined : method,
-  }), [org, organization?._id, status, method])
+  const baseArgs = useMemo(
+    (): PaymentQueryArgs => ({
+      organizationId: org ? organization?._id : undefined,
+      paymentStatus: status === 'ALL' ? undefined : status,
+      paymentMethod: method === 'ALL' ? undefined : method,
+    }),
+    [org, organization?._id, status, method]
+  );
 
   // Skip only while resolving organization when org slug is present
-  const shouldSkip = org ? organization === undefined : false
+  const shouldSkip = org ? organization === undefined : false;
 
-  const { items: payments, isLoading: loading, hasMore, loadMore } = useOffsetPagination<Payment, PaymentQueryArgs>({
+  const {
+    items: payments,
+    isLoading: loading,
+    hasMore,
+    loadMore,
+  } = useOffsetPagination<Payment, PaymentQueryArgs>({
     query: api.payments.queries.index.getPayments,
     baseArgs: shouldSkip ? 'skip' : baseArgs,
     limit: 25,
     selectItems: (res: unknown) => {
-      const typedRes = res as PaymentQueryResult
-      return typedRes.payments || []
+      const typedRes = res as PaymentQueryResult;
+      return typedRes.payments || [];
     },
     selectHasMore: (res: unknown) => {
-      const typedRes = res as PaymentQueryResult
-      return !!typedRes.hasMore
+      const typedRes = res as PaymentQueryResult;
+      return !!typedRes.hasMore;
     },
-  })
+  });
 
-  const updatePayment = useMutation(api.payments.mutations.index.updatePayment)
+  const updatePayment = useMutation(api.payments.mutations.index.updatePayment);
 
   const filtered = useMemo(() => {
-    if (!search) return payments
-    const q = search.toLowerCase()
+    if (!search) return payments;
+    const q = search.toLowerCase();
     return payments.filter((p: Payment) =>
       [p.referenceNo || '', p.orderInfo?.orderNumber || '', p.userInfo?.email || '', p.userInfo?.firstName || '', p.userInfo?.lastName || '']
         .join(' ')
         .toLowerCase()
         .includes(q)
-    )
-  }, [payments, search])
+    );
+  }, [payments, search]);
 
   return (
     <div>
@@ -106,16 +114,28 @@ export default function AdminPaymentsPage () {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Input placeholder="Search by ref #, order #, or customer..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
-          <select className="h-9 rounded-md border bg-background px-3 text-sm" value={status} onChange={(e) => setStatus(e.target.value as PaymentStatus | 'ALL')}>
+          <select
+            className="h-9 rounded-md border bg-background px-3 text-sm"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as PaymentStatus | 'ALL')}
+          >
             <option value="ALL">All statuses</option>
-            {['VERIFIED','PENDING','DECLINED','PROCESSING','FAILED','REFUND_PENDING','REFUNDED','CANCELLED'].map((s) => (
-              <option key={s} value={s}>{s}</option>
+            {['VERIFIED', 'PENDING', 'DECLINED', 'PROCESSING', 'FAILED', 'REFUND_PENDING', 'REFUNDED', 'CANCELLED'].map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
             ))}
           </select>
-          <select className="h-9 rounded-md border bg-background px-3 text-sm" value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod | 'ALL')}>
+          <select
+            className="h-9 rounded-md border bg-background px-3 text-sm"
+            value={method}
+            onChange={(e) => setMethod(e.target.value as PaymentMethod | 'ALL')}
+          >
             <option value="ALL">All methods</option>
-            {['CASH','BANK_TRANSFER','GCASH','MAYA','OTHERS'].map((m) => (
-              <option key={m} value={m}>{m}</option>
+            {['CASH', 'BANK_TRANSFER', 'GCASH', 'MAYA', 'OTHERS'].map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
             ))}
           </select>
         </div>
@@ -151,11 +171,11 @@ export default function AdminPaymentsPage () {
                           variant="secondary"
                           onClick={async () => {
                             try {
-                              await updatePayment({ paymentId: p._id, paymentStatus: 'DECLINED' })
-                              showToast({ type: 'success', title: 'Payment declined' })
+                              await updatePayment({ paymentId: p._id, paymentStatus: 'DECLINED' });
+                              showToast({ type: 'success', title: 'Payment declined' });
                             } catch (err: unknown) {
-                              const error = err as Error
-                              showToast({ type: 'error', title: error?.message || 'Failed to decline' })
+                              const error = err as Error;
+                              showToast({ type: 'error', title: error?.message || 'Failed to decline' });
                             }
                           }}
                         >
@@ -166,11 +186,11 @@ export default function AdminPaymentsPage () {
                           variant="default"
                           onClick={async () => {
                             try {
-                              await updatePayment({ paymentId: p._id, paymentStatus: 'VERIFIED' })
-                              showToast({ type: 'success', title: 'Payment verified' })
+                              await updatePayment({ paymentId: p._id, paymentStatus: 'VERIFIED' });
+                              showToast({ type: 'success', title: 'Payment verified' });
                             } catch (err: unknown) {
-                              const error = err as Error
-                              showToast({ type: 'error', title: error?.message || 'Failed to verify' })
+                              const error = err as Error;
+                              showToast({ type: 'error', title: error?.message || 'Failed to verify' });
                             }
                           }}
                         >
@@ -186,15 +206,13 @@ export default function AdminPaymentsPage () {
 
       {hasMore && !loading && (
         <div className="mt-3 flex justify-center">
-          <Button size="sm" variant="ghost" onClick={loadMore}>Load more</Button>
+          <Button size="sm" variant="ghost" onClick={loadMore}>
+            Load more
+          </Button>
         </div>
       )}
 
-      {!loading && filtered.length === 0 && (
-        <div className="py-12 text-center text-sm text-muted-foreground">No payments found.</div>
-      )}
+      {!loading && filtered.length === 0 && <div className="py-12 text-center text-sm text-muted-foreground">No payments found.</div>}
     </div>
-  )
+  );
 }
-
-

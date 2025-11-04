@@ -1,9 +1,9 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
 
 export const updateMessageStatsArgs = {
-  messageId: v.id("messages"),
+  messageId: v.id('messages'),
   updates: v.object({
     sentimentScore: v.optional(v.number()),
     urgencyScore: v.optional(v.number()),
@@ -12,7 +12,7 @@ export const updateMessageStatsArgs = {
 
 export const updateMessageStatsHandler = async (
   ctx: MutationCtx,
-  args: { messageId: Id<"messages">; updates: { sentimentScore?: number; urgencyScore?: number } }
+  args: { messageId: Id<'messages'>; updates: { sentimentScore?: number; urgencyScore?: number } }
 ) => {
   const existing = await ctx.db.get(args.messageId);
   if (!existing) return args.messageId;
@@ -24,5 +24,3 @@ export const updateMessageStatsHandler = async (
 
   return args.messageId;
 };
-
-

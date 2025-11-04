@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { UserProfile } from '@clerk/nextjs'
-import { MessageSquare, Ticket, Building2, User as UserIcon, Package } from 'lucide-react'
-import { ChatsPage, TicketsPage, OrganizationsPage, AccountPage } from '@/src/features/common/components/user-profile-pages'
+import { UserProfile } from '@clerk/nextjs';
+import { MessageSquare, Ticket, Building2, User as UserIcon, Package } from 'lucide-react';
+import { ChatsPage, TicketsPage, OrganizationsPage, AccountPage } from '@/src/features/common/components/user-profile-pages';
 
 export default function UserProfilePage() {
   return (
@@ -21,5 +21,5 @@ export default function UserProfilePage() {
       </UserProfile.Page>
       <UserProfile.Link url="/orders" label="My Orders" labelIcon={<Package className="h-4 w-4" />} />
     </UserProfile>
-  )
+  );
 }

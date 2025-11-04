@@ -1,123 +1,109 @@
-"use client"
+'use client';
 
-import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useRouter } from 'next/navigation'
-import { ShoppingCart, Search, Building2, Package, User as UserIcon, MessageSquare, Ticket, ArrowRight, ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
-import { useQuery } from 'convex/react'
-import { SignedIn, SignedOut, UserButton, useAuth, SignInButton, SignUpButton } from '@clerk/nextjs'
-import { api } from '@/convex/_generated/api'
-import { Id } from '@/convex/_generated/dataModel'
-import { CartSheet } from '@/src/features/cart/components/cart-sheet'
-import { cn } from '@/lib/utils'
-import { OrganizationsPage, AccountPage } from '@/src/features/common/components/user-profile-pages'
+import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { ShoppingCart, Search, Building2, Package, User as UserIcon, MessageSquare, Ticket, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { useQuery } from 'convex/react';
+import { SignedIn, SignedOut, UserButton, useAuth, SignInButton, SignUpButton } from '@clerk/nextjs';
+import { api } from '@/convex/_generated/api';
+import { Id } from '@/convex/_generated/dataModel';
+import { CartSheet } from '@/src/features/cart/components/cart-sheet';
+import { cn } from '@/lib/utils';
+import { OrganizationsPage, AccountPage } from '@/src/features/common/components/user-profile-pages';
 
-export function SiteHeader () {
-  const router = useRouter()
-  const pathname = usePathname()
-  const { userId: clerkId } = useAuth()
-  const isSignedIn = !!clerkId
-  const [search, setSearch] = useState('')
+export function SiteHeader() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { userId: clerkId } = useAuth();
+  const isSignedIn = !!clerkId;
+  const [search, setSearch] = useState('');
 
   const orgSlugFromPath = useMemo(() => {
-    if (!pathname) return undefined
-    const segments = pathname.split('/').filter(Boolean)
-    if (segments[0] === 'o' && segments[1]) return segments[1]
-    return undefined
-  }, [pathname])
+    if (!pathname) return undefined;
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments[0] === 'o' && segments[1]) return segments[1];
+    return undefined;
+  }, [pathname]);
 
-  const [persistedSlug, setPersistedSlug] = useState<string | undefined>(undefined)
+  const [persistedSlug, setPersistedSlug] = useState<string | undefined>(undefined);
   React.useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') return;
     if (orgSlugFromPath) {
-      localStorage.setItem('lastOrgSlug', orgSlugFromPath)
-      setPersistedSlug(orgSlugFromPath)
-      return
+      localStorage.setItem('lastOrgSlug', orgSlugFromPath);
+      setPersistedSlug(orgSlugFromPath);
+      return;
     }
     if (pathname === '/') {
-      localStorage.removeItem('lastOrgSlug')
-      setPersistedSlug(undefined)
-      return
+      localStorage.removeItem('lastOrgSlug');
+      setPersistedSlug(undefined);
+      return;
     }
-    const last = localStorage.getItem('lastOrgSlug') || undefined
-    setPersistedSlug(last || undefined)
-  }, [orgSlugFromPath, pathname])
+    const last = localStorage.getItem('lastOrgSlug') || undefined;
+    setPersistedSlug(last || undefined);
+  }, [orgSlugFromPath, pathname]);
 
-  const orgSlug = persistedSlug || orgSlugFromPath
+  const orgSlug = persistedSlug || orgSlugFromPath;
 
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
-  )
+  );
 
   const topCategories = useQuery(
     api.categories.queries.index.getCategories,
-    organization?._id
-      ? { organizationId: organization._id, level: 0, isActive: true, limit: 8 }
-      : { level: 0, isActive: true, limit: 8 }
-  )
+    organization?._id ? { organizationId: organization._id, level: 0, isActive: true, limit: 8 } : { level: 0, isActive: true, limit: 8 }
+  );
 
-  const cart = useQuery(api.carts.queries.index.getCartByUser, {})
-  const totalItems = useMemo(() => cart?.totalItems ?? 0, [cart])
+  const cart = useQuery(api.carts.queries.index.getCartByUser, {});
+  const totalItems = useMemo(() => cart?.totalItems ?? 0, [cart]);
 
   // Get current user and their organizations to check membership
-  const currentUser = useQuery(
-    api.users.queries.index.getCurrentUser,
-    clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string })
-  )
+  const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }));
   const userOrganizations = useQuery(
     api.organizations.queries.index.getOrganizationsByUser,
     currentUser?._id ? { userId: currentUser._id } : ('skip' as unknown as { userId: Id<'users'> })
-  )
+  );
 
   // Check if user is a member of the current organization
   const isMember = useMemo(() => {
-    if (!organization?._id || !userOrganizations) return false
-    return userOrganizations.some((org) => org._id === organization._id)
-  }, [organization?._id, userOrganizations])
+    if (!organization?._id || !userOrganizations) return false;
+    return userOrganizations.some((org) => org._id === organization._id);
+  }, [organization?._id, userOrganizations]);
 
   // Unread counts - only run when authenticated AND member of organization
   const chatsUnread = useQuery(
     api.chats.queries.index.getUnreadCount,
     isSignedIn && organization?._id && isMember
-      ? { organizationId: organization._id } 
-      : ('skip' as unknown as { organizationId?: Id<"organizations"> })
-  )
+      ? { organizationId: organization._id }
+      : ('skip' as unknown as { organizationId?: Id<'organizations'> })
+  );
   const ticketsUnread = useQuery(
     api.tickets.queries.index.getUnreadCount,
     isSignedIn && organization?._id && isMember
-      ? { organizationId: organization._id } 
-      : ('skip' as unknown as { organizationId?: Id<"organizations">; forAssignee?: boolean })
-  )
-  const totalChatUnread = (chatsUnread as { count?: number } | undefined)?.count || 0
-  const totalTicketUnread = (ticketsUnread as { count?: number } | undefined)?.count || 0
-  const totalSupportUnread = totalChatUnread + totalTicketUnread
+      ? { organizationId: organization._id }
+      : ('skip' as unknown as { organizationId?: Id<'organizations'>; forAssignee?: boolean })
+  );
+  const totalChatUnread = (chatsUnread as { count?: number } | undefined)?.count || 0;
+  const totalTicketUnread = (ticketsUnread as { count?: number } | undefined)?.count || 0;
+  const totalSupportUnread = totalChatUnread + totalTicketUnread;
 
   // Show home button if on storefront or using another store's theme
   const showHomeButton = useMemo(() => {
-    return !!orgSlugFromPath || (!!persistedSlug && !orgSlugFromPath)
-  }, [orgSlugFromPath, persistedSlug])
+    return !!orgSlugFromPath || (!!persistedSlug && !orgSlugFromPath);
+  }, [orgSlugFromPath, persistedSlug]);
 
-  function handleSearchSubmit (e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const q = search.trim()
+  function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const q = search.trim();
     if (q.length > 0) {
-      router.push(
-        orgSlug
-          ? `/o/${orgSlug}/search?q=${encodeURIComponent(q)}`
-          : `/search?q=${encodeURIComponent(q)}`
-      )
+      router.push(orgSlug ? `/o/${orgSlug}/search?q=${encodeURIComponent(q)}` : `/search?q=${encodeURIComponent(q)}`);
     } else {
-      router.push(orgSlug ? `/o/${orgSlug}/search` : '/search')
+      router.push(orgSlug ? `/o/${orgSlug}/search` : '/search');
     }
   }
 
@@ -125,14 +111,14 @@ export function SiteHeader () {
     'sticky top-0 z-40 w-full border-b',
     'supports-[backdrop-filter]:backdrop-blur-md',
     organization && 'border-primary/20 shadow-sm'
-  )
+  );
 
   return (
     <header
       className={headerClassName}
       style={{
         backgroundColor: organization ? 'rgba(255, 255, 255, 0.95)' : 'var(--header-bg)',
-        color: organization ? 'var(--foreground)' : 'var(--header-fg)'
+        color: organization ? 'var(--foreground)' : 'var(--header-fg)',
       }}
     >
       {/* Main Header */}
@@ -143,10 +129,7 @@ export function SiteHeader () {
           className="flex items-center gap-2 font-bold tracking-tight transition-opacity hover:opacity-80"
           style={{ color: organization ? 'var(--primary)' : 'var(--header-fg)' }}
         >
-          <span className={cn(
-            'text-lg md:text-xl font-bold',
-            organization?.name ? '' : 'font-genty'
-          )}>
+          <span className={cn('text-lg md:text-xl font-bold', organization?.name ? '' : 'font-genty')}>
             {organization?.name ?? (
               <div className="flex items-center">
                 <span className="text-white">Merch</span>
@@ -165,7 +148,7 @@ export function SiteHeader () {
             className="gap-1.5 text-xs px-2.5 h-9 hover:opacity-80 transition-all text-primary"
             aria-label="Go back home"
           >
-            <Link className='!text-xs' href="/">
+            <Link className="!text-xs" href="/">
               <ArrowLeft className="h-2 w-2" />
               <span className="hidden sm:inline text-xs">Go back home</span>
             </Link>
@@ -203,8 +186,8 @@ export function SiteHeader () {
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "gap-1.5 px-2.5 h-9 relative hover:bg-gray-100/20 hover:opacity-80 transition-all",
-                  organization ? "text-primary hover:text-primary" : "text-white hover:text-white"
+                  'gap-1.5 px-2.5 h-9 relative hover:bg-gray-100/20 hover:opacity-80 transition-all',
+                  organization ? 'text-primary hover:text-primary' : 'text-white hover:text-white'
                 )}
               >
                 <MessageSquare className="h-4 w-4" />
@@ -240,7 +223,10 @@ export function SiteHeader () {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild data-testid="support-new-ticket">
-                <Link href={orgSlug ? `/o/${orgSlug}/tickets/new` : '/tickets/new'} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
+                <Link
+                  href={orgSlug ? `/o/${orgSlug}/tickets/new` : '/tickets/new'}
+                  className="flex items-center gap-2 hover:bg-accent/50 transition-colors"
+                >
                   <Ticket className="h-4 w-4" />
                   <span>Create ticket</span>
                 </Link>
@@ -255,8 +241,8 @@ export function SiteHeader () {
                 aria-label="Cart"
                 size="sm"
                 className={cn(
-                  "gap-1.5 px-2.5 h-9 hover:bg-accent/20 hover:opacity-80 transition-all",
-                  organization ? "text-primary hover:text-primary" : "text-white hover:text-white"
+                  'gap-1.5 px-2.5 h-9 hover:bg-accent/20 hover:opacity-80 transition-all',
+                  organization ? 'text-primary hover:text-primary' : 'text-white hover:text-white'
                 )}
               >
                 <ShoppingCart className="h-4 w-4" />
@@ -268,33 +254,28 @@ export function SiteHeader () {
           <SignedOut>
             <div className="flex items-center gap-2">
               <SignInButton mode="modal">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-9 px-3 text-sm hover:bg-accent/50 transition-colors"
-                >
+                <Button variant="ghost" size="sm" className="h-9 px-3 text-sm hover:bg-accent/50 transition-colors">
                   Sign in
                 </Button>
               </SignInButton>
               <SignUpButton mode="modal">
-                <Button
-                  size="sm"
-                  className="px-3 h-9 text-sm bg-primary hover:bg-primary/90 shadow-sm"
-                >
+                <Button size="sm" className="px-3 h-9 text-sm bg-primary hover:bg-primary/90 shadow-sm">
                   Register
                 </Button>
               </SignUpButton>
             </div>
           </SignedOut>
           <SignedIn>
-            <UserButton afterSignOutUrl="/"
-            appearance={{
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
                 elements: {
-                  userButtonAvatarBox: "!size-8 hover:scale-105 transition-transform duration-200",
-                  userButtonPopoverCard: "bg-white border shadow-lg",
-                  userButtonPopoverActionButton: "text-neutral-700 hover:bg-accent/50 transition-colors",
-                }
-              }}>
+                  userButtonAvatarBox: '!size-8 hover:scale-105 transition-transform duration-200',
+                  userButtonPopoverCard: 'bg-white border shadow-lg',
+                  userButtonPopoverActionButton: 'text-neutral-700 hover:bg-accent/50 transition-colors',
+                },
+              }}
+            >
               <UserButton.MenuItems>
                 <UserButton.Action label="Account" open="account" labelIcon={<UserIcon className="h-4 w-4" />} />
                 <UserButton.Action label="Organizations" open="organizations" labelIcon={<Building2 className="h-4 w-4" />} />
@@ -321,34 +302,29 @@ export function SiteHeader () {
               // Loading skeleton
               <>
                 {new Array(8).fill(null).map((_, i) => (
-                  <div
-                    key={`skeleton-${i}`}
-                    className="w-20 rounded skeleton flex-shrink-0"
-                  />
+                  <div key={`skeleton-${i}`} className="w-20 rounded skeleton flex-shrink-0" />
                 ))}
               </>
             ) : (
               // Categories
-              (topCategories?.categories ?? []).map((c) => (
-                c && (
-                  <Button
-                    key={c._id}
-                    asChild
-                    variant="ghost"
-                    size="sm"
-                    className="px-3 text-sm font-medium hover:bg-accent/20 transition-all text-primary whitespace-nowrap flex-shrink-0"
-                  >
-                    <Link href={orgSlug ? `/o/${orgSlug}/c/${c.slug}` : `/c/${c.slug}`}>
-                      {c.name}
-                    </Link>
-                  </Button>
-                )
-              ))
+              (topCategories?.categories ?? []).map(
+                (c) =>
+                  c && (
+                    <Button
+                      key={c._id}
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className="px-3 text-sm font-medium hover:bg-accent/20 transition-all text-primary whitespace-nowrap flex-shrink-0"
+                    >
+                      <Link href={orgSlug ? `/o/${orgSlug}/c/${c.slug}` : `/c/${c.slug}`}>{c.name}</Link>
+                    </Button>
+                  )
+              )
             )}
           </nav>
         </div>
       </div>
     </header>
-  )
+  );
 }
-

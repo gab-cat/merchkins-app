@@ -1,13 +1,13 @@
-import { query } from "../../_generated/server";
+import { query } from '../../_generated/server';
 
 // Import args and handlers
-import { getCategoryByIdArgs, getCategoryByIdHandler } from "./getCategoryById";
-import { getCategoryBySlugArgs, getCategoryBySlugHandler } from "./getCategoryBySlug";
-import { getCategoriesArgs, getCategoriesHandler } from "./getCategories";
-import { searchCategoriesArgs, searchCategoriesHandler } from "./searchCategories";
-import { getCategoryHierarchyArgs, getCategoryHierarchyHandler } from "./getCategoryHierarchy";
-import { getCategoryAnalyticsArgs, getCategoryAnalyticsHandler } from "./getCategoryAnalytics";
-import { getPopularCategoriesArgs, getPopularCategoriesHandler } from "./getPopularCategories";
+import { getCategoryByIdArgs, getCategoryByIdHandler } from './getCategoryById';
+import { getCategoryBySlugArgs, getCategoryBySlugHandler } from './getCategoryBySlug';
+import { getCategoriesArgs, getCategoriesHandler } from './getCategories';
+import { searchCategoriesArgs, searchCategoriesHandler } from './searchCategories';
+import { getCategoryHierarchyArgs, getCategoryHierarchyHandler } from './getCategoryHierarchy';
+import { getCategoryAnalyticsArgs, getCategoryAnalyticsHandler } from './getCategoryAnalytics';
+import { getPopularCategoriesArgs, getPopularCategoriesHandler } from './getPopularCategories';
 
 // Export query functions
 export const getCategoryById = query({

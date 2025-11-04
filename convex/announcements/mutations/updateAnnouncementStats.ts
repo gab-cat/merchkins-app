@@ -1,9 +1,9 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
 
 export const updateAnnouncementStatsArgs = {
-  announcementId: v.id("announcements"),
+  announcementId: v.id('announcements'),
   incrementView: v.optional(v.boolean()),
   incrementClick: v.optional(v.boolean()),
   incrementDismiss: v.optional(v.boolean()),
@@ -12,7 +12,7 @@ export const updateAnnouncementStatsArgs = {
 export const updateAnnouncementStatsHandler = async (
   ctx: MutationCtx,
   args: {
-    announcementId: Id<"announcements">;
+    announcementId: Id<'announcements'>;
     incrementView?: boolean;
     incrementClick?: boolean;
     incrementDismiss?: boolean;
@@ -29,5 +29,3 @@ export const updateAnnouncementStatsHandler = async (
   await ctx.db.patch(args.announcementId, update);
   return null;
 };
-
-

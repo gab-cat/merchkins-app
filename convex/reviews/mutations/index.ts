@@ -1,7 +1,7 @@
-import { mutation } from "../../_generated/server";
+import { mutation } from '../../_generated/server';
 
-import { createReviewArgs, createReviewHandler } from "./createReview";
-import { updateReviewArgs, updateReviewHandler } from "./updateReview";
+import { createReviewArgs, createReviewHandler } from './createReview';
+import { updateReviewArgs, updateReviewHandler } from './updateReview';
 
 export const createReview = mutation({
   args: createReviewArgs,

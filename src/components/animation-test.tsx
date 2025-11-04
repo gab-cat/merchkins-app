@@ -1,24 +1,19 @@
-"use client"
+'use client';
 
-import React from 'react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
-import { ChevronDown } from 'lucide-react'
+import React from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { ChevronDown } from 'lucide-react';
 
 export function AnimationTest() {
   return (
     <div className="p-8 space-y-8">
       <h2 className="text-2xl font-bold">Animation Test</h2>
-      
+
       {/* Test dropdowns in different positions */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Dropdown Animation Tests</h3>
-        
+
         {/* Top positioned dropdown */}
         <div className="flex justify-center">
           <DropdownMenu>
@@ -87,7 +82,7 @@ export function AnimationTest() {
       {/* Test with different alignments */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Alignment Tests</h3>
-        
+
         <div className="flex justify-between">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -124,5 +119,5 @@ export function AnimationTest() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,9 +1,9 @@
 export type ActionsReturnType<T> = Promise<{
-  success: boolean
-  message?: string
-  data?: T
+  success: boolean;
+  message?: string;
+  data?: T;
   errors?: {
-    message: string
-    name: string
-  }
+    message: string;
+    name: string;
+  };
 }>;

@@ -1,12 +1,11 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
-        hostname:
-          'merchkins.9aeabbfdeac1c51a434e5c4653daa252.r2.cloudflarestorage.com',
+        hostname: 'merchkins.9aeabbfdeac1c51a434e5c4653daa252.r2.cloudflarestorage.com',
         protocol: 'https',
         pathname: '/**',
       },
@@ -25,6 +24,6 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['@clerk/nextjs', 'lucide-react'],
     useLightningcss: true,
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

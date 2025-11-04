@@ -1,26 +1,22 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import {
-  requireAuthentication,
-  validateCartExists,
-  validateProductExists,
-  validatePositiveNumber,
-  logAction,
-} from "../../helpers";
-import { isOrganizationMember } from "../../helpers/organizations";
-import { createOrGetCartHandler } from "./createOrGetCart";
-import { internal } from "../../_generated/api";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireAuthentication, validateCartExists, validateProductExists, validatePositiveNumber, logAction } from '../../helpers';
+import { isOrganizationMember } from '../../helpers/organizations';
+import { createOrGetCartHandler } from './createOrGetCart';
+import { internal } from '../../_generated/api';
 
 export const addItemArgs = {
-  cartId: v.optional(v.id("carts")),
-  productId: v.id("products"),
+  cartId: v.optional(v.id('carts')),
+  productId: v.id('products'),
   variantId: v.optional(v.string()),
-  size: v.optional(v.object({
-    id: v.string(),
-    label: v.string(),
-    price: v.optional(v.number()),
-  })),
+  size: v.optional(
+    v.object({
+      id: v.string(),
+      label: v.string(),
+      price: v.optional(v.number()),
+    })
+  ),
   quantity: v.number(),
   selected: v.optional(v.boolean()),
   note: v.optional(v.string()),
@@ -29,8 +25,8 @@ export const addItemArgs = {
 export const addItemHandler = async (
   ctx: MutationCtx,
   args: {
-    cartId?: Id<"carts">;
-    productId: Id<"products">;
+    cartId?: Id<'carts'>;
+    productId: Id<'products'>;
     variantId?: string;
     size?: {
       id: string;
@@ -44,7 +40,7 @@ export const addItemHandler = async (
 ) => {
   const currentUser = await requireAuthentication(ctx);
 
-  validatePositiveNumber(args.quantity, "Quantity");
+  validatePositiveNumber(args.quantity, 'Quantity');
 
   // Resolve or create cart
   let cart = null;
@@ -61,30 +57,22 @@ export const addItemHandler = async (
 
   const product = await validateProductExists(ctx, args.productId);
   if (!product.isActive) {
-    throw new Error("Product is not available");
+    throw new Error('Product is not available');
   }
 
   // Enforce organization visibility for purchasing
   if (product.organizationId) {
     const org = await ctx.db.get(product.organizationId);
-    if (org && !org.isDeleted && org.organizationType !== "PUBLIC") {
+    if (org && !org.isDeleted && org.organizationType !== 'PUBLIC') {
       const isPrivileged = currentUser.isAdmin || currentUser.isStaff;
       if (!isPrivileged) {
-        const member = await isOrganizationMember(
-          ctx,
-          currentUser._id,
-          product.organizationId,
-        );
+        const member = await isOrganizationMember(ctx, currentUser._id, product.organizationId);
         if (!member) {
-          if (org.organizationType === "PRIVATE") {
-            throw new Error(
-              "Membership required to purchase from this private organization.",
-            );
+          if (org.organizationType === 'PRIVATE') {
+            throw new Error('Membership required to purchase from this private organization.');
           }
           // SECRET
-          throw new Error(
-            "This organization is invite-only. You must join via invite to purchase.",
-          );
+          throw new Error('This organization is invite-only. You must join via invite to purchase.');
         }
       }
     }
@@ -99,20 +87,20 @@ export const addItemHandler = async (
   if (args.variantId) {
     const variant = product.variants.find((v) => v.variantId === args.variantId);
     if (!variant) {
-      throw new Error("Variant not found");
+      throw new Error('Variant not found');
     }
     if (!variant.isActive) {
-      throw new Error("Variant is not available");
+      throw new Error('Variant is not available');
     }
 
     // Validate size selection if variant has sizes
     if (variant.sizes && variant.sizes.length > 0) {
       if (!args.size) {
-        throw new Error("Size selection required for this variant");
+        throw new Error('Size selection required for this variant');
       }
       const sizeExists = variant.sizes.some((s) => s.id === args.size!.id);
       if (!sizeExists) {
-        throw new Error("Selected size not found for this variant");
+        throw new Error('Selected size not found for this variant');
       }
     }
 
@@ -123,7 +111,7 @@ export const addItemHandler = async (
   }
 
   if (variantInventory <= 0) {
-    throw new Error("Item is out of stock");
+    throw new Error('Item is out of stock');
   }
 
   const quantityToAdd = Math.min(args.quantity, variantInventory);
@@ -184,18 +172,16 @@ export const addItemHandler = async (
   if (args.variantId) {
     await ctx.runMutation(internal.products.mutations.index.updateProductStats, {
       productId: product._id,
-      variantUpdates: [
-        { variantId: args.variantId, incrementInCart: quantityToAdd },
-      ],
+      variantUpdates: [{ variantId: args.variantId, incrementInCart: quantityToAdd }],
     });
   }
 
   await logAction(
     ctx,
-    "add_cart_item",
-    "DATA_CHANGE",
-    "LOW",
-    `Added item to cart: ${product.title}${variantName ? ` (${variantName})` : ""}${args.size ? ` - ${args.size.label}` : ""}`,
+    'add_cart_item',
+    'DATA_CHANGE',
+    'LOW',
+    `Added item to cart: ${product.title}${variantName ? ` (${variantName})` : ''}${args.size ? ` - ${args.size.label}` : ''}`,
     currentUser._id,
     undefined,
     { cartId: cart._id, productId: product._id, variantId: args.variantId, size: args.size, quantity: quantityToAdd }
@@ -203,5 +189,3 @@ export const addItemHandler = async (
 
   return cart._id;
 };
-
-

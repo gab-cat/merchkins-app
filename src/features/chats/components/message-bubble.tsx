@@ -1,16 +1,17 @@
-"use client"
+'use client';
 
-import React from 'react'
-import type { Doc } from '@/convex/_generated/dataModel'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import React from 'react';
+import type { Doc } from '@/convex/_generated/dataModel';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface MessageBubbleProps {
-  message: Doc<'chatMessages'>
-  isMe: boolean
+  message: Doc<'chatMessages'>;
+  isMe: boolean;
 }
 
-export function MessageBubble ({ message, isMe }: MessageBubbleProps) {
-  const initials = `${message.senderInfo.firstName?.[0] || ''}${message.senderInfo.lastName?.[0] || ''}`.trim() || message.senderInfo.email[0]?.toUpperCase() || '?'
+export function MessageBubble({ message, isMe }: MessageBubbleProps) {
+  const initials =
+    `${message.senderInfo.firstName?.[0] || ''}${message.senderInfo.lastName?.[0] || ''}`.trim() || message.senderInfo.email[0]?.toUpperCase() || '?';
 
   return (
     <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -20,7 +21,9 @@ export function MessageBubble ({ message, isMe }: MessageBubbleProps) {
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
       )}
-      <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${isMe ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-muted rounded-bl-sm'}`}>
+      <div
+        className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${isMe ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-muted rounded-bl-sm'}`}
+      >
         {message.replyToInfo && (
           <div className="mb-1 rounded border border-border/50 bg-background/50 p-2 text-xs text-muted-foreground">
             <div className="line-clamp-2">{message.replyToInfo.content}</div>
@@ -38,9 +41,7 @@ export function MessageBubble ({ message, isMe }: MessageBubbleProps) {
         </Avatar>
       )}
     </div>
-  )
+  );
 }
 
-export default MessageBubble
-
-
+export default MessageBubble;

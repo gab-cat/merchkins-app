@@ -1,23 +1,23 @@
-"use client"
+'use client';
 
-import React, { useEffect, useMemo, useState } from 'react'
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
+import React, { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 interface AccountPageProps {
-  clerkId: string
+  clerkId: string;
 }
 
-export function AccountPage ({ clerkId }: AccountPageProps) {
-  const user = useQuery(api.users.queries.index.getCurrentUser, { clerkId })
-  const updateProfile = useMutation(api.users.mutations.index.updateProfile)
-  const updatePreferences = useMutation(api.users.mutations.index.updatePreferences)
+export function AccountPage({ clerkId }: AccountPageProps) {
+  const user = useQuery(api.users.queries.index.getCurrentUser, { clerkId });
+  const updateProfile = useMutation(api.users.mutations.index.updateProfile);
+  const updatePreferences = useMutation(api.users.mutations.index.updatePreferences);
 
-  const loading = user === undefined
+  const loading = user === undefined;
 
   const defaultPreferences = useMemo(
     () => ({
@@ -33,56 +33,56 @@ export function AccountPage ({ clerkId }: AccountPageProps) {
       },
     }),
     []
-  )
+  );
 
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
 
-  const [prefEmail, setPrefEmail] = useState(true)
-  const [prefPush, setPrefPush] = useState(true)
-  const [prefOrderUpdates, setPrefOrderUpdates] = useState(true)
-  const [prefPromotions, setPrefPromotions] = useState(false)
-  const [profileVisibility, setProfileVisibility] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC')
-  const [showActivity, setShowActivity] = useState(true)
+  const [prefEmail, setPrefEmail] = useState(true);
+  const [prefPush, setPrefPush] = useState(true);
+  const [prefOrderUpdates, setPrefOrderUpdates] = useState(true);
+  const [prefPromotions, setPrefPromotions] = useState(false);
+  const [profileVisibility, setProfileVisibility] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC');
+  const [showActivity, setShowActivity] = useState(true);
 
-  const [savingProfile, setSavingProfile] = useState(false)
-  const [savingPrefs, setSavingPrefs] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPrefs, setSavingPrefs] = useState(false);
 
   useEffect(() => {
-    if (!user) return
-    setFirstName(user.firstName ?? '')
-    setLastName(user.lastName ?? '')
-    setPhone(user.phone ?? '')
+    if (!user) return;
+    setFirstName(user.firstName ?? '');
+    setLastName(user.lastName ?? '');
+    setPhone(user.phone ?? '');
 
-    const prefs = user.preferences ?? defaultPreferences
-    setPrefEmail(prefs.notifications.email)
-    setPrefPush(prefs.notifications.push)
-    setPrefOrderUpdates(prefs.notifications.orderUpdates)
-    setPrefPromotions(prefs.notifications.promotions)
-    setProfileVisibility(prefs.privacy.profileVisibility)
-    setShowActivity(prefs.privacy.showActivity)
-  }, [user, defaultPreferences])
+    const prefs = user.preferences ?? defaultPreferences;
+    setPrefEmail(prefs.notifications.email);
+    setPrefPush(prefs.notifications.push);
+    setPrefOrderUpdates(prefs.notifications.orderUpdates);
+    setPrefPromotions(prefs.notifications.promotions);
+    setProfileVisibility(prefs.privacy.profileVisibility);
+    setShowActivity(prefs.privacy.showActivity);
+  }, [user, defaultPreferences]);
 
-  async function handleSaveProfile () {
-    if (!user) return
+  async function handleSaveProfile() {
+    if (!user) return;
     try {
-      setSavingProfile(true)
+      setSavingProfile(true);
       await updateProfile({
         userId: user._id,
         firstName: firstName || undefined,
         lastName: lastName || undefined,
         phone: phone || undefined,
-      })
+      });
     } finally {
-      setSavingProfile(false)
+      setSavingProfile(false);
     }
   }
 
-  async function handleSavePreferences () {
-    if (!user) return
+  async function handleSavePreferences() {
+    if (!user) return;
     try {
-      setSavingPrefs(true)
+      setSavingPrefs(true);
       await updatePreferences({
         userId: user._id,
         preferences: {
@@ -97,9 +97,9 @@ export function AccountPage ({ clerkId }: AccountPageProps) {
             showActivity,
           },
         },
-      })
+      });
     } finally {
-      setSavingPrefs(false)
+      setSavingPrefs(false);
     }
   }
 
@@ -135,7 +135,7 @@ export function AccountPage ({ clerkId }: AccountPageProps) {
           </Card>
         </div>
       </div>
-    )
+    );
   }
 
   if (user === null) {
@@ -143,7 +143,7 @@ export function AccountPage ({ clerkId }: AccountPageProps) {
       <div className="container mx-auto px-4 py-24 text-center">
         <p className="text-muted-foreground">User not found.</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -158,15 +158,21 @@ export function AccountPage ({ clerkId }: AccountPageProps) {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium" htmlFor="firstName">First name</label>
+                <label className="mb-1 block text-sm font-medium" htmlFor="firstName">
+                  First name
+                </label>
                 <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium" htmlFor="lastName">Last name</label>
+                <label className="mb-1 block text-sm font-medium" htmlFor="lastName">
+                  Last name
+                </label>
                 <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium" htmlFor="phone">Phone</label>
+                <label className="mb-1 block text-sm font-medium" htmlFor="phone">
+                  Phone
+                </label>
                 <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
               <div className="pt-2">
@@ -239,7 +245,5 @@ export function AccountPage ({ clerkId }: AccountPageProps) {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-
-

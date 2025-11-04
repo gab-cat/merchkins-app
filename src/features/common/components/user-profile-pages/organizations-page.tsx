@@ -1,56 +1,48 @@
-"use client"
+'use client';
 
-import React from 'react'
-import { useAuth } from '@clerk/nextjs'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
+import React from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 //
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { SettingsHeader } from './settings'
-import { R2Image } from '@/src/components/ui/r2-image'
-import { Building2 } from 'lucide-react'
-import Link from 'next/link'
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { SettingsHeader } from './settings';
+import { R2Image } from '@/src/components/ui/r2-image';
+import { Building2 } from 'lucide-react';
+import Link from 'next/link';
 
 function RoleBadge({ role }: { role: string }) {
   const getRoleConfig = (role: string) => {
     switch (role) {
       case 'ADMIN':
-        return { variant: 'default' as const, icon: '👑', color: 'bg-purple-100 text-purple-800' }
+        return { variant: 'default' as const, icon: '👑', color: 'bg-purple-100 text-purple-800' };
       case 'STAFF':
-        return { variant: 'secondary' as const, icon: '👤', color: 'bg-blue-100 text-blue-800' }
+        return { variant: 'secondary' as const, icon: '👤', color: 'bg-blue-100 text-blue-800' };
       case 'MEMBER':
-        return { variant: 'outline' as const, icon: '🫂', color: 'bg-green-100 text-green-800' }
+        return { variant: 'outline' as const, icon: '🫂', color: 'bg-green-100 text-green-800' };
       default:
-        return { variant: 'outline' as const, icon: '❓', color: 'bg-gray-100 text-gray-800' }
+        return { variant: 'outline' as const, icon: '❓', color: 'bg-gray-100 text-gray-800' };
     }
-  }
+  };
 
-  const config = getRoleConfig(role)
+  const config = getRoleConfig(role);
   return (
     <Badge variant={config.variant} className={`text-xs px-2 py-1 font-medium ${config.color}`}>
       <span className="mr-1">{config.icon}</span>
       {role}
     </Badge>
-  )
+  );
 }
 
 export function OrganizationsPage() {
-  const { userId: clerkId } = useAuth()
-  
-  const currentUser = useQuery(
-    api.users.queries.index.getCurrentUser,
-    clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }),
-  )
+  const { userId: clerkId } = useAuth();
 
-  const orgs = useQuery(
-    api.organizations.queries.index.getOrganizationsByUser,
-    currentUser?._id
-      ? { userId: currentUser._id }
-      : 'skip',
-  )
+  const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }));
 
-  const loading = currentUser === undefined || orgs === undefined
+  const orgs = useQuery(api.organizations.queries.index.getOrganizationsByUser, currentUser?._id ? { userId: currentUser._id } : 'skip');
+
+  const loading = currentUser === undefined || orgs === undefined;
 
   // Add error handling for when clerkId is not available
   if (!clerkId) {
@@ -60,7 +52,7 @@ export function OrganizationsPage() {
         <h3 className="text-lg font-semibold mb-2">Authentication required</h3>
         <p className="text-muted-foreground mb-4">Please sign in to view your organizations</p>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -82,7 +74,7 @@ export function OrganizationsPage() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   // Handle case where currentUser is null (user not found in database)
@@ -98,7 +90,7 @@ export function OrganizationsPage() {
           <Link href="/organizations">Go to Organizations</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   if (!orgs || orgs.length === 0) {
@@ -113,7 +105,7 @@ export function OrganizationsPage() {
           <Link href="/organizations">Browse Organizations</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -121,7 +113,7 @@ export function OrganizationsPage() {
       <SettingsHeader title="Your Organizations" />
       <div className="space-y-3">
         {orgs.slice(0, 5).map((org) => {
-          const role = org.membershipInfo?.role as 'ADMIN' | 'STAFF' | 'MEMBER' | undefined
+          const role = org.membershipInfo?.role as 'ADMIN' | 'STAFF' | 'MEMBER' | undefined;
           return (
             <div key={org._id} className="rounded-lg border bg-card p-4 hover:bg-muted/30 transition-colors">
               <div className="flex items-center gap-4">
@@ -143,7 +135,9 @@ export function OrganizationsPage() {
                     {role && <RoleBadge role={role} />}
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${org.organizationType === 'PUBLIC' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${org.organizationType === 'PUBLIC' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}
+                    >
                       {org.organizationType === 'PUBLIC' ? '🌐 Public' : '🔒 Private'}
                     </span>
                     {org.slug && <span>• @{org.slug}</span>}
@@ -164,9 +158,9 @@ export function OrganizationsPage() {
                 </div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

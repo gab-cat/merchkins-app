@@ -1,36 +1,42 @@
-"use client"
+'use client';
 
-import { useMemo, useState } from 'react'
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Doc } from '@/convex/_generated/dataModel'
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Doc } from '@/convex/_generated/dataModel';
 
-type Permission = Doc<"permissions">
-type PermissionCategory = 'USER_MANAGEMENT' | 'PRODUCT_MANAGEMENT' | 'ORDER_MANAGEMENT' | 'PAYMENT_MANAGEMENT' | 'ORGANIZATION_MANAGEMENT' | 'SYSTEM_ADMINISTRATION'
-type UserRole = 'ADMIN' | 'STAFF' | 'MEMBER'
+type Permission = Doc<'permissions'>;
+type PermissionCategory =
+  | 'USER_MANAGEMENT'
+  | 'PRODUCT_MANAGEMENT'
+  | 'ORDER_MANAGEMENT'
+  | 'PAYMENT_MANAGEMENT'
+  | 'ORGANIZATION_MANAGEMENT'
+  | 'SYSTEM_ADMINISTRATION';
+type UserRole = 'ADMIN' | 'STAFF' | 'MEMBER';
 
-export default function SuperAdminPermissionsPage () {
-  const [category, setCategory] = useState<'' | PermissionCategory>('')
-  const [code, setCode] = useState('')
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [requiredRole, setRequiredRole] = useState<'' | UserRole>('')
+export default function SuperAdminPermissionsPage() {
+  const [category, setCategory] = useState<'' | PermissionCategory>('');
+  const [code, setCode] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [requiredRole, setRequiredRole] = useState<'' | UserRole>('');
 
   const permissions = useQuery(api.permissions.queries.index.getPermissions, {
     category: category || undefined,
     limit: 200,
-  })
+  });
 
-  const createPermission = useMutation(api.permissions.mutations.index.createPermission)
+  const createPermission = useMutation(api.permissions.mutations.index.createPermission);
 
-  const canSubmit = useMemo(() => code.trim().length >= 2 && name.trim().length >= 2 && !!category, [code, name, category])
+  const canSubmit = useMemo(() => code.trim().length >= 2 && name.trim().length >= 2 && !!category, [code, name, category]);
 
-  async function handleCreate (e: React.FormEvent) {
-    e.preventDefault()
-    if (!canSubmit) return
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
     await createPermission({
       code: code.trim().toUpperCase(),
       name: name.trim(),
@@ -38,10 +44,10 @@ export default function SuperAdminPermissionsPage () {
       category: category as PermissionCategory,
       defaultSettings: { canCreate: false, canRead: true, canUpdate: false, canDelete: false },
       requiredRole: requiredRole || undefined,
-    })
-    setCode('')
-    setName('')
-    setDescription('')
+    });
+    setCode('');
+    setName('');
+    setDescription('');
   }
 
   return (
@@ -52,7 +58,11 @@ export default function SuperAdminPermissionsPage () {
         </CardHeader>
         <CardContent>
           <div className="mb-4">
-            <select className="h-10 rounded-md border bg-background px-3 text-sm" value={category} onChange={(e) => setCategory(e.target.value as '' | PermissionCategory)}>
+            <select
+              className="h-10 rounded-md border bg-background px-3 text-sm"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as '' | PermissionCategory)}
+            >
               <option value="">All categories</option>
               <option value="USER_MANAGEMENT">User Management</option>
               <option value="PRODUCT_MANAGEMENT">Product Management</option>
@@ -90,20 +100,38 @@ export default function SuperAdminPermissionsPage () {
         <CardContent>
           <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreate}>
             <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="perm-code">Code</label>
+              <label className="mb-1 block text-sm font-medium" htmlFor="perm-code">
+                Code
+              </label>
               <Input id="perm-code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="VIEW_USERS" />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="perm-name">Name</label>
+              <label className="mb-1 block text-sm font-medium" htmlFor="perm-name">
+                Name
+              </label>
               <Input id="perm-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="View Users" />
             </div>
             <div className="md:col-span-2">
-              <label className="mb-1 block text-sm font-medium" htmlFor="perm-desc">Description</label>
-              <textarea id="perm-desc" className="h-24 w-full rounded-md border bg-background px-3 py-2 text-sm" value={description} onChange={(e) => setDescription(e.target.value)} />
+              <label className="mb-1 block text-sm font-medium" htmlFor="perm-desc">
+                Description
+              </label>
+              <textarea
+                id="perm-desc"
+                className="h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="perm-cat">Category</label>
-              <select id="perm-cat" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={category} onChange={(e) => setCategory(e.target.value as '' | PermissionCategory)}>
+              <label className="mb-1 block text-sm font-medium" htmlFor="perm-cat">
+                Category
+              </label>
+              <select
+                id="perm-cat"
+                className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                value={category}
+                onChange={(e) => setCategory(e.target.value as '' | PermissionCategory)}
+              >
                 <option value="">Select</option>
                 <option value="USER_MANAGEMENT">User Management</option>
                 <option value="PRODUCT_MANAGEMENT">Product Management</option>
@@ -114,8 +142,15 @@ export default function SuperAdminPermissionsPage () {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="perm-role">Required role</label>
-              <select id="perm-role" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={requiredRole} onChange={(e) => setRequiredRole(e.target.value as '' | UserRole)}>
+              <label className="mb-1 block text-sm font-medium" htmlFor="perm-role">
+                Required role
+              </label>
+              <select
+                id="perm-role"
+                className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+                value={requiredRole}
+                onChange={(e) => setRequiredRole(e.target.value as '' | UserRole)}
+              >
                 <option value="">None</option>
                 <option value="ADMIN">Admin</option>
                 <option value="STAFF">Staff</option>
@@ -123,13 +158,13 @@ export default function SuperAdminPermissionsPage () {
               </select>
             </div>
             <div className="md:col-span-2">
-              <Button type="submit" disabled={!canSubmit}>Create</Button>
+              <Button type="submit" disabled={!canSubmit}>
+                Create
+              </Button>
             </div>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
-

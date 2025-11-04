@@ -1,127 +1,95 @@
-"use client"
+'use client';
 
-import { useAuth } from '@clerk/nextjs'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Separator } from '@/components/ui/separator'
-import { useMemo, useState } from 'react'
-import { Doc, Id } from '@/convex/_generated/dataModel'
-import Link from 'next/link'
+import { useAuth } from '@clerk/nextjs';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { useMemo, useState } from 'react';
+import { Doc, Id } from '@/convex/_generated/dataModel';
+import Link from 'next/link';
 
-type Ticket = Doc<'tickets'>
-type TicketUpdate = Doc<'ticketUpdates'>
-type Organization = Doc<'organizations'>
+type Ticket = Doc<'tickets'>;
+type TicketUpdate = Doc<'ticketUpdates'>;
+type Organization = Doc<'organizations'>;
 
-type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED'
+type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 
-function StatusBadge ({ value }: { value: TicketStatus }) {
-  const color =
-    value === 'OPEN'
-      ? 'secondary'
-      : value === 'CLOSED'
-      ? 'destructive'
-      : 'default'
-  return <Badge variant={color as 'secondary' | 'destructive' | 'default'}>{value}</Badge>
+function StatusBadge({ value }: { value: TicketStatus }) {
+  const color = value === 'OPEN' ? 'secondary' : value === 'CLOSED' ? 'destructive' : 'default';
+  return <Badge variant={color as 'secondary' | 'destructive' | 'default'}>{value}</Badge>;
 }
 
-function TicketProgress ({ status }: { status: TicketStatus }) {
-  const steps: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
-  const current = steps.indexOf(status)
+function TicketProgress({ status }: { status: TicketStatus }) {
+  const steps: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
+  const current = steps.indexOf(status);
   return (
     <div className="flex items-center">
       {steps.map((s, i) => {
-        const done = i <= current
+        const done = i <= current;
         return (
           <div key={s} className="flex items-center">
-            <div
-              className={
-                'size-5 rounded-full border ' +
-                (done
-                  ? 'bg-primary border-primary'
-                  : 'bg-muted border-muted-foreground/30')
-              }
-              title={s}
-            />
-            {i < steps.length - 1 && (
-              <div
-                className={
-                  'mx-2 h-0.5 w-10 sm:w-16 ' +
-                  (i < current ? 'bg-primary' : 'bg-muted-foreground/20')
-                }
-              />
-            )}
+            <div className={'size-5 rounded-full border ' + (done ? 'bg-primary border-primary' : 'bg-muted border-muted-foreground/30')} title={s} />
+            {i < steps.length - 1 && <div className={'mx-2 h-0.5 w-10 sm:w-16 ' + (i < current ? 'bg-primary' : 'bg-muted-foreground/20')} />}
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
 
-export function ConsolidatedTicketsPage () {
-  const { userId: clerkId } = useAuth()
-  const currentUser = useQuery(
-    api.users.queries.index.getCurrentUser,
-    clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }),
-  )
+export function ConsolidatedTicketsPage() {
+  const { userId: clerkId } = useAuth();
+  const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }));
 
   const orgs = useQuery(
     api.organizations.queries.index.getOrganizationsByUser,
-    currentUser?._id
-      ? { userId: currentUser._id }
-      : ('skip' as unknown as { userId: Id<'users'> }),
-  )
+    currentUser?._id ? { userId: currentUser._id } : ('skip' as unknown as { userId: Id<'users'> })
+  );
 
   const personal = useQuery(
     api.tickets.queries.index.getTickets,
-    currentUser?._id
-      ? { createdById: currentUser._id }
-      : ('skip' as unknown as { createdById: Id<'users'> }),
-  )
+    currentUser?._id ? { createdById: currentUser._id } : ('skip' as unknown as { createdById: Id<'users'> })
+  );
 
-  const [activeId, setActiveId] = useState<Id<'tickets'> | null>(null)
+  const [activeId, setActiveId] = useState<Id<'tickets'> | null>(null);
 
   const personalTickets = useMemo(() => {
-    const list = personal?.tickets || []
-    return list.filter((t: Ticket) => !t.organizationId)
-  }, [personal])
+    const list = personal?.tickets || [];
+    return list.filter((t: Ticket) => !t.organizationId);
+  }, [personal]);
 
-  const loading =
-    currentUser === undefined || orgs === undefined || personal === undefined
+  const loading = currentUser === undefined || orgs === undefined || personal === undefined;
 
   // Detail dialog queries
   const activeTicket = useQuery(
     api.tickets.queries.index.getTicketById,
-    activeId
-      ? { ticketId: activeId }
-      : ('skip' as unknown as { ticketId: Id<'tickets'> }),
-  )
+    activeId ? { ticketId: activeId } : ('skip' as unknown as { ticketId: Id<'tickets'> })
+  );
 
   const updates = useQuery(
     api.tickets.queries.index.getTicketUpdates,
     activeId
       ? { ticketId: activeId, limit: 50, offset: 0 }
       : ('skip' as unknown as {
-          ticketId: Id<'tickets'>
-          limit: number
-          offset: number
-        }),
-  )
+          ticketId: Id<'tickets'>;
+          limit: number;
+          offset: number;
+        })
+  );
 
   if (loading) {
-    return <div className="container mx-auto px-3 py-6">Loading...</div>
+    return <div className="container mx-auto px-3 py-6">Loading...</div>;
   }
 
   return (
     <div className="container mx-auto px-3 py-6">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">My Tickets</h1>
-        <p className="text-sm text-muted-foreground">
-          Consolidated view grouped by organization
-        </p>
+        <p className="text-sm text-muted-foreground">Consolidated view grouped by organization</p>
       </div>
 
       <div className="space-y-6">
@@ -147,21 +115,26 @@ export function ConsolidatedTicketsPage () {
                         {t.updatedAt ? (
                           <>
                             <span>•</span>
-                            <span>
-                              Updated {new Date(t.updatedAt).toLocaleString()}
-                            </span>
+                            <span>Updated {new Date(t.updatedAt).toLocaleString()}</span>
                           </>
                         ) : null}
                       </div>
                     </div>
-                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setActiveId(t._id) }}>Open</Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveId(t._id);
+                      }}
+                    >
+                      Open
+                    </Button>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="py-8 text-sm text-muted-foreground">
-                No personal tickets.
-              </div>
+              <div className="py-8 text-sm text-muted-foreground">No personal tickets.</div>
             )}
           </CardContent>
         </Card>
@@ -174,7 +147,7 @@ export function ConsolidatedTicketsPage () {
       <Dialog
         open={!!activeId}
         onOpenChange={(v) => {
-          if (!v) setActiveId(null)
+          if (!v) setActiveId(null);
         }}
       >
         <DialogContent className="sm:max-w-2xl">
@@ -193,18 +166,25 @@ export function ConsolidatedTicketsPage () {
                   <span className="truncate">{activeTicket.title}</span>
                   <StatusBadge value={activeTicket.status as TicketStatus} />
                 </DialogTitle>
-                <DialogDescription>
-                  Created by {activeTicket.creatorInfo?.email || 'Unknown'}
-                </DialogDescription>
+                <DialogDescription>Created by {activeTicket.creatorInfo?.email || 'Unknown'}</DialogDescription>
               </DialogHeader>
 
               <div className="rounded-md border p-4 text-sm">
                 <div className="font-semibold">Details</div>
                 <Separator className="my-3" />
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center justify-between"><span>Status</span><span>{activeTicket.status}</span></div>
-                  <div className="flex items-center justify-between"><span>Priority</span><span>{activeTicket.priority}</span></div>
-                  <div className="flex items-center justify-between"><span>Assignee</span><span>{activeTicket.assigneeInfo?.email || 'Unassigned'}</span></div>
+                  <div className="flex items-center justify-between">
+                    <span>Status</span>
+                    <span>{activeTicket.status}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Priority</span>
+                    <span>{activeTicket.priority}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Assignee</span>
+                    <span>{activeTicket.assigneeInfo?.email || 'Unassigned'}</span>
+                  </div>
                 </div>
               </div>
 
@@ -218,9 +198,7 @@ export function ConsolidatedTicketsPage () {
                   <CardHeader>
                     <CardTitle>Description</CardTitle>
                   </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {activeTicket.description}
-                  </CardContent>
+                  <CardContent className="text-sm text-muted-foreground whitespace-pre-wrap">{activeTicket.description}</CardContent>
                 </Card>
               ) : null}
 
@@ -238,9 +216,7 @@ export function ConsolidatedTicketsPage () {
                       <div className="mt-1 text-sm">{u.content}</div>
                     </div>
                   ))}
-                  {updates && updates.updates.length === 0 && (
-                    <div className="text-sm text-muted-foreground">No updates yet.</div>
-                  )}
+                  {updates && updates.updates.length === 0 && <div className="text-sm text-muted-foreground">No updates yet.</div>}
                 </CardContent>
               </Card>
 
@@ -248,14 +224,20 @@ export function ConsolidatedTicketsPage () {
                 <div className="flex w-full items-center justify-between">
                   {activeTicket.organizationId ? (
                     <Link href={`/o/${activeTicket.organizationId}/tickets/${activeTicket._id}`}>
-                      <Button variant="outline" size="sm">View full details</Button>
+                      <Button variant="outline" size="sm">
+                        View full details
+                      </Button>
                     </Link>
                   ) : (
                     <Link href={`/tickets/${activeTicket._id}`}>
-                      <Button variant="outline" size="sm">View full details</Button>
+                      <Button variant="outline" size="sm">
+                        View full details
+                      </Button>
                     </Link>
                   )}
-                  <Button size="sm" onClick={() => setActiveId(null)}>Close</Button>
+                  <Button size="sm" onClick={() => setActiveId(null)}>
+                    Close
+                  </Button>
                 </div>
               </DialogFooter>
             </div>
@@ -263,15 +245,15 @@ export function ConsolidatedTicketsPage () {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
 
-function OrgTicketsSection ({ org, onOpen }: { org: Organization, onOpen: (id: Id<'tickets'>) => void }) {
+function OrgTicketsSection({ org, onOpen }: { org: Organization; onOpen: (id: Id<'tickets'>) => void }) {
   const tickets = useQuery(
     api.tickets.queries.index.getTickets,
-    org?._id ? { organizationId: org._id } : ('skip' as unknown as { organizationId: Id<'organizations'> }),
-  )
-  const loading = tickets === undefined
+    org?._id ? { organizationId: org._id } : ('skip' as unknown as { organizationId: Id<'organizations'> })
+  );
+  const loading = tickets === undefined;
   return (
     <Card>
       <CardHeader>
@@ -315,7 +297,16 @@ function OrgTicketsSection ({ org, onOpen }: { org: Organization, onOpen: (id: I
                     ) : null}
                   </div>
                 </div>
-                <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onOpen(t._id) }}>Open</Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpen(t._id);
+                  }}
+                >
+                  Open
+                </Button>
               </div>
             ))}
           </div>
@@ -324,7 +315,5 @@ function OrgTicketsSection ({ org, onOpen }: { org: Organization, onOpen: (id: I
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
-
-

@@ -9,7 +9,9 @@
     "seed": "bunx convex dev --until-success && bunx convex run seeds/index:seedAction",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.38.1",

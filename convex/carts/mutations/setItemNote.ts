@@ -1,18 +1,18 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import { requireAuthentication, validateCartExists, validateProductExists, logAction, validateStringLength, sanitizeString } from "../../helpers";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireAuthentication, validateCartExists, validateProductExists, logAction, validateStringLength, sanitizeString } from '../../helpers';
 
 export const setItemNoteArgs = {
-  cartId: v.id("carts"),
-  productId: v.id("products"),
+  cartId: v.id('carts'),
+  productId: v.id('products'),
   variantId: v.optional(v.string()),
   note: v.optional(v.string()),
 };
 
 export const setItemNoteHandler = async (
   ctx: MutationCtx,
-  args: { cartId: Id<"carts">; productId: Id<"products">; variantId?: string; note?: string }
+  args: { cartId: Id<'carts'>; productId: Id<'products'>; variantId?: string; note?: string }
 ) => {
   const currentUser = await requireAuthentication(ctx);
   const cart = await validateCartExists(ctx, args.cartId);
@@ -22,7 +22,7 @@ export const setItemNoteHandler = async (
   const variantName = args.variantId ? product.variants.find((v) => v.variantId === args.variantId)?.variantName : undefined;
 
   if (args.note !== undefined) {
-    validateStringLength(args.note, "Note", 0, 500);
+    validateStringLength(args.note, 'Note', 0, 500);
   }
 
   const sanitized = args.note ? sanitizeString(args.note) : undefined;
@@ -36,7 +36,7 @@ export const setItemNoteHandler = async (
     }
     return (i.variantId ?? null) === null;
   });
-  if (index === -1) throw new Error("Item not found in cart");
+  if (index === -1) throw new Error('Item not found in cart');
 
   items[index] = { ...items[index], note: sanitized, addedAt: now };
 
@@ -48,10 +48,10 @@ export const setItemNoteHandler = async (
 
   await logAction(
     ctx,
-    "set_cart_item_note",
-    "DATA_CHANGE",
-    "LOW",
-    `Set note on cart item: ${product.title}${variantName ? ` (${variantName})` : ""}`,
+    'set_cart_item_note',
+    'DATA_CHANGE',
+    'LOW',
+    `Set note on cart item: ${product.title}${variantName ? ` (${variantName})` : ''}`,
     currentUser._id,
     undefined,
     { cartId: cart._id, productId: product._id, variantId: args.variantId }
@@ -59,5 +59,3 @@ export const setItemNoteHandler = async (
 
   return cart._id;
 };
-
-

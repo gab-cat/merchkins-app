@@ -1,4 +1,5 @@
 <!-- 3125b465-0dd6-41f1-9783-44b6046ce881 1f467a69-23f9-4691-a631-bc5120c7cbf4 -->
+
 # Add Product Comments/Reviews Functionality
 
 ## Overview
@@ -13,7 +14,7 @@ Add the ability for users to write comments/reviews on product pages. This will 
 
 - `mutations/index.ts` - Export review mutations
 - `mutations/createReview.ts` - Create new review with rating and comment
-- `queries/index.ts` - Export review queries  
+- `queries/index.ts` - Export review queries
 - `queries/getReviewsByProduct.ts` - Fetch reviews for a product with pagination
 - `queries/getUserReview.ts` - Check if user has already reviewed a product
 

@@ -1,10 +1,10 @@
-import { query } from "../../_generated/server";
+import { query } from '../../_generated/server';
 
 // Import args and handlers
-import { getCartByUserArgs, getCartByUserHandler } from "./getCartByUser";
-import { getCartByIdArgs, getCartByIdHandler } from "./getCartById";
-import { getCartSummaryArgs, getCartSummaryHandler } from "./getCartSummary";
-import { getAbandonedCartsArgs, getAbandonedCartsHandler } from "./getAbandonedCarts";
+import { getCartByUserArgs, getCartByUserHandler } from './getCartByUser';
+import { getCartByIdArgs, getCartByIdHandler } from './getCartById';
+import { getCartSummaryArgs, getCartSummaryHandler } from './getCartSummary';
+import { getAbandonedCartsArgs, getAbandonedCartsHandler } from './getAbandonedCarts';
 
 // Export query functions
 export const getCartByUser = query({
@@ -26,5 +26,3 @@ export const getAbandonedCarts = query({
   args: getAbandonedCartsArgs,
   handler: getAbandonedCartsHandler,
 });
-
-

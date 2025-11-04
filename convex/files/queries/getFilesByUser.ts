@@ -1,11 +1,11 @@
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import { QueryCtx } from "../../_generated/server";
-import { requireAuthentication } from "../../helpers";
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { QueryCtx } from '../../_generated/server';
+import { requireAuthentication } from '../../helpers';
 
 // Get files by user
 export const getFilesByUserArgs = {
-  userId: v.optional(v.id("users")),
+  userId: v.optional(v.id('users')),
   fileType: v.optional(v.string()),
   usageType: v.optional(v.string()),
   limit: v.optional(v.number()),
@@ -14,7 +14,7 @@ export const getFilesByUserArgs = {
 export const getFilesByUserHandler = async (
   ctx: QueryCtx,
   args: {
-    userId?: Id<"users">;
+    userId?: Id<'users'>;
     fileType?: string;
     usageType?: string;
     limit?: number;
@@ -25,25 +25,23 @@ export const getFilesByUserHandler = async (
 
   // Only allow users to see their own files unless they're admin
   if (targetUserId !== currentUser._id && !currentUser.isAdmin) {
-    throw new Error("Access denied: You can only view your own files");
+    throw new Error('Access denied: You can only view your own files');
   }
 
   let query = ctx.db
-    .query("files")
-    .withIndex("by_uploader", (q) => q.eq("uploadedById", targetUserId))
-    .filter((q) => q.eq(q.field("isActive"), true));
+    .query('files')
+    .withIndex('by_uploader', (q) => q.eq('uploadedById', targetUserId))
+    .filter((q) => q.eq(q.field('isActive'), true));
 
   if (args.fileType) {
-    query = query.filter((q) => q.eq(q.field("fileType"), args.fileType));
+    query = query.filter((q) => q.eq(q.field('fileType'), args.fileType));
   }
 
   if (args.usageType) {
-    query = query.filter((q) => q.eq(q.field("usageType"), args.usageType));
+    query = query.filter((q) => q.eq(q.field('usageType'), args.usageType));
   }
 
-  const files = await query
-    .order("desc")
-    .take(args.limit || 50);
+  const files = await query.order('desc').take(args.limit || 50);
 
   return files.map((file) => ({
     _id: file._id,

@@ -1,11 +1,11 @@
-import { mutation, internalMutation } from "../../_generated/server";
+import { mutation, internalMutation } from '../../_generated/server';
 
-import { createMessageArgs, createMessageHandler } from "./createMessage";
-import { replyToMessageArgs, replyToMessageHandler } from "./replyToMessage";
-import { updateMessageArgs, updateMessageHandler } from "./updateMessage";
-import { deleteMessageArgs, deleteMessageHandler } from "./deleteMessage";
-import { restoreMessageArgs, restoreMessageHandler } from "./restoreMessage";
-import { updateMessageStatsArgs, updateMessageStatsHandler } from "./updateMessageStats";
+import { createMessageArgs, createMessageHandler } from './createMessage';
+import { replyToMessageArgs, replyToMessageHandler } from './replyToMessage';
+import { updateMessageArgs, updateMessageHandler } from './updateMessage';
+import { deleteMessageArgs, deleteMessageHandler } from './deleteMessage';
+import { restoreMessageArgs, restoreMessageHandler } from './restoreMessage';
+import { updateMessageStatsArgs, updateMessageStatsHandler } from './updateMessageStats';
 
 export const createMessage = mutation({
   args: createMessageArgs,
@@ -36,5 +36,3 @@ export const updateMessageStats = internalMutation({
   args: updateMessageStatsArgs,
   handler: updateMessageStatsHandler,
 });
-
-

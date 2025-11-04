@@ -1,30 +1,30 @@
-import { QueryCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
-import { requireOrganizationPermission } from "../../helpers";
+import { QueryCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
+import { requireOrganizationPermission } from '../../helpers';
 
 export const getSurveyAnalyticsArgs = {
-  organizationId: v.optional(v.id("organizations")),
-  categoryId: v.optional(v.id("surveyCategories")),
+  organizationId: v.optional(v.id('organizations')),
+  categoryId: v.optional(v.id('surveyCategories')),
   dateFrom: v.optional(v.number()),
   dateTo: v.optional(v.number()),
 };
 
 export const getSurveyAnalyticsHandler = async (
   ctx: QueryCtx,
-  args: { organizationId?: Id<"organizations">; categoryId?: Id<"surveyCategories">; dateFrom?: number; dateTo?: number }
+  args: { organizationId?: Id<'organizations'>; categoryId?: Id<'surveyCategories'>; dateFrom?: number; dateTo?: number }
 ) => {
   if (args.organizationId) {
-    await requireOrganizationPermission(ctx, args.organizationId, "MANAGE_ORDERS", "read");
+    await requireOrganizationPermission(ctx, args.organizationId, 'MANAGE_ORDERS', 'read');
   }
 
   let query;
   if (args.categoryId) {
-    query = ctx.db.query("surveyResponses").withIndex("by_category", (ix) => ix.eq("categoryId", args.categoryId!));
+    query = ctx.db.query('surveyResponses').withIndex('by_category', (ix) => ix.eq('categoryId', args.categoryId!));
   } else if (args.dateFrom || args.dateTo) {
-    query = ctx.db.query("surveyResponses").withIndex("by_submit_date", (ix) => ix.gte("submitDate", args.dateFrom ?? 0));
+    query = ctx.db.query('surveyResponses').withIndex('by_submit_date', (ix) => ix.gte('submitDate', args.dateFrom ?? 0));
   } else {
-    query = ctx.db.query("surveyResponses");
+    query = ctx.db.query('surveyResponses');
   }
 
   const list = await query.collect();
@@ -76,5 +76,3 @@ export const getSurveyAnalyticsHandler = async (
     recentComments,
   };
 };
-
-

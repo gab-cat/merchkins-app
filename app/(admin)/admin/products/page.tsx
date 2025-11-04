@@ -1,45 +1,48 @@
-"use client"
+'use client';
 
-import React, { useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { useOffsetPagination } from '@/src/hooks/use-pagination'
-import { R2Image } from '@/src/components/ui/r2-image'
-import Link from 'next/link'
-import { Doc, Id } from '@/convex/_generated/dataModel'
+import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useOffsetPagination } from '@/src/hooks/use-pagination';
+import { R2Image } from '@/src/components/ui/r2-image';
+import Link from 'next/link';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 
-type Product = Doc<"products">
+type Product = Doc<'products'>;
 
 type ProductQueryArgs = {
-  organizationId?: Id<"organizations">
-  sortBy?: string
-  limit?: number
-  offset?: number
-}
+  organizationId?: Id<'organizations'>;
+  sortBy?: string;
+  limit?: number;
+  offset?: number;
+};
 
 type ProductQueryResult = {
-  products: Product[]
-  hasMore: boolean
-}
+  products: Product[];
+  hasMore: boolean;
+};
 
-export default function AdminProductsPage () {
-  const searchParams = useSearchParams()
-  const orgSlug = searchParams.get('org')
-  const [search, setSearch] = useState('')
-  const [sortBy, setSortBy] = useState('newest')
+export default function AdminProductsPage() {
+  const searchParams = useSearchParams();
+  const orgSlug = searchParams.get('org');
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
 
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,
-    orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string }),
-  )
+    orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
+  );
 
-  const baseArgs = useMemo((): ProductQueryArgs => ({
-    organizationId: orgSlug ? organization?._id : undefined,
-    sortBy,
-  }), [orgSlug, organization, sortBy])
+  const baseArgs = useMemo(
+    (): ProductQueryArgs => ({
+      organizationId: orgSlug ? organization?._id : undefined,
+      sortBy,
+    }),
+    [orgSlug, organization, sortBy]
+  );
 
   const {
     items: products,
@@ -51,25 +54,20 @@ export default function AdminProductsPage () {
     baseArgs,
     limit: 25,
     selectItems: (res: unknown) => {
-      const typedRes = res as ProductQueryResult
-      return typedRes.products || []
+      const typedRes = res as ProductQueryResult;
+      return typedRes.products || [];
     },
     selectHasMore: (res: unknown) => {
-      const typedRes = res as ProductQueryResult
-      return !!typedRes.hasMore
+      const typedRes = res as ProductQueryResult;
+      return !!typedRes.hasMore;
     },
-  })
+  });
 
   const results = useMemo(() => {
-    if (!search) return products
-    const q = search.toLowerCase()
-    return products.filter((p: Product) =>
-      [p.title, p.description || '', ...(p.tags || [])]
-        .join(' ')
-        .toLowerCase()
-        .includes(q),
-    )
-  }, [products, search])
+    if (!search) return products;
+    const q = search.toLowerCase();
+    return products.filter((p: Product) => [p.title, p.description || '', ...(p.tags || [])].join(' ').toLowerCase().includes(q));
+  }, [products, search]);
 
   return (
     <div>
@@ -90,7 +88,9 @@ export default function AdminProductsPage () {
             <option value="orders">Orders</option>
             <option value="views">Views</option>
           </select>
-          <Link href={`/admin/products/new${orgSlug ? `?org=${orgSlug}` : ''}`}><Button>Create product</Button></Link>
+          <Link href={`/admin/products/new${orgSlug ? `?org=${orgSlug}` : ''}`}>
+            <Button>Create product</Button>
+          </Link>
         </div>
       </div>
 
@@ -106,7 +106,14 @@ export default function AdminProductsPage () {
             : results.map((p: Product) => (
                 <div key={p._id} className="flex items-center justify-between px-3 py-2 hover:bg-secondary/50">
                   <div className="flex min-w-0 items-center gap-3">
-                    <R2Image fileKey={p.imageUrl?.[0]} alt={p.title} width={40} height={40} className="h-10 w-10 rounded object-cover" fallbackClassName="h-10 w-10 rounded" />
+                    <R2Image
+                      fileKey={p.imageUrl?.[0]}
+                      alt={p.title}
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 rounded object-cover"
+                      fallbackClassName="h-10 w-10 rounded"
+                    />
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium">{p.title}</div>
                       <div className="mt-0.5 flex flex-wrap gap-3 text-xs text-muted-foreground">
@@ -118,10 +125,14 @@ export default function AdminProductsPage () {
                   </div>
                   <div className="shrink-0 flex items-center gap-1.5">
                     <Link href={`/admin/products/${p._id}${orgSlug ? `?org=${orgSlug}` : ''}`}>
-                      <Button size="sm" variant="secondary">Edit</Button>
+                      <Button size="sm" variant="secondary">
+                        Edit
+                      </Button>
                     </Link>
                     <Link href={`/p/${p.slug}`}>
-                      <Button size="sm" variant="outline">View</Button>
+                      <Button size="sm" variant="outline">
+                        View
+                      </Button>
                     </Link>
                   </div>
                 </div>
@@ -131,15 +142,13 @@ export default function AdminProductsPage () {
 
       {hasMore && !loading && (
         <div className="mt-3 flex justify-center">
-          <Button size="sm" variant="ghost" onClick={loadMore}>Load more</Button>
+          <Button size="sm" variant="ghost" onClick={loadMore}>
+            Load more
+          </Button>
         </div>
       )}
 
-      {!loading && results.length === 0 && (
-        <div className="py-12 text-center text-sm text-muted-foreground">No products found.</div>
-      )}
+      {!loading && results.length === 0 && <div className="py-12 text-center text-sm text-muted-foreground">No products found.</div>}
     </div>
-  )
+  );
 }
-
-

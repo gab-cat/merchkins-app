@@ -1,8 +1,8 @@
-import { internalMutation, internalQuery } from "../_generated/server";
-import { v } from "convex/values";
-import { buildPublicUrl } from "../helpers";
-import { Id } from "../_generated/dataModel";
-import { internal } from "../_generated/api";
+import { internalMutation, internalQuery } from '../_generated/server';
+import { v } from 'convex/values';
+import { buildPublicUrl } from '../helpers';
+import { Id } from '../_generated/dataModel';
+import { internal } from '../_generated/api';
 
 // Internal mutation to backfill image URLs for a single batch of records
 export const backfillImageUrlsBatch = internalMutation({
@@ -26,18 +26,18 @@ export const backfillImageUrlsBatch = internalMutation({
     let updated = 0;
 
     switch (table) {
-      case "organizations": {
+      case 'organizations': {
         let orgs: any[];
         let hasMore = false;
         let nextCursor: string | undefined;
 
         if (cursor) {
-          const result = await ctx.db.query("organizations").order("asc").paginate({ numItems: limit, cursor }) as any;
+          const result = (await ctx.db.query('organizations').order('asc').paginate({ numItems: limit, cursor })) as any;
           orgs = result.page;
           hasMore = result.hasMore;
           nextCursor = result.continueCursor;
         } else {
-          orgs = await ctx.db.query("organizations").order("asc").take(limit);
+          orgs = await ctx.db.query('organizations').order('asc').take(limit);
           hasMore = orgs.length === limit; // Simple heuristic for hasMore
         }
 
@@ -75,18 +75,18 @@ export const backfillImageUrlsBatch = internalMutation({
         };
       }
 
-      case "organizationMembers": {
+      case 'organizationMembers': {
         let members: any[];
         let hasMore = false;
         let nextCursor: string | undefined;
 
         if (cursor) {
-          const result = await ctx.db.query("organizationMembers").order("asc").paginate({ numItems: limit, cursor }) as any;
+          const result = (await ctx.db.query('organizationMembers').order('asc').paginate({ numItems: limit, cursor })) as any;
           members = result.page;
           hasMore = result.hasMore;
           nextCursor = result.continueCursor;
         } else {
-          members = await ctx.db.query("organizationMembers").order("asc").take(limit);
+          members = await ctx.db.query('organizationMembers').order('asc').take(limit);
           hasMore = members.length === limit;
         }
 
@@ -121,18 +121,18 @@ export const backfillImageUrlsBatch = internalMutation({
         };
       }
 
-      case "organizationInviteLinks": {
+      case 'organizationInviteLinks': {
         let invites: any[];
         let hasMore = false;
         let nextCursor: string | undefined;
 
         if (cursor) {
-          const result = await ctx.db.query("organizationInviteLinks").order("asc").paginate({ numItems: limit, cursor }) as any;
+          const result = (await ctx.db.query('organizationInviteLinks').order('asc').paginate({ numItems: limit, cursor })) as any;
           invites = result.page;
           hasMore = result.hasMore;
           nextCursor = result.continueCursor;
         } else {
-          invites = await ctx.db.query("organizationInviteLinks").order("asc").take(limit);
+          invites = await ctx.db.query('organizationInviteLinks').order('asc').take(limit);
           hasMore = invites.length === limit;
         }
 
@@ -167,18 +167,18 @@ export const backfillImageUrlsBatch = internalMutation({
         };
       }
 
-      case "categories": {
+      case 'categories': {
         let categories: any[];
         let hasMore = false;
         let nextCursor: string | undefined;
 
         if (cursor) {
-          const result = await ctx.db.query("categories").order("asc").paginate({ numItems: limit, cursor }) as any;
+          const result = (await ctx.db.query('categories').order('asc').paginate({ numItems: limit, cursor })) as any;
           categories = result.page;
           hasMore = result.hasMore;
           nextCursor = result.continueCursor;
         } else {
-          categories = await ctx.db.query("categories").order("asc").take(limit);
+          categories = await ctx.db.query('categories').order('asc').take(limit);
           hasMore = categories.length === limit;
         }
 
@@ -213,18 +213,18 @@ export const backfillImageUrlsBatch = internalMutation({
         };
       }
 
-      case "products": {
+      case 'products': {
         let products: any[];
         let hasMore = false;
         let nextCursor: string | undefined;
 
         if (cursor) {
-          const result = await ctx.db.query("products").order("asc").paginate({ numItems: limit, cursor }) as any;
+          const result = (await ctx.db.query('products').order('asc').paginate({ numItems: limit, cursor })) as any;
           products = result.page;
           hasMore = result.hasMore;
           nextCursor = result.continueCursor;
         } else {
-          products = await ctx.db.query("products").order("asc").take(limit);
+          products = await ctx.db.query('products').order('asc').take(limit);
           hasMore = products.length === limit;
         }
 
@@ -300,14 +300,12 @@ export const runBackfillImageUrls = internalMutation({
 
       // Safety limit to prevent infinite loops
       if (batches > 1000) {
-        throw new Error("Too many batches processed, possible infinite loop");
+        throw new Error('Too many batches processed, possible infinite loop');
       }
     } while (cursor);
 
     return {
-      message: dryRun
-        ? `Dry run completed: ${totalUpdated} records would be updated`
-        : `Migration completed: ${totalUpdated} records updated`,
+      message: dryRun ? `Dry run completed: ${totalUpdated} records would be updated` : `Migration completed: ${totalUpdated} records updated`,
       totalProcessed,
       totalUpdated,
       batches,
@@ -329,12 +327,10 @@ export const getBackfillStatus = internalQuery({
     const { table } = args;
 
     switch (table) {
-      case "organizations": {
-        const all = await ctx.db.query("organizations").collect();
-        const withUrls = all.filter(org => org.logoUrl || org.bannerImageUrl).length;
-        const needingMigration = all.filter(org =>
-          (org.logo && !org.logoUrl) || (org.bannerImage && !org.bannerImageUrl)
-        ).length;
+      case 'organizations': {
+        const all = await ctx.db.query('organizations').collect();
+        const withUrls = all.filter((org) => org.logoUrl || org.bannerImageUrl).length;
+        const needingMigration = all.filter((org) => (org.logo && !org.logoUrl) || (org.bannerImage && !org.bannerImageUrl)).length;
 
         return {
           totalRecords: all.length,
@@ -343,12 +339,10 @@ export const getBackfillStatus = internalQuery({
         };
       }
 
-      case "organizationMembers": {
-        const all = await ctx.db.query("organizationMembers").collect();
-        const withUrls = all.filter(member => member.organizationInfo?.logoUrl).length;
-        const needingMigration = all.filter(member =>
-          member.organizationInfo?.logo && !member.organizationInfo.logoUrl
-        ).length;
+      case 'organizationMembers': {
+        const all = await ctx.db.query('organizationMembers').collect();
+        const withUrls = all.filter((member) => member.organizationInfo?.logoUrl).length;
+        const needingMigration = all.filter((member) => member.organizationInfo?.logo && !member.organizationInfo.logoUrl).length;
 
         return {
           totalRecords: all.length,
@@ -357,12 +351,10 @@ export const getBackfillStatus = internalQuery({
         };
       }
 
-      case "organizationInviteLinks": {
-        const all = await ctx.db.query("organizationInviteLinks").collect();
-        const withUrls = all.filter(invite => invite.organizationInfo?.logoUrl).length;
-        const needingMigration = all.filter(invite =>
-          invite.organizationInfo?.logo && !invite.organizationInfo.logoUrl
-        ).length;
+      case 'organizationInviteLinks': {
+        const all = await ctx.db.query('organizationInviteLinks').collect();
+        const withUrls = all.filter((invite) => invite.organizationInfo?.logoUrl).length;
+        const needingMigration = all.filter((invite) => invite.organizationInfo?.logo && !invite.organizationInfo.logoUrl).length;
 
         return {
           totalRecords: all.length,
@@ -371,12 +363,10 @@ export const getBackfillStatus = internalQuery({
         };
       }
 
-      case "categories": {
-        const all = await ctx.db.query("categories").collect();
-        const withUrls = all.filter(category => category.organizationInfo?.logoUrl).length;
-        const needingMigration = all.filter(category =>
-          category.organizationInfo?.logo && !category.organizationInfo.logoUrl
-        ).length;
+      case 'categories': {
+        const all = await ctx.db.query('categories').collect();
+        const withUrls = all.filter((category) => category.organizationInfo?.logoUrl).length;
+        const needingMigration = all.filter((category) => category.organizationInfo?.logo && !category.organizationInfo.logoUrl).length;
 
         return {
           totalRecords: all.length,
@@ -385,12 +375,10 @@ export const getBackfillStatus = internalQuery({
         };
       }
 
-      case "products": {
-        const all = await ctx.db.query("products").collect();
-        const withUrls = all.filter(product => product.organizationInfo?.logoUrl).length;
-        const needingMigration = all.filter(product =>
-          product.organizationInfo?.logo && !product.organizationInfo.logoUrl
-        ).length;
+      case 'products': {
+        const all = await ctx.db.query('products').collect();
+        const withUrls = all.filter((product) => product.organizationInfo?.logoUrl).length;
+        const needingMigration = all.filter((product) => product.organizationInfo?.logo && !product.organizationInfo.logoUrl).length;
 
         return {
           totalRecords: all.length,

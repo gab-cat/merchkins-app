@@ -1,88 +1,78 @@
-"use client"
+'use client';
 
-import React, { useEffect, useMemo, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ProductCard } from './product-card'
-import { Doc } from '@/convex/_generated/dataModel'
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ProductCard } from './product-card';
+import { Doc } from '@/convex/_generated/dataModel';
 
-type Product = Doc<'products'>
+type Product = Doc<'products'>;
 
-export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const [q, setQ] = useState(searchParams.get('q') ?? '')
-  type SortOption = 'newest' | 'popular' | 'rating' | 'price_low' | 'price_high'
-  const [sortBy, setSortBy] = useState<SortOption>('newest')
+export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [q, setQ] = useState(searchParams.get('q') ?? '');
+  type SortOption = 'newest' | 'popular' | 'rating' | 'price_low' | 'price_high';
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
 
   useEffect(() => {
-    setQ(searchParams.get('q') ?? '')
-  }, [searchParams])
+    setQ(searchParams.get('q') ?? '');
+  }, [searchParams]);
 
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
-  )
+  );
   const searchArgs = q.trim()
     ? {
         query: q.trim(),
         limit: 50,
         ...(organization?._id ? { organizationId: organization._id } : {}),
       }
-    : 'skip'
-  const searchResult = useQuery(api.products.queries.index.searchProducts, searchArgs)
+    : 'skip';
+  const searchResult = useQuery(api.products.queries.index.searchProducts, searchArgs);
 
-  const loading = q.trim() !== '' && searchResult === undefined
+  const loading = q.trim() !== '' && searchResult === undefined;
   const products = useMemo(() => {
-    const list = searchResult?.products ?? []
-    const copy = [...list]
+    const list = searchResult?.products ?? [];
+    const copy = [...list];
     copy.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return b.createdAt - a.createdAt
+          return b.createdAt - a.createdAt;
         case 'rating':
-          if (b.rating !== a.rating) return b.rating - a.rating
-          return b.reviewsCount - a.reviewsCount
+          if (b.rating !== a.rating) return b.rating - a.rating;
+          return b.reviewsCount - a.reviewsCount;
         case 'price_low':
-          return (a.minPrice ?? Number.MAX_VALUE) - (b.minPrice ?? Number.MAX_VALUE)
+          return (a.minPrice ?? Number.MAX_VALUE) - (b.minPrice ?? Number.MAX_VALUE);
         case 'price_high':
-          return (b.maxPrice ?? 0) - (a.maxPrice ?? 0)
+          return (b.maxPrice ?? 0) - (a.maxPrice ?? 0);
         case 'popular':
-          if (b.totalOrders !== a.totalOrders) return b.totalOrders - a.totalOrders
-          return b.viewCount - a.viewCount
+          if (b.totalOrders !== a.totalOrders) return b.totalOrders - a.totalOrders;
+          return b.viewCount - a.viewCount;
         default:
-          return 0
+          return 0;
       }
-    })
-    return copy
-  }, [searchResult, sortBy])
+    });
+    return copy;
+  }, [searchResult, sortBy]);
 
-  function handleSubmit (e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    router.push(
-      orgSlug
-        ? `/o/${orgSlug}/search?q=${encodeURIComponent(q.trim())}`
-        : `/search?q=${encodeURIComponent(q.trim())}`
-    )
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    router.push(orgSlug ? `/o/${orgSlug}/search?q=${encodeURIComponent(q.trim())}` : `/search?q=${encodeURIComponent(q.trim())}`);
   }
 
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3" role="search">
         <div className="flex-1">
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search products..."
-            aria-label="Search products"
-            className="h-10"
-          />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products..." aria-label="Search products" className="h-10" />
         </div>
         <div className="flex gap-2">
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
@@ -97,7 +87,9 @@ export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
               <SelectItem value="price_high">Price: High to Low</SelectItem>
             </SelectContent>
           </Select>
-          <Button type="submit" className="h-10 px-6">Search</Button>
+          <Button type="submit" className="h-10 px-6">
+            Search
+          </Button>
         </div>
       </form>
 
@@ -110,10 +102,7 @@ export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {loading
           ? new Array(10).fill(null).map((_, i) => (
-              <Card
-                key={`skeleton-${i}`}
-                className="overflow-hidden rounded-xl border bg-card shadow-sm py-0 animate-pulse"
-              >
+              <Card key={`skeleton-${i}`} className="overflow-hidden rounded-xl border bg-card shadow-sm py-0 animate-pulse">
                 <div className="aspect-[4/3] bg-secondary skeleton" />
                 <CardHeader className="p-3 space-y-2">
                   <CardTitle className="h-4 w-2/3 rounded bg-secondary" />
@@ -151,7 +140,5 @@ export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
         </div>
       )}
     </div>
-  )
+  );
 }
-
-

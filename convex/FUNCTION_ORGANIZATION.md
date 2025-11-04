@@ -5,6 +5,7 @@ This documentation explains the modular organization pattern implemented for Con
 ## Pattern Overview
 
 Instead of defining query/mutation functions inline within each file, we separate:
+
 1. **Function arguments and handler logic** (in individual files)
 2. **Function definitions** (in index files)
 
@@ -55,21 +56,18 @@ convex/
 
 ```typescript
 // convex/users/queries/getCurrentUser.ts
-import { QueryCtx } from "../../_generated/server";
-import { v } from "convex/values";
+import { QueryCtx } from '../../_generated/server';
+import { v } from 'convex/values';
 
 export const getCurrentUserArgs = {
   clerkId: v.string(),
 };
 
-export const getCurrentUserHandler = async (
-  ctx: QueryCtx,
-  args: { clerkId: string }
-) => {
+export const getCurrentUserHandler = async (ctx: QueryCtx, args: { clerkId: string }) => {
   const user = await ctx.db
-    .query("users")
-    .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
-    .filter((q) => q.eq(q.field("isDeleted"), false))
+    .query('users')
+    .withIndex('by_clerkId', (q) => q.eq('clerkId', args.clerkId))
+    .filter((q) => q.eq(q.field('isDeleted'), false))
     .first();
 
   return user;
@@ -80,8 +78,8 @@ export const getCurrentUserHandler = async (
 
 ```typescript
 // convex/users/queries/index.ts
-import { query } from "../../_generated/server";
-import { getCurrentUserArgs, getCurrentUserHandler } from "./getCurrentUser";
+import { query } from '../../_generated/server';
+import { getCurrentUserArgs, getCurrentUserHandler } from './getCurrentUser';
 
 export const getCurrentUser = query({
   args: getCurrentUserArgs,
@@ -93,25 +91,24 @@ export const getCurrentUser = query({
 
 ```typescript
 // convex/users/index.ts
-export * from "./queries/index";
-export * from "./mutations/index";
+export * from './queries/index';
+export * from './mutations/index';
 ```
 
 ## Type Safety
 
 ### Args Type Definition
+
 ```typescript
 export const getUserByIdArgs = {
-  userId: v.id("users"),
+  userId: v.id('users'),
 };
 ```
 
 ### Handler Type Definition
+
 ```typescript
-export const getUserByIdHandler = async (
-  ctx: QueryCtx,
-  args: { userId: Id<"users"> }
-) => {
+export const getUserByIdHandler = async (ctx: QueryCtx, args: { userId: Id<'users'> }) => {
   // Implementation
 };
 ```
@@ -119,36 +116,40 @@ export const getUserByIdHandler = async (
 ## Usage Examples
 
 ### Client-Side Usage (Same as before)
-```typescript
-import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
 
-const user = useQuery(api.users.getCurrentUser, { clerkId: "user_123" });
+```typescript
+import { api } from '@/convex/_generated/api';
+import { useQuery } from 'convex/react';
+
+const user = useQuery(api.users.getCurrentUser, { clerkId: 'user_123' });
 ```
 
 ### Testing Handler Functions
+
 ```typescript
 // You can now test handlers independently
-import { getCurrentUserHandler } from "@/convex/users/queries/getCurrentUser";
+import { getCurrentUserHandler } from '@/convex/users/queries/getCurrentUser';
 
 // Mock ctx and test the handler logic
 const mockCtx = createMockContext();
-const result = await getCurrentUserHandler(mockCtx, { clerkId: "test_id" });
+const result = await getCurrentUserHandler(mockCtx, { clerkId: 'test_id' });
 ```
 
 ## Migration Guide
 
 ### Before (Traditional Pattern)
+
 ```typescript
 export const getCurrentUser = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
     // implementation here
-  }
+  },
 });
 ```
 
 ### After (New Pattern)
+
 ```typescript
 // In implementation file
 export const getCurrentUserArgs = { clerkId: v.string() };
@@ -166,14 +167,17 @@ export const getCurrentUser = query({
 ## Domains Implemented
 
 ✅ **Users Domain**
+
 - Queries: getCurrentUser, getUserById, getUserByEmail, getUsers
 - Mutations: updateProfile
 
 ✅ **Organizations Domain**
+
 - Queries: getOrganizationById, getOrganizations
 - Mutations: createOrganization
 
 ✅ **Permissions Domain**
+
 - Queries: getPermissions, getPermissionUsageSummary
 - Mutations: createPermission
 

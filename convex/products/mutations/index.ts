@@ -1,33 +1,28 @@
-import { mutation, internalMutation } from "../../_generated/server";
+import { mutation, internalMutation } from '../../_generated/server';
 
 // Import args and handlers
-import { createProductArgs, createProductHandler } from "./createProduct";
-import { updateProductArgs, updateProductHandler } from "./updateProduct";
-import { deleteProductArgs, deleteProductHandler } from "./deleteProduct";
-import { restoreProductArgs, restoreProductHandler } from "./restoreProduct";
-import { updateProductStatsArgs, updateProductStatsHandler } from "./updateProductStats";
-import { 
-  addVariantArgs, 
-  addVariantHandler, 
-  removeVariantArgs, 
+import { createProductArgs, createProductHandler } from './createProduct';
+import { updateProductArgs, updateProductHandler } from './updateProduct';
+import { deleteProductArgs, deleteProductHandler } from './deleteProduct';
+import { restoreProductArgs, restoreProductHandler } from './restoreProduct';
+import { updateProductStatsArgs, updateProductStatsHandler } from './updateProductStats';
+import {
+  addVariantArgs,
+  addVariantHandler,
+  removeVariantArgs,
   removeVariantHandler,
   updateVariantArgs,
-  updateVariantHandler
-} from "./manageVariants";
-import {
-  bulkUpdateInventoryArgs,
-  bulkUpdateInventoryHandler,
-  bulkUpdatePricesArgs,
-  bulkUpdatePricesHandler
-} from "./bulkOperations";
+  updateVariantHandler,
+} from './manageVariants';
+import { bulkUpdateInventoryArgs, bulkUpdateInventoryHandler, bulkUpdatePricesArgs, bulkUpdatePricesHandler } from './bulkOperations';
 import {
   updateProductImagesArgs,
   updateProductImagesHandler,
   updateVariantImageArgs,
   updateVariantImageHandler,
   updateVariantStatusArgs,
-  updateVariantStatusHandler
-} from "./manageProductImages";
+  updateVariantStatusHandler,
+} from './manageProductImages';
 
 // Export mutation functions
 export const createProduct = mutation({

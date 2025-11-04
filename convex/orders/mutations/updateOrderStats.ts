@@ -1,38 +1,23 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
 
 // Internal stats updater for orders (e.g., payment updates)
 export const updateOrderStatsArgs = {
-  orderId: v.id("orders"),
-  paymentStatus: v.optional(
-    v.union(
-      v.literal("PENDING"),
-      v.literal("DOWNPAYMENT"),
-      v.literal("PAID"),
-      v.literal("REFUNDED")
-    )
-  ),
-  status: v.optional(
-    v.union(
-      v.literal("PENDING"),
-      v.literal("PROCESSING"),
-      v.literal("READY"),
-      v.literal("DELIVERED"),
-      v.literal("CANCELLED")
-    )
-  ),
-  actorId: v.optional(v.id("users")),
+  orderId: v.id('orders'),
+  paymentStatus: v.optional(v.union(v.literal('PENDING'), v.literal('DOWNPAYMENT'), v.literal('PAID'), v.literal('REFUNDED'))),
+  status: v.optional(v.union(v.literal('PENDING'), v.literal('PROCESSING'), v.literal('READY'), v.literal('DELIVERED'), v.literal('CANCELLED'))),
+  actorId: v.optional(v.id('users')),
   actorName: v.optional(v.string()),
 };
 
 export const updateOrderStatsHandler = async (
   ctx: MutationCtx,
   args: {
-    orderId: Id<"orders">;
-    paymentStatus?: "PENDING" | "DOWNPAYMENT" | "PAID" | "REFUNDED";
-    status?: "PENDING" | "PROCESSING" | "READY" | "DELIVERED" | "CANCELLED";
-    actorId?: Id<"users">;
+    orderId: Id<'orders'>;
+    paymentStatus?: 'PENDING' | 'DOWNPAYMENT' | 'PAID' | 'REFUNDED';
+    status?: 'PENDING' | 'PROCESSING' | 'READY' | 'DELIVERED' | 'CANCELLED';
+    actorId?: Id<'users'>;
     actorName?: string;
   }
 ) => {
@@ -49,9 +34,7 @@ export const updateOrderStatsHandler = async (
   // Optionally update order status with history (requires actor info)
   if (args.status && args.status !== order.status) {
     if (!args.actorId || !args.actorName) {
-      throw new Error(
-        "actorId and actorName are required to update order status",
-      );
+      throw new Error('actorId and actorName are required to update order status');
     }
     updates.status = args.status;
     const history = [
@@ -70,5 +53,3 @@ export const updateOrderStatsHandler = async (
   await ctx.db.patch(args.orderId, updates);
   return { success: true };
 };
-
-

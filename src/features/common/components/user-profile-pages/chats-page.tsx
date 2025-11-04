@@ -1,18 +1,18 @@
-"use client"
+'use client';
 
-import React from 'react'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Button } from '@/components/ui/button'
-import { MessageSquare, Clock } from 'lucide-react'
-import { Doc } from '@/convex/_generated/dataModel'
-import Link from 'next/link'
-import { SettingsHeader, SettingsList, SettingsRow } from './settings'
+import React from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Button } from '@/components/ui/button';
+import { MessageSquare, Clock } from 'lucide-react';
+import { Doc } from '@/convex/_generated/dataModel';
+import Link from 'next/link';
+import { SettingsHeader, SettingsList, SettingsRow } from './settings';
 
-type ChatRoom = Doc<"chatRooms">
+type ChatRoom = Doc<'chatRooms'>;
 
 export function ChatsPage() {
-  const rooms = useQuery(api.chats.queries.index.getChatRooms, {}) as ChatRoom[] | undefined
+  const rooms = useQuery(api.chats.queries.index.getChatRooms, {}) as ChatRoom[] | undefined;
 
   if (rooms === undefined) {
     return (
@@ -21,7 +21,7 @@ export function ChatsPage() {
         <div className="h-16 w-full bg-muted animate-pulse rounded" />
         <div className="h-16 w-full bg-muted animate-pulse rounded" />
       </div>
-    )
+    );
   }
 
   if (!rooms || rooms.length === 0) {
@@ -34,7 +34,7 @@ export function ChatsPage() {
           <Link href="/chats">Start Chat</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -56,9 +56,7 @@ export function ChatsPage() {
                 <div className="flex items-center gap-3">
                   <MessageSquare className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">
-                      {room.name || `Chat ${room._id.slice(-6)}`}
-                    </p>
+                    <p className="text-sm font-medium">{room.name || `Chat ${room._id.slice(-6)}`}</p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
                       {new Date(room._creationTime).toLocaleDateString()}
@@ -74,5 +72,5 @@ export function ChatsPage() {
         </SettingsRow>
       </SettingsList>
     </div>
-  )
+  );
 }

@@ -1,19 +1,19 @@
-'use client'
+'use client';
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { showToast } from '@/lib/toast'
-import { useMemo, useState } from 'react'
-import { Doc, Id } from '@/convex/_generated/dataModel'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { showToast } from '@/lib/toast';
+import { useMemo, useState } from 'react';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 
-type Payment = Doc<'payments'>
+type Payment = Doc<'payments'>;
 
 const schema = z.object({
   amount: z.string().min(1, 'Amount is required'),
@@ -22,20 +22,20 @@ const schema = z.object({
   referenceNo: z.string().optional(),
   memo: z.string().optional(),
   status: z.enum(['PENDING', 'VERIFIED', 'FAILED']),
-})
+});
 
-type FormValues = z.infer<typeof schema>
+type FormValues = z.infer<typeof schema>;
 
 interface ReceivePaymentDialogProps {
-  orderId: Id<'orders'>
-  customerId: Id<'users'>
-  organizationId: Id<'organizations'>
-  defaultAmount?: number
-  defaultCurrency?: string
-  onCreated?: () => void
+  orderId: Id<'orders'>;
+  customerId: Id<'users'>;
+  organizationId: Id<'organizations'>;
+  defaultAmount?: number;
+  defaultCurrency?: string;
+  onCreated?: () => void;
 }
 
-export function ReceivePaymentDialog ({
+export function ReceivePaymentDialog({
   orderId,
   customerId,
   organizationId,
@@ -43,17 +43,17 @@ export function ReceivePaymentDialog ({
   defaultCurrency = 'PHP',
   onCreated,
 }: ReceivePaymentDialogProps) {
-  const createPayment = useMutation(api.payments.mutations.index.createPayment)
-  const payments = useQuery(api.payments.queries.index.getPayments, { orderId })
+  const createPayment = useMutation(api.payments.mutations.index.createPayment);
+  const payments = useQuery(api.payments.queries.index.getPayments, { orderId });
 
   const verifiedTotal = useMemo(() => {
-    if (!payments) return 0
+    if (!payments) return 0;
     return (payments.payments ?? payments)
       .filter((p: Payment) => p.paymentStatus === 'VERIFIED')
-      .reduce((s: number, p: Payment) => s + (p.amount || 0), 0)
-  }, [payments])
+      .reduce((s: number, p: Payment) => s + (p.amount || 0), 0);
+  }, [payments]);
 
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -65,9 +65,9 @@ export function ReceivePaymentDialog ({
       memo: '',
       status: 'VERIFIED',
     },
-  })
+  });
 
-  async function handleSubmit (values: FormValues) {
+  async function handleSubmit(values: FormValues) {
     try {
       await createPayment({
         organizationId,
@@ -81,13 +81,13 @@ export function ReceivePaymentDialog ({
         referenceNo: values.referenceNo || 'XENDIT_PAYMENT',
         memo: values.memo || undefined,
         currency: values.currency,
-      })
-      showToast({ type: 'success', title: 'Payment recorded' })
-      setOpen(false)
-      onCreated?.()
+      });
+      showToast({ type: 'success', title: 'Payment recorded' });
+      setOpen(false);
+      onCreated?.();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to record payment'
-      showToast({ type: 'error', title: errorMessage })
+      const errorMessage = err instanceof Error ? err.message : 'Failed to record payment';
+      showToast({ type: 'error', title: errorMessage });
     }
   }
 
@@ -99,23 +99,17 @@ export function ReceivePaymentDialog ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Record payment</DialogTitle>
-          <DialogDescription>
-            Enter payment details. Verified payments will update the order balance.
-          </DialogDescription>
+          <DialogDescription>Enter payment details. Verified payments will update the order balance.</DialogDescription>
         </DialogHeader>
 
-        <div className="mb-3 text-xs text-muted-foreground">
-          Already verified: {verifiedTotal.toFixed(2)}
-        </div>
+        <div className="mb-3 text-xs text-muted-foreground">Already verified: {verifiedTotal.toFixed(2)}</div>
 
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs text-muted-foreground">Amount</label>
               <Input inputMode="decimal" {...form.register('amount')} />
-              {form.formState.errors.amount && (
-                <div className="mt-1 text-xs text-destructive">{form.formState.errors.amount.message as string}</div>
-              )}
+              {form.formState.errors.amount && <div className="mt-1 text-xs text-destructive">{form.formState.errors.amount.message as string}</div>}
             </div>
             <div>
               <label className="mb-1 block text-xs text-muted-foreground">Currency</label>
@@ -131,8 +125,10 @@ export function ReceivePaymentDialog ({
                   <SelectValue placeholder="Select method" />
                 </SelectTrigger>
                 <SelectContent>
-                  {['CASH','BANK_TRANSFER','GCASH','MAYA','OTHERS'].map((m) => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  {['CASH', 'BANK_TRANSFER', 'GCASH', 'MAYA', 'OTHERS'].map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -144,8 +140,10 @@ export function ReceivePaymentDialog ({
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {['PENDING','VERIFIED','FAILED'].map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  {['PENDING', 'VERIFIED', 'FAILED'].map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -173,9 +171,7 @@ export function ReceivePaymentDialog ({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-export default ReceivePaymentDialog
-
-
+export default ReceivePaymentDialog;

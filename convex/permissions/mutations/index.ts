@@ -1,14 +1,14 @@
-import { mutation } from "../../_generated/server";
+import { mutation } from '../../_generated/server';
 
 // Import all permission mutation handlers and args
-import { createPermissionArgs, createPermissionHandler } from "./createPermission";
-import { assignOrganizationPermissionArgs, assignOrganizationPermissionHandler } from "./assignOrganizationPermission";
-import { assignUserPermissionArgs, assignUserPermissionHandler } from "./assignUserPermission";
-import { bulkAssignUserPermissionsArgs, bulkAssignUserPermissionsHandler } from "./bulkAssignUserPermissions";
-import { deletePermissionArgs, deletePermissionHandler } from "./deletePermission";
-import { revokeOrganizationPermissionArgs, revokeOrganizationPermissionHandler } from "./revokeOrganizationPermission";
-import { revokeUserPermissionArgs, revokeUserPermissionHandler } from "./revokeUserPermission";
-import { updatePermissionArgs, updatePermissionHandler } from "./updatePermission";
+import { createPermissionArgs, createPermissionHandler } from './createPermission';
+import { assignOrganizationPermissionArgs, assignOrganizationPermissionHandler } from './assignOrganizationPermission';
+import { assignUserPermissionArgs, assignUserPermissionHandler } from './assignUserPermission';
+import { bulkAssignUserPermissionsArgs, bulkAssignUserPermissionsHandler } from './bulkAssignUserPermissions';
+import { deletePermissionArgs, deletePermissionHandler } from './deletePermission';
+import { revokeOrganizationPermissionArgs, revokeOrganizationPermissionHandler } from './revokeOrganizationPermission';
+import { revokeUserPermissionArgs, revokeUserPermissionHandler } from './revokeUserPermission';
+import { updatePermissionArgs, updatePermissionHandler } from './updatePermission';
 
 // Export all permission mutations
 export const createPermission = mutation({

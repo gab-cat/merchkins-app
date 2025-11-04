@@ -1,12 +1,12 @@
-"use client"
+'use client';
 
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function SuperAdminOverviewPage () {
-  const orgAnalytics = useQuery(api.organizations.queries.index.getOrganizationAnalytics, {})
-  const userAnalytics = useQuery(api.users.queries.index.getUserAnalytics, {})
+export default function SuperAdminOverviewPage() {
+  const orgAnalytics = useQuery(api.organizations.queries.index.getOrganizationAnalytics, {});
+  const userAnalytics = useQuery(api.users.queries.index.getUserAnalytics, {});
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
@@ -40,7 +40,5 @@ export default function SuperAdminOverviewPage () {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
-

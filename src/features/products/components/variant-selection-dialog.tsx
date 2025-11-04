@@ -1,42 +1,42 @@
-"use client"
+'use client';
 
-import React, { useState, useMemo } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { R2Image } from '@/src/components/ui/r2-image'
-import { Check, X, Menu, Ruler, X as CloseIcon } from 'lucide-react'
-import { computeEffectivePrice } from '@/lib/utils'
+import React, { useState, useMemo } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { R2Image } from '@/src/components/ui/r2-image';
+import { Check, X, Menu, Ruler, X as CloseIcon } from 'lucide-react';
+import { computeEffectivePrice } from '@/lib/utils';
 
 interface ProductVariant {
-  variantId: string
-  variantName: string
-  price: number
-  inventory: number
-  imageUrl?: string
-  isActive: boolean
+  variantId: string;
+  variantName: string;
+  price: number;
+  inventory: number;
+  imageUrl?: string;
+  isActive: boolean;
   sizes?: Array<{
-    id: string
-    label: string
-    price?: number
-  }>
+    id: string;
+    label: string;
+    price?: number;
+  }>;
 }
 
 interface ProductImage {
-  imageUrl: string[]
+  imageUrl: string[];
 }
 
 interface VariantSelectionDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  productTitle: string
-  productImages: string[]
-  variants: ProductVariant[]
-  selectedVariantId?: string
-  selectedSizeId?: string
-  onVariantChange: (variantId: string | undefined) => void
-  onSizeChange: (sizeId: string | undefined) => void
-  onConfirm: () => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  productTitle: string;
+  productImages: string[];
+  variants: ProductVariant[];
+  selectedVariantId?: string;
+  selectedSizeId?: string;
+  onVariantChange: (variantId: string | undefined) => void;
+  onSizeChange: (sizeId: string | undefined) => void;
+  onConfirm: () => void;
 }
 
 export function VariantSelectionDialog({
@@ -51,53 +51,50 @@ export function VariantSelectionDialog({
   onSizeChange,
   onConfirm,
 }: VariantSelectionDialogProps) {
-  const [tempVariantId, setTempVariantId] = useState<string | undefined>(selectedVariantId)
-  const [tempSizeId, setTempSizeId] = useState<string | undefined>(selectedSizeId)
+  const [tempVariantId, setTempVariantId] = useState<string | undefined>(selectedVariantId);
+  const [tempSizeId, setTempSizeId] = useState<string | undefined>(selectedSizeId);
 
   // Reset temp values when dialog opens
   React.useEffect(() => {
     if (open) {
-      setTempVariantId(selectedVariantId)
-      setTempSizeId(selectedSizeId)
+      setTempVariantId(selectedVariantId);
+      setTempSizeId(selectedSizeId);
     }
-  }, [open, selectedVariantId, selectedSizeId])
+  }, [open, selectedVariantId, selectedSizeId]);
 
-  const activeVariants = useMemo(
-    () => variants.filter((v) => v.isActive),
-    [variants]
-  )
+  const activeVariants = useMemo(() => variants.filter((v) => v.isActive), [variants]);
 
   const selectedVariant = useMemo(() => {
-    return activeVariants.find((v) => v.variantId === tempVariantId)
-  }, [activeVariants, tempVariantId])
+    return activeVariants.find((v) => v.variantId === tempVariantId);
+  }, [activeVariants, tempVariantId]);
 
   const selectedSize = useMemo(() => {
-    return selectedVariant?.sizes?.find((s) => s.id === tempSizeId)
-  }, [selectedVariant, tempSizeId])
+    return selectedVariant?.sizes?.find((s) => s.id === tempSizeId);
+  }, [selectedVariant, tempSizeId]);
 
   const effectivePrice = useMemo(() => {
-    if (!selectedVariant) return 0
-    return computeEffectivePrice(selectedVariant, selectedSize)
-  }, [selectedVariant, selectedSize])
+    if (!selectedVariant) return 0;
+    return computeEffectivePrice(selectedVariant, selectedSize);
+  }, [selectedVariant, selectedSize]);
 
   const handleVariantSelect = (variantId: string) => {
-    setTempVariantId(variantId)
+    setTempVariantId(variantId);
     // Reset size when changing variant
-    setTempSizeId(undefined)
-  }
+    setTempSizeId(undefined);
+  };
 
   const handleSizeSelect = (sizeId: string) => {
-    setTempSizeId(sizeId)
-  }
+    setTempSizeId(sizeId);
+  };
 
   const handleConfirm = () => {
-    onVariantChange(tempVariantId)
-    onSizeChange(tempSizeId)
-    onConfirm()
-  }
+    onVariantChange(tempVariantId);
+    onSizeChange(tempSizeId);
+    onConfirm();
+  };
 
-  const hasSizes = selectedVariant?.sizes && selectedVariant.sizes.length > 0
-  const canConfirm = tempVariantId && (!hasSizes || tempSizeId)
+  const hasSizes = selectedVariant?.sizes && selectedVariant.sizes.length > 0;
+  const canConfirm = tempVariantId && (!hasSizes || tempSizeId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -114,13 +111,7 @@ export function VariantSelectionDialog({
           <div className="flex gap-4">
             <div className="w-24 h-24 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
               {productImages[0] && (
-                <R2Image
-                  fileKey={productImages[0]}
-                  alt={productTitle}
-                  width={96}
-                  height={96}
-                  className="w-full h-full object-cover"
-                />
+                <R2Image fileKey={productImages[0]} alt={productTitle} width={96} height={96} className="w-full h-full object-cover" />
               )}
             </div>
             <div className="flex-1 space-y-2">
@@ -157,9 +148,7 @@ export function VariantSelectionDialog({
                     type="button"
                     onClick={() => handleVariantSelect(variant.variantId)}
                     className={`cursor-pointer relative w-full rounded-lg border transition-all duration-200 touch-manipulation overflow-hidden group ${
-                      tempVariantId === variant.variantId
-                        ? 'border-primary bg-accent/10'
-                        : 'border-border hover:border-primary/30 bg-card'
+                      tempVariantId === variant.variantId ? 'border-primary bg-accent/10' : 'border-border hover:border-primary/30 bg-card'
                     }`}
                   >
                     {variant.imageUrl && (
@@ -174,9 +163,7 @@ export function VariantSelectionDialog({
                       </div>
                     )}
                     <div className="p-3">
-                      <div className="text-sm font-semibold text-primary text-left truncate">
-                        {variant.variantName}
-                      </div>
+                      <div className="text-sm font-semibold text-primary text-left truncate">{variant.variantName}</div>
                       <div className="text-xs font-medium text-muted-foreground">
                         {new Intl.NumberFormat(undefined, {
                           style: 'currency',
@@ -200,9 +187,7 @@ export function VariantSelectionDialog({
                     type="button"
                     onClick={() => handleVariantSelect(variant.variantId)}
                     className={`cursor-pointer p-3 rounded-lg border text-left transition-all duration-200 ${
-                      tempVariantId === variant.variantId
-                        ? 'border-accent bg-accent/10'
-                        : 'border-border hover:border-primary/30'
+                      tempVariantId === variant.variantId ? 'border-accent bg-accent/10' : 'border-border hover:border-primary/30'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -215,9 +200,7 @@ export function VariantSelectionDialog({
                           }).format(variant.price)}
                         </div>
                       </div>
-                      {tempVariantId === variant.variantId && (
-                        <Check className="h-4 w-4 text-primary" />
-                      )}
+                      {tempVariantId === variant.variantId && <Check className="h-4 w-4 text-primary" />}
                     </div>
                   </button>
                 ))}
@@ -268,16 +251,12 @@ export function VariantSelectionDialog({
             <CloseIcon className="h-4 w-4" />
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={!canConfirm}
-            className="min-w-24 flex items-center gap-2"
-          >
+          <Button onClick={handleConfirm} disabled={!canConfirm} className="min-w-24 flex items-center gap-2">
             <Check className="h-4 w-4" />
             Use Selection
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

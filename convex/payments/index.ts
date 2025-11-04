@@ -1,5 +1,3 @@
-export * from "./queries/index";
-export * from "./mutations/index";
-export * from "./actions/index";
-
-
+export * from './queries/index';
+export * from './mutations/index';
+export * from './actions/index';

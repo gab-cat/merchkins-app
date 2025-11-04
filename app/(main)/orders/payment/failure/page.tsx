@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
@@ -14,10 +14,7 @@ export default function PaymentFailurePage() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
-  const order = useQuery(
-    api.orders.queries.index.getOrderById,
-    orderId ? { orderId: orderId as Id<'orders'> } : 'skip'
-  );
+  const order = useQuery(api.orders.queries.index.getOrderById, orderId ? { orderId: orderId as Id<'orders'> } : 'skip');
 
   useEffect(() => {
     // Scroll to top when page loads
@@ -32,9 +29,7 @@ export default function PaymentFailurePage() {
             <XCircle className="h-16 w-16 mx-auto" />
           </div>
           <h1 className="text-2xl font-bold mb-4">Invalid Request</h1>
-          <p className="text-muted-foreground mb-6">
-            No order ID provided. Please check your order details.
-          </p>
+          <p className="text-muted-foreground mb-6">No order ID provided. Please check your order details.</p>
           <Link href="/orders">
             <Button>View My Orders</Button>
           </Link>
@@ -82,12 +77,8 @@ export default function PaymentFailurePage() {
             <div className="text-red-600 mb-4">
               <XCircle className="h-20 w-20 mx-auto" />
             </div>
-            <CardTitle className="text-3xl text-red-800">
-              Payment Failed
-            </CardTitle>
-            <p className="text-red-700 mt-2">
-              Your payment could not be processed at this time.
-            </p>
+            <CardTitle className="text-3xl text-red-800">Payment Failed</CardTitle>
+            <p className="text-red-700 mt-2">Your payment could not be processed at this time.</p>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="bg-white rounded-lg p-6 border border-red-200">
@@ -99,7 +90,9 @@ export default function PaymentFailurePage() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Order Total</span>
-                  <span className="font-semibold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(order.totalAmount || 0)}</span>
+                  <span className="font-semibold">
+                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(order.totalAmount || 0)}
+                  </span>
                 </div>
 
                 <div className="flex justify-between">
@@ -126,10 +119,7 @@ export default function PaymentFailurePage() {
 
             <div className="flex flex-col gap-3">
               {canRetryPayment && order.xenditInvoiceUrl && (
-                <Button
-                  className="w-full"
-                  onClick={() => window.location.href = order.xenditInvoiceUrl!}
-                >
+                <Button className="w-full" onClick={() => (window.location.href = order.xenditInvoiceUrl!)}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Try Payment Again
                 </Button>

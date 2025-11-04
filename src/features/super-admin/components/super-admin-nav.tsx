@@ -1,17 +1,9 @@
-"use client"
+'use client';
 
-import Link from 'next/link'
-import {
-  LayoutDashboard,
-  Building2,
-  Users,
-  ShieldCheck,
-  ScrollText,
-  Megaphone,
-  BarChart3,
-} from 'lucide-react'
+import Link from 'next/link';
+import { LayoutDashboard, Building2, Users, ShieldCheck, ScrollText, Megaphone, BarChart3 } from 'lucide-react';
 
-export function SuperAdminNav () {
+export function SuperAdminNav() {
   return (
     <nav className="space-y-0.5">
       <Link className="flex items-center gap-2 rounded px-2.5 py-1.5 text-sm transition-colors hover:bg-secondary" href="/super-admin/overview">
@@ -43,7 +35,5 @@ export function SuperAdminNav () {
         <span>Analytics</span>
       </Link>
     </nav>
-  )
+  );
 }
-
-

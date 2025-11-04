@@ -1,26 +1,13 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id, Doc } from "../../_generated/dataModel";
-import { internal } from "../../_generated/api";
-import {
-  requireAuthentication,
-  validateUserExists,
-  sanitizeString,
-  logAction,
-} from "../../helpers";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id, Doc } from '../../_generated/dataModel';
+import { internal } from '../../_generated/api';
+import { requireAuthentication, validateUserExists, sanitizeString, logAction } from '../../helpers';
 
 export const sendMessageArgs = {
-  chatRoomId: v.id("chatRooms"),
+  chatRoomId: v.id('chatRooms'),
   content: v.string(),
-  messageType: v.optional(
-    v.union(
-      v.literal("text"),
-      v.literal("image"),
-      v.literal("file"),
-      v.literal("system"),
-      v.literal("announcement")
-    )
-  ),
+  messageType: v.optional(v.union(v.literal('text'), v.literal('image'), v.literal('file'), v.literal('system'), v.literal('announcement'))),
   attachments: v.optional(
     v.array(
       v.object({
@@ -31,19 +18,19 @@ export const sendMessageArgs = {
       })
     )
   ),
-  replyToId: v.optional(v.id("chatMessages")),
-  mentions: v.optional(v.array(v.id("users"))),
+  replyToId: v.optional(v.id('chatMessages')),
+  mentions: v.optional(v.array(v.id('users'))),
 };
 
 export const sendMessageHandler = async (
   ctx: MutationCtx,
   args: {
-    chatRoomId: Id<"chatRooms">;
+    chatRoomId: Id<'chatRooms'>;
     content: string;
-    messageType?: "text" | "image" | "file" | "system" | "announcement";
+    messageType?: 'text' | 'image' | 'file' | 'system' | 'announcement';
     attachments?: Array<{ url: string; name: string; size?: number; mimeType?: string }>;
-    replyToId?: Id<"chatMessages">;
-    mentions?: Array<Id<"users">>;
+    replyToId?: Id<'chatMessages'>;
+    mentions?: Array<Id<'users'>>;
   }
 ) => {
   const currentUser = await requireAuthentication(ctx);
@@ -52,37 +39,37 @@ export const sendMessageHandler = async (
   // Validate room exists and active
   const chatRoom = await ctx.db.get(args.chatRoomId);
   if (!chatRoom || !chatRoom.isActive) {
-    throw new Error("Chat room not found or inactive");
+    throw new Error('Chat room not found or inactive');
   }
 
   // Check membership: either embedded or in chatParticipants
   let isMember = !!(chatRoom.embeddedParticipants || []).find((p) => p.userId === currentUser._id && p.isActive);
   if (!isMember) {
     const membership = await ctx.db
-      .query("chatParticipants")
-      .withIndex("by_chat_and_user", (q) => q.eq("chatRoomId", args.chatRoomId).eq("userId", currentUser._id))
-      .filter((q) => q.eq(q.field("isActive"), true))
+      .query('chatParticipants')
+      .withIndex('by_chat_and_user', (q) => q.eq('chatRoomId', args.chatRoomId).eq('userId', currentUser._id))
+      .filter((q) => q.eq(q.field('isActive'), true))
       .first();
     isMember = !!membership;
   }
   if (!isMember) {
-    throw new Error("You are not a participant of this chat room");
+    throw new Error('You are not a participant of this chat room');
   }
 
   const content = sanitizeString(args.content);
   if (content.length === 0) {
-    throw new Error("Message cannot be empty");
+    throw new Error('Message cannot be empty');
   }
 
   // If replying, fetch minimal info for replyToInfo
-  let replyToInfo: Doc<"chatMessages"> | null = null;
+  let replyToInfo: Doc<'chatMessages'> | null = null;
   if (args.replyToId) {
     replyToInfo = await ctx.db.get(args.replyToId);
     if (!replyToInfo || replyToInfo.isDeleted) {
-      throw new Error("Cannot reply to a non-existent or deleted message");
+      throw new Error('Cannot reply to a non-existent or deleted message');
     }
     if (replyToInfo.chatRoomId !== args.chatRoomId) {
-      throw new Error("Reply target must be in the same chat room");
+      throw new Error('Reply target must be in the same chat room');
     }
   }
 
@@ -93,7 +80,7 @@ export const sendMessageHandler = async (
   }
 
   // Create message
-  const messageId = await ctx.db.insert("chatMessages", {
+  const messageId = await ctx.db.insert('chatMessages', {
     chatRoomId: args.chatRoomId,
     senderId: currentUser._id,
     senderInfo: {
@@ -103,14 +90,14 @@ export const sendMessageHandler = async (
       email: currentUser.email,
     },
     content,
-    messageType: args.messageType || "text",
+    messageType: args.messageType || 'text',
     attachments: args.attachments && args.attachments.length > 0 ? args.attachments : undefined,
     replyToId: args.replyToId,
     replyToInfo: replyToInfo
       ? {
           content: replyToInfo.content,
           senderId: replyToInfo.senderId,
-          senderName: `${replyToInfo.senderInfo.firstName || ""} ${replyToInfo.senderInfo.lastName || ""}`.trim(),
+          senderName: `${replyToInfo.senderInfo.firstName || ''} ${replyToInfo.senderInfo.lastName || ''}`.trim(),
         }
       : undefined,
     reactions: [],
@@ -135,13 +122,11 @@ export const sendMessageHandler = async (
 
   // Update unread counts
   const state = await ctx.db
-    .query("chatRoomState")
-    .withIndex("by_chat_room", (q) => q.eq("chatRoomId", args.chatRoomId))
+    .query('chatRoomState')
+    .withIndex('by_chat_room', (q) => q.eq('chatRoomId', args.chatRoomId))
     .unique();
   if (state) {
-    const updated = state.unreadCounts.map((uc) =>
-      uc.userId === currentUser._id ? { ...uc, lastReadAt: now } : { ...uc, count: uc.count + 1 }
-    );
+    const updated = state.unreadCounts.map((uc) => (uc.userId === currentUser._id ? { ...uc, lastReadAt: now } : { ...uc, count: uc.count + 1 }));
     await ctx.db.patch(state._id, { unreadCounts: updated, updatedAt: now });
   }
 
@@ -156,9 +141,9 @@ export const sendMessageHandler = async (
 
   await logAction(
     ctx,
-    "send_chat_message",
-    "DATA_CHANGE",
-    "LOW",
+    'send_chat_message',
+    'DATA_CHANGE',
+    'LOW',
     `Sent message in room ${args.chatRoomId}`,
     currentUser._id,
     chatRoom.organizationId,
@@ -167,5 +152,3 @@ export const sendMessageHandler = async (
 
   return messageId;
 };
-
-

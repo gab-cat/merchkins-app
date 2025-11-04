@@ -1,11 +1,11 @@
-import { mutation, internalMutation } from "../../_generated/server";
+import { mutation, internalMutation } from '../../_generated/server';
 
-import { createAnnouncementArgs, createAnnouncementHandler } from "./createAnnouncement";
-import { updateAnnouncementArgs, updateAnnouncementHandler } from "./updateAnnouncement";
-import { deleteAnnouncementArgs, deleteAnnouncementHandler } from "./deleteAnnouncement";
-import { restoreAnnouncementArgs, restoreAnnouncementHandler } from "./restoreAnnouncement";
-import { acknowledgeAnnouncementArgs, acknowledgeAnnouncementHandler } from "./manageAcknowledgment";
-import { updateAnnouncementStatsArgs, updateAnnouncementStatsHandler } from "./updateAnnouncementStats";
+import { createAnnouncementArgs, createAnnouncementHandler } from './createAnnouncement';
+import { updateAnnouncementArgs, updateAnnouncementHandler } from './updateAnnouncement';
+import { deleteAnnouncementArgs, deleteAnnouncementHandler } from './deleteAnnouncement';
+import { restoreAnnouncementArgs, restoreAnnouncementHandler } from './restoreAnnouncement';
+import { acknowledgeAnnouncementArgs, acknowledgeAnnouncementHandler } from './manageAcknowledgment';
+import { updateAnnouncementStatsArgs, updateAnnouncementStatsHandler } from './updateAnnouncementStats';
 
 export const createAnnouncement = mutation({
   args: createAnnouncementArgs,
@@ -36,5 +36,3 @@ export const updateAnnouncementStats = internalMutation({
   args: updateAnnouncementStatsArgs,
   handler: updateAnnouncementStatsHandler,
 });
-
-

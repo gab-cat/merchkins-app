@@ -1,6 +1,6 @@
-import { MutationCtx } from "../../_generated/server";
-import { v } from "convex/values";
-import { Id } from "../../_generated/dataModel";
+import { MutationCtx } from '../../_generated/server';
+import { v } from 'convex/values';
+import { Id } from '../../_generated/dataModel';
 import {
   requireAuthentication,
   requireOrganizationPermission,
@@ -9,10 +9,10 @@ import {
   validateNotEmpty,
   validateStringLength,
   validateOrganizationExists,
-} from "../../helpers";
+} from '../../helpers';
 
 export const replyToMessageArgs = {
-  parentMessageId: v.id("messages"),
+  parentMessageId: v.id('messages'),
   message: v.string(),
   attachments: v.optional(
     v.array(
@@ -24,17 +24,17 @@ export const replyToMessageArgs = {
       })
     )
   ),
-  assignedTo: v.optional(v.id("users")),
+  assignedTo: v.optional(v.id('users')),
   isInternalNote: v.optional(v.boolean()),
 };
 
 export const replyToMessageHandler = async (
   ctx: MutationCtx,
   args: {
-    parentMessageId: Id<"messages">;
+    parentMessageId: Id<'messages'>;
     message: string;
     attachments?: Array<{ filename: string; url: string; size: number; mimeType: string }>;
-    assignedTo?: Id<"users">;
+    assignedTo?: Id<'users'>;
     isInternalNote?: boolean;
   }
 ) => {
@@ -44,18 +44,18 @@ export const replyToMessageHandler = async (
   // Load parent
   const parent = await ctx.db.get(args.parentMessageId);
   if (!parent) {
-    throw new Error("Parent message not found");
+    throw new Error('Parent message not found');
   }
 
   // If message belongs to organization, require permission
   if (parent.organizationId) {
-    await requireOrganizationPermission(ctx, parent.organizationId, "MANAGE_TICKETS", "update");
+    await requireOrganizationPermission(ctx, parent.organizationId, 'MANAGE_TICKETS', 'update');
     await validateOrganizationExists(ctx, parent.organizationId);
   }
 
   // Validate inputs
-  validateNotEmpty(args.message, "Message");
-  validateStringLength(args.message, "Message", 1, 5000);
+  validateNotEmpty(args.message, 'Message');
+  validateStringLength(args.message, 'Message', 1, 5000);
 
   const text = sanitizeString(args.message);
   const attachments = (args.attachments || []).slice(0, 10);
@@ -66,12 +66,12 @@ export const replyToMessageHandler = async (
   const replyToInfo = {
     subject: parent.subject,
     message: parent.message,
-    senderName: `${parent.senderInfo?.firstName || ""} ${parent.senderInfo?.lastName || ""}`.trim() || parent.senderInfo?.email || "Unknown",
+    senderName: `${parent.senderInfo?.firstName || ''} ${parent.senderInfo?.lastName || ''}`.trim() || parent.senderInfo?.email || 'Unknown',
     sentAt: parent.createdAt,
   };
 
   // Reply message
-  const messageId = await ctx.db.insert("messages", {
+  const messageId = await ctx.db.insert('messages', {
     organizationId: parent.organizationId,
     isArchived: false,
     isRead: true,
@@ -93,7 +93,7 @@ export const replyToMessageHandler = async (
     email: parent.email,
     subject: parent.subject,
     message: text,
-    messageType: "REPLY" as const,
+    messageType: 'REPLY' as const,
     priority: parent.priority,
     conversationId: parent.conversationId || (parent._id as unknown as string),
     threadDepth: (parent.threadDepth || 0) + 1,
@@ -111,18 +111,10 @@ export const replyToMessageHandler = async (
   // Mark parent as read
   await ctx.db.patch(parent._id, { isRead: true, updatedAt: Date.now() });
 
-  await logAction(
-    ctx,
-    "reply_message",
-    "DATA_CHANGE",
-    "LOW",
-    `Replied to message ${parent._id}`,
-    currentUser._id,
-    parent.organizationId,
-    { parentMessageId: parent._id, messageId }
-  );
+  await logAction(ctx, 'reply_message', 'DATA_CHANGE', 'LOW', `Replied to message ${parent._id}`, currentUser._id, parent.organizationId, {
+    parentMessageId: parent._id,
+    messageId,
+  });
 
   return messageId;
 };
-
-

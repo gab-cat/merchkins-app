@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-export default function Loading () {
+export default function Loading() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="h-8 w-2/3 rounded bg-secondary animate-pulse" />
@@ -10,7 +10,5 @@ export default function Loading () {
         ))}
       </div>
     </div>
-  )
+  );
 }
-
-

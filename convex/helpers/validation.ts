@@ -1,6 +1,6 @@
-import { DataModel } from "../_generated/dataModel";
-import { GenericQueryCtx, GenericMutationCtx } from "convex/server";
-import { Doc, Id } from "../_generated/dataModel";
+import { DataModel } from '../_generated/dataModel';
+import { GenericQueryCtx, GenericMutationCtx } from 'convex/server';
+import { Doc, Id } from '../_generated/dataModel';
 
 type QueryCtx = GenericQueryCtx<DataModel>;
 type MutationCtx = GenericMutationCtx<DataModel>;
@@ -8,96 +8,78 @@ type MutationCtx = GenericMutationCtx<DataModel>;
 /**
  * Validate that a user exists and is active
  */
-export async function validateUserExists(
-  ctx: QueryCtx | MutationCtx,
-  userId: Id<"users">
-): Promise<Doc<"users">> {
+export async function validateUserExists(ctx: QueryCtx | MutationCtx, userId: Id<'users'>): Promise<Doc<'users'>> {
   const user = await ctx.db.get(userId);
-  
+
   if (!user || user.isDeleted) {
-    throw new Error("User not found or inactive");
+    throw new Error('User not found or inactive');
   }
-  
+
   return user;
 }
 
 /**
  * Validate that an organization exists and is active
  */
-export async function validateOrganizationExists(
-  ctx: QueryCtx | MutationCtx,
-  organizationId: Id<"organizations">
-): Promise<Doc<"organizations">> {
+export async function validateOrganizationExists(ctx: QueryCtx | MutationCtx, organizationId: Id<'organizations'>): Promise<Doc<'organizations'>> {
   const organization = await ctx.db.get(organizationId);
-  
+
   if (!organization || organization.isDeleted) {
-    throw new Error("Organization not found or inactive");
+    throw new Error('Organization not found or inactive');
   }
-  
+
   return organization;
 }
 
 /**
  * Validate that a product exists and is active
  */
-export async function validateProductExists(
-  ctx: QueryCtx | MutationCtx,
-  productId: Id<"products">
-): Promise<Doc<"products">> {
+export async function validateProductExists(ctx: QueryCtx | MutationCtx, productId: Id<'products'>): Promise<Doc<'products'>> {
   const product = await ctx.db.get(productId);
-  
+
   if (!product || product.isDeleted) {
-    throw new Error("Product not found or inactive");
+    throw new Error('Product not found or inactive');
   }
-  
+
   return product;
 }
 
 /**
  * Validate that an order exists and is active
  */
-export async function validateOrderExists(
-  ctx: QueryCtx | MutationCtx,
-  orderId: Id<"orders">
-): Promise<Doc<"orders">> {
+export async function validateOrderExists(ctx: QueryCtx | MutationCtx, orderId: Id<'orders'>): Promise<Doc<'orders'>> {
   const order = await ctx.db.get(orderId);
-  
+
   if (!order || order.isDeleted) {
-    throw new Error("Order not found or inactive");
+    throw new Error('Order not found or inactive');
   }
-  
+
   return order;
 }
 
 /**
  * Validate that a cart exists and is active
  */
-export async function validateCartExists(
-  ctx: QueryCtx | MutationCtx,
-  cartId: Id<"carts">
-): Promise<Doc<"carts">> {
+export async function validateCartExists(ctx: QueryCtx | MutationCtx, cartId: Id<'carts'>): Promise<Doc<'carts'>> {
   const cart = await ctx.db.get(cartId);
-  
+
   if (!cart) {
-    throw new Error("Cart not found");
+    throw new Error('Cart not found');
   }
-  
+
   return cart;
 }
 
 /**
  * Validate that a category exists and is active
  */
-export async function validateCategoryExists(
-  ctx: QueryCtx | MutationCtx,
-  categoryId: Id<"categories">
-): Promise<Doc<"categories">> {
+export async function validateCategoryExists(ctx: QueryCtx | MutationCtx, categoryId: Id<'categories'>): Promise<Doc<'categories'>> {
   const category = await ctx.db.get(categoryId);
-  
+
   if (!category || category.isDeleted) {
-    throw new Error("Category not found or inactive");
+    throw new Error('Category not found or inactive');
   }
-  
+
   return category;
 }
 
@@ -149,16 +131,11 @@ export function validateNonNegativeNumber(value: number, fieldName: string): voi
 /**
  * Validate string length
  */
-export function validateStringLength(
-  value: string,
-  fieldName: string,
-  minLength?: number,
-  maxLength?: number
-): void {
+export function validateStringLength(value: string, fieldName: string, minLength?: number, maxLength?: number): void {
   if (minLength && value.length < minLength) {
     throw new Error(`${fieldName} must be at least ${minLength} characters long`);
   }
-  
+
   if (maxLength && value.length > maxLength) {
     throw new Error(`${fieldName} must be no more than ${maxLength} characters long`);
   }
