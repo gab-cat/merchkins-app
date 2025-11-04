@@ -42,9 +42,9 @@ function StatusBadge ({ value }: { value: string }) {
 function formatCurrency (amount: number | undefined, currency?: string) {
   if (amount === undefined) return ''
   try {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'USD' }).format(amount)
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'PHP' }).format(amount)
   } catch {
-    return `$${amount.toFixed(2)}`
+    return `₱${amount.toFixed(2)}`
   }
 }
 

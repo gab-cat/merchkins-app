@@ -162,10 +162,10 @@ export function CheckoutPage () {
                             )}
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
-                            Qty {it.quantity} × ${it.productInfo.price.toFixed(2)}
+                            Qty {it.quantity} × {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(it.productInfo.price)}
                           </div>
                         </div>
-                        <div className="text-sm font-bold">${(it.quantity * it.productInfo.price).toFixed(2)}</div>
+                        <div className="text-sm font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(it.quantity * it.productInfo.price)}</div>
                       </div>
                     ))}
                   </div>
@@ -193,12 +193,12 @@ export function CheckoutPage () {
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <span>Items ({totals.quantity})</span>
-                  <span>${totals.amount.toFixed(2)}</span>
+                  <span>{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.amount)}</span>
                 </div>
                 <div className="h-px bg-border" />
                 <div className="flex items-center justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span className="text-primary">${totals.amount.toFixed(2)}</span>
+                  <span className="text-primary">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.amount)}</span>
                 </div>
 
                 {error && (

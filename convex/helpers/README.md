@@ -227,7 +227,7 @@ import {
 } from '../helpers';
 
 // Utility operations
-const price = formatCurrency(2999, 'USD'); // "$29.99"
+const price = formatCurrency(2999, 'PHP'); // "₱29.99"
 const inviteCode = generateInviteCode(8); // "ABC12345"
 const clean = sanitizeString("  Extra   spaces  "); // "Extra spaces"
 const timeAgo = getTimeAgo(timestamp); // "2h ago"

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
 import { CategoryProducts } from '@/src/features/categories/components/category-products'
+import { preloadQuery } from 'convex/nextjs'
 
 interface Params {
   params: Promise<{ orgSlug: string; slug: string }>
@@ -49,9 +50,43 @@ export default async function Page ({ params }: Params) {
       </div>
     )
   }
+  
+  // Preload organization query
+  const preloadedOrganization = await preloadQuery(
+    api.organizations.queries.index.getOrganizationBySlug,
+    { slug: orgSlug }
+  )
+  
+  // Preload category query
+  const preloadedCategory = await preloadQuery(
+    api.categories.queries.index.getCategoryBySlug,
+    { slug, organizationId: organization._id }
+  )
+  
+  // Fetch category to get categoryId for products query
+  const category = await client.query(api.categories.queries.index.getCategoryBySlug, {
+    slug,
+    organizationId: organization._id,
+  })
+  
+  // Preload products query if category exists
+  const preloadedProducts = category?._id
+    ? await preloadQuery(
+        api.products.queries.index.getProducts,
+        {
+          organizationId: organization._id,
+          categoryId: category._id,
+          sortBy: 'newest',
+          limit: 24,
+          offset: 0,
+          hasInventory: true,
+        }
+      )
+    : undefined
+  
   return (
     <div className="container mx-auto px-3 py-6">
-      <CategoryProducts slug={slug} orgSlug={orgSlug} />
+      <CategoryProducts slug={slug} orgSlug={orgSlug} preloadedOrganization={preloadedOrganization} preloadedCategory={preloadedCategory} preloadedProducts={preloadedProducts} />
     </div>
   )
 }

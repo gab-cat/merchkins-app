@@ -50,7 +50,7 @@ export default async function Head ({ params }: { params: Promise<{ orgSlug: str
       typeof offerPrice === 'number'
         ? {
             '@type': 'Offer',
-            priceCurrency: 'USD',
+            priceCurrency: 'PHP',
             price: Number(offerPrice.toFixed(2)),
             availability: (product.inventory ?? 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
             url: `/o/${organization.slug}/p/${product.slug}`,

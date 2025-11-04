@@ -9,9 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Star } from 'lucide-react'
-import { R2Image } from '@/src/components/ui/r2-image'
+import { ProductCard } from './product-card'
 import { Doc } from '@/convex/_generated/dataModel'
 
 type Product = Doc<'products'>
@@ -128,69 +126,21 @@ export function SearchResults ({ orgSlug }: { orgSlug?: string } = {}) {
               </Card>
             ))
           : products.map((p: Product, index: number) => (
-              <Link
+              <ProductCard
                 key={p._id}
-                href={orgSlug ? `/o/${orgSlug}/p/${p.slug}` : `/p/${p.slug}`}
-                aria-label={`View ${p.title}`}
-                className="group block"
-                data-testid="product-card"
-              >
-                <Card
-                  className={`overflow-hidden rounded-xl border bg-card shadow-sm py-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/20 card-enter card-enter-delay-${(index % 8) + 1}`}
-                >
-                  <div className="relative aspect-[4/3] w-full overflow-hidden">
-                    <R2Image
-                      fileKey={p.imageUrl?.[0]}
-                      alt={p.title}
-                      width={400}
-                      height={300}
-                      className="h-full w-full bg-secondary object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-                    <div className="pointer-events-none absolute left-1.5 top-1.5 flex flex-wrap gap-1">
-                      {p.isBestPrice && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 font-medium">
-                          Best price
-                        </Badge>
-                      )}
-                      {p.discountLabel && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 font-medium">
-                          {p.discountLabel}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </div>
-                  <CardHeader className="space-y-1 p-3">
-                    <CardTitle
-                      className="line-clamp-2 text-sm font-semibold leading-tight text-primary group-hover:text-primary/90 transition-colors"
-                      data-testid="product-card-title"
-                    >
-                      {p.title}
-                    </CardTitle>
-                    {p.description && (
-                      <p className="line-clamp-2 text-xs text-muted-foreground leading-relaxed">
-                        {p.description}
-                      </p>
-                    )}
-                  </CardHeader>
-                  <CardContent className="flex items-center justify-between p-3 pt-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-primary" data-testid="product-card-price">
-                        {p.minPrice !== undefined ? `$${p.minPrice.toFixed(2)}` : ''}
-                      </span>
-                      {p.rating && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Star size={12} className="fill-current text-yellow-400" />
-                          {p.rating.toFixed(1)}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-muted-foreground opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:text-primary font-medium">
-                      View →
-                    </span>
-                  </CardContent>
-                </Card>
-              </Link>
+                _id={p._id}
+                slug={p.slug}
+                title={p.title}
+                description={p.description}
+                imageUrl={p.imageUrl}
+                minPrice={p.minPrice}
+                rating={p.rating}
+                reviewsCount={p.reviewsCount}
+                isBestPrice={p.isBestPrice}
+                discountLabel={p.discountLabel}
+                orgSlug={orgSlug}
+                index={index}
+              />
             ))}
       </div>
 

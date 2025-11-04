@@ -25,11 +25,11 @@ function formatCurrency (amount?: number, currency?: string) {
   try {
     return new Intl.NumberFormat(undefined, {
       style: 'currency',
-      currency: currency || 'USD',
+      currency: currency || 'PHP',
       maximumFractionDigits: 2,
     }).format(amount)
   } catch {
-    return `${currency || 'USD'} ${amount.toFixed(2)}`
+    return `${currency || 'PHP'} ${amount.toFixed(2)}`
   }
 }
 
@@ -174,7 +174,7 @@ export function UserProfile ({ userId, organizationId }: UserProfileProps) {
             </div>
             <div className="rounded border p-3">
               <div className="text-xs text-muted-foreground">Total spent</div>
-              <div className="mt-1 text-xl font-semibold">{formatCurrency(analytics?.totalSpent || 0, 'USD')}</div>
+              <div className="mt-1 text-xl font-semibold">{formatCurrency(analytics?.totalSpent || 0, 'PHP')}</div>
             </div>
             <div className="rounded border p-3">
               <div className="text-xs text-muted-foreground">Organizations</div>

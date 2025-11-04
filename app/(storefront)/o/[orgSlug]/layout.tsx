@@ -2,8 +2,10 @@ import React from 'react'
 import type { Metadata } from 'next'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
+import { preloadQuery } from 'convex/nextjs'
 import { SiteHeader } from '@/src/features/common/components/site-header'
 import { SiteFooter } from '@/src/features/common/components/site-footer'
+import { OrgThemeProvider } from '@/src/features/organizations/components/org-theme-provider'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +21,12 @@ export default async function OrgLayout ({ children, params }: { children: React
   const { orgSlug } = await params
   const organization = await client.query(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug })
   const t = organization?.themeSettings
+
+  // Preload organization query for client-side hydration
+  const preloadedOrganization = await preloadQuery(
+    api.organizations.queries.index.getOrganizationBySlug,
+    { slug: orgSlug }
+  )
 
   const styleVars: Record<string, string> = {}
   if (t?.primaryColor) styleVars['--primary'] = t.primaryColor
@@ -44,6 +52,7 @@ export default async function OrgLayout ({ children, params }: { children: React
 
   return (
     <div className={wrapperClassName} style={styleVars as React.CSSProperties}>
+      <OrgThemeProvider preloadedOrganization={preloadedOrganization} />
       <SiteHeader />
       <div className="flex-1 max-w-7xl mx-auto w-full min-h-[80vh]">{children}</div>
       <SiteFooter />

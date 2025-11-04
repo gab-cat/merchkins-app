@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { usePathname } from 'next/navigation'
-import { useQuery } from 'convex/react'
+import { useQuery, usePreloadedQuery, type Preloaded } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
 /**
@@ -10,7 +10,18 @@ import { api } from '@/convex/_generated/api'
  * This ensures common components like the global header/footer adopt
  * the organization's colors, mode, and font.
  */
-export function OrgThemeController () {
+interface OrgThemeControllerProps {
+  preloadedOrganization?: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug>
+}
+
+// Inner component that uses preloaded query (must be inside HydrationBoundary)
+export function OrgThemeControllerWithPreload ({ preloadedOrganization }: { preloadedOrganization: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug> }) {
+  const organization = usePreloadedQuery(preloadedOrganization)
+  return <OrgThemeControllerInner organization={organization} />
+}
+
+// Main controller component that uses regular query
+export function OrgThemeController ({ preloadedOrganization }: OrgThemeControllerProps = {}) {
   const pathname = usePathname()
 
   const orgSlugFromPath = React.useMemo(() => {
@@ -42,10 +53,52 @@ export function OrgThemeController () {
 
   const slugToUse = orgSlugFromPath || persistedSlug
 
+  // Always call useQuery
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,
     slugToUse ? { slug: slugToUse } : ('skip' as unknown as { slug: string })
   )
+
+  // If we have a preloaded query, don't render here - it will be handled by OrgThemeProvider
+  if (preloadedOrganization) {
+    return null
+  }
+
+  return <OrgThemeControllerInner organization={organization} />
+}
+
+// Inner component that applies the theme
+function OrgThemeControllerInner ({ organization }: { organization: any }) {
+  const pathname = usePathname()
+
+  const orgSlugFromPath = React.useMemo(() => {
+    if (!pathname) return undefined
+    const segments = pathname.split('/').filter(Boolean)
+    if (segments[0] === 'o' && segments[1]) return segments[1]
+    return undefined
+  }, [pathname])
+
+  const [persistedSlug, setPersistedSlug] = React.useState<string | undefined>(undefined)
+
+  // Load persisted slug for non-org pages
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (orgSlugFromPath) {
+      localStorage.setItem('lastOrgSlug', orgSlugFromPath)
+      setPersistedSlug(orgSlugFromPath)
+      return
+    }
+    // Reset when visiting the main homepage only
+    if (pathname === '/') {
+      localStorage.removeItem('lastOrgSlug')
+      setPersistedSlug(undefined)
+      return
+    }
+    const last = localStorage.getItem('lastOrgSlug') || undefined
+    setPersistedSlug(last || undefined)
+  }, [orgSlugFromPath, pathname])
+
+  const slugToUse = orgSlugFromPath || persistedSlug
 
   const darkSetByThis = React.useRef(false)
 

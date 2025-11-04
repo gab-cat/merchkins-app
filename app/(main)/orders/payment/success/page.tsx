@@ -99,7 +99,7 @@ export default function PaymentSuccessPage() {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total Amount</span>
-                  <span className="font-semibold">${order.totalAmount?.toFixed(2)}</span>
+                  <span className="font-semibold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(order.totalAmount || 0)}</span>
                 </div>
 
                 <div className="flex justify-between">

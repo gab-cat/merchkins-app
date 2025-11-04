@@ -55,7 +55,7 @@ export function R2Image ({
   if (!computedUrl || hasError) return placeholder
 
   return (
-    <div className="relative overflow-hidden">
+    <div className={cn('relative overflow-hidden', fill && 'h-full w-full')}>
       <Image
         src={computedUrl}
         alt={alt}

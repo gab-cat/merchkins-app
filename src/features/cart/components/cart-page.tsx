@@ -135,12 +135,12 @@ export function CartPage () {
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <span>Items ({totals.totalItems})</span>
-                  <span>${totals.totalValue.toFixed(2)}</span>
+                  <span>{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.totalValue)}</span>
                 </div>
                 <div className="h-px bg-border" />
                 <div className="flex items-center justify-between font-bold text-lg">
                   <span>Selected total</span>
-                  <span className="text-primary">${totals.selectedValue.toFixed(2)}</span>
+                  <span className="text-primary">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.selectedValue)}</span>
                 </div>
 
                 <Link href="/checkout">
@@ -289,7 +289,7 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                   {item.productInfo.title}
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  ${item.productInfo.price.toFixed(2)} each
+                  {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price)} each
                 </div>
                 {product && (product.variants?.length ?? 0) > 0 && (
                   <div className="mt-2">
@@ -318,7 +318,7 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                               <DropdownMenuRadioItem key={v.variantId} value={v.variantId} className="text-xs">
                                 <div className="flex items-center justify-between w-full">
                                   <span>{v.variantName}</span>
-                                  <span className="ml-2 font-medium text-primary">${v.price.toFixed(2)}</span>
+                                  <span className="ml-2 font-medium text-primary">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}</span>
                                 </div>
                               </DropdownMenuRadioItem>
                             ))}
@@ -329,7 +329,7 @@ function CartLineItem ({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }
                 )}
               </div>
               <div className="text-right">
-                <div className="text-sm font-bold">${(item.productInfo.price * item.quantity).toFixed(2)}</div>
+                <div className="text-sm font-bold">{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price * item.quantity)}</div>
               </div>
             </div>
 

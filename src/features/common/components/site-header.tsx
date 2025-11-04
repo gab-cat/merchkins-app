@@ -69,16 +69,32 @@ export function SiteHeader () {
   const cart = useQuery(api.carts.queries.index.getCartByUser, {})
   const totalItems = useMemo(() => cart?.totalItems ?? 0, [cart])
 
-  // Unread counts - only run when authenticated
+  // Get current user and their organizations to check membership
+  const currentUser = useQuery(
+    api.users.queries.index.getCurrentUser,
+    clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string })
+  )
+  const userOrganizations = useQuery(
+    api.organizations.queries.index.getOrganizationsByUser,
+    currentUser?._id ? { userId: currentUser._id } : ('skip' as unknown as { userId: Id<'users'> })
+  )
+
+  // Check if user is a member of the current organization
+  const isMember = useMemo(() => {
+    if (!organization?._id || !userOrganizations) return false
+    return userOrganizations.some((org) => org._id === organization._id)
+  }, [organization?._id, userOrganizations])
+
+  // Unread counts - only run when authenticated AND member of organization
   const chatsUnread = useQuery(
     api.chats.queries.index.getUnreadCount,
-    isSignedIn && organization?._id 
+    isSignedIn && organization?._id && isMember
       ? { organizationId: organization._id } 
       : ('skip' as unknown as { organizationId?: Id<"organizations"> })
   )
   const ticketsUnread = useQuery(
     api.tickets.queries.index.getUnreadCount,
-    isSignedIn && organization?._id 
+    isSignedIn && organization?._id && isMember
       ? { organizationId: organization._id } 
       : ('skip' as unknown as { organizationId?: Id<"organizations">; forAssignee?: boolean })
   )
@@ -101,7 +117,7 @@ export function SiteHeader () {
   }
 
   const headerClassName = cn(
-    'sticky top-0 z-40 w-full border-b py-2',
+    'sticky top-0 z-40 w-full border-b pt-4',
     'supports-[backdrop-filter]:backdrop-blur-sm',
     organization && 'border-primary/40'
   )
@@ -283,7 +299,7 @@ export function SiteHeader () {
       </div>
 
       {/* Categories Bar */}
-      <div className="bg-white/95 backdrop-blur-sm border-t border-muted-foreground/10">
+      <div className="bg-white/95 backdrop-blur-sm shadow-sm">
         <div className="w-full px-4 py-1.5">
           <nav className="flex items-center gap-1 overflow-x-auto max-w-7xl mx-auto scrollbar-hide">
             <DropdownMenu>

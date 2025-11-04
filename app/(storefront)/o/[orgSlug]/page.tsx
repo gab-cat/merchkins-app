@@ -10,6 +10,7 @@ import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Megaphone, ExternalLink, MessageSquare, Ticket } from 'lucide-react'
+import { preloadQuery } from 'convex/nextjs'
 
 interface PageParams {
   params: Promise<{ orgSlug: string }>
@@ -69,6 +70,24 @@ export default async function Page ({ params }: PageParams) {
   const orgPinned = organization._id
     ? await client.query(api.announcements.queries.index.getPinnedAnnouncements, { organizationId: organization._id })
     : []
+
+  // Preload organization query
+  const preloadedOrganization = await preloadQuery(
+    api.organizations.queries.index.getOrganizationBySlug,
+    { slug: orgSlug }
+  )
+  
+  // Preload products query
+  const preloadedProducts = await preloadQuery(
+    api.products.queries.index.getPopularProducts,
+    { limit: 8, organizationId: organization._id }
+  )
+  
+  // Preload categories query
+  const preloadedCategories = await preloadQuery(
+    api.categories.queries.index.getCategories,
+    { organizationId: organization._id, isFeatured: true, isActive: true, limit: 6 }
+  )
 
   return (
     <div className="min-h-dvh flex flex-col">
@@ -163,10 +182,10 @@ export default async function Page ({ params }: PageParams) {
 
       {/* Pinned announcements */}
       {orgPinned && orgPinned.length > 0 && (
-        <section className="container mx-auto px-3 pt-5 sm:pt-6">
+        <section className="container mx-auto px-3 pt-8 sm:pt-10">
           <Card>
             <CardHeader>
-              <CardTitle className="inline-flex items-center gap-2">
+              <CardTitle className="inline-flex items-center gap-2 text-primary">
                 <Megaphone className="h-4 w-4" />
                 <span>Announcements</span>
               </CardTitle>
@@ -195,11 +214,11 @@ export default async function Page ({ params }: PageParams) {
       )}
 
       {/* Featured content */}
-      <section className="container mx-auto px-3 py-6">
-        <FeaturedCategories orgSlug={orgSlug} />
+      <section className="container mx-auto px-3 py-8 md:py-12">
+        <PopularProducts orgSlug={orgSlug} preloadedOrganization={preloadedOrganization} preloadedProducts={preloadedProducts} />
       </section>
-      <section className="container mx-auto px-3 py-6">
-        <PopularProducts orgSlug={orgSlug} />
+      <section className="container mx-auto px-3 py-8 md:py-12 bg-muted/30">
+        <FeaturedCategories orgSlug={orgSlug} preloadedOrganization={preloadedOrganization} preloadedCategories={preloadedCategories} />
       </section>
 
       {/* Helpful links */}
@@ -225,5 +244,3 @@ export default async function Page ({ params }: PageParams) {
     </div>
   )
 }
-
-

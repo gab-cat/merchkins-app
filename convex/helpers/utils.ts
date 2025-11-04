@@ -237,8 +237,8 @@ export async function isCategorySlugUnique(
 /**
  * Format currency amount
  */
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+export function formatCurrency(amount: number, currency: string = 'PHP'): string {
+  return new Intl.NumberFormat('en-PH', {
     style: 'currency',
     currency: currency,
   }).format(amount / 100); // Assuming amounts are stored in cents

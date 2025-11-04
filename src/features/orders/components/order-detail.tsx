@@ -26,7 +26,11 @@ interface OrderItemUI {
 
 function formatCurrency (amount: number | undefined) {
   if (amount === undefined) return ''
-  return `$${amount.toFixed(2)}`
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(amount)
+  } catch {
+    return `₱${amount.toFixed(2)}`
+  }
 }
 
 function StatusBadge ({ value }: { value: string }) {
