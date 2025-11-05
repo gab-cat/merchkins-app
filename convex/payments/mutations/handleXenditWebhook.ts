@@ -38,7 +38,7 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
 
   if (!orders) {
     console.error(`Order not found for external_id: ${orderNumber}`);
-    throw new Error('Order not found');
+    return { processed: false, reason: 'Order not found', statusCode: 404 };
   }
 
   const order = orders;

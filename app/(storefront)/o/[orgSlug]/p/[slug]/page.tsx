@@ -4,6 +4,7 @@ import { ProductDetailBoundary } from '@/src/features/products/components/produc
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/convex/_generated/api';
 import { preloadQuery } from 'convex/nextjs';
+import { buildR2PublicUrl } from '@/lib/utils';
 
 interface PageProps {
   params: Promise<{ orgSlug: string; slug: string }>;
@@ -90,6 +91,49 @@ export default async function Page({ params }: PageProps) {
     : undefined;
 
   return (
-    <ProductDetailBoundary slug={slug} orgSlug={orgSlug} preloadedProduct={preloadedProduct} preloadedRecommendations={preloadedRecommendations} />
+    <div>
+      <ProductDetailBoundary slug={slug} orgSlug={orgSlug} preloadedProduct={preloadedProduct} preloadedRecommendations={preloadedRecommendations} />
+      {/* Structured Data */}
+      {product && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Product',
+              name: product.title,
+              description: product.description || `Buy ${product.title} on Merchkins`,
+              image: product.imageUrl?.[0]
+                ? product.imageUrl[0].startsWith('http')
+                  ? product.imageUrl[0]
+                  : buildR2PublicUrl(product.imageUrl[0])
+                : undefined,
+              brand: organization ? { '@type': 'Brand', name: organization.name } : undefined,
+              offers: {
+                '@type': 'Offer',
+                price: product.minPrice || 0,
+                priceCurrency: 'USD',
+                availability: product.inventory > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                seller: organization
+                  ? {
+                      '@type': 'Organization',
+                      name: organization.name,
+                    }
+                  : undefined,
+              },
+              aggregateRating:
+                product.reviewsCount > 0
+                  ? {
+                      '@type': 'AggregateRating',
+                      ratingValue: product.rating,
+                      reviewCount: product.reviewsCount,
+                    }
+                  : undefined,
+              category: product.categoryInfo?.name,
+            }),
+          }}
+        />
+      )}
+    </div>
   );
 }

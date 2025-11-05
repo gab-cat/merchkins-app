@@ -504,14 +504,14 @@ function ProductGallery({ imageKeys }: { imageKeys: string[] }) {
   return (
     <div className="w-full space-y-3">
       <div className="relative overflow-hidden rounded-xl shadow-lg group cursor-pointer" onClick={handleImageClick}>
-        <div className="h-[400px] md:h-[500px] w-[400px] md:w-[500px] max-w-full mx-auto flex items-center justify-center bg-secondary">
+        <div className="h-[400px] md:h-[500px]   mx-auto flex items-center justify-center bg-secondary">
           <R2Image
             key={imageKeys[current]}
             fileKey={imageKeys[current]}
             alt="Product image"
             width={800}
             height={600}
-            className="rounded-xl object-cover object-center animate-in fade-in zoom-in-50 transition-transform duration-300 group-hover:scale-105"
+            className="rounded-xl object-cover object-center animate-in fade-in transition-transform duration-300 group-hover:scale-105"
           />
         </div>
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-200 rounded-xl flex items-center justify-center pointer-events-none">

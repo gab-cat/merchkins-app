@@ -2,6 +2,7 @@ import { httpRouter } from 'convex/server';
 import { httpAction } from './_generated/server';
 import { api, internal } from './_generated/api';
 import { Webhook } from 'svix';
+import { ConvexError } from 'convex/values';
 
 const http = httpRouter();
 
@@ -122,9 +123,14 @@ http.route({
 
       // Process the webhook event
       try {
-        await ctx.runMutation(internal.payments.mutations.index.handleXenditWebhook, {
+        const result = await ctx.runMutation(internal.payments.mutations.index.handleXenditWebhook, {
           webhookEvent,
         });
+
+        // Check if the order was not found
+        if (result.processed === false && result.reason === 'Order not found') {
+          return new Response('Order not found', { status: 404 });
+        }
       } catch (error) {
         console.error('Error processing Xendit webhook:', error);
         return new Response('Internal server error', { status: 500 });
@@ -146,7 +152,6 @@ http.route({
     try {
       const url = new URL(request.url);
       const slug = url.searchParams.get('slug');
-      console.log('Resolving organization slug:', slug);
 
       if (!slug) {
         return new Response('Missing slug parameter', { status: 400 });

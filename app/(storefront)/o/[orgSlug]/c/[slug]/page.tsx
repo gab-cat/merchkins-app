@@ -93,6 +93,50 @@ export default async function Page({ params }: Params) {
         preloadedCategory={preloadedCategory}
         preloadedProducts={preloadedProducts}
       />
+      {/* Structured Data */}
+      {category && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'CollectionPage',
+              name: category.name,
+              description: category.seoDescription || category.description || `Browse ${category.name} products on ${organization?.name}`,
+              url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com'}/o/${orgSlug}/c/${slug}`,
+              mainEntity: {
+                '@type': 'ItemList',
+                name: category.name,
+                description: category.seoDescription || category.description || `Browse ${category.name} products on ${organization?.name}`,
+                numberOfItems: category.activeProductCount || category.productCount,
+              },
+              breadcrumb: {
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  {
+                    '@type': 'ListItem',
+                    position: 1,
+                    name: 'Home',
+                    item: process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com',
+                  },
+                  {
+                    '@type': 'ListItem',
+                    position: 2,
+                    name: organization?.name,
+                    item: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com'}/o/${orgSlug}`,
+                  },
+                  {
+                    '@type': 'ListItem',
+                    position: 3,
+                    name: category.name,
+                    item: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com'}/o/${orgSlug}/c/${slug}`,
+                  },
+                ],
+              },
+            }),
+          }}
+        />
+      )}
     </div>
   );
 }

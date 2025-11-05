@@ -38,18 +38,51 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   if (isKey(faviconUrl) && faviconUrl) {
     faviconUrl = buildR2PublicUrl(faviconUrl) || '/favicon.ico';
   }
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com';
+
   return {
     title: `${organization.name} — Merchkins`,
-    description: organization.description || 'Organization storefront',
-    alternates: { canonical: `/o/${organization.slug}` },
+    description: organization.description || 'Organization storefront on Merchkins',
+    keywords: [organization.name, 'custom merch', 'personalized products', 'merchandise', 'organization', 'storefront'],
+    alternates: { canonical: `${baseUrl}/o/${organization.slug}` },
     icons: {
       icon: faviconUrl,
     },
     openGraph: {
       title: `${organization.name} — Merchkins`,
-      description: organization.description || 'Organization storefront',
-      url: `/o/${organization.slug}`,
-      images: ogImage ? [{ url: ogImage as string }] : undefined,
+      description: organization.description || 'Organization storefront on Merchkins',
+      url: `${baseUrl}/o/${organization.slug}`,
+      siteName: 'Merchkins',
+      locale: 'en_US',
+      type: 'website',
+      images: ogImage
+        ? [
+            {
+              url: ogImage as string,
+              width: 1200,
+              height: 630,
+              alt: organization.name,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${organization.name} — Merchkins`,
+      description: organization.description || 'Organization storefront on Merchkins',
+      images: ogImage ? [ogImage as string] : undefined,
+      creator: '@merchkins',
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
   };
 }
@@ -118,6 +151,25 @@ export default async function Page({ params }: PageParams) {
           </Link>
         </div>
       </section>
+
+      {/* Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: organization.name,
+            description: organization.description || `Custom merch and personalized products from ${organization.name}`,
+            url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com'}/o/${organization.slug}`,
+            logo: logoUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com'}/favicon.ico`,
+            image: bannerUrl || logoUrl,
+            sameAs: [
+              // Add social media URLs if available
+            ],
+          }),
+        }}
+      />
     </div>
   );
 }
