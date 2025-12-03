@@ -1,11 +1,36 @@
+import { Suspense } from 'react';
 import { AdminGuard } from '@/src/features/admin/components/admin-guard';
 import { OrgSettingsForm } from '@/src/features/organizations/components/org-settings-form';
 import { api } from '@/convex/_generated/api';
 import { notFound, redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AdminAnnouncementsList } from '@/src/features/organizations/components/admin-announcements-list';
 import { fetchQuery } from 'convex/nextjs';
+import { Settings, Megaphone } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Loading skeleton
+function SettingsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-64 mt-1" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const params = (await searchParams) || {};
@@ -37,10 +62,35 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ [
   if (!organization) return notFound();
 
   return (
-    <div className="space-y-6">
+    <div className="font-admin-body space-y-6">
       <AdminGuard />
-      <h1 className="text-2xl font-semibold">Organization Settings</h1>
-      <OrgSettingsForm organization={organization} />
+
+      {/* Page Header */}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Settings className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold font-admin-heading tracking-tight">Organization Settings</h1>
+            <p className="text-sm text-muted-foreground">Configure settings for {organization.name}</p>
+          </div>
+        </div>
+
+        {/* Breadcrumbs */}
+        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mt-2">
+          <a href={`/admin/overview?org=${orgSlug}`} className="hover:text-foreground transition-colors">
+            Admin
+          </a>
+          <span>/</span>
+          <span className="text-foreground">Settings</span>
+        </nav>
+      </div>
+
+      <Suspense fallback={<SettingsSkeleton />}>
+        <OrgSettingsForm organization={organization} />
+      </Suspense>
+
       <AnnouncementsPanel />
     </div>
   );
@@ -50,7 +100,11 @@ function AnnouncementsPanel() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Super-admin announcements</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Megaphone className="h-4 w-4" />
+          Super-admin Announcements
+        </CardTitle>
+        <CardDescription>Important announcements from the platform administrators</CardDescription>
       </CardHeader>
       <CardContent>
         <AdminAnnouncementsList />

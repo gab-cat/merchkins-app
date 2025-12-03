@@ -68,7 +68,7 @@ export const joinOrganizationHandler = async (
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      phone: user.phone,
+      phone: user.phone || '',
       imageUrl: user.imageUrl,
       isStaff: user.isStaff,
     },

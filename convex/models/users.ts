@@ -22,7 +22,7 @@ export const users = defineTable({
 
   imageUrl: v.optional(v.string()),
   email: v.string(),
-  phone: v.string(),
+  phone: v.optional(v.string()),
   isStaff: v.boolean(),
   isAdmin: v.boolean(),
   isSetupDone: v.boolean(),
@@ -63,7 +63,18 @@ export const users = defineTable({
     )
   ),
 
-  // User preferences
+  // Account settings (new format)
+  profileVisibility: v.optional(v.union(v.literal('public'), v.literal('private'))),
+  notificationPrefs: v.optional(
+    v.object({
+      emailNotifications: v.boolean(),
+      pushNotifications: v.boolean(),
+      orderUpdates: v.boolean(),
+      promotionalEmails: v.boolean(),
+    })
+  ),
+
+  // Legacy preferences (for backwards compatibility during migration)
   preferences: v.optional(
     v.object({
       notifications: v.object({

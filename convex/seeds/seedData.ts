@@ -39,17 +39,12 @@ export const seedData = internalMutation({
         lastLoginAt: now,
         lastOrderAt: undefined,
         organizationMemberships: undefined,
-        preferences: {
-          notifications: {
-            email: true,
-            push: false,
-            orderUpdates: true,
-            promotions: true,
-          },
-          privacy: {
-            profileVisibility: 'PUBLIC',
-            showActivity: true,
-          },
+        profileVisibility: 'public',
+        notificationPrefs: {
+          emailNotifications: true,
+          pushNotifications: true,
+          orderUpdates: true,
+          promotionalEmails: false,
         },
         createdAt: now,
         updatedAt: now,
@@ -425,17 +420,12 @@ export const seedData = internalMutation({
           lastLoginAt: now,
           lastOrderAt: undefined,
           organizationMemberships: undefined,
-          preferences: {
-            notifications: {
-              email: true,
-              push: false,
-              orderUpdates: true,
-              promotions: true,
-            },
-            privacy: {
-              profileVisibility: 'PUBLIC',
-              showActivity: true,
-            },
+          profileVisibility: 'public',
+          notificationPrefs: {
+            emailNotifications: true,
+            pushNotifications: true,
+            orderUpdates: true,
+            promotionalEmails: false,
           },
           createdAt: now,
           updatedAt: now,
@@ -463,7 +453,7 @@ export const seedData = internalMutation({
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
-            phone: user.phone,
+            phone: user.phone || '',
             imageUrl: user.imageUrl,
             isStaff: user.isStaff,
           },
@@ -713,7 +703,7 @@ export const seedData = internalMutation({
             firstName: orderCustomer.firstName,
             lastName: orderCustomer.lastName,
             email: orderCustomer.email,
-            phone: orderCustomer.phone,
+            phone: orderCustomer.phone || '',
             imageUrl: orderCustomer.imageUrl,
           },
           processorInfo: {

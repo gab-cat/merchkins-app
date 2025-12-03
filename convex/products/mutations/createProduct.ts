@@ -38,6 +38,15 @@ export const createProductArgs = {
       inventory: v.number(),
       imageUrl: v.optional(v.string()),
       isActive: v.optional(v.boolean()),
+      sizes: v.optional(
+        v.array(
+          v.object({
+            id: v.string(),
+            label: v.string(),
+            price: v.optional(v.number()),
+          })
+        )
+      ),
     })
   ),
 };
@@ -63,6 +72,11 @@ export const createProductHandler = async (
       inventory: number;
       imageUrl?: string;
       isActive?: boolean;
+      sizes?: Array<{
+        id: string;
+        label: string;
+        price?: number;
+      }>;
     }>;
   }
 ) => {
@@ -182,6 +196,13 @@ export const createProductHandler = async (
     inventory: variant.inventory,
     imageUrl: variant.imageUrl,
     isActive: variant.isActive !== undefined ? variant.isActive : true,
+    sizes: variant.sizes && variant.sizes.length > 0
+      ? variant.sizes.map((size) => ({
+          id: size.id,
+          label: sanitizeString(size.label),
+          price: size.price,
+        }))
+      : undefined,
     orderCount: 0,
     inCartCount: 0,
     isPopular: false,

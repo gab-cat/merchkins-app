@@ -14,12 +14,48 @@
   color: #adfc04;
 }
 
+/* Font utility classes */
+.font-heading {
+  font-family:
+    var(--font-outfit),
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.font-body {
+  font-family:
+    var(--font-dm-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+/* Admin-specific font utilities */
+.font-admin-heading {
+  font-family:
+    var(--font-geist),
+    system-ui,
+    -apple-system,
+    sans-serif;
+  letter-spacing: -0.025em;
+}
+
+.font-admin-body {
+  font-family:
+    var(--font-inter),
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-outfit), system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -61,7 +97,7 @@
 :root {
   --radius: 0.75rem;
   --background: #1d43d8;
-  --foreground: oklch(0.99 0.004 270);
+  --foreground: oklch(0.16 0.02 270);
   /* Defaults for header/footer theme variables */
   --header-bg: var(--primary);
   --header-fg: var(--primary-foreground);
@@ -105,7 +141,7 @@
 
 .dark {
   --background: #1d43d8;
-  --foreground: oklch(0.99 0.004 270);
+  --foreground: oklch(0.95 0.01 270);
   --card: oklch(0.12 0.02 270);
   --card-foreground: oklch(0.95 0.01 270);
   --popover: oklch(0.12 0.02 270);
@@ -245,6 +281,19 @@
 
     .animate-spin {
       animation: none;
+    }
+
+    /* Disable Framer Motion animations */
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    /* Disable transform animations */
+    [style*='transform'] {
+      transform: none !important;
     }
   }
 
@@ -459,7 +508,7 @@
     padding: 12px 16px !important;
     color: #1e293b !important;
     font-family:
-      'Poppins',
+      var(--font-dm-sans),
       system-ui,
       -apple-system,
       sans-serif !important;
@@ -485,5 +534,205 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Enhanced Typography */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .font-heading {
+    font-family:
+      var(--font-outfit),
+      system-ui,
+      -apple-system,
+      sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Gradient text with brand colors */
+  .text-gradient-brand {
+    background: linear-gradient(135deg, #1d43d8 0%, #4f7df9 50%, #adfc04 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Animated gradient background */
+  .bg-gradient-animated {
+    background: linear-gradient(-45deg, #1d43d8, #4f7df9, #1d43d8, #adfc04);
+    background-size: 400% 400%;
+    animation: gradient-animation 15s ease infinite;
+  }
+
+  @keyframes gradient-animation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Staggered fade-in animation classes */
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-stagger-1 {
+    animation-delay: 0.1s;
+  }
+  .animate-stagger-2 {
+    animation-delay: 0.2s;
+  }
+  .animate-stagger-3 {
+    animation-delay: 0.3s;
+  }
+  .animate-stagger-4 {
+    animation-delay: 0.4s;
+  }
+  .animate-stagger-5 {
+    animation-delay: 0.5s;
+  }
+
+  /* Enhanced card styles */
+  .card-hover-lift {
+    transition:
+      transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 0.3s ease;
+  }
+
+  .card-hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -15px rgba(29, 67, 216, 0.15);
+  }
+
+  /* Glow effects */
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(29, 67, 216, 0.3);
+  }
+
+  .glow-neon {
+    box-shadow: 0 0 20px rgba(173, 252, 4, 0.4);
+  }
+
+  /* Border gradient */
+  .border-gradient {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(white, white) padding-box,
+      linear-gradient(135deg, #1d43d8, #adfc04) border-box;
+    border-radius: 1rem;
+  }
+
+  /* Shimmer effect */
+  .shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Section divider gradient */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #1d43d8 50%, transparent);
+  }
+
+  /* Frosted glass effect */
+  .frosted-glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Dot pattern background */
+  .bg-dot-pattern {
+    background-image: radial-gradient(#1d43d8 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Grid pattern background */
+  .bg-grid-pattern {
+    background-image:
+      linear-gradient(rgba(29, 67, 216, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(29, 67, 216, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Glassmorphism utility */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Smooth underline animation */
+  .underline-animate {
+    position: relative;
+  }
+
+  .underline-animate::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: width 0.3s ease-out;
+  }
+
+  .underline-animate:hover::after {
+    width: 100%;
+  }
+
+  /* Enhanced hover lift effect */
+  .hover-lift {
+    transition:
+      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.3s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hover-lift:hover {
+      transform: none;
+    }
+
+    .underline-animate::after {
+      transition: none;
+    }
   }
 }

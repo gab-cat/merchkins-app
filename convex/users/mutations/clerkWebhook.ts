@@ -50,17 +50,12 @@ export const handleUserCreatedHandler = async (ctx: MutationCtx, args: { clerkUs
       totalSpent: 0,
       reviewCount: 0,
       organizationMemberships: [],
-      preferences: {
-        notifications: {
-          email: true,
-          push: true,
-          orderUpdates: true,
-          promotions: false,
-        },
-        privacy: {
-          profileVisibility: 'PUBLIC',
-          showActivity: true,
-        },
+      profileVisibility: 'public',
+      notificationPrefs: {
+        emailNotifications: true,
+        pushNotifications: true,
+        orderUpdates: true,
+        promotionalEmails: false,
       },
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -120,17 +115,12 @@ export const handleUserUpdatedHandler = async (ctx: MutationCtx, args: { clerkUs
         totalSpent: 0,
         reviewCount: 0,
         organizationMemberships: [],
-        preferences: {
-          notifications: {
-            email: true,
-            push: true,
-            orderUpdates: true,
-            promotions: false,
-          },
-          privacy: {
-            profileVisibility: 'PUBLIC',
-            showActivity: true,
-          },
+        profileVisibility: 'public',
+        notificationPrefs: {
+          emailNotifications: true,
+          pushNotifications: true,
+          orderUpdates: true,
+          promotionalEmails: false,
         },
         createdAt: Date.now(),
         updatedAt: Date.now(),

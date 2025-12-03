@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ShoppingBag, Package, Sparkles } from 'lucide-react';
+import { ShoppingBag, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface GlobalLoadingProps {
@@ -18,116 +18,95 @@ export function GlobalLoading({ className }: GlobalLoadingProps) {
 
   return (
     <div
-      className={cn(
-        'fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-primary/95 via-primary/90 to-primary/95 backdrop-blur-md',
-        className
-      )}
+      className={cn('fixed inset-0 z-[9999] flex items-center justify-center bg-white', className)}
       aria-live="polite"
       aria-label="Loading"
       role="status"
     >
-      {/* Animated background grid */}
-      <div className="absolute inset-0 overflow-hidden opacity-5">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)',
-            backgroundSize: '50px 50px',
-            animation: 'grid-move 20s linear infinite',
-          }}
-        />
-      </div>
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-primary/[0.02]" />
 
-      {/* Floating Card */}
+      {/* Subtle grid pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]" />
+
+      {/* Main content */}
       <div
         className={cn(
-          'relative flex flex-col items-center gap-8 rounded-3xl bg-white px-16 py-12 shadow-[0_20px_60px_rgba(0,0,0,0.3)] transition-all duration-100',
+          'relative flex flex-col items-center gap-8 transition-all duration-500',
           isVisible ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'
         )}
       >
         {/* Decorative sparkles */}
-        <div className="absolute -right-3 -top-3 animate-pulse">
-          <Sparkles className="h-6 w-6 text-primary/60" style={{ animationDuration: '2s' }} />
+        <div className="absolute -right-12 -top-8 animate-pulse">
+          <Sparkles className="h-5 w-5 text-primary/30" style={{ animationDuration: '2s' }} />
         </div>
-        <div className="absolute -bottom-3 -left-3 animate-pulse" style={{ animationDelay: '1s' }}>
-          <Sparkles className="h-5 w-5 text-primary/40" style={{ animationDuration: '2s' }} />
-        </div>
-        <div className="absolute right-8 top-8 animate-pulse" style={{ animationDelay: '0.5s' }}>
-          <div className="h-2 w-2 rounded-full bg-primary/30" style={{ animationDuration: '2s' }} />
+        <div className="absolute -bottom-8 -left-12 animate-pulse" style={{ animationDelay: '1s' }}>
+          <Sparkles className="h-4 w-4 text-primary/20" style={{ animationDuration: '2s' }} />
         </div>
 
-        {/* Brand Logo/Icon Container */}
-        <div className="relative h-32 w-32">
+        {/* Logo Icon Container */}
+        <div className="relative h-28 w-28">
           {/* Outer glow ring */}
-          <div className="absolute inset-0 animate-ping rounded-full bg-primary/20 opacity-20" style={{ animationDuration: '2s' }} />
+          <div className="absolute inset-0 animate-ping rounded-full bg-primary/10" style={{ animationDuration: '2.5s' }} />
 
-          {/* Main icon container with gradient */}
-          <div className="relative flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary/10 to-primary/20 shadow-inner">
-            {/* Shopping Bag - Main Icon with bounce */}
-            <ShoppingBag className="h-16 w-16 animate-bounce text-primary drop-shadow-lg" style={{ animationDuration: '1.5s' }} />
+          {/* Secondary ring */}
+          <div className="absolute inset-2 animate-pulse rounded-full border-2 border-primary/10" style={{ animationDuration: '2s' }} />
 
-            {/* Orbiting Package Icon 1 */}
-            <div className="absolute inset-0 animate-spin" style={{ animationDuration: '4s' }}>
-              <Package className="absolute -right-3 top-2 h-8 w-8 text-primary/70 drop-shadow-md" />
-            </div>
-
-            {/* Orbiting Package Icon 2 */}
-            <div className="absolute inset-0 animate-spin" style={{ animationDuration: '4s', animationDirection: 'reverse', animationDelay: '2s' }}>
-              <Package className="absolute -left-3 bottom-2 h-8 w-8 text-primary/70 drop-shadow-md" />
-            </div>
-
-            {/* Accent circle */}
-            <div
-              className="absolute inset-0 animate-pulse rounded-full border-2 border-primary/20"
+          {/* Main icon container */}
+          <div className="relative flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary/5 to-primary/10 shadow-lg shadow-primary/5">
+            {/* Shopping Bag Icon */}
+            <ShoppingBag
+              className="h-12 w-12 text-primary drop-shadow-sm"
               style={{
-                animationDuration: '3s',
-                filter: 'blur(1px)',
+                animation: 'gentle-bounce 2s ease-in-out infinite',
               }}
             />
           </div>
         </div>
 
         {/* Brand Name */}
-        <div className="flex flex-col items-center gap-4">
-          <h1 className="font-genty !text-primary text-5xl font-bold tracking-wide">Merchkins</h1>
+        <div className="flex flex-col items-center gap-5">
+          <h1 className="relative z-10 inline-flex items-center bg-primary px-4 py-2 md:px-5 md:py-2.5 rounded-full shadow-md">
+            <span className="font-genty text-4xl md:text-5xl font-bold tracking-wide">
+              <span className="text-white">Merch</span>
+              <span className="text-brand-neon">kins</span>
+            </span>
+          </h1>
 
-          {/* Loading indicator dots */}
-          <div className="flex gap-2">
-            <span
-              className="h-3 w-3 animate-bounce rounded-full bg-primary shadow-lg"
+          {/* Modern loading bar */}
+          <div className="relative h-1 w-48 overflow-hidden rounded-full bg-primary/10">
+            <div
+              className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-primary/80 to-primary"
               style={{
-                animationDelay: '0s',
-                animationDuration: '1s',
-              }}
-            />
-            <span
-              className="h-3 w-3 animate-bounce rounded-full bg-primary shadow-lg"
-              style={{
-                animationDelay: '0.2s',
-                animationDuration: '1s',
-              }}
-            />
-            <span
-              className="h-3 w-3 animate-bounce rounded-full bg-primary shadow-lg"
-              style={{
-                animationDelay: '0.4s',
-                animationDuration: '1s',
+                animation: 'loading-bar 1.5s ease-in-out infinite',
               }}
             />
           </div>
 
-          <p className="text-base font-medium text-primary/80">Preparing your experience</p>
+          <p className="text-sm font-medium text-muted-foreground">Loading your experience...</p>
         </div>
       </div>
 
       <style jsx>{`
-        @keyframes grid-move {
+        @keyframes gentle-bounce {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-8px);
+          }
+        }
+
+        @keyframes loading-bar {
           0% {
-            transform: translate(0, 0);
+            transform: translateX(-100%);
+          }
+          50% {
+            transform: translateX(0%);
           }
           100% {
-            transform: translate(50px, 50px);
+            transform: translateX(100%);
           }
         }
       `}</style>

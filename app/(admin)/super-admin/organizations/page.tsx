@@ -2,19 +2,64 @@
 
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@clerk/nextjs';
+import {
+  Building2,
+  Plus,
+  Search,
+  Globe,
+  Lock,
+  EyeOff,
+  Users,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Link as LinkIcon,
+  Shield,
+  UserPlus,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Check,
+} from 'lucide-react';
+import { PageHeader, StatusBadge, EmptyState } from '@/src/components/admin';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import type { Id } from '@/convex/_generated/dataModel';
+
+interface Organization {
+  _id: string;
+  name: string;
+  slug: string;
+  organizationType: 'PUBLIC' | 'PRIVATE' | 'SECRET';
+  memberCount: number;
+}
+function OrganizationTypeIcon({ type }: { type: 'PUBLIC' | 'PRIVATE' | 'SECRET' }) {
+  switch (type) {
+    case 'PUBLIC':
+      return <Globe className="h-4 w-4 text-emerald-500" />;
+    case 'PRIVATE':
+      return <Lock className="h-4 w-4 text-blue-500" />;
+    case 'SECRET':
+      return <EyeOff className="h-4 w-4 text-amber-500" />;
+  }
+}
 
 export default function SuperAdminOrganizationsPage() {
   const { userId: clerkId } = useAuth();
   const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip');
   const [search, setSearch] = useState('');
   const [orgType, setOrgType] = useState<undefined | 'PUBLIC' | 'PRIVATE' | 'SECRET'>(undefined);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const organizations = useQuery(api.organizations.queries.index.getOrganizations, {
     search: search || undefined,
@@ -41,6 +86,7 @@ export default function SuperAdminOrganizationsPage() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
+  const [newOrgType, setNewOrgType] = useState<'PUBLIC' | 'PRIVATE' | 'SECRET'>('PUBLIC');
   const canSubmit = useMemo(() => name.trim().length >= 2 && slug.trim().length >= 2, [name, slug]);
 
   async function handleCreate(e: React.FormEvent) {
@@ -50,11 +96,13 @@ export default function SuperAdminOrganizationsPage() {
       name: name.trim(),
       slug: slug.trim().toLowerCase(),
       description: description.trim() || undefined,
-      organizationType: 'PUBLIC',
+      organizationType: newOrgType,
     });
     setName('');
     setSlug('');
     setDescription('');
+    setNewOrgType('PUBLIC');
+    setCreateDialogOpen(false);
   }
 
   async function handleInvite(organizationId: string) {
@@ -69,7 +117,14 @@ export default function SuperAdminOrganizationsPage() {
     }
   }
 
+  async function handleCopyCode(code: string) {
+    await navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  }
+
   async function handleDelete(organizationId: string) {
+    if (!confirm('Are you sure you want to delete this organization?')) return;
     await deleteOrganization({ organizationId: organizationId as unknown as Id<'organizations'> });
   }
 
@@ -79,78 +134,299 @@ export default function SuperAdminOrganizationsPage() {
     await updateOrganization({ organizationId: organizationId as unknown as Id<'organizations'>, name: newName });
   }
 
+  const loading = organizations === undefined;
+
+  // Stats
+  const stats = useMemo(() => {
+    const orgs = (organizations?.page || []) as Organization[];
+    return {
+      total: orgs.length,
+      public: orgs.filter((o: Organization) => o.organizationType === 'PUBLIC').length,
+      private: orgs.filter((o: Organization) => o.organizationType === 'PRIVATE').length,
+      secret: orgs.filter((o: Organization) => o.organizationType === 'SECRET').length,
+    };
+  }, [organizations]);
+
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Organizations</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4 flex items-center gap-2">
-            <Input placeholder="Search organizations" value={search} onChange={(e) => setSearch(e.target.value)} />
-            <select
-              className="h-10 rounded-md border bg-background px-3 text-sm"
-              value={orgType || ''}
-              onChange={(e) => {
-                const value = e.target.value as '' | 'PUBLIC' | 'PRIVATE' | 'SECRET';
-                setOrgType(value === '' ? undefined : value);
-              }}
-            >
-              <option value="">All types</option>
-              <option value="PUBLIC">Public</option>
-              <option value="PRIVATE">Private</option>
-              <option value="SECRET">Secret</option>
-            </select>
-          </div>
-          <div className="rounded border">
-            <div className="grid grid-cols-12 border-b bg-muted/40 px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              <div className="col-span-5">Name</div>
-              <div className="col-span-3">Slug</div>
-              <div className="col-span-2">Type</div>
-              <div className="col-span-2 text-right">Members</div>
+    <div className="space-y-6 font-admin-body">
+      <PageHeader
+        title="Organizations"
+        description="Manage all platform organizations"
+        icon={<Building2 className="h-5 w-5" />}
+        actions={
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-1" />
+                Create Organization
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <form onSubmit={handleCreate}>
+                <DialogHeader>
+                  <DialogTitle>Create Organization</DialogTitle>
+                  <DialogDescription>Add a new organization to the platform</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="org-name">Name</Label>
+                    <Input id="org-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Acme Inc" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="org-slug">Slug</Label>
+                    <Input id="org-slug" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="acme" />
+                    <p className="text-xs text-muted-foreground">URL: /o/{slug || 'slug'}</p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="org-type">Type</Label>
+                    <Select value={newOrgType} onValueChange={(v) => setNewOrgType(v as typeof newOrgType)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PUBLIC">
+                          <div className="flex items-center gap-2">
+                            <Globe className="h-4 w-4" />
+                            Public
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="PRIVATE">
+                          <div className="flex items-center gap-2">
+                            <Lock className="h-4 w-4" />
+                            Private
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="SECRET">
+                          <div className="flex items-center gap-2">
+                            <EyeOff className="h-4 w-4" />
+                            Secret
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="org-desc">Description</Label>
+                    <Textarea
+                      id="org-desc"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Organization description..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={!canSubmit}>
+                    Create
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        }
+      />
+
+      {/* Stats */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+        {[
+          { label: 'Total', value: stats.total, icon: Building2, color: 'text-primary' },
+          { label: 'Public', value: stats.public, icon: Globe, color: 'text-emerald-500' },
+          { label: 'Private', value: stats.private, icon: Lock, color: 'text-blue-500' },
+          { label: 'Secret', value: stats.secret, icon: EyeOff, color: 'text-amber-500' },
+        ].map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="rounded-lg border bg-card p-3"
+          >
+            <div className="flex items-center gap-2">
+              <stat.icon className={cn('h-4 w-4', stat.color)} />
+              <p className="text-xs text-muted-foreground">{stat.label}</p>
             </div>
-            <div>
-              {organizations?.page?.map(
-                (org: { _id: string; name: string; slug: string; organizationType: 'PUBLIC' | 'PRIVATE' | 'SECRET'; memberCount: number }) => (
-                  <div key={org._id}>
-                    <div className="grid grid-cols-12 items-center px-3 py-2 hover:bg-secondary">
-                      <div className="col-span-5 font-medium">{org.name}</div>
-                      <div className="col-span-3 text-xs text-muted-foreground">/{org.slug}</div>
-                      <div className="col-span-2 text-xs">{org.organizationType}</div>
-                      <div className="col-span-2 flex items-center justify-end gap-2 text-xs">
-                        {inviteCodes[org._id] && <span className="rounded bg-muted px-2 py-0.5 font-mono">{inviteCodes[org._id]}</span>}
-                        <Button size="sm" variant="outline" onClick={() => handleInvite(org._id)}>
-                          Invite
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleRename(org._id)}>
-                          Rename
-                        </Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDelete(org._id)}>
-                          Delete
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => setOpenPermsForOrg((prev) => (prev === org._id ? null : org._id))}>
-                          Permissions
-                        </Button>
+            <p className="text-2xl font-bold font-admin-heading mt-1">{loading ? '—' : stat.value}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Search organizations..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+        </div>
+        <Select value={orgType || 'ALL'} onValueChange={(v) => setOrgType(v === 'ALL' ? undefined : (v as typeof orgType))}>
+          <SelectTrigger className="w-[140px] h-9">
+            <SelectValue placeholder="All types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All types</SelectItem>
+            <SelectItem value="PUBLIC">Public</SelectItem>
+            <SelectItem value="PRIVATE">Private</SelectItem>
+            <SelectItem value="SECRET">Secret</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Organizations List */}
+      <div className="rounded-xl border overflow-hidden">
+        {/* Header */}
+        <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-muted/50 border-b text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <div className="col-span-5">Organization</div>
+          <div className="col-span-2">Type</div>
+          <div className="col-span-2">Members</div>
+          <div className="col-span-3 text-right">Actions</div>
+        </div>
+
+        {/* Body */}
+        {loading ? (
+          <div className="space-y-0">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-4 border-b last:border-b-0">
+                <div className="h-10 w-10 rounded-lg bg-muted animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-40 bg-muted rounded animate-pulse" />
+                  <div className="h-3 w-24 bg-muted rounded animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : organizations?.page?.length === 0 ? (
+          <EmptyState
+            icon={<Building2 className="h-12 w-12 text-muted-foreground" />}
+            title="No organizations found"
+            description={search ? 'Try adjusting your search filters' : 'Create your first organization to get started'}
+            action={{ label: 'Create Organization', onClick: () => setCreateDialogOpen(true) }}
+          />
+        ) : (
+          <div>
+            {(organizations?.page as Organization[])?.map((org: Organization, index: number) => (
+              <motion.div key={org._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.02 }}>
+                <div className="px-4 py-3 border-b last:border-b-0 hover:bg-muted/30 transition-colors">
+                  <div className="grid md:grid-cols-12 gap-4 items-center">
+                    {/* Org Info */}
+                    <div className="col-span-5 flex items-center gap-3">
+                      <div
+                        className={cn(
+                          'h-10 w-10 rounded-lg flex items-center justify-center shrink-0',
+                          org.organizationType === 'PUBLIC' && 'bg-emerald-500/10',
+                          org.organizationType === 'PRIVATE' && 'bg-blue-500/10',
+                          org.organizationType === 'SECRET' && 'bg-amber-500/10'
+                        )}
+                      >
+                        <OrganizationTypeIcon type={org.organizationType} />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-medium text-sm truncate">{org.name}</h4>
+                        <p className="text-xs text-muted-foreground font-mono">/{org.slug}</p>
                       </div>
                     </div>
+
+                    {/* Type */}
+                    <div className="col-span-2">
+                      <StatusBadge status={org.organizationType.toLowerCase()} />
+                    </div>
+
+                    {/* Members */}
+                    <div className="col-span-2 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{org.memberCount}</span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="col-span-3 flex items-center justify-end gap-2">
+                      {inviteCodes[org._id] && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-xs font-mono"
+                        >
+                          <span>{inviteCodes[org._id]}</span>
+                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleCopyCode(inviteCodes[org._id])}>
+                            {copiedCode === inviteCodes[org._id] ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                          </Button>
+                        </motion.div>
+                      )}
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8"
+                        onClick={() => setOpenPermsForOrg((prev) => (prev === org._id ? null : org._id))}
+                      >
+                        {openPermsForOrg === org._id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </Button>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleInvite(org._id)}>
+                            <LinkIcon className="h-4 w-4 mr-2" />
+                            Generate Invite
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleRename(org._id)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(org._id)} className="text-destructive">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+
+                  {/* Expanded Permissions Panel */}
+                  <AnimatePresence>
                     {openPermsForOrg === org._id && (
-                      <div className="px-3 py-3">
-                        <div className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Add admin or assign permission</div>
-                        <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                          <Input placeholder="Search user by name or email" value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="mt-4 pt-4 border-t"
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <Shield className="h-4 w-4 text-primary" />
+                          <h4 className="text-sm font-medium">Add Admin or Assign Permissions</h4>
                         </div>
+                        <div className="relative max-w-md">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            placeholder="Search user by name or email..."
+                            value={userSearch}
+                            onChange={(e) => setUserSearch(e.target.value)}
+                            className="pl-9"
+                          />
+                        </div>
+
                         {!!userResults && userSearch.trim().length >= 2 && (
-                          <div className="mt-2 space-y-1">
+                          <div className="mt-3 space-y-2">
                             {userResults.map((u) => (
-                              <div key={u._id} className="flex items-center justify-between rounded border bg-card px-3 py-2 text-xs">
+                              <motion.div
+                                key={u._id}
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex items-center justify-between rounded-lg border bg-card p-3"
+                              >
                                 <div>
-                                  <div className="font-medium">{`${u.firstName || ''} ${u.lastName || ''}`.trim() || '—'}</div>
-                                  <div className="text-muted-foreground">{u.email}</div>
+                                  <div className="font-medium text-sm">{`${u.firstName || ''} ${u.lastName || ''}`.trim() || '—'}</div>
+                                  <div className="text-xs text-muted-foreground">{u.email}</div>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                   <Button
                                     size="sm"
-                                    variant="default"
                                     onClick={async () => {
                                       await addMember({
                                         organizationId: org._id as unknown as Id<'organizations'>,
@@ -159,7 +435,8 @@ export default function SuperAdminOrganizationsPage() {
                                       });
                                     }}
                                   >
-                                    Add as ADMIN
+                                    <UserPlus className="h-3 w-3 mr-1" />
+                                    Add as Admin
                                   </Button>
                                   <Button
                                     size="sm"
@@ -176,11 +453,11 @@ export default function SuperAdminOrganizationsPage() {
                                       })
                                     }
                                   >
-                                    Grant MANAGE_LOGS
+                                    Grant Logs
                                   </Button>
                                   <Button
                                     size="sm"
-                                    variant="outline"
+                                    variant="ghost"
                                     onClick={() =>
                                       revokeOrganizationPermission({
                                         organizationId: org._id as unknown as Id<'organizations'>,
@@ -189,61 +466,22 @@ export default function SuperAdminOrganizationsPage() {
                                       })
                                     }
                                   >
-                                    Revoke MANAGE_LOGS
+                                    Revoke
                                   </Button>
                                 </div>
-                              </div>
+                              </motion.div>
                             ))}
                           </div>
                         )}
-                      </div>
+                      </motion.div>
                     )}
-                  </div>
-                )
-              )}
-            </div>
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Create organization</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={handleCreate}>
-            <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="org-name">
-                Name
-              </label>
-              <Input id="org-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Acme Inc" />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="org-slug">
-                Slug
-              </label>
-              <Input id="org-slug" value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="acme" />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="org-desc">
-                Description
-              </label>
-              <textarea
-                id="org-desc"
-                className="h-24 w-full rounded-md border bg-background px-3 py-2 text-sm"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-            <Separator />
-            <div>
-              <Button type="submit" disabled={!canSubmit}>
-                Create
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
   );
 }

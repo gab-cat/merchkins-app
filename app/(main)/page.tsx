@@ -13,23 +13,37 @@ export default async function Page() {
   const preloadedPopularOrganizations = await preloadQuery(api.organizations.queries.index.getPopularOrganizations, { limit: 8 });
 
   return (
-    <div className="w-full">
+    <div className="w-full overflow-hidden">
+      {/* Hero - Full width background */}
       <HomeHero />
-      <section className="w-full px-4 py-8 md:py-12">
-        <div className="max-w-7xl mx-auto">
+
+      {/* Popular Products Section */}
+      <section className="relative w-full py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4">
           <PopularProducts preloadedProducts={preloadedPopularProducts} />
         </div>
       </section>
-      <section className="w-full px-4 py-8 md:py-12 bg-muted/30">
-        <div className="max-w-7xl mx-auto">
+
+      {/* Section spacer */}
+      <div className="h-8 md:h-12" />
+
+      {/* Categories Section */}
+      <section className="relative w-full py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4">
           <FeaturedCategories preloadedCategories={preloadedFeaturedCategories} />
         </div>
       </section>
-      <section className="w-full px-4 py-8 md:py-12">
-        <div className="max-w-7xl mx-auto">
+
+      {/* Section spacer */}
+      <div className="h-8 md:h-12" />
+
+      {/* Organizations Section */}
+      <section className="relative w-full py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4">
           <PopularOrganizations preloadedOrganizations={preloadedPopularOrganizations} />
         </div>
       </section>
+
       {/* Structured Data */}
       <script
         type="application/ld+json"

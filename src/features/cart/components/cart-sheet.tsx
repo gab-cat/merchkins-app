@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
@@ -13,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useCartSheetStore } from '@/src/stores/cart-sheet';
-import { ShoppingCart, Trash2, Plus, Minus, CreditCard } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, CreditCard, Sparkles, ArrowRight, Package, Store } from 'lucide-react';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { showToast, promiseToast } from '@/lib/toast';
 
@@ -97,91 +98,139 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
             </Button>
           )}
           {badgeCount > 0 && (
-            <span
-              className="absolute -right-2 -top-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white text-[10px] font-semibold"
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -right-2 -top-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold shadow-lg shadow-red-500/30"
               aria-live="polite"
               aria-atomic="true"
             >
               {badgeCount}
-            </span>
+            </motion.span>
           )}
         </div>
       </SheetTrigger>
 
-      <SheetContent side="right" className="p-0 bg-white border-none text-black">
-        <SheetHeader className="border-b bg-primary py-2">
-          <SheetTitle className="px-4 py-2 inline-flex items-center gap-3 text-base font-bold">
-            <ShoppingCart className="h-4 w-4" /> Your cart
+      <SheetContent side="right" className="p-0 bg-white border-none text-foreground w-full sm:max-w-md">
+        {/* Gradient header */}
+        <SheetHeader className="relative overflow-hidden border-b">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/90" />
+          <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+          <SheetTitle className="relative z-10 px-6 py-5 inline-flex items-center gap-3 text-lg font-bold text-white font-heading">
+            <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm">
+              <ShoppingCart className="h-5 w-5" />
+            </div>
+            Your Cart
+            {totals.totalItems > 0 && (
+              <span className="ml-auto text-sm font-medium bg-white/20 px-3 py-1 rounded-full">{totals.totalItems} items</span>
+            )}
           </SheetTitle>
         </SheetHeader>
 
         {cart === undefined ? (
-          <div className="p-4 space-y-3">
+          <div className="p-6 space-y-4">
             {new Array(3).fill(null).map((_, i) => (
-              <div key={`s-${i}`} className="rounded-lg border p-3 animate-pulse">
-                <div className="h-4 w-1/3 rounded bg-secondary" />
-                <div className="mt-2 h-8 w-full rounded bg-secondary" />
+              <div key={`s-${i}`} className="rounded-2xl border p-4 animate-pulse">
+                <div className="h-4 w-1/3 rounded-lg bg-secondary" />
+                <div className="mt-3 h-12 w-full rounded-lg bg-secondary" />
               </div>
             ))}
           </div>
         ) : !cart || !hasItems ? (
-          <div className="px-6 py-12 text-center">
-            <ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h2 className="text-lg font-semibold mb-2">Your cart is empty</h2>
-            <p className="text-muted-foreground mb-6">Browse products and add items to your cart.</p>
-            <Link href="/">
-              <Button className="hover:scale-105 transition-all duration-200">Continue shopping</Button>
-            </Link>
+          <div className="px-6 py-16 text-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              className="mx-auto h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-6"
+            >
+              <Package className="h-10 w-10 text-primary/50" />
+            </motion.div>
+            <h2 className="text-xl font-bold mb-2 font-heading">Your cart is empty</h2>
+            <p className="text-muted-foreground mb-8">Browse products and add items to your cart.</p>
+            <SheetClose asChild>
+              <Link href="/">
+                <Button className="group rounded-full px-8 h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300">
+                  Start shopping
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </SheetClose>
           </div>
         ) : (
           <div className="flex h-full min-h-[60vh] flex-col">
-            <ScrollArea className="flex-1 px-4 py-3">
-              <div className="space-y-4">
-                {Object.entries(groupedByOrg).map(([orgId, group]) => (
-                  <div key={orgId} className="space-y-3">
-                    <div className="px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-b pb-1">{group.name}</div>
-                    {group.items.map((item) => (
-                      <MiniCartLineItem
-                        key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
-                        cartId={cart._id}
-                        item={item as CartItem}
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
+            <ScrollArea className="flex-1 px-4 py-4">
+              <AnimatePresence>
+                <div className="space-y-4">
+                  {Object.entries(groupedByOrg).map(([orgId, group], groupIndex) => (
+                    <motion.div
+                      key={orgId}
+                      className="space-y-3"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: groupIndex * 0.1 }}
+                    >
+                      <div className="flex items-center gap-2 px-1">
+                        <Store className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-primary">{group.name}</span>
+                      </div>
+                      {group.items.map((item, itemIndex) => (
+                        <MiniCartLineItem
+                          key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
+                          cartId={cart._id}
+                          item={item as CartItem}
+                          index={itemIndex}
+                        />
+                      ))}
+                    </motion.div>
+                  ))}
+                </div>
+              </AnimatePresence>
             </ScrollArea>
 
-            <div className="px-4 py-3 border-t bg-muted/30">
-              <div className="space-y-2 text-sm">
+            {/* Summary section */}
+            <div className="px-5 py-4 border-t bg-gradient-to-b from-muted/30 to-muted/50">
+              <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>Items ({totals.totalItems})</span>
-                  <span>{new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.totalValue)}</span>
+                  <span>Subtotal ({totals.totalItems} items)</span>
+                  <span className="font-medium">
+                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.totalValue)}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between font-semibold text-base">
-                  <span>Selected total</span>
-                  <span className="text-primary">
+                <div className="h-px bg-border" />
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-foreground">Selected total</span>
+                  <span className="text-xl font-bold text-primary font-heading">
                     {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.selectedValue)}
                   </span>
                 </div>
               </div>
             </div>
 
-            <SheetFooter className="gap-2 p-4 border-t">
-              <div className="flex w-full items-center gap-2">
-                <Button variant="ghost" size="sm" className="shrink-0 hover:bg-destructive/10 hover:text-destructive" onClick={handleClear}>
+            <SheetFooter className="gap-3 p-5 border-t bg-white">
+              <div className="flex w-full items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  onClick={handleClear}
+                >
                   <Trash2 className="mr-2 h-4 w-4" /> Clear
                 </Button>
-                <div className="ml-auto flex items-center gap-2">
+                <div className="ml-auto">
                   <SheetClose asChild>
                     <Link href="/checkout">
                       <Button
-                        size="sm"
-                        className="min-w-24 hover:scale-105 transition-all duration-200"
+                        size="lg"
+                        className="group relative overflow-hidden rounded-full px-8 h-12 font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                         data-testid="cart-checkout-button"
                         disabled={totals.selectedItems === 0}
                       >
-                        <CreditCard className="mr-2 h-4 w-4" /> Checkout
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Checkout
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                       </Button>
                     </Link>
                   </SheetClose>
@@ -195,7 +244,7 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
   );
 }
 
-function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartItem }) {
+function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: CartItem; index?: number }) {
   const setSelected = useMutation(api.carts.mutations.index.setItemSelected);
   const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity);
   const setItemNote = useMutation(api.carts.mutations.index.setItemNote);
@@ -296,9 +345,17 @@ function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartIte
   }
 
   return (
-    <div className={cn('rounded-lg border p-3 transition-all duration-200', item.selected && 'border-primary bg-primary/5 shadow-sm')}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05, duration: 0.3 }}
+      className={cn(
+        'rounded-2xl border-2 p-4 transition-all duration-300',
+        item.selected ? 'border-primary/30 bg-primary/[0.03] shadow-md' : 'border-transparent bg-muted/30 hover:bg-muted/50'
+      )}
+    >
       <div className="flex items-start gap-3">
-        <div className="pt-1">
+        <div className="pt-0.5">
           <Checkbox
             checked={item.selected}
             onCheckedChange={async (checked) => {
@@ -310,11 +367,11 @@ function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartIte
               });
             }}
             aria-label="Select item"
-            className="mt-0.5"
+            className="h-5 w-5 rounded-md border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
           />
         </div>
 
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl shadow-sm">
           {item.productInfo.imageUrl?.[0] ? (
             <R2Image
               fileKey={item.productInfo.imageUrl[0]}
@@ -324,52 +381,52 @@ function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartIte
               className="h-full w-full object-cover bg-secondary"
             />
           ) : (
-            <div className="h-full w-full bg-secondary rounded-lg" />
+            <div className="h-full w-full bg-gradient-to-br from-secondary to-secondary/60 rounded-xl flex items-center justify-center">
+              <Package className="h-6 w-6 text-muted-foreground/50" />
+            </div>
           )}
         </div>
 
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold leading-tight">{item.productInfo.title}</div>
+              <div className="truncate text-sm font-semibold leading-tight text-foreground">{item.productInfo.title}</div>
               <div className="text-xs text-muted-foreground mt-0.5">
                 {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price)} each
               </div>
-              <div className="space-x-2 flex flex-row">
+              <div className="space-x-2 flex flex-row mt-2">
                 {product && (product.variants?.length ?? 0) > 0 && (
-                  <div className="mt-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white"
-                          aria-label="Select variant"
-                        >
-                          <span className="truncate">{item.productInfo.variantName ?? 'Select variant'}</span>
-                          <span aria-hidden className="ml-1">
-                            ▾
-                          </span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="min-w-[10rem] animate-in fade-in-0 zoom-in-95">
-                        <DropdownMenuRadioGroup value={item.variantId ?? ''} onValueChange={(val) => handleVariantChange(val || undefined)}>
-                          {product.variants
-                            .filter((v) => v.isActive)
-                            .map((v) => (
-                              <DropdownMenuRadioItem key={v.variantId} value={v.variantId} className="text-xs">
-                                <div className="flex items-center justify-between w-full">
-                                  <span>{v.variantName}</span>
-                                  <span className="ml-2 font-medium text-primary">
-                                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}
-                                  </span>
-                                </div>
-                              </DropdownMenuRadioItem>
-                            ))}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white rounded-lg"
+                        aria-label="Select variant"
+                      >
+                        <span className="truncate">{item.productInfo.variantName ?? 'Select variant'}</span>
+                        <span aria-hidden className="ml-1">
+                          ▾
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="min-w-[10rem] rounded-xl shadow-xl border-0">
+                      <DropdownMenuRadioGroup value={item.variantId ?? ''} onValueChange={(val) => handleVariantChange(val || undefined)}>
+                        {product.variants
+                          .filter((v) => v.isActive)
+                          .map((v) => (
+                            <DropdownMenuRadioItem key={v.variantId} value={v.variantId} className="text-xs rounded-lg">
+                              <div className="flex items-center justify-between w-full">
+                                <span>{v.variantName}</span>
+                                <span className="ml-2 font-medium text-primary">
+                                  {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}
+                                </span>
+                              </div>
+                            </DropdownMenuRadioItem>
+                          ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
                 {product &&
                   item.variantId &&
@@ -378,78 +435,76 @@ function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartIte
                     const hasSizes = currentVariant && currentVariant.sizes && currentVariant.sizes.length > 0;
                     if (!hasSizes) return null;
                     return (
-                      <div className="mt-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white"
-                              aria-label="Select size"
-                            >
-                              <span className="truncate">Size: {item.size?.label ?? 'Select size'}</span>
-                              <span aria-hidden className="ml-1">
-                                ▾
-                              </span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="min-w-[10rem] animate-in fade-in-0 zoom-in-95">
-                            <DropdownMenuRadioGroup
-                              value={item.size?.id ?? ''}
-                              onValueChange={(val) => {
-                                const selectedSize = currentVariant.sizes?.find((s) => s.id === val);
-                                handleSizeChange(selectedSize);
-                              }}
-                            >
-                              {currentVariant.sizes?.map((size) => (
-                                <DropdownMenuRadioItem key={size.id} value={size.id} className="text-xs">
-                                  <div className="flex items-center justify-between w-full">
-                                    <span>{size.label}</span>
-                                    {size.price !== undefined && (
-                                      <span className="ml-2 font-medium text-primary">
-                                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(size.price)}
-                                      </span>
-                                    )}
-                                  </div>
-                                </DropdownMenuRadioItem>
-                              ))}
-                            </DropdownMenuRadioGroup>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white rounded-lg"
+                            aria-label="Select size"
+                          >
+                            <span className="truncate">Size: {item.size?.label ?? 'Select'}</span>
+                            <span aria-hidden className="ml-1">
+                              ▾
+                            </span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="min-w-[10rem] rounded-xl shadow-xl border-0">
+                          <DropdownMenuRadioGroup
+                            value={item.size?.id ?? ''}
+                            onValueChange={(val) => {
+                              const selectedSize = currentVariant.sizes?.find((s) => s.id === val);
+                              handleSizeChange(selectedSize);
+                            }}
+                          >
+                            {currentVariant.sizes?.map((size) => (
+                              <DropdownMenuRadioItem key={size.id} value={size.id} className="text-xs rounded-lg">
+                                <div className="flex items-center justify-between w-full">
+                                  <span>{size.label}</span>
+                                  {size.price !== undefined && (
+                                    <span className="ml-2 font-medium text-primary">
+                                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(size.price)}
+                                    </span>
+                                  )}
+                                </div>
+                              </DropdownMenuRadioItem>
+                            ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     );
                   })()}
               </div>
             </div>
             <div className="text-right">
-              <div className="text-sm font-bold">
+              <div className="text-sm font-bold text-primary">
                 {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price * item.quantity)}
               </div>
             </div>
           </div>
 
           <div className="flex items-center justify-between gap-2">
-            <div className="inline-flex items-center gap-1">
+            <div className="inline-flex items-center gap-1 bg-white rounded-full border shadow-sm p-1">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={handleDec}
                 data-testid="cart-item-qty-decrease"
                 aria-label="Decrease quantity"
-                className="h-7 w-7 p-0 hover:bg-primary/10 bg-white"
+                className="h-7 w-7 p-0 rounded-full hover:bg-primary/10"
               >
-                <Minus className="h-3 w-3" />
+                <Minus className="h-3.5 w-3.5" />
               </Button>
-              <span className="min-w-8 text-center text-sm font-medium">{item.quantity}</span>
+              <span className="min-w-8 text-center text-sm font-semibold">{item.quantity}</span>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={handleInc}
                 data-testid="cart-item-qty-increase"
                 aria-label="Increase quantity"
-                className="h-7 w-7 p-0 hover:bg-primary/10 bg-white"
+                className="h-7 w-7 p-0 rounded-full hover:bg-primary/10"
               >
-                <Plus className="h-3 w-3" />
+                <Plus className="h-3.5 w-3.5" />
               </Button>
             </div>
 
@@ -458,9 +513,9 @@ function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartIte
               size="sm"
               onClick={handleRemove}
               data-testid="cart-item-remove"
-              className="h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="h-7 px-2.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
             >
-              <Trash2 className="h-3 w-3 mr-1" /> Remove
+              <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
             </Button>
           </div>
 
@@ -468,7 +523,7 @@ function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartIte
             <Input
               defaultValue={item.note ?? ''}
               placeholder="Add a note..."
-              className="h-7 text-xs max-w-xs"
+              className="h-8 text-xs rounded-lg border-muted focus:border-primary"
               onBlur={async (e) => {
                 try {
                   await handleSaveNote(e.target.value);
@@ -481,6 +536,6 @@ function MiniCartLineItem({ cartId, item }: { cartId: Id<'carts'>; item: CartIte
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

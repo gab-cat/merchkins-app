@@ -5,6 +5,7 @@ import { getOrdersPageArgs, getOrdersPageHandler } from './getOrdersPage';
 import { getOrderByIdArgs, getOrderByIdHandler } from './getOrderById';
 import { getOrderAnalyticsArgs, getOrderAnalyticsHandler } from './getOrderAnalytics';
 import { searchOrdersArgs, searchOrdersHandler } from './searchOrders';
+import { getDashboardAnalyticsArgs, getDashboardAnalyticsHandler } from './getDashboardAnalytics';
 
 export const getOrders = query({
   args: getOrdersArgs,
@@ -29,4 +30,9 @@ export const getOrderAnalytics = query({
 export const searchOrders = query({
   args: searchOrdersArgs,
   handler: searchOrdersHandler,
+});
+
+export const getDashboardAnalytics = query({
+  args: getDashboardAnalyticsArgs,
+  handler: getDashboardAnalyticsHandler,
 });

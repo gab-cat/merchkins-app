@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -11,8 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Id } from '@/convex/_generated/dataModel';
 import { R2Image } from '@/src/components/ui/r2-image';
-import { Users, ShoppingBag, UserPlus } from 'lucide-react';
-import { fadeInUpContainer, fadeInUp } from '@/lib/animations';
+import { Users, ShoppingBag, UserPlus, Building2, ArrowRight, Sparkles, Crown, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { BlurFade } from '@/src/components/ui/animations';
+import { cn } from '@/lib/utils';
 
 interface PopularOrganizationsProps {
   limit?: number;
@@ -36,6 +37,8 @@ type PopularOrg = {
 };
 
 export function PopularOrganizations({ limit = 8, preloadedOrganizations }: PopularOrganizationsProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   const result = preloadedOrganizations
     ? usePreloadedQuery(preloadedOrganizations)
     : useQuery(api.organizations.queries.index.getPopularOrganizations, { limit });
@@ -44,6 +47,10 @@ export function PopularOrganizations({ limit = 8, preloadedOrganizations }: Popu
 
   const loading = result === undefined;
   const organizations = (result?.organizations ?? []) as unknown as PopularOrg[];
+
+  // Featured org is the first one, rest are regular
+  const featuredOrg = organizations[0];
+  const regularOrgs = organizations.slice(1);
 
   const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
 
@@ -61,194 +68,315 @@ export function PopularOrganizations({ limit = 8, preloadedOrganizations }: Popu
     } catch {}
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-3xl font-bold text-primary tracking-tight">Popular organizations</h2>
-        <Link
-          className="text-sm text-primary hover:text-primary/80 font-semibold hover:underline transition-all duration-200 whitespace-nowrap"
-          href="/organizations"
-        >
-          View all →
-        </Link>
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -340, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 340, behavior: 'smooth' });
+    }
+  };
+
+  const renderOrgLogo = (org: PopularOrg, size: number = 56) => {
+    if (org.logoUrl) {
+      return <Image src={org.logoUrl as string} alt={`${org.name} logo`} width={size} height={size} className="h-full w-full object-cover" />;
+    }
+    if (org.logo && isKey(org.logo)) {
+      return <R2Image fileKey={org.logo as string} alt={`${org.name} logo`} width={size} height={size} className="h-full w-full object-cover" />;
+    }
+    if (org.logo) {
+      return <Image src={org.logo as string} alt={`${org.name} logo`} width={size} height={size} className="h-full w-full object-cover" />;
+    }
+    return (
+      <div className="h-full w-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground text-lg font-bold">
+        {org.name?.charAt(0) || 'O'}
       </div>
-      <motion.div
-        className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-        data-testid="popular-organizations-grid"
-        variants={fadeInUpContainer}
-        initial="initial"
-        animate="animate"
-      >
-        {loading
-          ? new Array(limit).fill(null).map((_, i) => (
-              <Card key={`skeleton-org-${i}`} className="overflow-hidden rounded-xl border bg-card shadow-sm animate-pulse">
-                <div className="relative h-24 w-full bg-secondary skeleton" />
-                <div className="p-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-10 w-10 rounded-full bg-secondary" />
-                    <div className="space-y-1.5 flex-1">
-                      <div className="h-3 w-20 rounded bg-secondary" />
-                      <div className="h-2.5 w-16 rounded bg-secondary" />
+    );
+  };
+
+  const renderOrgBanner = (org: PopularOrg) => {
+    if (org.bannerImageUrl) {
+      return (
+        <Image
+          src={org.bannerImageUrl as string}
+          alt={`${org.name} banner`}
+          fill
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+      );
+    }
+    if (org.bannerImage && isKey(org.bannerImage)) {
+      return (
+        <R2Image
+          fileKey={org.bannerImage as string}
+          alt={`${org.name} banner`}
+          fill
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+      );
+    }
+    if (org.bannerImage) {
+      return (
+        <Image
+          src={org.bannerImage as string}
+          alt={`${org.name} banner`}
+          fill
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+      );
+    }
+    return <div className="h-full w-full bg-gradient-to-br from-primary/40 via-primary/20 to-brand-neon/30" />;
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Section header */}
+      <BlurFade>
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-primary/10">
+                <Building2 className="h-5 w-5 text-primary" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight font-heading">Top Communities</h2>
+            </div>
+            <p className="text-muted-foreground text-sm">Join organizations and discover exclusive products</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Scroll controls for carousel */}
+            <div className="hidden md:flex items-center gap-1">
+              <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-border/50 hover:border-primary/50" onClick={scrollLeft}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-border/50 hover:border-primary/50" onClick={scrollRight}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            <Link
+              className="group inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-semibold transition-all duration-200 whitespace-nowrap"
+              href="/organizations"
+            >
+              <span>View all</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </div>
+      </BlurFade>
+
+      {loading ? (
+        /* Loading skeleton */
+        <div className="grid gap-5 md:grid-cols-12">
+          <div className="md:col-span-5 lg:col-span-4">
+            <div className="h-80 rounded-3xl bg-gradient-to-br from-secondary to-secondary/50 skeleton" />
+          </div>
+          <div className="md:col-span-7 lg:col-span-8">
+            <div className="flex gap-4 overflow-hidden">
+              {new Array(3).fill(null).map((_, i) => (
+                <div key={i} className="flex-shrink-0 w-72 h-64 rounded-2xl bg-gradient-to-br from-secondary to-secondary/50 skeleton" />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-12">
+          {/* Featured Organization - Spotlight Card */}
+          {featuredOrg && (
+            <motion.div
+              className="md:col-span-5 lg:col-span-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Link href={`/o/${featuredOrg.slug}`} className="group block h-full">
+                <div
+                  className={cn(
+                    'relative h-full min-h-[320px] rounded-3xl overflow-hidden',
+                    'bg-gradient-to-br from-primary via-primary/90 to-primary/70',
+                    'shadow-xl hover:shadow-2xl transition-all duration-500',
+                    'hover:scale-[1.02]'
+                  )}
+                >
+                  {/* Banner background */}
+                  <div className="absolute inset-0 opacity-40">{renderOrgBanner(featuredOrg)}</div>
+
+                  {/* Overlays */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
+
+                  {/* Featured badge */}
+                  <div className="absolute top-4 left-4 z-20">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-neon text-black text-xs font-bold shadow-lg">
+                      <Crown className="h-3.5 w-3.5" />
+                      Featured
                     </div>
                   </div>
-                  <div className="h-2.5 w-full rounded bg-secondary" />
-                  <div className="h-6 w-16 rounded bg-secondary" />
-                </div>
-              </Card>
-            ))
-          : organizations.map((org, index) => {
-              return (
-                <motion.div key={org.id} variants={fadeInUp}>
-                  <Link href={`/o/${org.slug}`} aria-label={`View ${org.name}`} className="group block h-full">
-                    <Card className="flex h-full flex-col overflow-hidden rounded-xl border bg-card shadow-sm py-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/30">
-                      {/* Banner with overlaying logo */}
-                      <div className="relative h-24 w-full overflow-hidden">
-                        {org.bannerImageUrl ? (
-                          <Image
-                            src={org.bannerImageUrl as string}
-                            alt={`${org.name} banner`}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-110"
-                          />
-                        ) : org.bannerImage ? (
-                          isKey(org.bannerImage) ? (
-                            <R2Image
-                              fileKey={org.bannerImage as string}
-                              alt={`${org.name} banner`}
-                              fill
-                              className="object-cover transition-transform duration-300 group-hover:scale-110"
-                            />
-                          ) : (
-                            <Image
-                              src={org.bannerImage as string}
-                              alt={`${org.name} banner`}
-                              fill
-                              className="object-cover transition-transform duration-300 group-hover:scale-110"
-                            />
-                          )
-                        ) : (
-                          <div className="h-full w-full bg-gradient-to-br from-primary/20 via-primary/10 to-accent/20" />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
 
-                        {/* Logo overlaying banner */}
-                        <div className="absolute bottom-2 left-2 flex items-center gap-2 z-10">
-                          <div className="h-12 w-12 overflow-hidden rounded-full ring-2 ring-white shadow-lg bg-background flex-shrink-0 transition-transform duration-300 group-hover:scale-105">
-                            {org.logoUrl ? (
-                              <Image
-                                src={org.logoUrl as string}
-                                alt={`${org.name} logo`}
-                                width={48}
-                                height={48}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : org.logo ? (
-                              isKey(org.logo) ? (
-                                <R2Image
-                                  fileKey={org.logo as string}
-                                  alt={`${org.name} logo`}
-                                  width={48}
-                                  height={48}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <Image
-                                  src={org.logo as string}
-                                  alt={`${org.name} logo`}
-                                  width={48}
-                                  height={48}
-                                  className="h-full w-full object-cover"
-                                />
-                              )
-                            ) : (
-                              <div className="h-full w-full bg-primary flex items-center justify-center text-primary-foreground text-base font-bold">
-                                {org.name?.charAt(0) || 'O'}
-                              </div>
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <CardTitle className="truncate text-base font-bold text-white drop-shadow-lg group-hover:text-white/90 transition-colors">
-                              {org.name}
-                            </CardTitle>
-                            <div className="mt-0.5 text-xs font-medium text-white/90 drop-shadow-lg">@{org.slug}</div>
-                          </div>
+                  {/* Organization type badge */}
+                  <div className="absolute top-4 right-4 z-20">
+                    <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-xs font-semibold">
+                      {featuredOrg.organizationType === 'PUBLIC' ? 'Open' : featuredOrg.organizationType === 'PRIVATE' ? 'Private' : 'Invite'}
+                    </Badge>
+                  </div>
+
+                  {/* Content */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    {/* Logo */}
+                    <div className="h-16 w-16 mb-4 overflow-hidden rounded-xl ring-2 ring-white/30 shadow-lg bg-white">
+                      {renderOrgLogo(featuredOrg, 64)}
+                    </div>
+
+                    {/* Info */}
+                    <h3 className="text-xl font-bold text-white font-heading mb-1">{featuredOrg.name}</h3>
+                    <p className="text-white/70 text-sm mb-4 line-clamp-2">{featuredOrg.description || `Join @${featuredOrg.slug} today`}</p>
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex items-center gap-1.5 text-white/80 text-sm">
+                        <Users className="h-4 w-4" />
+                        <span className="font-semibold text-white">{featuredOrg.memberCount.toLocaleString()}</span>
+                        <span>members</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-white/80 text-sm">
+                        <ShoppingBag className="h-4 w-4" />
+                        <span className="font-semibold text-white">{featuredOrg.totalOrderCount.toLocaleString()}</span>
+                        <span>orders</span>
+                      </div>
+                    </div>
+
+                    {/* CTA */}
+                    {!featuredOrg.isMember && featuredOrg.organizationType === 'PUBLIC' && (
+                      <Button
+                        className="w-full bg-white text-primary hover:bg-white/90 font-semibold gap-2"
+                        onClick={(e) => handleJoin(e, featuredOrg.id, featuredOrg.organizationType)}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                        Join Community
+                      </Button>
+                    )}
+                    {featuredOrg.isMember && (
+                      <Button className="w-full bg-white/20 text-white hover:bg-white/30 font-semibold gap-2">
+                        <ExternalLink className="h-4 w-4" />
+                        Visit Store
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          )}
+
+          {/* Regular Organizations - Horizontal Scroll */}
+          <div className="md:col-span-7 lg:col-span-8">
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 -mb-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {regularOrgs.map((org, index) => (
+                <motion.div
+                  key={org.id}
+                  className="flex-shrink-0 w-72 snap-start"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.4 }}
+                >
+                  <Link href={`/o/${org.slug}`} className="group block h-full">
+                    <Card
+                      className={cn(
+                        'h-full overflow-hidden rounded-2xl border bg-card shadow-sm py-0',
+                        'transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-primary/30'
+                      )}
+                    >
+                      {/* Banner */}
+                      <div className="relative h-24 w-full overflow-hidden">
+                        {renderOrgBanner(org)}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+                        {/* Type badge */}
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            'absolute top-2 right-2 text-[10px] px-2 py-0.5 font-semibold',
+                            org.organizationType === 'PUBLIC' ? 'bg-brand-neon text-black' : 'bg-black/50 text-white backdrop-blur-sm'
+                          )}
+                        >
+                          {org.organizationType === 'PUBLIC' ? 'Open' : org.organizationType === 'PRIVATE' ? 'Private' : 'Invite'}
+                        </Badge>
+
+                        {/* Logo overlay */}
+                        <div className="absolute bottom-2 left-3 h-12 w-12 overflow-hidden rounded-xl ring-2 ring-white shadow-lg bg-white">
+                          {renderOrgLogo(org, 48)}
                         </div>
                       </div>
 
-                      <CardContent className="flex flex-col flex-1 p-3 pt-0 space-y-2">
-                        {/* Industry/Category */}
-                        <div className="flex items-center gap-2 -mt-2">
-                          {org.industry ? (
-                            <Badge variant="outline" className="text-[10px] px-2 py-0.5">
-                              {org.industry}
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
-                              Community
-                            </Badge>
-                          )}
+                      <CardContent className="p-4 pt-2 space-y-3">
+                        {/* Name & slug */}
+                        <div>
+                          <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors font-heading truncate">
+                            {org.name}
+                          </CardTitle>
+                          <p className="text-xs text-muted-foreground">@{org.slug}</p>
                         </div>
 
-                        {/* Description */}
-                        {org.description && <p className="line-clamp-2 text-xs text-muted-foreground leading-relaxed flex-1">{org.description}</p>}
+                        {/* Industry */}
+                        {org.industry && (
+                          <Badge variant="outline" className="text-[10px] px-2 py-0.5 bg-primary/5 border-primary/20">
+                            {org.industry}
+                          </Badge>
+                        )}
 
-                        {/* Action Button */}
-                        <div className="flex items-center justify-between gap-2 pt-1.5 border-t">
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              <span className="font-medium">{org.memberCount}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <ShoppingBag className="h-3 w-3" />
-                              <span className="font-medium">{org.totalOrderCount}</span>
-                            </div>
+                        {/* Stats */}
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground pt-2 border-t border-border/50">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3.5 w-3.5 text-primary" />
+                            <span className="font-semibold text-foreground">{org.memberCount}</span>
                           </div>
-                          {!org.isMember &&
-                            (org.organizationType === 'PUBLIC' ? (
-                              <Button
-                                size="sm"
-                                data-testid={`join-org-${org.id}`}
-                                aria-label={`Join ${org.name}`}
-                                className="h-7 px-2.5 text-xs hover:scale-105 transition-all duration-200 gap-1.5"
-                                onClick={(e) => handleJoin(e, org.id, org.organizationType)}
-                              >
-                                <UserPlus className="h-3.5 w-3.5" />
-                                Join
-                              </Button>
-                            ) : org.organizationType === 'PRIVATE' ? (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                data-testid={`request-org-${org.id}`}
-                                aria-label={`Request to join ${org.name}`}
-                                className="h-7 px-2.5 text-xs hover:scale-105 transition-all duration-200"
-                                onClick={(e) => handleJoin(e, org.id, org.organizationType)}
-                              >
-                                Request
-                              </Button>
-                            ) : (
-                              <Button size="sm" variant="secondary" disabled title="Invite only" className="h-7 px-2.5 text-xs">
-                                Invite only
-                              </Button>
-                            ))}
-                          {org.isMember && (
-                            <Button size="sm" variant="secondary" className="h-7 px-2.5 text-xs hover:scale-105 transition-all duration-200" disabled>
-                              Member
+                          <div className="flex items-center gap-1">
+                            <ShoppingBag className="h-3.5 w-3.5 text-brand-neon" />
+                            <span className="font-semibold text-foreground">{org.totalOrderCount}</span>
+                          </div>
+
+                          {/* Join button */}
+                          {!org.isMember && org.organizationType === 'PUBLIC' && (
+                            <Button
+                              size="sm"
+                              className="ml-auto h-7 px-2.5 text-xs font-semibold gap-1"
+                              onClick={(e) => handleJoin(e, org.id, org.organizationType)}
+                            >
+                              <UserPlus className="h-3 w-3" />
+                              Join
                             </Button>
+                          )}
+                          {org.isMember && (
+                            <Badge variant="secondary" className="ml-auto text-xs bg-primary/10 text-primary">
+                              Member
+                            </Badge>
                           )}
                         </div>
                       </CardContent>
                     </Card>
                   </Link>
                 </motion.div>
-              );
-            })}
-      </motion.div>
-      {!loading && organizations.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <p>No organizations to show.</p>
+              ))}
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && organizations.length === 0 && (
+        <BlurFade>
+          <div className="text-center py-16 px-4 rounded-2xl bg-muted/30 border border-dashed border-border">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+              <Sparkles className="h-8 w-8 text-primary/50" />
+            </div>
+            <p className="text-muted-foreground text-lg font-medium">No communities yet</p>
+            <p className="text-muted-foreground/60 text-sm mt-1">Organizations will appear here once available.</p>
+          </div>
+        </BlurFade>
       )}
     </div>
   );

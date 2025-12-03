@@ -1,11 +1,5 @@
-import React from 'react';
-import { AccountPage } from '@/src/features/account/components/account-page';
-import { auth } from '@clerk/nextjs/server';
+import { AccountSettingsView } from '@/src/features/account/views/account-settings-view';
 
-export default async function Page() {
-  const { userId } = await auth();
-  if (!userId) {
-    return null;
-  }
-  return <AccountPage clerkId={userId} />;
+export default function Page() {
+  return <AccountSettingsView />;
 }

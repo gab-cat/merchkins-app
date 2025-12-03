@@ -1,64 +1,89 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from 'convex/react';
 import { useUploadFile } from '@convex-dev/r2/react';
 import { api } from '@/convex/_generated/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Package, Tags, Layers, ImagePlus, ArrowLeft, Sparkles, Info } from 'lucide-react';
+
+// UI Components
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// Admin Components
+import { PageHeader } from '@/src/components/admin/page-header';
+import { FormCard, FormField, FormActions, FormErrorBanner, ImageUploadGrid, VariantBuilder } from '@/src/components/admin/form-components';
+
+// Utils
 import { R2Image } from '@/src/components/ui/r2-image';
 import { compressToWebP } from '@/lib/compress';
-import { UploadCloud, Trash2 } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { showToast } from '@/lib/toast';
+import Link from 'next/link';
 
-const schema = z.object({
-  title: z.string().min(2),
+// Schema
+const productSchema = z.object({
+  title: z.string().min(2, 'Title must be at least 2 characters'),
   description: z.string().optional(),
-  tags: z
-    .string()
-    .transform((v) =>
-      v
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
-    )
-    .optional(),
-  inventory: z.coerce.number().min(0),
+  categoryId: z.string().optional(),
+  tags: z.string().optional(),
+  inventory: z.coerce.number().min(0, 'Inventory must be 0 or more'),
   inventoryType: z.enum(['PREORDER', 'STOCK']),
-  variants: z
-    .array(
-      z.object({
-        variantName: z.string().min(1),
-        price: z.coerce.number().min(0.01),
-        inventory: z.coerce.number().min(0),
-        imageUrl: z.string().optional(),
-        isActive: z.boolean().optional(),
-      })
-    )
-    .min(1),
+  isBestPrice: z.boolean().default(false),
+  isActive: z.boolean().default(true),
 });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<typeof productSchema>;
+
+interface VariantSize {
+  id: string;
+  label: string;
+  price?: number;
+}
+
+interface Variant {
+  id: string;
+  name: string;
+  price: number;
+  inventory: number;
+  imageKey?: string;
+  isActive: boolean;
+  sizes?: VariantSize[];
+}
+
+interface UploadedImage {
+  key: string;
+  isUploading?: boolean;
+}
 
 export default function AdminCreateProductPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orgSlug = searchParams.get('org');
+
+  // Convex queries and mutations
   const createProduct = useMutation(api.products.mutations.index.createProduct);
   const uploadFile = useUploadFile(api.files.r2);
-
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
+  const categories = useQuery(api.categories.queries.index.getCategories, organization?._id ? { organizationId: organization._id } : {});
 
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [variantImages, setVariantImages] = useState<Record<number, string>>({});
+  // State
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [variants, setVariants] = useState<Variant[]>([{ id: 'default', name: 'Default', price: 0, inventory: 0, isActive: true, sizes: [] }]);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [tagInput, setTagInput] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
 
+  // Form
   const {
     register,
     handleSubmit,
@@ -66,291 +91,402 @@ export default function AdminCreateProductPage() {
     setValue,
     watch,
   } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(productSchema),
     defaultValues: {
       title: '',
       description: '',
-      tags: undefined,
+      categoryId: '',
+      tags: '',
       inventory: 0,
       inventoryType: 'STOCK',
-      variants: [{ variantName: 'Default', price: 0.01, inventory: 0, imageUrl: undefined, isActive: true }],
+      isBestPrice: false,
+      isActive: true,
     },
   });
 
-  async function uploadAndAddImages(files: File[]) {
-    try {
-      const keys = await Promise.all(
-        files.map(async (f) => {
-          const compressed = await compressToWebP(f);
+  const inventoryType = watch('inventoryType');
+  const isBestPrice = watch('isBestPrice');
+  const isActive = watch('isActive');
+
+  // Image upload handler
+  const handleUploadImages = useCallback(
+    async (files: File[]) => {
+      try {
+        const uploadPromises = files.map(async (file) => {
+          const compressed = await compressToWebP(file);
           return uploadFile(compressed);
-        })
-      );
-      const newImages = [...uploadedImages, ...keys];
-      setUploadedImages(newImages);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to upload images');
-    }
-  }
+        });
 
-  async function handleUploadImages(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-    await uploadAndAddImages(files);
-    e.target.value = '';
-  }
+        const keys = await Promise.all(uploadPromises);
+        setUploadedImages((prev) => [...prev, ...keys.map((key) => ({ key }))]);
+      } catch (err) {
+        console.error(err);
+        showToast({ type: 'error', title: 'Failed to upload images' });
+      }
+    },
+    [uploadFile]
+  );
 
-  async function handleRemoveImage(key: string) {
-    const newImages = uploadedImages.filter((k) => k !== key);
-    setUploadedImages(newImages);
-  }
+  // Remove image handler
+  const handleRemoveImage = useCallback((key: string) => {
+    setUploadedImages((prev) => prev.filter((img) => img.key !== key));
+  }, []);
 
-  async function handleUploadVariantImage(variantIndex: number, e: React.ChangeEvent<HTMLInputElement>) {
-    if (!e.target.files?.[0]) return;
-    try {
-      const file = e.target.files[0];
-      const compressed = await compressToWebP(file);
-      const key = await uploadFile(compressed);
-      setVariantImages((prev) => ({ ...prev, [variantIndex]: key }));
-      setValue(`variants.${variantIndex}.imageUrl`, key);
-      e.target.value = '';
-    } catch (err) {
-      console.error(err);
-      alert('Failed to upload variant image');
-    }
-  }
+  // Tag handlers
+  const handleAddTag = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const tag = tagInput.trim().toLowerCase();
+        if (tag && !tags.includes(tag)) {
+          setTags((prev) => [...prev, tag]);
+          setTagInput('');
+        }
+      }
+    },
+    [tagInput, tags]
+  );
 
-  async function handleRemoveVariantImage(variantIndex: number) {
-    setVariantImages((prev) => {
-      const newImages = { ...prev };
-      delete newImages[variantIndex];
-      return newImages;
-    });
-    setValue(`variants.${variantIndex}.imageUrl`, undefined);
-  }
+  const handleRemoveTag = useCallback((tag: string) => {
+    setTags((prev) => prev.filter((t) => t !== tag));
+  }, []);
 
-  async function onSubmit(values: FormValues) {
+  // Variant image upload
+  const handleVariantImageUpload = useCallback(
+    async (variantIndex: number, file: File) => {
+      try {
+        const compressed = await compressToWebP(file);
+        const key = await uploadFile(compressed);
+        setVariants((prev) => prev.map((v, i) => (i === variantIndex ? { ...v, imageKey: key } : v)));
+        return key;
+      } catch (err) {
+        console.error(err);
+        showToast({ type: 'error', title: 'Failed to upload variant image' });
+        return '';
+      }
+    },
+    [uploadFile]
+  );
+
+  // Form submission
+  const onSubmit = async (values: FormValues) => {
     setSubmitError(null);
 
+    // Validation
     if (uploadedImages.length === 0) {
-      setSubmitError('Please upload at least one image');
+      setSubmitError('Please upload at least one product image');
+      return;
+    }
+
+    const validVariants = variants.filter((v) => v.name.trim());
+    if (validVariants.length === 0) {
+      setSubmitError('Please add at least one variant');
+      return;
+    }
+
+    if (validVariants.some((v) => v.price <= 0)) {
+      setSubmitError('All variants must have a price greater than 0');
       return;
     }
 
     try {
-      // Update variants with uploaded images
-      const variantsWithImages = values.variants.map((variant, index) => ({
-        ...variant,
-        imageUrl: variantImages[index] || variant.imageUrl,
-      }));
-
       await createProduct({
         organizationId: organization?._id,
         title: values.title,
         description: values.description,
-        imageUrl: uploadedImages,
-        tags: (values.tags as unknown as string[]) || [],
-        isBestPrice: false,
+        categoryId: values.categoryId ? (values.categoryId as any) : undefined,
+        imageUrl: uploadedImages.map((img) => img.key),
+        tags: tags,
+        isBestPrice: values.isBestPrice,
         inventory: values.inventory,
         inventoryType: values.inventoryType,
-        variants: variantsWithImages,
+        variants: validVariants.map((v) => ({
+          variantName: v.name,
+          price: v.price,
+          inventory: v.inventory,
+          imageUrl: v.imageKey,
+          isActive: v.isActive,
+          sizes: v.sizes && v.sizes.length > 0
+            ? v.sizes.map((s) => ({
+                id: s.id,
+                label: s.label,
+                price: s.price,
+              }))
+            : undefined,
+        })),
       });
-      router.push('/admin/products');
+
+      showToast({ type: 'success', title: 'Product created successfully' });
+      router.push(`/admin/products${orgSlug ? `?org=${orgSlug}` : ''}`);
     } catch (error) {
       console.error('Failed to create product:', error);
       setSubmitError('Failed to create product. Please check your input and try again.');
     }
-  }
+  };
 
+  // Loading state
   if (orgSlug && organization === undefined) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-center">
-          <div className="text-lg font-medium">Loading organization...</div>
+      <div className="flex items-center justify-center py-12 font-admin-body">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground">Loading organization...</p>
         </div>
       </div>
     );
   }
 
+  // Collect all errors for the banner
+  const allErrors: string[] = [];
+  if (submitError) allErrors.push(submitError);
+  if (errors.title) allErrors.push(`Title: ${errors.title.message}`);
+  if (errors.description) allErrors.push(`Description: ${errors.description.message}`);
+  if (errors.inventory) allErrors.push(`Inventory: ${errors.inventory.message}`);
+
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Create product</h1>
-      </div>
+    <div className="font-admin-body">
+      <PageHeader
+        title="Create Product"
+        description="Add a new product to your catalog"
+        icon={<Package className="h-5 w-5" />}
+        breadcrumbs={[
+          { label: 'Admin', href: `/admin/overview${orgSlug ? `?org=${orgSlug}` : ''}` },
+          { label: 'Products', href: `/admin/products${orgSlug ? `?org=${orgSlug}` : ''}` },
+          { label: 'Create' },
+        ]}
+        actions={
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={`/admin/products${orgSlug ? `?org=${orgSlug}` : ''}`}>
+              <ArrowLeft className="h-4 w-4 mr-1.5" />
+              Back to Products
+            </Link>
+          </Button>
+        }
+      />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 md:grid-cols-2">
-        {/* General form errors */}
-        {(submitError ||
-          uploadedImages.length === 0 ||
-          errors.title ||
-          errors.description ||
-          errors.inventory ||
-          errors.inventoryType ||
-          errors.tags ||
-          errors.variants) && (
-          <div className="col-span-full">
-            <div className="rounded-md border border-red-200 bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Please fix the following errors:</h3>
-                  <div className="mt-2 text-sm text-red-700">
-                    <ul className="list-disc space-y-1 pl-5">
-                      {submitError && <li>{submitError}</li>}
-                      {errors.title && <li>Title: {errors.title.message}</li>}
-                      {errors.description && <li>Description: {errors.description.message}</li>}
-                      {errors.inventory && <li>Inventory: {errors.inventory.message}</li>}
-                      {errors.inventoryType && <li>Inventory Type: {errors.inventoryType.message}</li>}
-                      {errors.tags && <li>Tags: {errors.tags.message}</li>}
-                      {errors.variants && <li>Variants: Please check variant information</li>}
-                      {uploadedImages.length === 0 && <li>Product Images: At least one image is required</li>}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        <Card className="animate-in fade-in slide-in-from-bottom-2">
-          <CardHeader>
-            <CardTitle>Basics</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="title">
-                Title
-              </label>
-              <Input id="title" {...register('title')} />
-              {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title.message}</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="description">
-                Description
-              </label>
-              <Textarea id="description" autoResize minRows={4} {...register('description')} />
-              {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Product Images</label>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                {uploadedImages.map((key, idx) => (
-                  <div key={key} className="relative group">
-                    <R2Image fileKey={key} alt={`Product image ${idx + 1}`} width={400} height={300} className="h-32 w-full rounded object-cover" />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button variant="destructive" size="sm" onClick={() => handleRemoveImage(key)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="absolute top-1 left-1 bg-black/50 text-white text-xs px-1 rounded">{idx + 1}</div>
-                  </div>
-                ))}
-                <label className="h-32 w-full rounded border-2 border-dashed border-muted-foreground/25 flex items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-colors">
-                  <div className="text-center">
-                    <UploadCloud className="h-8 w-8 mx-auto text-muted-foreground" />
-                    <div className="text-sm text-muted-foreground mt-1">Add image</div>
-                  </div>
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleUploadImages} />
-                </label>
-              </div>
-              {uploadedImages.length === 0 && <p className="mt-1 text-xs text-red-500">At least one image is required</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium" htmlFor="tags">
-                Tags (comma separated)
-              </label>
-              <Input id="tags" placeholder="apparel, stickers" {...register('tags')} />
-              {errors.tags && <p className="mt-1 text-xs text-red-500">{errors.tags.message}</p>}
-            </div>
-          </CardContent>
-        </Card>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pb-20">
+        {/* Error Banner */}
+        <AnimatePresence>{allErrors.length > 0 && <FormErrorBanner errors={allErrors} onDismiss={() => setSubmitError(null)} />}</AnimatePresence>
 
-        <Card className="animate-in fade-in slide-in-from-bottom-2">
-          <CardHeader>
-            <CardTitle>Inventory & Variants</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium" htmlFor="inventory">
-                  Inventory
-                </label>
-                <Input id="inventory" type="number" min={0} {...register('inventory', { valueAsNumber: true })} />
-                {errors.inventory && <p className="mt-1 text-xs text-red-500">{errors.inventory.message}</p>}
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium" htmlFor="inventoryType">
-                  Inventory Type
-                </label>
-                <Select value={watch('inventoryType')} onValueChange={(value) => setValue('inventoryType', value as 'STOCK' | 'PREORDER')}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Select inventory type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="STOCK">Stock</SelectItem>
-                    <SelectItem value="PREORDER">Preorder</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.inventoryType && <p className="mt-1 text-xs text-red-500">{errors.inventoryType.message}</p>}
-              </div>
-            </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main Content - 2 columns */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Information */}
+            <FormCard title="Basic Information" description="Product name and description" icon={Package} collapsible={false}>
+              <div className="space-y-4">
+                <FormField label="Product Title" name="title" required error={errors.title?.message}>
+                  <Input id="title" placeholder="Enter product title" className="h-10" {...register('title')} />
+                </FormField>
 
-            <div className="rounded-md border p-4">
-              <div className="mb-3 text-sm font-medium">Variant 1</div>
-              {errors.variants && <p className="mb-2 text-xs text-red-500">{errors.variants.message}</p>}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-sm font-medium" htmlFor="variantName-0">
-                    Name
-                  </label>
-                  <Input id="variantName-0" {...register('variants.0.variantName')} />
-                  {errors.variants?.[0]?.variantName && <p className="mt-1 text-xs text-red-500">{errors.variants[0].variantName.message}</p>}
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium" htmlFor="variantPrice-0">
-                    Price
-                  </label>
-                  <Input id="variantPrice-0" type="number" step="0.01" min={0.01} {...register('variants.0.price', { valueAsNumber: true })} />
-                  {errors.variants?.[0]?.price && <p className="mt-1 text-xs text-red-500">{errors.variants[0].price.message}</p>}
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium" htmlFor="variantInventory-0">
-                    Inventory
-                  </label>
-                  <Input id="variantInventory-0" type="number" min={0} {...register('variants.0.inventory', { valueAsNumber: true })} />
-                  {errors.variants?.[0]?.inventory && <p className="mt-1 text-xs text-red-500">{errors.variants[0].inventory.message}</p>}
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Variant Image</label>
-                  <div className="flex items-center gap-3">
-                    {variantImages[0] ? (
-                      <div className="relative group">
-                        <R2Image fileKey={variantImages[0]} alt="Variant image" width={64} height={64} className="h-16 w-16 rounded object-cover" />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded">
-                          <Button variant="destructive" size="sm" onClick={() => handleRemoveVariantImage(0)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
+                <FormField label="Description" name="description" hint="Describe your product in detail">
+                  <Textarea
+                    id="description"
+                    placeholder="Enter product description..."
+                    autoResize
+                    minRows={4}
+                    className="resize-none"
+                    {...register('description')}
+                  />
+                </FormField>
+
+                <FormField label="Category" name="categoryId">
+                  <Select
+                    value={watch('categoryId') || '__none__'}
+                    onValueChange={(value) => setValue('categoryId', value === '__none__' ? '' : value)}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No category</SelectItem>
+                      {categories?.categories?.map((cat: any) => (
+                        <SelectItem key={cat._id} value={cat._id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              </div>
+            </FormCard>
+
+            {/* Product Images */}
+            <FormCard
+              title="Product Images"
+              description="Upload images for your product"
+              icon={ImagePlus}
+              badge={
+                <Badge variant="outline" className="text-xs">
+                  {uploadedImages.length}/10
+                </Badge>
+              }
+            >
+              <ImageUploadGrid
+                images={uploadedImages}
+                onUpload={handleUploadImages}
+                onRemove={handleRemoveImage}
+                maxImages={10}
+                error={uploadedImages.length === 0 ? 'At least one image is required' : undefined}
+                renderImage={(image, index) => (
+                  <R2Image
+                    fileKey={image.key}
+                    alt={`Product image ${index + 1}`}
+                    width={400}
+                    height={400}
+                    className="h-full w-full rounded-lg object-cover"
+                  />
+                )}
+              />
+            </FormCard>
+
+            {/* Variants */}
+            <FormCard
+              title="Product Variants"
+              description="Define different options like sizes or colors"
+              icon={Layers}
+              badge={
+                <Badge variant="outline" className="text-xs">
+                  {variants.length} variant{variants.length !== 1 ? 's' : ''}
+                </Badge>
+              }
+            >
+              <VariantBuilder
+                variants={variants}
+                onChange={setVariants}
+                renderVariantImage={(variant, index) => (
+                  <div className="relative">
+                    {variant.imageKey ? (
+                      <R2Image
+                        fileKey={variant.imageKey}
+                        alt={`${variant.name} image`}
+                        width={64}
+                        height={64}
+                        className="h-8 w-8 rounded object-cover"
+                      />
                     ) : (
-                      <div className="h-16 w-16 rounded border-2 border-dashed border-muted-foreground/25 flex items-center justify-center">
-                        <UploadCloud className="h-6 w-6 text-muted-foreground" />
-                      </div>
+                      <label className="h-8 w-8 rounded border-2 border-dashed border-muted-foreground/25 flex items-center justify-center cursor-pointer hover:border-muted-foreground/50">
+                        <ImagePlus className="h-4 w-4 text-muted-foreground" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleVariantImageUpload(index, file);
+                          }}
+                        />
+                      </label>
                     )}
-                    <label className="cursor-pointer">
-                      <div className="text-sm text-muted-foreground">{variantImages[0] ? 'Change image' : 'Upload image'}</div>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleUploadVariantImage(0, e)} />
-                    </label>
                   </div>
+                )}
+              />
+            </FormCard>
+          </div>
+
+          {/* Sidebar - 1 column */}
+          <div className="space-y-6">
+            {/* Status & Visibility */}
+            <FormCard title="Status" icon={Sparkles} collapsible={false}>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">Active</Label>
+                    <p className="text-xs text-muted-foreground">Product is visible to customers</p>
+                  </div>
+                  <Switch checked={isActive} onCheckedChange={(checked) => setValue('isActive', checked)} />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium">Best Price</Label>
+                    <p className="text-xs text-muted-foreground">Highlight as a great deal</p>
+                  </div>
+                  <Switch checked={isBestPrice} onCheckedChange={(checked) => setValue('isBestPrice', checked)} />
                 </div>
               </div>
-            </div>
+            </FormCard>
 
-            <div className="pt-2">
-              <Button type="submit" disabled={isSubmitting || uploadedImages.length === 0}>
-                {isSubmitting ? 'Creating...' : 'Create product'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            {/* Inventory */}
+            <FormCard title="Inventory" icon={Layers} collapsible={false}>
+              <div className="space-y-4">
+                <FormField label="Inventory Type" name="inventoryType">
+                  <Select value={inventoryType} onValueChange={(value) => setValue('inventoryType', value as 'STOCK' | 'PREORDER')}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="STOCK">
+                        <div className="flex items-center gap-2">
+                          <span>In Stock</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="PREORDER">
+                        <div className="flex items-center gap-2">
+                          <span>Pre-order</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormField>
+
+                <FormField label="Total Inventory" name="inventory" error={errors.inventory?.message}>
+                  <Input id="inventory" type="number" min={0} className="h-10" {...register('inventory', { valueAsNumber: true })} />
+                </FormField>
+              </div>
+            </FormCard>
+
+            {/* Tags */}
+            <FormCard title="Tags" description="Help customers find your product" icon={Tags} collapsible={false}>
+              <div className="space-y-3">
+                <Input
+                  placeholder="Type and press Enter to add"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleAddTag}
+                  className="h-10"
+                />
+
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    <AnimatePresence>
+                      {tags.map((tag) => (
+                        <motion.div
+                          key={tag}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                        >
+                          <Badge
+                            variant="secondary"
+                            className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                            onClick={() => handleRemoveTag(tag)}
+                          >
+                            {tag}
+                            <span className="ml-1">×</span>
+                          </Badge>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Press Enter or comma to add tags
+                </p>
+              </div>
+            </FormCard>
+          </div>
+        </div>
+
+        {/* Form Actions */}
+        <FormActions
+          cancelHref={`/admin/products${orgSlug ? `?org=${orgSlug}` : ''}`}
+          submitLabel="Create Product"
+          isSubmitting={isSubmitting}
+          isValid={uploadedImages.length > 0 && variants.some((v) => v.name.trim() && v.price > 0)}
+          sticky
+        />
       </form>
     </div>
   );

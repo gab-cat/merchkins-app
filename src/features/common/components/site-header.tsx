@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Search, Building2, Package, User as UserIcon, MessageSquare, Ticket, ArrowRight, ArrowLeft } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ShoppingCart, Search, Building2, Package, User as UserIcon, MessageSquare, Ticket, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,18 @@ import { CartSheet } from '@/src/features/cart/components/cart-sheet';
 import { cn } from '@/lib/utils';
 import { OrganizationsPage, AccountPage } from '@/src/features/common/components/user-profile-pages';
 import { useThemeExclusionAuto } from '../../../stores/theme-exclusion';
+import { BeamsBackground, GradientBackground, GridPattern } from '@/src/components/ui/backgrounds';
+import { Float, PulseGlow } from '@/src/components/ui/animations';
+import {
+  Navbar,
+  NavBody,
+  NavItems,
+  MobileNav,
+  MobileNavHeader,
+  MobileNavMenu,
+  MobileNavToggle,
+  useNavbarScroll,
+} from '@/src/components/ui/resizable-navbar';
 
 export function SiteHeader() {
   const router = useRouter();
@@ -23,6 +36,7 @@ export function SiteHeader() {
   const { userId: clerkId } = useAuth();
   const isSignedIn = !!clerkId;
   const [search, setSearch] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { shouldApplyTheme } = useThemeExclusionAuto();
 
   // Detect organization slug from hostname (for subdomains) or pathname (for direct access)
@@ -77,11 +91,6 @@ export function SiteHeader() {
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
   );
 
-  const topCategories = useQuery(
-    api.categories.queries.index.getCategories,
-    organization?._id ? { organizationId: organization._id, level: 0, isActive: true, limit: 8 } : { level: 0, isActive: true, limit: 8 }
-  );
-
   const cart = useQuery(api.carts.queries.index.getCartByUser, {});
   const totalItems = useMemo(() => cart?.totalItems ?? 0, [cart]);
 
@@ -130,99 +139,296 @@ export function SiteHeader() {
     }
   }
 
-  const headerClassName = cn(
-    'sticky top-0 z-40 w-full border-b',
-    'supports-[backdrop-filter]:backdrop-blur-md',
-    shouldApplyTheme && 'border-primary/20 shadow-sm'
-  );
+  const { scrollY } = useScroll();
+  const headerOpacity = useTransform(scrollY, [0, 100], [1, 0.98]);
+  const headerBlur = useTransform(scrollY, [0, 100], [0, 4]);
+
+  // Navigation items for the resizable navbar
+  const navItems = useMemo(() => {
+    const baseItems = [
+      { name: 'Home', link: orgSlug ? `/o/${orgSlug}` : '/' },
+      { name: 'Search', link: orgSlug ? `/o/${orgSlug}/search` : '/search' },
+    ];
+    return baseItems;
+  }, [orgSlug]);
+
+  const headerClassName = cn('transition-all duration-300', 'supports-[backdrop-filter]:backdrop-blur-md');
 
   return (
-    <header
-      className={headerClassName}
-      style={{
-        backgroundColor: shouldApplyTheme ? 'rgba(255, 255, 255, 0.95)' : 'var(--header-bg)',
-        color: shouldApplyTheme ? 'var(--foreground)' : 'var(--header-fg)',
-      }}
-    >
-      {/* Main Header */}
-      <div className="container max-w-7xl mx-auto flex h-16 items-center gap-2 px-4">
-        {/* Logo */}
-        <Link
-          href={orgSlug ? `/o/${orgSlug}` : '/'}
-          className="flex items-center gap-2 font-bold tracking-tight transition-opacity hover:opacity-80"
-          style={{ color: shouldApplyTheme ? 'var(--primary)' : 'var(--header-fg)' }}
-        >
-          <span className={cn('text-xl md:text-3xl font-bold', shouldApplyTheme && organization?.name ? '' : 'font-genty')}>
-            {shouldApplyTheme ? (
-              organization?.name
-            ) : (
-              <div className="flex items-center">
-                <span className="text-white">Merch</span>
-                <span className="font-genty">kins</span>
-              </div>
-            )}
-          </span>
-        </Link>
+    <>
+      {/* Spacer to prevent content from going under fixed navbar */}
+      <div className="h-24" />
+      <Navbar
+        className={headerClassName}
+        style={{
+          backgroundColor: shouldApplyTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          color: shouldApplyTheme ? 'var(--foreground)' : 'var(--foreground)',
+        }}
+      >
+        <SiteHeaderContent
+          orgSlug={orgSlug}
+          organization={organization}
+          shouldApplyTheme={shouldApplyTheme}
+          showHomeButton={showHomeButton}
+          navItems={navItems}
+          search={search}
+          setSearch={setSearch}
+          handleSearchSubmit={handleSearchSubmit}
+          totalItems={totalItems}
+          totalSupportUnread={totalSupportUnread}
+          totalChatUnread={totalChatUnread}
+          totalTicketUnread={totalTicketUnread}
+          mobileMenuOpen={mobileMenuOpen}
+          setMobileMenuOpen={setMobileMenuOpen}
+          router={router}
+        />
+      </Navbar>
+    </>
+  );
+}
 
-        {/* Home button - shown when on storefront or using another store's theme */}
-        {showHomeButton && (
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="gap-1.5 text-xs px-2.5 h-9 hover:opacity-80 transition-all text-primary"
-            aria-label="Go back home"
-          >
-            <Link className="!text-xs" href="/">
-              <ArrowLeft className="h-2 w-2" />
-              <span className="hidden sm:inline text-xs">Go back home</span>
+function SiteHeaderContent({
+  orgSlug,
+  organization,
+  shouldApplyTheme,
+  showHomeButton,
+  navItems,
+  search,
+  setSearch,
+  handleSearchSubmit,
+  totalItems,
+  totalSupportUnread,
+  totalChatUnread,
+  totalTicketUnread,
+  mobileMenuOpen,
+  setMobileMenuOpen,
+  router,
+}: {
+  orgSlug: string | undefined;
+  organization: any;
+  shouldApplyTheme: boolean;
+  showHomeButton: boolean;
+  navItems: Array<{ name: string; link: string }>;
+  search: string;
+  setSearch: (value: string) => void;
+  handleSearchSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  totalItems: number;
+  totalSupportUnread: number;
+  totalChatUnread: number;
+  totalTicketUnread: number;
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (open: boolean) => void;
+  router: any;
+}) {
+  const { isScrolled } = useNavbarScroll();
+
+  return (
+    <>
+      {/* Animated Background Effects - only show when not scrolled */}
+      {!shouldApplyTheme && !isScrolled && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <BeamsBackground className="opacity-30" />
+          <GradientBackground variant="subtle" className="opacity-50" />
+          <GridPattern className="opacity-20" />
+
+          {/* Floating decorative sparkles */}
+          <Float amplitude={8} duration={4}>
+            <div className="absolute top-4 right-[15%] w-2 h-2 rounded-full bg-brand-neon/60 blur-sm" />
+          </Float>
+          <Float amplitude={6} duration={5}>
+            <div className="absolute top-6 left-[20%] w-1.5 h-1.5 rounded-full bg-white/80 blur-sm" />
+          </Float>
+          <Float amplitude={10} duration={6}>
+            <div className="absolute top-8 right-[30%] w-1 h-1 rounded-full bg-brand-neon/40 blur-sm" />
+          </Float>
+        </div>
+      )}
+
+      <NavBody>
+        {/* Logo with enhanced styling */}
+        <div className="flex items-center gap-4">
+          <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
+            <Link
+              href={orgSlug ? `/o/${orgSlug}` : '/'}
+              className="flex items-center gap-2 font-bold tracking-tight transition-all duration-300 group relative"
+              style={{ color: isScrolled ? 'white' : shouldApplyTheme ? 'var(--foreground)' : 'var(--foreground)' }}
+            >
+              {!shouldApplyTheme && !isScrolled && (
+                <>
+                  {/* Decorative sparkle near logo */}
+                  <motion.div
+                    className="absolute -left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                  >
+                    <Sparkles className="h-3 w-3 text-brand-neon" />
+                  </motion.div>
+
+                  {/* Glow effect on hover */}
+                  <motion.div
+                    className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"
+                    style={{ background: 'radial-gradient(circle, rgba(173, 252, 4, 0.3), transparent 70%)' }}
+                  />
+                </>
+              )}
+
+              <span
+                className={cn(
+                  'text-xl md:text-3xl font-bold relative z-10 transition-all duration-300',
+                  isScrolled ? 'text-white' : shouldApplyTheme && organization?.name ? 'text-foreground' : 'font-genty',
+                  !shouldApplyTheme && !isScrolled && 'group-hover:drop-shadow-[0_0_8px_rgba(173,252,4,0.5)]'
+                )}
+              >
+                {shouldApplyTheme ? (
+                  organization?.name
+                ) : isScrolled ? (
+                  <span className="relative z-10 inline-flex items-center px-3 py-1 md:px-4 md:py-1.5 transition-shadow duration-300">
+                    <span className="font-genty">
+                      <span className="text-white">Merch</span>
+                      <span className="text-brand-neon">kins</span>
+                    </span>
+                  </span>
+                ) : (
+                  <span className="relative z-10 inline-flex items-center bg-primary px-3 py-1 md:px-4 md:py-1.5 rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <span className="font-genty">
+                      <span className="text-white">Merch</span>
+                      <span className="text-brand-neon">kins</span>
+                    </span>
+                  </span>
+                )}
+              </span>
             </Link>
-          </Button>
-        )}
+          </motion.div>
+
+          {/* Home button - shown when on storefront or using another store's theme, hidden when compressed */}
+          {showHomeButton && !isScrolled && (
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className={cn(
+                'gap-1.5 text-xs px-2.5 h-9 hover:opacity-80 transition-all',
+                shouldApplyTheme ? 'text-primary' : 'text-white hover:text-brand-neon'
+              )}
+              aria-label="Go back home"
+            >
+              <Link className="!text-xs" href="/">
+                <ArrowLeft className="h-2 w-2" />
+                <span className="hidden sm:inline text-xs">Go back home</span>
+              </Link>
+            </Button>
+          )}
+
+          {/* Navigation Items - hidden when compressed */}
+          {!isScrolled && (
+            <NavItems
+              items={navItems}
+              onItemClick={() => setMobileMenuOpen(false)}
+              textColor={shouldApplyTheme ? 'text-foreground' : 'text-foreground'}
+              hoverColor={shouldApplyTheme ? 'hover:text-primary' : 'hover:text-primary'}
+            />
+          )}
+        </div>
 
         {/* Right side actions */}
-        <div className="ml-auto flex items-center gap-2">
-          {/* Search Bar */}
-          <form onSubmit={handleSearchSubmit} role="search" className="hidden md:flex">
-            <div className="relative w-64">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 z-10 text-muted-foreground" />
+        <div className="flex items-center gap-2">
+          {/* Enhanced Search Bar with Glassmorphism */}
+          <form onSubmit={handleSearchSubmit} role="search" className="hidden md:flex group">
+            <motion.div className="relative w-64" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+              <Search
+                className={cn(
+                  'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 z-20 transition-colors duration-300',
+                  isScrolled
+                    ? 'text-white/80 group-focus-within:text-white'
+                    : shouldApplyTheme
+                      ? 'text-foreground/60 group-focus-within:text-primary'
+                      : 'text-foreground/60 group-focus-within:text-primary'
+                )}
+              />
+              <motion.div
+                className="absolute inset-0 rounded-full opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"
+                style={{
+                  background: shouldApplyTheme
+                    ? 'linear-gradient(135deg, rgba(29, 67, 216, 0.1), rgba(79, 125, 249, 0.1))'
+                    : 'linear-gradient(135deg, rgba(173, 252, 4, 0.15), rgba(29, 67, 216, 0.15))',
+                  filter: 'blur(8px)',
+                }}
+              />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search products..."
                 aria-label="Search products"
-                className="h-9 pl-10 text-sm pr-10 bg-white text-black rounded-full border border-border hover:border-primary/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all placeholder:text-muted-foreground"
+                className={cn(
+                  'h-9 pl-10 text-sm pr-10 rounded-full border transition-all duration-300 relative z-10',
+                  isScrolled
+                    ? 'bg-white/20 backdrop-blur-sm text-white border-white/20 placeholder:text-white/60 hover:border-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/20'
+                    : shouldApplyTheme
+                      ? 'bg-white/80 backdrop-blur-sm text-foreground border-border placeholder:text-muted-foreground hover:border-primary/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/20'
+                      : 'bg-white/80 backdrop-blur-sm text-foreground border-border placeholder:text-muted-foreground hover:border-primary/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/20'
+                )}
               />
-              <Button
-                type="submit"
-                variant="ghost"
-                size="sm"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-6 w-6 p-0 rounded-full hover:bg-primary/10 hover:-translate-y-1/2 transition-all"
-              >
-                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="sr-only">Search</span>
-              </Button>
-            </div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'absolute right-1.5 top-1/2 -translate-y-1/2 h-6 w-6 p-0 rounded-full transition-all duration-300',
+                    isScrolled
+                      ? 'hover:bg-white/10 text-white hover:text-white'
+                      : shouldApplyTheme
+                        ? 'hover:bg-primary/10 text-muted-foreground hover:text-primary'
+                        : 'hover:bg-primary/10 text-muted-foreground hover:text-primary'
+                  )}
+                >
+                  <ArrowRight className="h-3.5 w-3.5" />
+                  <span className="sr-only">Search</span>
+                </Button>
+              </motion.div>
+            </motion.div>
           </form>
-          {/* Support dropdown */}
+          {/* Enhanced Support dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  'gap-1.5 px-2.5 h-9 relative hover:bg-gray-100/20 hover:opacity-80 transition-all',
-                  shouldApplyTheme ? 'text-primary hover:text-primary' : 'text-white hover:text-white'
-                )}
-              >
-                <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline text-sm">Support</span>
-                {totalSupportUnread > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center animate-pulse font-medium">
-                    {totalSupportUnread}
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'gap-1.5 px-2.5 h-9 relative transition-all duration-300 rounded-lg',
+                    isScrolled
+                      ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
+                      : shouldApplyTheme
+                        ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                        : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                  )}
+                >
+                  <MessageSquare
+                    className={cn(
+                      'h-4 w-4 transition-transform duration-300 group-hover:rotate-12',
+                      isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      'hidden sm:inline text-sm font-medium',
+                      isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
+                    )}
+                  >
+                    Support
                   </span>
-                )}
-              </Button>
+                  {totalSupportUnread > 0 && (
+                    <motion.span
+                      className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-medium shadow-lg"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {totalSupportUnread}
+                    </motion.span>
+                  )}
+                </Button>
+              </motion.div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 animate-in fade-in-0 zoom-in-95">
               <DropdownMenuItem asChild data-testid="support-chats">
@@ -261,32 +467,78 @@ export function SiteHeader() {
 
           <SignedIn>
             <CartSheet initialCount={totalItems}>
-              <Button
-                variant="ghost"
-                aria-label="Cart"
-                size="sm"
-                className={cn(
-                  'gap-1.5 px-2.5 h-9 hover:bg-accent/20 hover:opacity-80 transition-all',
-                  shouldApplyTheme ? 'text-primary hover:text-primary' : 'text-white hover:text-white'
-                )}
-              >
-                <ShoppingCart className="h-4 w-4" />
-                <span className="sr-only">Cart</span>
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="ghost"
+                  aria-label="Cart"
+                  size="sm"
+                  className={cn(
+                    'gap-1.5 px-2.5 h-9 relative transition-all duration-300 rounded-lg',
+                    isScrolled
+                      ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
+                      : shouldApplyTheme
+                        ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                        : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                  )}
+                >
+                  <ShoppingCart
+                    className={cn(
+                      'h-4 w-4 transition-transform duration-300 group-hover:scale-110',
+                      isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
+                    )}
+                  />
+                  {totalItems > 0 && (
+                    <motion.span
+                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-brand-neon text-black text-xs flex items-center justify-center font-bold shadow-lg"
+                      animate={{ scale: [1, 1.15, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {totalItems > 9 ? '9+' : totalItems}
+                    </motion.span>
+                  )}
+                  <span className="sr-only">Cart</span>
+                </Button>
+              </motion.div>
             </CartSheet>
           </SignedIn>
 
           <SignedOut>
             <div className="flex items-center gap-2">
               <SignInButton mode="modal">
-                <Button variant="ghost" size="sm" className="h-9 px-3 text-sm hover:bg-accent/50 transition-colors">
-                  Sign in
-                </Button>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'h-9 px-3 text-sm font-medium transition-all duration-300 rounded-lg',
+                      isScrolled
+                        ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
+                        : shouldApplyTheme
+                          ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                          : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                    )}
+                  >
+                    Sign in
+                  </Button>
+                </motion.div>
               </SignInButton>
               <SignUpButton mode="modal">
-                <Button size="sm" className="px-3 h-9 text-sm bg-primary hover:bg-primary/90 shadow-sm">
-                  Register
-                </Button>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    size="sm"
+                    className={cn(
+                      'px-3 h-9 text-sm font-medium transition-all duration-300 rounded-lg shadow-lg',
+                      isScrolled
+                        ? 'bg-white/20 hover:bg-white/30 text-white hover:shadow-xl backdrop-blur-sm'
+                        : shouldApplyTheme
+                          ? 'bg-primary hover:bg-primary/90 hover:shadow-xl text-white'
+                          : 'bg-brand-neon text-black hover:bg-brand-neon/90 hover:shadow-[0_0_20px_rgba(173,252,4,0.5)]'
+                    )}
+                    style={isScrolled ? undefined : !shouldApplyTheme ? { backgroundColor: '#adfc04', color: '#000000' } : undefined}
+                  >
+                    Register
+                  </Button>
+                </motion.div>
               </SignUpButton>
             </div>
           </SignedOut>
@@ -317,39 +569,91 @@ export function SiteHeader() {
             </UserButton>
           </SignedIn>
         </div>
-      </div>
 
-      {/* Categories Bar */}
-      <div className="border-t border-border/50 bg-white">
-        <div className="container max-w-7xl mx-auto px-4 py-2">
-          <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-            {topCategories === undefined ? (
-              // Loading skeleton
-              <>
-                {new Array(8).fill(null).map((_, i) => (
-                  <div key={`skeleton-${i}`} className="w-20 rounded skeleton flex-shrink-0" />
+        {/* Mobile Navigation */}
+        <MobileNav visible={true}>
+          <MobileNavHeader>
+            <MobileNavToggle isOpen={mobileMenuOpen} onClick={() => setMobileMenuOpen(!mobileMenuOpen)} />
+          </MobileNavHeader>
+          <MobileNavMenu isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)}>
+            <div className="flex flex-col gap-4 mt-8">
+              {/* Mobile Logo */}
+              <Link
+                href={orgSlug ? `/o/${orgSlug}` : '/'}
+                className="flex items-center justify-center gap-2 font-bold tracking-tight mb-4"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <span className={cn('text-2xl font-bold', shouldApplyTheme && organization?.name ? 'text-foreground' : 'font-genty')}>
+                  {shouldApplyTheme ? (
+                    organization?.name
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <span className="text-white border">Merch</span>
+                      <span className="font-genty">kins</span>
+                    </div>
+                  )}
+                </span>
+              </Link>
+
+              {/* Mobile Navigation Items */}
+              <div className="flex flex-col gap-2">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.link}
+                    href={item.link}
+                    className={cn(
+                      'text-lg font-medium py-2 transition-colors',
+                      shouldApplyTheme ? 'text-foreground hover:text-primary' : 'text-foreground hover:text-primary'
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
                 ))}
-              </>
-            ) : (
-              // Categories
-              (topCategories?.categories ?? []).map(
-                (c) =>
-                  c && (
-                    <Button
-                      key={c._id}
-                      asChild
-                      variant="ghost"
-                      size="sm"
-                      className="px-3 text-sm font-medium hover:bg-accent/20 transition-all text-primary whitespace-nowrap flex-shrink-0"
-                    >
-                      <Link href={orgSlug ? `/o/${orgSlug}/c/${c.slug}` : `/c/${c.slug}`}>{c.name}</Link>
+              </div>
+
+              {/* Mobile Search */}
+              <form onSubmit={handleSearchSubmit} role="search" className="mt-4">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search products..."
+                    aria-label="Search products"
+                    className="h-10 pl-10 pr-4 rounded-lg"
+                  />
+                </div>
+              </form>
+
+              {/* Mobile Actions */}
+              <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <Button variant="ghost" className="w-full justify-start">
+                      Sign in
                     </Button>
-                  )
-              )
-            )}
-          </nav>
-        </div>
-      </div>
-    </header>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <Button className="w-full">Register</Button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <div className="flex items-center gap-2">
+                    <CartSheet initialCount={totalItems}>
+                      <Button variant="ghost" className="flex-1">
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Cart {totalItems > 0 && `(${totalItems})`}
+                      </Button>
+                    </CartSheet>
+                    <UserButton afterSignOutUrl="/" />
+                  </div>
+                </SignedIn>
+              </div>
+            </div>
+          </MobileNavMenu>
+        </MobileNav>
+      </NavBody>
+    </>
   );
 }

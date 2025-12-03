@@ -139,6 +139,7 @@ import type * as orders_mutations_restoreOrder from "../orders/mutations/restore
 import type * as orders_mutations_updateOrder from "../orders/mutations/updateOrder.js";
 import type * as orders_mutations_updateOrderStats from "../orders/mutations/updateOrderStats.js";
 import type * as orders_mutations_updateOrderXenditInvoice from "../orders/mutations/updateOrderXenditInvoice.js";
+import type * as orders_queries_getDashboardAnalytics from "../orders/queries/getDashboardAnalytics.js";
 import type * as orders_queries_getOrderAnalytics from "../orders/queries/getOrderAnalytics.js";
 import type * as orders_queries_getOrderById from "../orders/queries/getOrderById.js";
 import type * as orders_queries_getOrders from "../orders/queries/getOrders.js";
@@ -271,6 +272,7 @@ import type * as users_mutations_deleteUser from "../users/mutations/deleteUser.
 import type * as users_mutations_index from "../users/mutations/index.js";
 import type * as users_mutations_removeOrganizationMembership from "../users/mutations/removeOrganizationMembership.js";
 import type * as users_mutations_restoreUser from "../users/mutations/restoreUser.js";
+import type * as users_mutations_updateAccountSettings from "../users/mutations/updateAccountSettings.js";
 import type * as users_mutations_updateLastLogin from "../users/mutations/updateLastLogin.js";
 import type * as users_mutations_updateOrderStats from "../users/mutations/updateOrderStats.js";
 import type * as users_mutations_updatePreferences from "../users/mutations/updatePreferences.js";
@@ -278,6 +280,7 @@ import type * as users_mutations_updateProfile from "../users/mutations/updatePr
 import type * as users_mutations_updateUserPermissions from "../users/mutations/updateUserPermissions.js";
 import type * as users_mutations_updateUserRole from "../users/mutations/updateUserRole.js";
 import type * as users_queries_checkUserPermission from "../users/queries/checkUserPermission.js";
+import type * as users_queries_getAccountSettings from "../users/queries/getAccountSettings.js";
 import type * as users_queries_getCurrentUser from "../users/queries/getCurrentUser.js";
 import type * as users_queries_getRecentlyActiveUsers from "../users/queries/getRecentlyActiveUsers.js";
 import type * as users_queries_getUserAnalytics from "../users/queries/getUserAnalytics.js";
@@ -295,14 +298,6 @@ import type {
   FunctionReference,
 } from "convex/server";
 
-/**
- * A utility for referencing Convex functions in your app's API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = api.myModule.myFunction;
- * ```
- */
 declare const fullApi: ApiFromModules<{
   "announcements/index": typeof announcements_index;
   "announcements/mutations/createAnnouncement": typeof announcements_mutations_createAnnouncement;
@@ -435,6 +430,7 @@ declare const fullApi: ApiFromModules<{
   "orders/mutations/updateOrder": typeof orders_mutations_updateOrder;
   "orders/mutations/updateOrderStats": typeof orders_mutations_updateOrderStats;
   "orders/mutations/updateOrderXenditInvoice": typeof orders_mutations_updateOrderXenditInvoice;
+  "orders/queries/getDashboardAnalytics": typeof orders_queries_getDashboardAnalytics;
   "orders/queries/getOrderAnalytics": typeof orders_queries_getOrderAnalytics;
   "orders/queries/getOrderById": typeof orders_queries_getOrderById;
   "orders/queries/getOrders": typeof orders_queries_getOrders;
@@ -567,6 +563,7 @@ declare const fullApi: ApiFromModules<{
   "users/mutations/index": typeof users_mutations_index;
   "users/mutations/removeOrganizationMembership": typeof users_mutations_removeOrganizationMembership;
   "users/mutations/restoreUser": typeof users_mutations_restoreUser;
+  "users/mutations/updateAccountSettings": typeof users_mutations_updateAccountSettings;
   "users/mutations/updateLastLogin": typeof users_mutations_updateLastLogin;
   "users/mutations/updateOrderStats": typeof users_mutations_updateOrderStats;
   "users/mutations/updatePreferences": typeof users_mutations_updatePreferences;
@@ -574,6 +571,7 @@ declare const fullApi: ApiFromModules<{
   "users/mutations/updateUserPermissions": typeof users_mutations_updateUserPermissions;
   "users/mutations/updateUserRole": typeof users_mutations_updateUserRole;
   "users/queries/checkUserPermission": typeof users_queries_checkUserPermission;
+  "users/queries/getAccountSettings": typeof users_queries_getAccountSettings;
   "users/queries/getCurrentUser": typeof users_queries_getCurrentUser;
   "users/queries/getRecentlyActiveUsers": typeof users_queries_getRecentlyActiveUsers;
   "users/queries/getUserAnalytics": typeof users_queries_getUserAnalytics;
@@ -585,14 +583,30 @@ declare const fullApi: ApiFromModules<{
   "users/queries/index": typeof users_queries_index;
   "users/queries/searchUsers": typeof users_queries_searchUsers;
 }>;
-declare const fullApiWithMounts: typeof fullApi;
 
+/**
+ * A utility for referencing Convex functions in your app's public API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
 export declare const api: FilterApi<
-  typeof fullApiWithMounts,
+  typeof fullApi,
   FunctionReference<any, "public">
 >;
+
+/**
+ * A utility for referencing Convex functions in your app's internal API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = internal.myModule.myFunction;
+ * ```
+ */
 export declare const internal: FilterApi<
-  typeof fullApiWithMounts,
+  typeof fullApi,
   FunctionReference<any, "internal">
 >;
 

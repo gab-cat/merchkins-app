@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useMutation, useQuery, usePreloadedQuery } from 'convex/react';
 import { useAuth } from '@clerk/nextjs';
 import { api } from '@/convex/_generated/api';
@@ -10,7 +11,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
 import { Badge } from '@/components/ui/badge';
 import { R2Image } from '@/src/components/ui/r2-image';
-import { Star, Share2, ShoppingCart, ChevronLeft, ChevronRight, Check, ChevronDown, Store, ExternalLink } from 'lucide-react';
+import {
+  Star,
+  Share2,
+  ShoppingCart,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  ChevronDown,
+  Store,
+  ExternalLink,
+  Sparkles,
+  TrendingUp,
+  ArrowRight,
+} from 'lucide-react';
 import { showToast } from '@/lib/toast';
 import { useCartSheetStore } from '@/src/stores/cart-sheet';
 import { computeEffectivePrice } from '@/lib/utils';
@@ -24,6 +38,7 @@ import { useOrganizationMembership } from '@/src/hooks/use-organization-membersh
 import { useRequireAuth } from '@/src/features/auth/hooks/use-require-auth';
 import { SignInRequiredDialog } from '@/src/features/auth/components/sign-in-required-dialog';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { BlurFade } from '@/src/components/ui/animations/effects';
 
 interface ProductDetailProps {
   slug: string;
@@ -201,229 +216,314 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
   }
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6" data-testid="product-detail">
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-        <div className="space-y-3">
-          <ProductGallery imageKeys={product.imageUrl} />
+    <div className="min-h-screen" data-testid="product-detail">
+      {/* Hero section with product */}
+      <section className="relative overflow-hidden">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
 
-          {/* Organization Info Strip */}
-          {organization && (
-            <div className="bg-card rounded-lg p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                {organization.logo ? (
-                  <R2Image
-                    fileKey={organization.logo}
-                    alt={`${organization.name} logo`}
-                    width={40}
-                    height={40}
-                    className="h-10 w-10 flex-shrink-0 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="h-10 w-10 flex-shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                    {organization.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <Store className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <Link
-                        href={`/o/${organization.slug}`}
-                        className="font-bold text-primary hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
-                        aria-label={`Visit ${organization.name} store`}
-                      >
-                        {organization.name}
-                      </Link>
-                    </div>
-                    <Button asChild variant="ghost" size="sm" className="px-2 py-1 h-auto text-primary hover:text-primary/80 hover:bg-transparent">
-                      <Link href={`/o/${organization.slug}`} className="text-xs">
-                        Visit store <ExternalLink className="h-3 w-3 ml-1" />
-                      </Link>
-                    </Button>
-                  </div>
-                  {organization.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{organization.description}</p>}
-                </div>
+        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10">
+          <div className="grid gap-8 lg:gap-12 lg:grid-cols-2">
+            {/* Gallery Section */}
+            <BlurFade delay={0.1}>
+              <div className="space-y-4">
+                <ProductGallery imageKeys={product.imageUrl} />
               </div>
-            </div>
-          )}
-        </div>
+            </BlurFade>
 
-        <div className="space-y-3 sm:space-y-4">
-          <div className="space-y-2">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-primary leading-tight" data-testid="product-title">
-              {product.title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
-              {product.rating !== undefined && product.rating !== null && product.rating > 0 && product.reviewsCount > 0 ? (
-                <span className="inline-flex items-center gap-1">
-                  <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-current text-yellow-400" />
-                  <span className="font-medium">{product.rating.toFixed(1)}</span>
-                </span>
-              ) : null}
-              {product.reviewsCount !== undefined && product.reviewsCount !== null && product.reviewsCount > 0 ? (
-                <span>({product.reviewsCount} reviews)</span>
-              ) : null}
-              {product.totalOrders !== undefined && product.totalOrders !== null && product.totalOrders > 0 ? (
-                <>
-                  <span className="hidden sm:inline">•</span>
-                  <span className="hidden sm:inline">{product.totalOrders} orders</span>
-                </>
-              ) : null}
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-primary" data-testid="product-price">
-              {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(price)}
-            </div>
-          </div>
+            {/* Product Info Section */}
+            <div className="space-y-6">
+              {/* Title and rating */}
+              <BlurFade delay={0.2}>
+                <div className="space-y-3">
+                  <h1
+                    className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground leading-tight font-heading"
+                    data-testid="product-title"
+                  >
+                    {product.title}
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    {product.rating !== undefined && product.rating !== null && product.rating > 0 && product.reviewsCount > 0 && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-50 border border-yellow-200">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-semibold text-yellow-700">{product.rating.toFixed(1)}</span>
+                        <span className="text-yellow-600/80">({product.reviewsCount} reviews)</span>
+                      </div>
+                    )}
+                    {product.totalOrders !== undefined && product.totalOrders !== null && product.totalOrders > 0 && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10">
+                        <TrendingUp className="h-4 w-4 text-primary" />
+                        <span className="font-medium text-primary">{product.totalOrders} orders</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </BlurFade>
 
-          {product.description && <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{product.description}</p>}
-
-          {product.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {product.tags.map((t) => (
-                <Badge key={t} variant="outline" className="text-xs px-2 py-1 capitalize">
-                  {t}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {activeVariants.length > 0 && (
-            <div className="space-y-2">
-              <span className="text-xs sm:text-sm font-semibold text-muted-foreground">Variant & Size</span>
-              <div className="flex items-stretch gap-3">
-                <div
-                  className="flex-1 p-3 rounded-lg border bg-card text-sm flex items-center cursor-pointer hover:bg-accent transition-colors"
-                  onClick={() => setVariantDialogOpen(true)}
-                >
-                  {selectedVariant ? (
-                    <div className="flex items-center justify-between w-full">
-                      <span>
-                        {selectedVariant.variantName}
-                        {selectedSize && ` • ${selectedSize.label}`}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {new Intl.NumberFormat(undefined, {
-                          style: 'currency',
-                          currency: 'PHP',
-                        }).format(price)}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground">None selected</span>
+              {/* Price */}
+              <BlurFade delay={0.25}>
+                <div className="flex items-baseline gap-3">
+                  <span className="text-3xl sm:text-4xl font-bold text-primary font-heading" data-testid="product-price">
+                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(price)}
+                  </span>
+                  {product.supposedPrice && product.supposedPrice > price && (
+                    <span className="text-lg text-muted-foreground line-through">
+                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(product.supposedPrice)}
+                    </span>
                   )}
                 </div>
-                <Button variant="outline" onClick={() => setVariantDialogOpen(true)} className="px-4 py-3 h-auto flex items-center gap-2">
-                  <ChevronDown className="h-4 w-4" />
-                  {selectedVariant ? 'Change' : 'Select'}
-                </Button>
-              </div>
-              {!selectedVariant && <span className="text-xs text-red-600">Select a variant</span>}
+              </BlurFade>
+
+              {/* Description */}
+              {product.description && (
+                <BlurFade delay={0.3}>
+                  <p className="text-base text-muted-foreground leading-relaxed">{product.description}</p>
+                </BlurFade>
+              )}
+
+              {/* Tags */}
+              {product.tags?.length > 0 && (
+                <BlurFade delay={0.35}>
+                  <div className="flex flex-wrap gap-2">
+                    {product.tags.map((t) => (
+                      <Badge
+                        key={t}
+                        variant="outline"
+                        className="text-xs px-3 py-1.5 capitalize rounded-full border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
+                      >
+                        {t}
+                      </Badge>
+                    ))}
+                  </div>
+                </BlurFade>
+              )}
+
+              {/* Variant Selection */}
+              {activeVariants.length > 0 && (
+                <BlurFade delay={0.4}>
+                  <div className="space-y-3">
+                    <span className="text-sm font-semibold text-foreground">Select Variant & Size</span>
+                    <motion.div
+                      className="flex items-stretch gap-3 p-4 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/[0.02] hover:border-primary/40 hover:bg-primary/[0.04] transition-all duration-300 cursor-pointer"
+                      onClick={() => setVariantDialogOpen(true)}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      <div className="flex-1 flex items-center">
+                        {selectedVariant ? (
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                <Check className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <div className="font-semibold text-foreground">{selectedVariant.variantName}</div>
+                                {selectedSize && <div className="text-sm text-muted-foreground">Size: {selectedSize.label}</div>}
+                              </div>
+                            </div>
+                            <span className="text-lg font-bold text-primary">
+                              {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(price)}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
+                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <span className="text-muted-foreground">Tap to select variant</span>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                    {!selectedVariant && <span className="text-xs text-red-500 font-medium">Please select a variant to continue</span>}
+                  </div>
+                </BlurFade>
+              )}
+
+              {/* Status badges */}
+              <BlurFade delay={0.45}>
+                <div className="flex flex-wrap items-center gap-2">
+                  {inStock ? (
+                    <Badge
+                      variant="secondary"
+                      data-testid="inventory-status"
+                      className="text-xs px-3 py-1.5 font-medium bg-green-50 text-green-700 border border-green-200 rounded-full"
+                    >
+                      <span className="mr-1.5">✓</span> In stock
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive" data-testid="inventory-status" className="text-xs px-3 py-1.5 font-medium rounded-full">
+                      <span className="mr-1.5">✗</span> Out of stock
+                    </Badge>
+                  )}
+                  {product.inventoryType === 'PREORDER' && (
+                    <Badge variant="outline" className="text-xs px-3 py-1.5 font-medium rounded-full border-orange-200 bg-orange-50 text-orange-700">
+                      <Sparkles className="h-3 w-3 mr-1.5" /> Preorder
+                    </Badge>
+                  )}
+                  {product.isBestPrice && (
+                    <Badge className="text-xs px-3 py-1.5 font-medium bg-brand-neon text-black rounded-full border-0 shadow-lg shadow-brand-neon/25">
+                      Best price
+                    </Badge>
+                  )}
+                </div>
+              </BlurFade>
+
+              {/* CTA buttons */}
+              <BlurFade delay={0.5}>
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <Button
+                    size="lg"
+                    onClick={handleAddToCart}
+                    disabled={Boolean(
+                      !inStock ||
+                        (activeVariants.length > 0 && !selectedVariantId) ||
+                        (selectedVariantId && selectedVariant?.sizes && selectedVariant.sizes.length > 0 && !selectedSizeId)
+                    )}
+                    aria-label="Add to cart"
+                    className="group relative overflow-hidden flex-1 h-14 text-base font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    {inStock ? (
+                      <>
+                        <ShoppingCart className="mr-2 h-5 w-5" />
+                        Add to cart
+                        <ArrowRight className="ml-2 h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                      </>
+                    ) : (
+                      'Out of stock'
+                    )}
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={handleShare}
+                    aria-label="Share product"
+                    className="group flex-1 h-14 text-base font-semibold rounded-2xl border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                  >
+                    <Share2 className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" /> Share
+                  </Button>
+                </div>
+              </BlurFade>
+
+              {/* Organization Info Card */}
+              {organization && (
+                <BlurFade delay={0.55}>
+                  <motion.div
+                    className="rounded-2xl border bg-card p-5 space-y-4 shadow-sm hover:shadow-md transition-all duration-300"
+                    whileHover={{ y: -2 }}
+                  >
+                    <div className="flex items-start gap-4">
+                      {organization.logo ? (
+                        <R2Image
+                          fileKey={organization.logo}
+                          alt={`${organization.name} logo`}
+                          width={48}
+                          height={48}
+                          className="h-12 w-12 flex-shrink-0 rounded-xl object-cover ring-2 ring-primary/10"
+                        />
+                      ) : (
+                        <div className="h-12 w-12 flex-shrink-0 rounded-xl bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
+                          {organization.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Store className="h-4 w-4 text-primary flex-shrink-0" />
+                          <Link href={`/o/${organization.slug}`} className="font-bold text-foreground hover:text-primary transition-colors text-lg">
+                            {organization.name}
+                          </Link>
+                        </div>
+                        {organization.description && <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{organization.description}</p>}
+                      </div>
+                      <Button asChild variant="ghost" size="sm" className="shrink-0 rounded-full">
+                        <Link href={`/o/${organization.slug}`} className="text-primary hover:text-primary/80">
+                          Visit <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </motion.div>
+                </BlurFade>
+              )}
+
+              {/* Review form */}
+              <BlurFade delay={0.6}>{product._id && <ProductReviewForm productId={product._id} />}</BlurFade>
             </div>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
-            <Button
-              size="lg"
-              onClick={handleAddToCart}
-              disabled={Boolean(
-                !inStock ||
-                  (activeVariants.length > 0 && !selectedVariantId) ||
-                  (selectedVariantId && selectedVariant?.sizes && selectedVariant.sizes.length > 0 && !selectedSizeId)
-              )}
-              aria-label="Add to cart"
-              className="flex-1 hover:scale-105 transition-all duration-200 text-sm sm:text-base touch-manipulation"
-            >
-              {inStock ? (
-                <>
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Add to cart
-                </>
-              ) : (
-                'Out of stock'
-              )}
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={handleShare}
-              aria-label="Share product"
-              className="flex-1 hover:scale-105 bg-white hover:bg-white hover:text-primary transition-all duration-200 border text-sm sm:text-base touch-manipulation"
-            >
-              <Share2 className="mr-2 h-4 w-4" /> Share
-            </Button>
           </div>
-
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            {inStock ? (
-              <Badge variant="secondary" data-testid="inventory-status" className="text-xs px-2 py-1 font-medium">
-                ✓ In stock
-              </Badge>
-            ) : (
-              <Badge variant="destructive" data-testid="inventory-status" className="text-xs px-2 py-1 font-medium">
-                ✗ Out of stock
-              </Badge>
-            )}
-            {product.inventoryType === 'PREORDER' && (
-              <Badge variant="outline" className="text-xs px-2 py-1 font-medium">
-                Preorder
-              </Badge>
-            )}
-            {product.isBestPrice && (
-              <Badge variant="default" className="text-xs px-2 py-1 font-medium bg-green-100 text-green-800 border-green-200">
-                Best price
-              </Badge>
-            )}
-          </div>
-
-          {/* Review form - compact inline */}
-          {product._id && <ProductReviewForm productId={product._id} />}
         </div>
-      </div>
+      </section>
 
       {/* Reviews section */}
-      <section className="mt-6 sm:mt-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg sm:text-xl font-bold">Reviews</h2>
-          {product.reviewsCount !== undefined && product.reviewsCount > 0 && (
-            <span className="text-sm text-muted-foreground">({product.reviewsCount} reviews)</span>
-          )}
-        </div>
+      <section className="py-12 md:py-16">
+        <div className="container mx-auto px-4 sm:px-6">
+          <BlurFade delay={0.1}>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-yellow-50 border border-yellow-200">
+                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight font-heading">Customer Reviews</h2>
+                  {product.reviewsCount !== undefined && product.reviewsCount > 0 && (
+                    <p className="text-sm text-muted-foreground">{product.reviewsCount} reviews</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </BlurFade>
 
-        {/* Reviews list */}
-        {product._id && <ProductReviewsList productId={product._id} currentUserId={currentUser?._id} />}
+          <BlurFade delay={0.2}>{product._id && <ProductReviewsList productId={product._id} currentUserId={currentUser?._id} />}</BlurFade>
+        </div>
       </section>
+
       {/* Recommended products */}
       {recommended.length > 0 && (
-        <section className="mt-6 sm:mt-8">
-          <div className="mb-3 sm:mb-4 flex items-end justify-between">
-            <h2 className="text-lg sm:text-xl font-bold">You might also like</h2>
-            {organization?.slug && (
-              <Link
-                className="text-xs sm:text-sm text-primary hover:text-primary/80 font-medium hover:underline transition-all duration-200"
-                href={`/o/${organization.slug}/search`}
-              >
-                View more
-              </Link>
-            )}
-          </div>
-          <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {recommended.map((rp, index) => (
-              <ProductCard
-                key={rp._id}
-                _id={rp._id}
-                slug={rp.slug}
-                title={rp.title}
-                description={rp.description}
-                imageUrl={rp.imageUrl}
-                minPrice={rp.minPrice}
-                rating={rp.rating}
-                reviewsCount={rp.reviewsCount}
-                isBestPrice={rp.isBestPrice}
-                discountLabel={rp.discountLabel}
-                orgSlug={orgSlug}
-                index={index}
-              />
-            ))}
+        <section className="py-12 md:py-16 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
+          <div className="container mx-auto px-4 sm:px-6">
+            <BlurFade delay={0.1}>
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-primary/10">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight font-heading">You might also like</h2>
+                    <p className="text-sm text-muted-foreground">Similar products you may enjoy</p>
+                  </div>
+                </div>
+                {organization?.slug && (
+                  <Link
+                    className="group inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-semibold transition-all duration-200"
+                    href={`/o/${organization.slug}/search`}
+                  >
+                    <span>View more</span>
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                )}
+              </div>
+            </BlurFade>
+
+            <div className="grid gap-4 sm:gap-5 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {recommended.map((rp, index) => (
+                <ProductCard
+                  key={rp._id}
+                  _id={rp._id}
+                  slug={rp.slug}
+                  title={rp.title}
+                  description={rp.description}
+                  imageUrl={rp.imageUrl}
+                  minPrice={rp.minPrice}
+                  rating={rp.rating}
+                  reviewsCount={rp.reviewsCount}
+                  isBestPrice={rp.isBestPrice}
+                  discountLabel={rp.discountLabel}
+                  orgSlug={orgSlug}
+                  index={index}
+                />
+              ))}
+            </div>
           </div>
         </section>
       )}
@@ -490,7 +590,7 @@ function ProductGallery({ imageKeys }: { imageKeys: string[] }) {
   const [dialogImageIndex, setDialogImageIndex] = React.useState(0);
 
   if (!imageKeys || imageKeys.length === 0) {
-    return <div className="h-[500px] md:h-[600px] w-[666px] md:w-[800px] max-w-full mx-auto rounded-lg bg-secondary skeleton" />;
+    return <div className="h-[500px] md:h-[600px] w-full rounded-3xl bg-secondary skeleton" />;
   }
 
   const goPrev = () => setCurrent((c) => (c - 1 + imageKeys.length) % imageKeys.length);
@@ -502,30 +602,42 @@ function ProductGallery({ imageKeys }: { imageKeys: string[] }) {
   };
 
   return (
-    <div className="w-full space-y-3">
-      <div className="relative overflow-hidden rounded-xl shadow-lg group cursor-pointer" onClick={handleImageClick}>
-        <div className="h-[400px] md:h-[500px]   mx-auto flex items-center justify-center bg-secondary">
+    <div className="w-full space-y-4">
+      {/* Main image */}
+      <motion.div
+        className="relative overflow-hidden rounded-3xl shadow-2xl shadow-primary/10 group cursor-pointer"
+        onClick={handleImageClick}
+        whileHover={{ scale: 1.01 }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Gradient border effect */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/20 via-transparent to-brand-neon/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20" />
+
+        <div className="h-[400px] md:h-[550px] mx-auto flex items-center justify-center bg-gradient-to-br from-secondary via-secondary/80 to-secondary/60 relative">
           <R2Image
             key={imageKeys[current]}
             fileKey={imageKeys[current]}
             alt="Product image"
             width={800}
             height={600}
-            className="rounded-xl object-cover object-center animate-in fade-in transition-transform duration-300 group-hover:scale-105"
+            className="rounded-3xl object-cover object-center animate-in fade-in transition-transform duration-500 group-hover:scale-105"
           />
-        </div>
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-200 rounded-xl flex items-center justify-center pointer-events-none">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 backdrop-blur-sm rounded-full p-2">
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-              />
-            </svg>
+
+          {/* Zoom indicator */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
+            <div className="bg-black/60 backdrop-blur-sm rounded-full p-4 shadow-xl">
+              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                />
+              </svg>
+            </div>
           </div>
         </div>
+
         {imageKeys.length > 1 && (
           <>
             <button
@@ -535,9 +647,9 @@ function ProductGallery({ imageKeys }: { imageKeys: string[] }) {
                 e.stopPropagation();
                 goPrev();
               }}
-              className="absolute left-2 md:left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 backdrop-blur-sm px-2 py-2 md:px-3 md:py-2 text-white hover:bg-black/70 hover:scale-110 active:scale-95 transition-all duration-200 touch-manipulation"
+              className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 backdrop-blur-sm p-3 text-foreground shadow-lg hover:bg-white hover:scale-110 active:scale-95 transition-all duration-200 z-30"
             >
-              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               type="button"
@@ -546,11 +658,13 @@ function ProductGallery({ imageKeys }: { imageKeys: string[] }) {
                 e.stopPropagation();
                 goNext();
               }}
-              className="absolute right-2 md:right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 backdrop-blur-sm px-2 py-2 md:px-3 md:py-2 text-white hover:bg-black/70 hover:scale-110 active:scale-95 transition-all duration-200 touch-manipulation"
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 backdrop-blur-sm p-3 text-foreground shadow-lg hover:bg-white hover:scale-110 active:scale-95 transition-all duration-200 z-30"
             >
-              <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+              <ChevronRight className="w-5 h-5" />
             </button>
-            <div className="absolute bottom-2 md:bottom-3 left-0 right-0 flex justify-center gap-1.5 md:gap-2">
+
+            {/* Dots indicator */}
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-30">
               {imageKeys.map((_, i) => (
                 <button
                   key={i}
@@ -560,29 +674,35 @@ function ProductGallery({ imageKeys }: { imageKeys: string[] }) {
                     setCurrent(i);
                   }}
                   className={[
-                    'h-1.5 w-1.5 md:h-2 md:w-2 rounded-full transition-all duration-200 touch-manipulation',
-                    i === current ? 'bg-white scale-125' : 'bg-white/60 hover:bg-white/80',
+                    'h-2.5 rounded-full transition-all duration-300 touch-manipulation',
+                    i === current ? 'bg-primary w-8 shadow-lg' : 'bg-white/80 w-2.5 hover:bg-white',
                   ].join(' ')}
                 />
               ))}
             </div>
           </>
         )}
-      </div>
+      </motion.div>
+
+      {/* Thumbnails */}
       {imageKeys.length > 1 && (
-        <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 md:gap-2">
+        <div className="grid grid-cols-5 gap-3">
           {imageKeys.slice(0, 5).map((k, idx) => (
-            <button
+            <motion.button
               key={k}
               type="button"
               onClick={() => setCurrent(idx)}
               className={[
-                'overflow-hidden rounded-lg border-2 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation',
-                idx === current ? 'border-primary shadow-md' : 'border-transparent hover:border-primary/30',
+                'relative overflow-hidden rounded-xl transition-all duration-300 touch-manipulation aspect-square',
+                idx === current
+                  ? 'ring-2 ring-primary ring-offset-2 shadow-lg'
+                  : 'ring-1 ring-border hover:ring-primary/50 opacity-70 hover:opacity-100',
               ].join(' ')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <R2Image fileKey={k} alt="Product image thumbnail" width={150} height={150} className="aspect-square object-cover" />
-            </button>
+              <R2Image fileKey={k} alt="Product image thumbnail" fill className="object-cover" sizes="100px" />
+            </motion.button>
           ))}
         </div>
       )}

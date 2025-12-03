@@ -3,6 +3,7 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
+    formats: ['image/avif'],
     remotePatterns: [
       {
         hostname: 'merchkins.9aeabbfdeac1c51a434e5c4653daa252.r2.cloudflarestorage.com',

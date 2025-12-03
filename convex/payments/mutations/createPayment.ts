@@ -177,7 +177,7 @@ export const createPaymentHandler = async (
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
-      phone: payer.phone,
+      phone: payer.phone || '',
       imageUrl: payer.imageUrl,
     },
 

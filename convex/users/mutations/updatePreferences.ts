@@ -1,8 +1,8 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
-import { Id } from '../../_generated/dataModel';
+import { Doc, Id } from '../../_generated/dataModel';
 
-// Update user preferences
+// Update user account settings (legacy - kept for backwards compatibility)
 export const updatePreferencesArgs = {
   userId: v.id('users'),
   preferences: v.object({
@@ -49,32 +49,26 @@ export const updatePreferencesHandler = async (
     throw new Error('User not found');
   }
 
-  // Merge with existing preferences
-  const defaultPreferences = {
-    notifications: {
-      email: true,
-      push: true,
-      orderUpdates: true,
-      promotions: false,
-    },
-    privacy: {
-      profileVisibility: 'PUBLIC' as const,
-      showActivity: true,
-    },
+  // Convert legacy preferences to new format
+  const updateData: Partial<Doc<'users'>> = {
+    updatedAt: Date.now(),
   };
 
-  const currentPreferences = user.preferences || defaultPreferences;
+  if (preferences.notifications) {
+    updateData.notificationPrefs = {
+      emailNotifications: preferences.notifications.email ?? true,
+      pushNotifications: preferences.notifications.push ?? true,
+      orderUpdates: preferences.notifications.orderUpdates ?? true,
+      promotionalEmails: preferences.notifications.promotions ?? false,
+    };
+  }
 
-  const updatedPreferences = {
-    notifications: preferences.notifications || currentPreferences.notifications,
-    privacy: preferences.privacy || currentPreferences.privacy,
-  };
+  if (preferences.privacy?.profileVisibility) {
+    updateData.profileVisibility = preferences.privacy.profileVisibility === 'PUBLIC' ? 'public' : 'private';
+  }
 
   // Update user preferences
-  await ctx.db.patch(userId, {
-    preferences: updatedPreferences,
-    updatedAt: Date.now(),
-  });
+  await ctx.db.patch(userId, updateData);
 
   return { success: true };
 };

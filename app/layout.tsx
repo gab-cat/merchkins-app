@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Poppins } from 'next/font/google';
+import { Outfit, DM_Sans, Geist, Inter } from 'next/font/google';
 import './globals.css';
 import ConvexClientProvider from '@/components/ConvexClientProvider';
 import { ClerkProvider } from '@clerk/nextjs';
@@ -7,8 +7,26 @@ import { Toaster } from '@/components/ui/sonner';
 import { OrgThemeController } from '@/src/features/organizations/components/org-theme-controller';
 import { LoadingProvider } from '@/src/components/loading-provider';
 
-const poppins = Poppins({
-  variable: '--font-poppins',
+const outfit = Outfit({
+  variable: '--font-outfit',
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+});
+
+const dmSans = DM_Sans({
+  variable: '--font-dm-sans',
+  subsets: ['latin'],
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+});
+
+// Admin-specific fonts for professional dashboard UI
+const geist = Geist({
+  variable: '--font-geist',
+  subsets: ['latin'],
+});
+
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin'],
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
 });
@@ -28,7 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} antialiased font-sans`}>
+      <body className={`${outfit.variable} ${dmSans.variable} ${geist.variable} ${inter.variable} antialiased font-body`}>
         <ClerkProvider
           dynamic
           signInUrl="/sign-in"
@@ -43,12 +61,12 @@ export default function RootLayout({
               colorPrimary: '#1d43d8',
               colorBackground: '#FFF',
               borderRadius: '5px',
-              fontFamily: 'var(--font-poppins)',
+              fontFamily: 'var(--font-dm-sans)',
             },
             elements: {
               card: '!bg-white !shadow-none !border-0',
               cardBox: '!bg-white !shadow-none !border-0',
-              headerTitle: '!text-primary font-bold !font-genty !text-2xl !font-poppins',
+              headerTitle: '!text-primary font-bold !font-genty !text-2xl !font-heading',
               formButtonPrimary: '!bg-primary !text-white !rounded-sm !border-0 !shadow-0 relative transition-all text-sm',
               formButtonSecondary: 'bg-white relative border-0 text-sm',
               footerActionText: ' text-md',

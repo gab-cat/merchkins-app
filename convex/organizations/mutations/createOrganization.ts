@@ -71,7 +71,7 @@ export const createOrganizationHandler = async (
       firstName: currentUser.firstName,
       lastName: currentUser.lastName,
       email: currentUser.email,
-      phone: currentUser.phone,
+      phone: currentUser.phone || '',
       imageUrl: currentUser.imageUrl,
       isStaff: currentUser.isStaff,
     },

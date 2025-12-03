@@ -2,34 +2,50 @@
 
 import React, { useMemo, useState } from 'react';
 import { useQuery } from 'convex/react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { api } from '@/convex/_generated/api';
 import { Input } from '@/components/ui/input';
-import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ShoppingBag, Plus, Search, Filter, Calendar, User, Package, Clock, ExternalLink, MoreHorizontal, RefreshCw } from 'lucide-react';
+import { PageHeader, OrderStatusBadge, PaymentStatusBadge, OrdersEmptyState } from '@/src/components/admin';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 type PaymentStatus = 'PENDING' | 'DOWNPAYMENT' | 'PAID' | 'REFUNDED';
 
-function StatusBadge({ value }: { value: string }) {
-  const variant: 'default' | 'secondary' | 'destructive' = value === 'CANCELLED' ? 'destructive' : value === 'PENDING' ? 'secondary' : 'default';
-  return <Badge variant={variant}>{value}</Badge>;
-}
-
 function formatCurrency(amount: number | undefined) {
-  if (amount === undefined) return '';
+  if (amount === undefined) return '—';
   try {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(amount);
+    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
   } catch {
     return `₱${amount.toFixed(2)}`;
   }
+}
+
+function formatDate(timestamp: number) {
+  return new Date(timestamp).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function formatTime(timestamp: number) {
+  return new Date(timestamp).toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 export default function AdminOrdersPage() {
   const [status, setStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | 'ALL'>('ALL');
   const [search, setSearch] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const ordersResult = useQuery(api.orders.queries.index.getOrdersPage, {
     status: status === 'ALL' ? undefined : status,
@@ -42,10 +58,11 @@ export default function AdminOrdersPage() {
       _id: string;
       orderNumber?: string;
       status: string;
+      paymentStatus?: string;
       orderDate: number;
       itemCount: number;
       totalAmount?: number;
-      customerInfo?: { email?: string };
+      customerInfo?: { email?: string; name?: string };
     }>;
   };
 
@@ -55,104 +72,229 @@ export default function AdminOrdersPage() {
     const orders = ordersResult?.page ?? [];
     if (!search) return orders;
     const q = search.toLowerCase();
-    return orders.filter((o) => [o.orderNumber || '', o.customerInfo?.email || ''].join(' ').toLowerCase().includes(q));
+    return orders.filter((o) => [o.orderNumber || '', o.customerInfo?.email || '', o.customerInfo?.name || ''].join(' ').toLowerCase().includes(q));
   }, [ordersResult?.page, search]);
 
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  // Stats
+  const stats = useMemo(() => {
+    const orders = ordersResult?.page ?? [];
+    return {
+      total: orders.length,
+      pending: orders.filter((o) => o.status === 'PENDING').length,
+      processing: orders.filter((o) => o.status === 'PROCESSING').length,
+      delivered: orders.filter((o) => o.status === 'DELIVERED').length,
+    };
+  }, [ordersResult?.page]);
+
   return (
-    <div>
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Orders</h1>
-          <p className="text-sm text-muted-foreground">Manage and process customer orders</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Input placeholder="Search by order # or customer..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-64" />
-          <select
-            className="h-9 rounded-md border bg-background px-3 text-sm"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as OrderStatus)}
-          >
-            <option value="ALL">All statuses</option>
-            <option value="PENDING">Pending</option>
-            <option value="PROCESSING">Processing</option>
-            <option value="READY">Ready</option>
-            <option value="DELIVERED">Delivered</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
-          <select
-            className="h-9 rounded-md border bg-background px-3 text-sm"
-            value={paymentStatus}
-            onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
-          >
-            <option value="ALL">All payments</option>
-            <option value="PENDING">Pending</option>
-            <option value="DOWNPAYMENT">Downpayment</option>
-            <option value="PAID">Paid</option>
-            <option value="REFUNDED">Refunded</option>
-          </select>
+    <div className="space-y-6 font-admin-body">
+      <PageHeader
+        title="Orders"
+        description="Manage and process customer orders"
+        icon={<ShoppingBag className="h-5 w-5" />}
+        actions={
           <Link href="/admin/orders/new">
-            <Button>Create order</Button>
+            <Button>
+              <Plus className="h-4 w-4 mr-1" />
+              Create Order
+            </Button>
           </Link>
-        </div>
+        }
+      />
+
+      {/* Quick Stats */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+        {[
+          { label: 'Total Orders', value: stats.total, color: 'text-foreground' },
+          { label: 'Pending', value: stats.pending, color: 'text-amber-600' },
+          { label: 'Processing', value: stats.processing, color: 'text-blue-600' },
+          { label: 'Delivered', value: stats.delivered, color: 'text-emerald-600' },
+        ].map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="rounded-lg border bg-card p-3"
+          >
+            <p className="text-xs text-muted-foreground">{stat.label}</p>
+            <p className={cn('text-2xl font-bold font-admin-heading', stat.color)}>{loading ? '—' : stat.value}</p>
+          </motion.div>
+        ))}
       </div>
 
-      <div className="rounded-md border">
+      {/* Toolbar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 flex-1 flex-wrap">
+          <div className="relative max-w-xs flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="Search by order # or customer..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
+          </div>
+          <Select value={status} onValueChange={(v) => setStatus(v as OrderStatus | 'ALL')}>
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Statuses</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="PROCESSING">Processing</SelectItem>
+              <SelectItem value="READY">Ready</SelectItem>
+              <SelectItem value="DELIVERED">Delivered</SelectItem>
+              <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={paymentStatus} onValueChange={(v) => setPaymentStatus(v as PaymentStatus | 'ALL')}>
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue placeholder="Payment" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Payments</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="DOWNPAYMENT">Downpayment</SelectItem>
+              <SelectItem value="PAID">Paid</SelectItem>
+              <SelectItem value="REFUNDED">Refunded</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
+          <RefreshCw className={cn('h-4 w-4 mr-1', refreshing && 'animate-spin')} />
+          Refresh
+        </Button>
+      </div>
+
+      {/* Results count */}
+      {!loading && (
+        <p className="text-sm text-muted-foreground">
+          {filtered.length} order{filtered.length !== 1 ? 's' : ''} found
+        </p>
+      )}
+
+      {/* Table */}
+      <div className="rounded-xl border overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Order #</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Items</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead className="text-right">Total</TableHead>
+            <TableRow className="bg-muted/40 hover:bg-muted/40">
+              <TableHead className="text-xs font-semibold uppercase tracking-wide">Order #</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide">Payment</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide">Date</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide">Items</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide">Customer</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide text-right">Total</TableHead>
+              <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading
-              ? new Array(10).fill(null).map((_, i) => (
+            <AnimatePresence mode="popLayout">
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
                     <TableCell>
-                      <div className="h-4 w-16 animate-pulse rounded bg-secondary" />
+                      <div className="h-4 w-16 rounded bg-muted animate-pulse" />
                     </TableCell>
                     <TableCell>
-                      <div className="h-6 w-20 animate-pulse rounded bg-secondary" />
+                      <div className="h-6 w-20 rounded bg-muted animate-pulse" />
                     </TableCell>
                     <TableCell>
-                      <div className="h-4 w-24 animate-pulse rounded bg-secondary" />
+                      <div className="h-6 w-20 rounded bg-muted animate-pulse" />
                     </TableCell>
                     <TableCell>
-                      <div className="h-4 w-12 animate-pulse rounded bg-secondary" />
+                      <div className="h-4 w-24 rounded bg-muted animate-pulse" />
                     </TableCell>
                     <TableCell>
-                      <div className="h-4 w-32 animate-pulse rounded bg-secondary" />
+                      <div className="h-4 w-8 rounded bg-muted animate-pulse" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-32 rounded bg-muted animate-pulse" />
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="h-4 w-16 animate-pulse rounded bg-secondary ml-auto" />
+                      <div className="h-4 w-16 rounded bg-muted animate-pulse ml-auto" />
                     </TableCell>
+                    <TableCell />
                   </TableRow>
                 ))
-              : filtered.map((o) => (
-                  <TableRow key={o._id} className="cursor-pointer hover:bg-muted/50">
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="h-40">
+                    <OrdersEmptyState />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((order, index) => (
+                  <motion.tr
+                    key={order._id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ delay: index * 0.02 }}
+                    className="group hover:bg-muted/50 transition-colors"
+                  >
                     <TableCell className="font-medium">
-                      <Link href={`/admin/orders/${o._id}`} className="hover:underline">
-                        {o.orderNumber ? `#${o.orderNumber}` : 'N/A'}
+                      <Link href={`/admin/orders/${order._id}`} className="text-primary hover:underline flex items-center gap-1">
+                        #{order.orderNumber || 'N/A'}
+                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <StatusBadge value={o.status} />
+                      <OrderStatusBadge status={order.status as OrderStatus} />
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{new Date(o.orderDate).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-muted-foreground">{o.itemCount}</TableCell>
-                    <TableCell className="text-muted-foreground">{o.customerInfo?.email || 'N/A'}</TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(o.totalAmount)}</TableCell>
-                  </TableRow>
-                ))}
+                    <TableCell>
+                      <PaymentStatusBadge status={(order.paymentStatus || 'PENDING') as PaymentStatus} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="text-sm">{formatDate(order.orderDate)}</span>
+                        <span className="text-xs text-muted-foreground">{formatTime(order.orderDate)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Package className="h-3.5 w-3.5" />
+                        {order.itemCount}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <User className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        <span className="text-sm truncate max-w-[150px]">{order.customerInfo?.name || order.customerInfo?.email || 'N/A'}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="font-semibold">{formatCurrency(order.totalAmount)}</span>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/orders/${order._id}`}>View Details</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>Update Status</DropdownMenuItem>
+                          <DropdownMenuItem>Send Notification</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>Print Invoice</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </motion.tr>
+                ))
+              )}
+            </AnimatePresence>
           </TableBody>
         </Table>
       </div>
-
-      {!loading && filtered.length === 0 && <div className="py-12 text-center text-sm text-muted-foreground">No orders found.</div>}
     </div>
   );
 }

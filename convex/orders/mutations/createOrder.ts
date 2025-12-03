@@ -259,7 +259,7 @@ export const createOrderHandler = async (
       firstName: customer.firstName,
       lastName: customer.lastName,
       email: customer.email,
-      phone: customer.phone,
+      phone: customer.phone || '',
       imageUrl: customer.imageUrl,
     },
     processorInfo,

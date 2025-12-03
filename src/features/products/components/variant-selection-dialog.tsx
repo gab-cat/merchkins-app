@@ -148,11 +148,11 @@ export function VariantSelectionDialog({
                     key={variant.variantId}
                     type="button"
                     onClick={() => handleVariantSelect(variant.variantId)}
-                    className={`cursor-pointer relative w-full rounded-lg border transition-all duration-200 touch-manipulation overflow-hidden group p-3 ${
+                    className={`cursor-pointer relative w-full rounded-lg border transition-all duration-200 touch-manipulation overflow-hidden group ${
                       tempVariantId === variant.variantId ? 'border-primary bg-accent/10' : 'border-border hover:border-primary/30 bg-card'
                     }`}
                   >
-                    <div className="flex gap-3 items-center">
+                    <div className={`flex gap-3 items-center ${variant.imageUrl ? 'p-3' : 'pr-2 py-2 pl-3'}`}>
                       {variant.imageUrl && (
                         <div
                           className="w-16 h-16 rounded-lg overflow-hidden bg-white flex-shrink-0 cursor-pointer"
@@ -165,7 +165,7 @@ export function VariantSelectionDialog({
                             fileKey={variant.imageUrl}
                             alt={variant.variantName}
                             fill
-                            className="object-cover border rounded-lg group-hover:scale-110 transition-transform duration-300"
+                            className="object-cover rounded-lg group-hover:scale-110 transition-transform duration-300"
                           />
                         </div>
                       )}
@@ -291,7 +291,7 @@ function ImageDialog({ imageUrl, open, onOpenChange }: { imageUrl?: string; open
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] md:max-w-4xl lg:max-w-5xl p-0 gap-0 bg-black/50 backdrop-blur-sm border-0" showCloseButton={true}>
+      <DialogContent className="max-w-[95vw] md:max-w-4xl lg:max-w-5xl p-0 gap-0 bg-black/40 backdrop-blur-sm border-0" showCloseButton={true}>
         <DialogTitle className="sr-only">Variant Image</DialogTitle>
         <div className="relative w-full h-[90vh] max-h-[90vh] flex items-center justify-center p-4 md:p-8">
           <div className="relative w-full h-full flex items-center justify-center">

@@ -4,13 +4,13 @@ import React, { useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery, useMutation, useAction } from 'convex/react';
+import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
-import { Card, CardContent } from '@/components/ui/card';
 import { ReportPaymentDialog } from './report-payment-dialog';
-import { Separator } from '@/components/ui/separator';
+import { OrderPaymentLink } from './order-payment-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, ArrowLeft, Package, Clock, CheckCircle2, XCircle, Truck, MapPin, Receipt, ShoppingBag, Calendar, Hash } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 import type { Id } from '@/convex/_generated/dataModel';
 
@@ -27,16 +27,80 @@ interface OrderItemUI {
 function formatCurrency(amount: number | undefined) {
   if (amount === undefined) return '';
   try {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(amount);
+    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
   } catch {
     return `₱${amount.toFixed(2)}`;
   }
 }
 
-function StatusBadge({ value }: { value: string }) {
-  const variant: 'default' | 'secondary' | 'destructive' = value === 'CANCELLED' ? 'destructive' : value === 'PENDING' ? 'secondary' : 'default';
-  return <Badge variant={variant}>{value}</Badge>;
+function StatusBadge({ value, large = false }: { value: string; large?: boolean }) {
+  const getStatusConfig = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return { icon: Clock, bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200', label: 'Pending' };
+      case 'PROCESSING':
+        return { icon: Package, bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', label: 'Processing' };
+      case 'READY':
+        return { icon: CheckCircle2, bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', label: 'Ready for Pickup' };
+      case 'DELIVERED':
+        return { icon: Truck, bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', label: 'Delivered' };
+      case 'CANCELLED':
+        return { icon: XCircle, bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200', label: 'Cancelled' };
+      default:
+        return { icon: Package, bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', label: status };
+    }
+  };
+
+  const config = getStatusConfig(value);
+  const Icon = config.icon;
+
+  if (large) {
+    return (
+      <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border ${config.bg} ${config.text} ${config.border}`}>
+        <Icon className="h-4 w-4" />
+        <span className="font-semibold text-sm">{config.label}</span>
+      </div>
+    );
+  }
+
+  return (
+    <Badge className={`text-xs px-2.5 py-1 font-medium rounded-full border shadow-none ${config.bg} ${config.text} ${config.border}`}>
+      <Icon className="h-3 w-3 mr-1" />
+      {config.label}
+    </Badge>
+  );
 }
+
+function PaymentStatusBadge({ value }: { value?: string }) {
+  const isPaid = value === 'PAID';
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${
+        isPaid ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-amber-50 text-amber-600 border border-amber-200'
+      }`}
+    >
+      {isPaid ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+      {isPaid ? 'Paid' : 'Unpaid'}
+    </span>
+  );
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 100, damping: 15 },
+  },
+};
 
 export function OrderDetail({ orderId }: { orderId: string }) {
   const order = useQuery(api.orders.queries.index.getOrderById, {
@@ -53,7 +117,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
     if (!order) return;
 
     try {
-      showToast({ type: 'info', title: 'Creating payment link...', description: 'Please wait while we create a payment link for your order.' });
+      showToast({ type: 'info', title: 'Creating payment link...', description: 'Please wait.' });
 
       const invoice = await createInvoice({
         orderId: order._id,
@@ -62,7 +126,6 @@ export function OrderDetail({ orderId }: { orderId: string }) {
         externalId: order.orderNumber || `order-${order._id}`,
       });
 
-      // Update the order with the invoice details
       await updateOrderInvoice({
         orderId: order._id,
         xenditInvoiceId: invoice.invoiceId,
@@ -70,21 +133,11 @@ export function OrderDetail({ orderId }: { orderId: string }) {
         xenditInvoiceExpiryDate: invoice.expiryDate,
       });
 
-      showToast({
-        type: 'success',
-        title: 'Payment link created',
-        description: 'Redirecting to payment...',
-      });
-
-      // Redirect to payment
+      showToast({ type: 'success', title: 'Payment link created', description: 'Redirecting...' });
       window.location.href = invoice.invoiceUrl;
     } catch (error) {
       console.error('Failed to create invoice:', error);
-      showToast({
-        type: 'error',
-        title: 'Failed to create payment link',
-        description: 'Please try again or contact support.',
-      });
+      showToast({ type: 'error', title: 'Failed to create payment link', description: 'Please try again.' });
     }
   };
 
@@ -97,100 +150,187 @@ export function OrderDetail({ orderId }: { orderId: string }) {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="h-7 w-1/2 animate-pulse rounded bg-secondary" />
-        <div className="h-5 w-1/5 animate-pulse rounded bg-secondary" />
-        <div className="h-10 w-1/3 animate-pulse rounded bg-secondary" />
-        <div className="grid gap-3">
-          {new Array(3).fill(null).map((_, i) => (
-            <div key={`skeleton-${i}`} className="h-20 rounded-md bg-secondary animate-pulse" />
-          ))}
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative w-12 h-12 mx-auto mb-4">
+            <div className="absolute inset-0 rounded-full border-4 border-[#1d43d8]/20"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-[#1d43d8] animate-spin"></div>
+          </div>
+          <p className="text-slate-500 text-sm">Loading order details...</p>
         </div>
       </div>
     );
   }
 
   if (order === null) {
-    return <div className="text-sm text-muted-foreground">Order not found.</div>;
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center max-w-sm">
+          <div className="h-16 w-16 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
+            <Package className="h-8 w-8 text-slate-400" />
+          </div>
+          <h2 className="text-lg font-semibold mb-2 font-heading">Order not found</h2>
+          <p className="text-slate-500 text-sm mb-4">This order doesn&apos;t exist or you don&apos;t have access to it.</p>
+          <Link href="/orders">
+            <Button variant="outline" className="rounded-full">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Orders
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
+  const orderNumber = order.orderNumber ? `#${order.orderNumber}` : 'Order';
+
   return (
-    <div>
-      <div className="mb-4 text-sm text-muted-foreground">
-        <Link href="/">Home</Link>
-        <span className="mx-2">/</span>
-        <Link href="/orders">Orders</Link>
-        <span className="mx-2">/</span>
-        <span className="text-foreground">{order.orderNumber ? `#${order.orderNumber}` : 'Order'}</span>
-      </div>
+    <div className="min-h-screen bg-white">
+      <div className="max-w-3xl mx-auto px-4 py-6">
+        <motion.div variants={containerVariants} initial="hidden" animate="visible">
+          {/* Back link */}
+          <motion.div variants={itemVariants}>
+            <Link href="/orders" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#1d43d8] mb-6 transition-colors">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Orders
+            </Link>
+          </motion.div>
 
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{order.orderNumber ? `Order #${order.orderNumber}` : 'Order'}</h1>
-          <div className="mt-1 text-sm text-muted-foreground">Placed on {new Date(order.orderDate).toLocaleString()}</div>
-        </div>
-        <StatusBadge value={order.status} />
-      </div>
-
-      <div className="grid gap-8 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-3">
-          {items.map((it, idx) => (
-            <Card key={idx}>
-              <CardContent className="flex items-center gap-4 p-4">
-                <ProductImage imageKey={it.productInfo.imageUrl?.[0]} />
-                <div className="flex-1">
-                  <div className="font-medium">{it.productInfo.title}</div>
-                  <div className="text-sm text-muted-foreground">{it.productInfo.variantName ?? ''}</div>
-                  <div className="text-sm">Qty: {it.quantity}</div>
+          {/* Header */}
+          <motion.div variants={itemVariants} className="mb-6">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-xl bg-[#1d43d8]/10">
+                    <Receipt className="h-5 w-5 text-[#1d43d8]" />
+                  </div>
+                  <h1 className="text-2xl font-bold font-heading tracking-tight text-slate-900">Order {orderNumber}</h1>
                 </div>
-                <div className="text-right font-medium">{formatCurrency(it.price)}</div>
-              </CardContent>
-            </Card>
-          ))}
-          {items.length === 0 && <div className="text-sm text-muted-foreground">No items.</div>}
-        </div>
+                <div className="flex items-center gap-3 text-sm text-slate-500">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" />
+                    {new Date(order.orderDate).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <StatusBadge value={order.status} large />
+                <PaymentStatusBadge value={order.paymentStatus} />
+              </div>
+            </div>
+          </motion.div>
 
-        <div>
-          <div className="rounded-lg border p-4">
-            <div className="text-lg font-semibold">Summary</div>
-            <Separator className="my-3" />
-            <div className="flex items-center justify-between text-sm">
-              <span>Items</span>
-              <span>{order.itemCount}</span>
-            </div>
-            <div className="mt-1 flex items-center justify-between text-sm">
-              <span>Discount</span>
-              <span>-{formatCurrency(order.discountAmount)}</span>
-            </div>
-            <Separator className="my-3" />
-            <div className="flex items-center justify-between font-semibold">
-              <span>Total</span>
-              <span>{formatCurrency(order.totalAmount)}</span>
-            </div>
-            <div className="mt-4 space-y-2">
-              {/* Show Pay Now button for pending orders without payment links */}
-              {order.status === 'PENDING' && order.paymentStatus !== 'PAID' && !order.xenditInvoiceUrl && (
-                <Button className="w-full" onClick={handleCreateInvoice}>
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Pay Now
-                </Button>
-              )}
+          {/* Payment Action */}
+          {order.status === 'PENDING' && order.paymentStatus !== 'PAID' && (
+            <motion.div variants={itemVariants} className="mb-6">
+              <OrderPaymentLink
+                orderId={order._id}
+                orderStatus={order.status}
+                paymentStatus={order.paymentStatus}
+                xenditInvoiceUrl={order.xenditInvoiceUrl}
+                xenditInvoiceCreatedAt={order.xenditInvoiceCreatedAt}
+                xenditInvoiceExpiryDate={order.xenditInvoiceExpiryDate}
+              />
+            </motion.div>
+          )}
 
-              {/* Show payment link if available */}
-              {order.xenditInvoiceUrl && order.status === 'PENDING' && order.paymentStatus !== 'PAID' && (
-                <Button className="w-full" onClick={() => (window.location.href = order.xenditInvoiceUrl!)}>
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Complete Payment
-                </Button>
-              )}
-
-              {/* Show manual payment reporting for other cases */}
-              {order.paymentStatus !== 'PAID' && (
-                <ReportPaymentDialog orderId={String(order._id)} defaultAmount={order.totalAmount} defaultCurrency={'PHP'} />
-              )}
+          {/* Order Items */}
+          <motion.div variants={itemVariants} className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <ShoppingBag className="h-4 w-4 text-slate-400" />
+              <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Items ({items.length})</h2>
             </div>
-          </div>
-        </div>
+            <div className="rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
+              {items.map((it, idx) => (
+                <div key={idx} className="flex items-center gap-4 p-4 bg-white hover:bg-slate-50/50 transition-colors">
+                  <ProductImage imageKey={it.productInfo.imageUrl?.[0]} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900 text-sm truncate">{it.productInfo.title}</p>
+                    {it.productInfo.variantName && <p className="text-xs text-slate-500 mt-0.5">{it.productInfo.variantName}</p>}
+                    <p className="text-xs text-slate-400 mt-1">Qty: {it.quantity}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-slate-900 text-sm">{formatCurrency(it.price)}</p>
+                  </div>
+                </div>
+              ))}
+              {items.length === 0 && <div className="p-8 text-center text-slate-400 text-sm">No items in this order</div>}
+            </div>
+          </motion.div>
+
+          {/* Order Summary */}
+          <motion.div variants={itemVariants} className="mb-6">
+            <div className="rounded-xl border border-slate-100 p-4 bg-slate-50/50">
+              <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">Summary</h2>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between text-slate-600">
+                  <span>Subtotal ({order.itemCount} items)</span>
+                  <span>{formatCurrency((order.totalAmount || 0) + (order.discountAmount || 0))}</span>
+                </div>
+                {order.discountAmount > 0 && (
+                  <div className="flex items-center justify-between text-emerald-600">
+                    <span>Discount</span>
+                    <span>-{formatCurrency(order.discountAmount)}</span>
+                  </div>
+                )}
+                <div className="border-t border-slate-200 pt-2 mt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-slate-900">Total</span>
+                    <span className="text-lg font-bold text-[#1d43d8]">{formatCurrency(order.totalAmount)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Customer Info */}
+          {order.customerInfo && (
+            <motion.div variants={itemVariants} className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <MapPin className="h-4 w-4 text-slate-400" />
+                <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Delivery Information</h2>
+              </div>
+              <div className="rounded-xl border border-slate-100 p-4 bg-white">
+                <p className="font-medium text-slate-900 text-sm">{order.customerInfo.name}</p>
+                <p className="text-slate-500 text-sm mt-1">{order.customerInfo.email}</p>
+                {order.customerInfo.phone && <p className="text-slate-500 text-sm">{order.customerInfo.phone}</p>}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Order ID */}
+          <motion.div variants={itemVariants}>
+            <div className="flex items-center justify-between text-xs text-slate-400 py-3 border-t border-slate-100">
+              <span className="flex items-center gap-1.5">
+                <Hash className="h-3 w-3" />
+                Order ID
+              </span>
+              <span className="font-mono">{order._id}</span>
+            </div>
+          </motion.div>
+
+          {/* Actions */}
+          <motion.div variants={itemVariants} className="mt-4 space-y-3">
+            {/* Show Pay Now button for pending orders without payment links */}
+            {order.status === 'PENDING' && order.paymentStatus !== 'PAID' && !order.xenditInvoiceUrl && (
+              <Button className="w-full h-11 bg-[#1d43d8] hover:bg-[#1d43d8]/90 font-semibold rounded-xl" onClick={handleCreateInvoice}>
+                <CreditCard className="h-4 w-4 mr-2" />
+                Pay Now
+              </Button>
+            )}
+
+            {/* Show manual payment reporting */}
+            {order.paymentStatus !== 'PAID' && (
+              <ReportPaymentDialog orderId={String(order._id)} defaultAmount={order.totalAmount} defaultCurrency={'PHP'} />
+            )}
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
@@ -198,6 +338,12 @@ export function OrderDetail({ orderId }: { orderId: string }) {
 
 function ProductImage({ imageKey }: { imageKey?: string }) {
   const url = useQuery(api.files.queries.index.getFileUrl, imageKey ? { key: imageKey } : 'skip');
-  if (!url) return <div className="h-16 w-16 rounded-md bg-secondary" />;
-  return <Image src={url} alt="Product image" width={64} height={64} className="h-16 w-16 rounded-md object-cover" />;
+  if (!url) {
+    return (
+      <div className="h-14 w-14 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+        <Package className="h-6 w-6 text-slate-300" />
+      </div>
+    );
+  }
+  return <Image src={url} alt="Product" width={56} height={56} className="h-14 w-14 rounded-lg object-cover flex-shrink-0 border border-slate-100" />;
 }
