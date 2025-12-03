@@ -98,7 +98,7 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { type: 'spring', stiffness: 100, damping: 15 },
+    transition: { type: 'spring' as const, stiffness: 100, damping: 15 },
   },
 };
 
@@ -297,7 +297,9 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                 <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Delivery Information</h2>
               </div>
               <div className="rounded-xl border border-slate-100 p-4 bg-white">
-                <p className="font-medium text-slate-900 text-sm">{order.customerInfo.name}</p>
+                <p className="font-medium text-slate-900 text-sm">
+                  {[order.customerInfo.firstName, order.customerInfo.lastName].filter(Boolean).join(' ') || 'Customer'}
+                </p>
                 <p className="text-slate-500 text-sm mt-1">{order.customerInfo.email}</p>
                 {order.customerInfo.phone && <p className="text-slate-500 text-sm">{order.customerInfo.phone}</p>}
               </div>

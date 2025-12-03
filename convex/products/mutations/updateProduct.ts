@@ -29,6 +29,7 @@ export const updateProductArgs = {
   imageUrl: v.optional(v.array(v.string())),
   tags: v.optional(v.array(v.string())),
   isBestPrice: v.optional(v.boolean()),
+  isActive: v.optional(v.boolean()),
   inventory: v.optional(v.number()),
   inventoryType: v.optional(v.union(v.literal('PREORDER'), v.literal('STOCK'))),
   variants: v.optional(
@@ -58,6 +59,7 @@ export const updateProductHandler = async (
     imageUrl?: string[];
     tags?: string[];
     isBestPrice?: boolean;
+    isActive?: boolean;
     inventory?: number;
     inventoryType?: 'PREORDER' | 'STOCK';
     variants?: Array<{
@@ -183,6 +185,10 @@ export const updateProductHandler = async (
 
   if (args.isBestPrice !== undefined) {
     updates.isBestPrice = args.isBestPrice;
+  }
+
+  if (args.isActive !== undefined) {
+    updates.isActive = args.isActive;
   }
 
   if (args.inventory !== undefined) {
