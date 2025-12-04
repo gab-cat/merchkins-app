@@ -1,15 +1,14 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { api } from '@/convex/_generated/api';
 import { ConvexHttpClient } from 'convex/browser';
 import { notFound } from 'next/navigation';
 import { preloadQuery } from 'convex/nextjs';
-import { MessageSquare, Ticket } from 'lucide-react';
 import { AnimatedBanner } from '@/src/components/animated-banner';
 import { AnimatedAnnouncements } from '@/src/components/animated-announcements';
 import { AnimatedPopularProducts } from '@/src/components/animated-popular-products';
 import { AnimatedFeaturedCategories } from '@/src/components/animated-featured-categories';
+import { QuickActions } from '@/src/components/storefront-quick-actions';
 import { buildR2PublicUrl } from '@/lib/utils';
 
 interface PageParams {
@@ -126,7 +125,7 @@ export default async function Page({ params }: PageParams) {
   });
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh flex flex-col bg-white">
       {/* Compact banner with integrated organization info */}
       <AnimatedBanner bannerUrl={bannerUrl} logoUrl={logoUrl} organization={organization} orgSlug={orgSlug} />
 
@@ -137,20 +136,8 @@ export default async function Page({ params }: PageParams) {
       <AnimatedPopularProducts orgSlug={orgSlug} preloadedOrganization={preloadedOrganization} preloadedProducts={preloadedProducts} />
       <AnimatedFeaturedCategories orgSlug={orgSlug} preloadedOrganization={preloadedOrganization} preloadedCategories={preloadedCategories} />
 
-      {/* Helpful links */}
-      <section className="container mx-auto px-3 pb-8">
-        <div className="mt-2 flex gap-3 text-sm">
-          <Link href={`/o/${orgSlug}/chats`} className="inline-flex items-center gap-1.5 text-primary underline">
-            <MessageSquare className="h-3.5 w-3.5" />
-            <span>Chat with us</span>
-          </Link>
-          <span className="text-muted-foreground">•</span>
-          <Link href={`/o/${orgSlug}/tickets/new`} className="inline-flex items-center gap-1.5 text-primary underline">
-            <Ticket className="h-3.5 w-3.5" />
-            <span>Create a ticket</span>
-          </Link>
-        </div>
-      </section>
+      {/* Quick actions */}
+      <QuickActions orgSlug={orgSlug} />
 
       {/* Structured Data */}
       <script

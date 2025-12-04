@@ -4,6 +4,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/convex/_generated/api';
 import { preloadQuery } from 'convex/nextjs';
 import { OrgThemeProvider } from '@/src/features/organizations/components/org-theme-provider';
+import { StorefrontClientWrapper } from '@/src/components/storefront-client-wrapper';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,7 +49,9 @@ export default async function OrgLayout({ children, params }: { children: React.
   return (
     <div className={wrapperClassName} style={styleVars as React.CSSProperties}>
       <OrgThemeProvider preloadedOrganization={preloadedOrganization} />
-      <div className="flex-1 max-w-7xl mx-auto w-full min-h-[80vh]">{children}</div>
+      <StorefrontClientWrapper orgSlug={orgSlug}>
+        <div className="flex-1 max-w-7xl mx-auto w-full min-h-[80vh]">{children}</div>
+      </StorefrontClientWrapper>
     </div>
   );
 }

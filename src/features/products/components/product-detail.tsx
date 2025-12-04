@@ -473,28 +473,30 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                 </BlurFade>
               )}
 
-              {/* Review form */}
+              {/* Review form - compact inline */}
               <BlurFade delay={0.6}>{product._id && <ProductReviewForm productId={product._id} />}</BlurFade>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Reviews section */}
-      <section className="py-12 md:py-16">
-        <div className="container mx-auto px-4 sm:px-6">
+      {/* Reviews section - more compact */}
+      <section className="py-8 md:py-10">
+        <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
           <BlurFade delay={0.1}>
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-yellow-50 border border-yellow-200">
-                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-400" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-amber-50 border border-amber-100">
+                  <Star className="h-4 w-4 text-amber-500 fill-amber-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight font-heading">Customer Reviews</h2>
-                  {product.reviewsCount !== undefined && product.reviewsCount > 0 && (
-                    <p className="text-sm text-muted-foreground">{product.reviewsCount} reviews</p>
-                  )}
+                  <h2 className="text-lg font-bold text-slate-900 tracking-tight font-heading">Reviews</h2>
                 </div>
+                {product.reviewsCount !== undefined && product.reviewsCount > 0 && (
+                  <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full ml-1">
+                    {product.reviewsCount}
+                  </span>
+                )}
               </div>
             </div>
           </BlurFade>
@@ -505,17 +507,16 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
 
       {/* Recommended products */}
       {recommended.length > 0 && (
-        <section className="py-12 md:py-16 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
+        <section className="py-8 md:py-10 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
           <div className="container mx-auto px-4 sm:px-6">
             <BlurFade delay={0.1}>
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-primary/10">
-                    <Sparkles className="h-5 w-5 text-primary" />
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-primary/10">
+                    <Sparkles className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight font-heading">You might also like</h2>
-                    <p className="text-sm text-muted-foreground">Similar products you may enjoy</p>
+                    <h2 className="text-lg font-bold text-slate-900 tracking-tight font-heading">You might also like</h2>
                   </div>
                 </div>
                 {organization?.slug && (

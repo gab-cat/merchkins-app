@@ -3,7 +3,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FeaturedCategories } from '@/src/features/categories/components/featured-categories';
-import { fadeInUpContainer } from '@/lib/animations';
 import type { Preloaded } from 'convex/react';
 import type { api } from '@/convex/_generated/api';
 
@@ -13,16 +12,44 @@ interface AnimatedFeaturedCategoriesProps {
   preloadedCategories?: Preloaded<typeof api.categories.queries.index.getCategories>;
 }
 
+const sectionVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.15,
+    },
+  },
+};
+
+const contentVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
 export function AnimatedFeaturedCategories(props: AnimatedFeaturedCategoriesProps) {
   return (
     <motion.section
-      className="container mx-auto px-3 py-8 md:py-12 bg-muted/30"
-      variants={fadeInUpContainer}
-      initial="initial"
-      whileInView="animate"
-      viewport={{ once: true, margin: '0px 0px -80px 0px' }}
+      className="relative py-6 sm:py-8 md:py-10"
+      variants={sectionVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-50px' }}
     >
-      <FeaturedCategories {...props} />
+      {/* Subtle background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 via-slate-50/80 to-white" />
+
+      <motion.div className="container mx-auto px-3 relative" variants={contentVariants}>
+        <FeaturedCategories {...props} />
+      </motion.div>
     </motion.section>
   );
 }

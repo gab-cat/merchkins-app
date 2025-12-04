@@ -16,6 +16,8 @@ import { useThemeExclusionAuto } from '../../../stores/theme-exclusion';
 export function SiteFooter() {
   const pathname = usePathname();
   const { shouldApplyTheme } = useThemeExclusionAuto();
+  const brandTextRef = React.useRef<HTMLHeadingElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const orgSlugFromPath = useMemo(() => {
     if (!pathname) return undefined;
@@ -47,6 +49,63 @@ export function SiteFooter() {
     api.organizations.queries.index.getOrganizationBySlug,
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
   );
+
+  // Scale text to fit container width
+  React.useEffect(() => {
+    let resizeTimeout: NodeJS.Timeout;
+    const CLAMP_VALUE = 'clamp(6rem, 18vw, 24rem)';
+    
+    const scaleText = () => {
+      if (!brandTextRef.current || !containerRef.current) return;
+      
+      const container = containerRef.current;
+      const text = brandTextRef.current;
+      
+      // Restore clamp value first to get accurate measurement
+      text.style.fontSize = CLAMP_VALUE;
+      
+      // Force reflow to get accurate measurements with clamp applied
+      void text.offsetWidth;
+      
+      // Get computed styles after clamp is applied
+      const containerWidth = container.offsetWidth;
+      const textWidth = text.scrollWidth;
+      
+      // Only scale if there's significant overflow (more than 10px)
+      if (textWidth > containerWidth + 10 && containerWidth > 0) {
+        // Text overflows - calculate scale factor to fit
+        const scale = (containerWidth - 10) / textWidth; // 10px padding
+        const currentFontSize = parseFloat(getComputedStyle(text).fontSize);
+        // Scale down to fit
+        text.style.fontSize = `${currentFontSize * scale}px`;
+      } else {
+        // Text fits - keep the clamp value for maximum size
+        text.style.fontSize = CLAMP_VALUE;
+      }
+    };
+
+    const debouncedScaleText = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(scaleText, 50);
+    };
+
+    // Small delay to ensure DOM is ready and animations complete
+    const initialTimeout = setTimeout(scaleText, 100);
+    window.addEventListener('resize', debouncedScaleText);
+    
+    // Use ResizeObserver for more accurate container size tracking
+    const resizeObserver = new ResizeObserver(debouncedScaleText);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearTimeout(resizeTimeout);
+      window.removeEventListener('resize', debouncedScaleText);
+      resizeObserver.disconnect();
+    };
+  }, [organization?.name]);
 
   const footerLinks = {
     shop: [
@@ -178,19 +237,21 @@ export function SiteFooter() {
 
         {/* Large Brand Name Section */}
         <motion.div
+          ref={containerRef}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-12 md:mt-16 w-full"
+          className="mt-12 md:mt-16 w-full overflow-hidden"
         >
           <h2
+            ref={brandTextRef}
             className={cn(
-              'w-full text-[clamp(4rem,15vw,12rem)] font-bold tracking-tighter leading-none font-heading overflow-x-visible',
+              'w-full font-bold tracking-tighter leading-none font-heading whitespace-nowrap',
               shouldApplyTheme && organization ? 'text-primary' : 'text-foreground'
             )}
             style={{
-              fontSize: 'clamp(8rem, 18vw, 16rem)',
+              fontSize: 'clamp(6rem, 18vw, 24rem)',
               lineHeight: '1',
             }}
           >
@@ -198,7 +259,7 @@ export function SiteFooter() {
               organization?.name || 'Merchkins'
             ) : (
               <>
-                <span className="text-primary">Merchkins</span>
+                <span className="text-primary whitespace-nowrap">Merchkins</span>
               </>
             )}
           </h2>

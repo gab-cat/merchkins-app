@@ -6,13 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery } from 'convex/react';
 import { useAuth } from '@clerk/nextjs';
+import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Star, CheckCircle2, Edit2, X, MessageSquare, FileText, Send } from 'lucide-react';
+import { Star, CheckCircle2, Edit2, X, Send, Pencil, LogIn } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -57,7 +56,6 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
     formState: { errors },
   } = form;
   const rating = watch('rating');
-  const comment = watch('comment');
 
   // Pre-populate form when existing review loads
   useEffect(() => {
@@ -98,7 +96,7 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
           rating: data.rating,
           comment: data.comment || undefined,
         });
-        showToast({ type: 'success', title: 'Review updated successfully' });
+        showToast({ type: 'success', title: 'Review updated' });
         setIsEditing(false);
       } else {
         await createReview({
@@ -106,7 +104,7 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
           rating: data.rating,
           comment: data.comment || undefined,
         });
-        showToast({ type: 'success', title: 'Review submitted successfully' });
+        showToast({ type: 'success', title: 'Review submitted' });
       }
 
       // Reset form state but keep values for display
@@ -121,182 +119,206 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
 
   const displayRating = hoveredRating ?? rating;
 
-  if (!currentUser) {
+  // Not logged in state
+  if (!clerkId) {
     return (
-      <Card className="mt-3">
-        <CardContent className="p-3 sm:p-4">
-          <p className="text-sm text-muted-foreground">Please sign in to leave a review for this product.</p>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <LogIn className="h-4 w-4" />
+          <span>Sign in to leave a review</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading current user
+  if (currentUser === undefined) {
+    return (
+      <div className="rounded-xl border border-slate-100 p-3">
+        <div className="flex items-center gap-2.5">
+          <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+          <div className="flex-1 space-y-1.5">
+            <Skeleton className="h-3.5 w-24" />
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Skeleton key={star} className="h-4 w-4 rounded" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   // Show skeleton while checking for existing review
   if (existingReview === undefined && currentUser) {
     return (
-      <Card className="mt-3 border-l-4 border-l-primary bg-primary/5">
-        <CardContent className="py-1 px-3 sm:py-2 sm:px-4">
-          <div className="flex items-start gap-3">
-            <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex-shrink-0" />
-            <div className="min-w-0 flex-1 space-y-2">
-              <div className="flex items-start justify-between gap-2 flex-wrap">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-5 w-24" />
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="inline-flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Skeleton key={star} className="h-3 w-3" />
-                      ))}
-                    </div>
-                    <Skeleton className="h-3 w-16" />
-                  </div>
-                </div>
-                <Skeleton className="h-7 w-16" />
-              </div>
-              <Skeleton className="h-4 w-full max-w-md" />
+      <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3">
+        <div className="flex items-center gap-2.5">
+          <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+          <div className="flex-1 space-y-1.5">
+            <Skeleton className="h-3.5 w-24" />
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Skeleton key={star} className="h-4 w-4 rounded" />
+              ))}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
+  const userName =
+    currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}` : currentUser.email.split('@')[0];
+
   // If user has an existing review and not editing, show it inline
   if (existingReview && !isEditing) {
-    const userName =
-      currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}` : currentUser.email.split('@')[0];
-
     return (
-      <Card className="mt-3 border-l-4 border-l-primary bg-primary/5">
-        <CardContent className="py-1 px-3 sm:py-2 sm:px-4">
-          <div className="flex items-start gap-3">
-            <Avatar className="h-8 w-8 sm:h-10 sm:w-10 ring-2 ring-background flex-shrink-0">
-              <AvatarImage src={currentUser.imageUrl} alt={userName} />
-              <AvatarFallback className="text-xs">{userName.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1 space-y-2">
-              <div className="flex items-start justify-between gap-2 flex-wrap">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-primary truncate">Your review</span>
-                    {existingReview.isVerifiedPurchase && (
-                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3 text-green-600" />
-                        Verified Purchase
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="inline-flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`h-3 w-3 ${star <= existingReview.rating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(existingReview.createdAt).toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm" onClick={handleEditToggle} className="text-xs shrink-0">
-                  <Edit2 className="h-3 w-3 mr-1" />
-                  Edit
-                </Button>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3"
+      >
+        <div className="flex gap-2.5">
+          <Avatar className="h-8 w-8 flex-shrink-0 ring-1 ring-primary/20">
+            <AvatarImage src={currentUser.imageUrl} alt={userName} />
+            <AvatarFallback className="text-xs bg-primary/10 text-primary">{userName.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            {/* Header row */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-sm font-medium text-slate-900 truncate">{userName}</span>
+                <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">Your review</span>
+                {existingReview.isVerifiedPurchase && (
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" title="Verified Purchase" />
+                )}
               </div>
-
-              {existingReview.comment && (
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{existingReview.comment}</p>
-              )}
+              <button
+                onClick={handleEditToggle}
+                className="p-1 rounded-md hover:bg-primary/10 transition-colors text-slate-400 hover:text-primary"
+                title="Edit review"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
             </div>
+
+            {/* Rating */}
+            <div className="flex items-center gap-0.5 mt-0.5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`h-3 w-3 ${star <= existingReview.rating ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200'}`}
+                />
+              ))}
+              <span className="text-[11px] text-slate-400 ml-1.5">
+                {new Date(existingReview.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+            </div>
+
+            {/* Comment */}
+            {existingReview.comment && (
+              <p className="text-sm text-slate-600 leading-relaxed mt-1.5 whitespace-pre-wrap">{existingReview.comment}</p>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </motion.div>
     );
   }
 
   // Show form (either for new review or editing existing)
   return (
-    <Card className="mt-3">
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold flex items-center gap-1.5">
-            <MessageSquare className="h-4 w-4 text-primary" />
-            {existingReview ? 'Edit your review' : 'Write a review'}
-          </h3>
-          {existingReview && (
-            <Button variant="ghost" size="sm" onClick={handleEditToggle} className="text-xs h-7">
-              <X className="h-3 w-3 mr-1" />
-              Cancel
-            </Button>
-          )}
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400" />
-              Rating *
-            </label>
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setValue('rating', star, { shouldValidate: true })}
-                  onMouseEnter={() => setHoveredRating(star)}
-                  onMouseLeave={() => setHoveredRating(null)}
-                  className="transition-transform hover:scale-110 active:scale-95 touch-manipulation"
-                  aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
-                >
-                  <Star
-                    className={`h-5 w-5 sm:h-6 sm:w-6 ${
-                      star <= displayRating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'
-                    } transition-colors`}
-                  />
-                </button>
-              ))}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-xl border border-slate-100 bg-white p-3"
+    >
+      <div className="flex gap-2.5">
+        <Avatar className="h-8 w-8 flex-shrink-0 ring-1 ring-slate-100">
+          <AvatarImage src={currentUser.imageUrl} alt={userName} />
+          <AvatarFallback className="text-xs bg-slate-100 text-slate-600">{userName.charAt(0).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          {/* Header */}
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-sm font-medium text-slate-900">{existingReview ? 'Edit your review' : 'Share your experience'}</span>
+            {existingReview && (
+              <button
+                onClick={handleEditToggle}
+                className="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+                title="Cancel"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-2.5">
+            {/* Rating */}
+            <div>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setValue('rating', star, { shouldValidate: true })}
+                    onMouseEnter={() => setHoveredRating(star)}
+                    onMouseLeave={() => setHoveredRating(null)}
+                    className="transition-transform hover:scale-110 active:scale-95 touch-manipulation"
+                    aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                  >
+                    <Star
+                      className={`h-5 w-5 ${
+                        star <= displayRating ? 'fill-amber-400 text-amber-400' : 'fill-slate-200 text-slate-200'
+                      } transition-colors`}
+                    />
+                  </button>
+                ))}
+                {rating > 0 && (
+                  <span className="text-xs text-slate-500 ml-1.5">
+                    {rating === 1 ? 'Poor' : rating === 2 ? 'Fair' : rating === 3 ? 'Good' : rating === 4 ? 'Very Good' : 'Excellent'}
+                  </span>
+                )}
+              </div>
+              {errors.rating && <p className="mt-1 text-xs text-red-500">{errors.rating.message}</p>}
             </div>
-            {errors.rating && <p className="mt-1 text-xs text-destructive">{errors.rating.message}</p>}
-          </div>
 
-          <div>
-            <label htmlFor="comment" className="mb-1.5 block text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-              Comment (optional)
-            </label>
-            <Textarea
-              id="comment"
-              {...register('comment')}
-              placeholder="Share your thoughts about this product..."
-              className="min-h-[80px] resize-none text-sm"
-              autoResize
-              minRows={3}
-            />
-            {errors.comment && <p className="mt-1 text-xs text-destructive">{errors.comment.message}</p>}
-          </div>
+            {/* Comment */}
+            <div>
+              <Textarea
+                id="comment"
+                {...register('comment')}
+                placeholder="What did you like or dislike? (optional)"
+                className="min-h-[60px] resize-none text-sm border-slate-200 focus:border-primary/50 rounded-lg"
+                autoResize
+                minRows={2}
+              />
+              {errors.comment && <p className="mt-1 text-xs text-red-500">{errors.comment.message}</p>}
+            </div>
 
-          <div className="flex gap-2">
-            <Button type="submit" disabled={isSubmitting || rating === 0} size="sm" className="flex-1 text-xs">
+            {/* Submit */}
+            <Button
+              type="submit"
+              disabled={isSubmitting || rating === 0}
+              size="sm"
+              className="w-full h-8 text-xs font-medium rounded-lg"
+            >
               {isSubmitting ? (
                 'Submitting...'
               ) : (
                 <>
-                  <Send className="h-3.5 w-3.5 mr-1.5" />
-                  {existingReview ? 'Update review' : 'Submit review'}
+                  <Send className="h-3 w-3 mr-1.5" />
+                  {existingReview ? 'Update' : 'Submit review'}
                 </>
               )}
             </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+          </form>
+        </div>
+      </div>
+    </motion.div>
   );
 }

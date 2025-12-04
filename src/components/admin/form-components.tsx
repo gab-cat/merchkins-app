@@ -61,7 +61,7 @@ export function FormCard({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn('rounded-xl border bg-card overflow-hidden shadow-sm', 'hover:shadow-md transition-shadow duration-300', className)}
+      className={cn('rounded-xl border bg-card overflow-hidden', className)}
     >
       <div
         className={cn('flex items-center justify-between px-5 py-4 border-b bg-muted/30', collapsible && 'cursor-pointer select-none')}
