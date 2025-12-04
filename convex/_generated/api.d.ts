@@ -130,7 +130,6 @@ import type * as models_products from "../models/products.js";
 import type * as models_surveys from "../models/surveys.js";
 import type * as models_tickets from "../models/tickets.js";
 import type * as models_users from "../models/users.js";
-import type * as models_vouchers from "../models/vouchers.js";
 import type * as orders_mutations_cancelOrder from "../orders/mutations/cancelOrder.js";
 import type * as orders_mutations_createOrder from "../orders/mutations/createOrder.js";
 import type * as orders_mutations_createOrderLog from "../orders/mutations/createOrderLog.js";
@@ -426,7 +425,6 @@ declare const fullApi: ApiFromModules<{
   "models/surveys": typeof models_surveys;
   "models/tickets": typeof models_tickets;
   "models/users": typeof models_users;
-  "models/vouchers": typeof models_vouchers;
   "orders/mutations/cancelOrder": typeof orders_mutations_cancelOrder;
   "orders/mutations/createOrder": typeof orders_mutations_createOrder;
   "orders/mutations/createOrderLog": typeof orders_mutations_createOrderLog;
