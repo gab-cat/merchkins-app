@@ -1,4 +1,60 @@
-<!-- 6e274345-3a40-41e3-8a1b-a72253dedd7f 916ecec2-0935-46fe-a352-6ee8bf85e5a2 -->
+---
+name: "UI Revamp Plan: Public-Facing Pages"
+overview: ""
+todos:
+  - id: 12e88f27-8149-40a8-9bd0-9eede6ad2082
+    content: Install ReactBits and Aceternity UI libraries and verify dependencies
+    status: pending
+  - id: 4470a00b-d155-42ed-8e2d-4b98961f2dcb
+    content: Add Outfit/Sora for headings and DM Sans/Inter for body text to layout.tsx and globals.css
+    status: pending
+  - id: 6da24623-74fc-4fe5-bfe1-9282026442bb
+    content: Create src/components/ui/reactbits/ and src/components/ui/aceternity/ directories with utility files
+    status: pending
+  - id: c5086981-fb20-4462-b9ee-a2376b500759
+    content: Integrate key Aceternity UI components (Bento Grid, Card Hover, Border Beam, Text Effects, 3D Cards)
+    status: pending
+  - id: 8e8d5b2d-7dbc-4066-a378-10196f9bf9b6
+    content: Integrate ReactBits components (Animated Text, Gradients, Hover Effects, Scroll Animations)
+    status: pending
+  - id: c5c5dde5-c4e7-44d8-8087-6db75eb388ee
+    content: Redesign HomeHero component with Aceternity UI hero, animated text, and gradient backgrounds
+    status: pending
+  - id: b3427ba0-5503-48be-b086-1b1a687c5afd
+    content: Replace PopularProducts grid with Bento Grid layout and add hover effects
+    status: pending
+  - id: 27bfeab5-af8e-4d19-87ce-0c4c06f362d0
+    content: Redesign ProductCard with 3D effects, border beams, and enhanced hover states
+    status: pending
+  - id: 5c13d906-5e28-49b2-8899-10e8955ed93a
+    content: Transform FeaturedCategories with animated badges and interactive hover states
+    status: pending
+  - id: dfe8b3ba-a9a5-49d0-9345-55b63d3324ed
+    content: Redesign PopularOrganizations cards with 3D effects and animated backgrounds
+    status: pending
+  - id: dbcdec2e-197e-408f-aff9-92c3b3da792b
+    content: Enhance AnimatedBanner with gradient overlays, animated beams, and text animations
+    status: pending
+  - id: 16934189-abdd-48a9-8b1c-6f96447d4680
+    content: Update all headings to use new heading font and body text to use new body font
+    status: pending
+  - id: 784376f0-5ff5-4354-bc12-17b091beba53
+    content: Reduce blocky appearance with better spacing, rounded corners, and gradient overlays
+    status: pending
+  - id: 48f0ad95-ca5b-4762-b68c-d79c1e14febe
+    content: Implement staggered fade-in and scroll-triggered animations across all pages
+    status: pending
+  - id: b8c218d7-ed70-4d56-8fa1-eec7d58630f0
+    content: Add hover effects, button animations, and smooth transitions to interactive elements
+    status: pending
+  - id: 57b75639-99be-4501-ae49-84cc6028c490
+    content: Ensure all new components are mobile-responsive and performant
+    status: pending
+  - id: 1da231ae-3e14-4d62-819f-0971d78542a6
+    content: Test all pages across screen sizes, verify animations, check accessibility, and optimize performance
+    status: pending
+---
+
 # UI Revamp Plan: Public-Facing Pages
 
 ## Overview
@@ -231,23 +287,3 @@ From **ReactBits**:
 - All components are responsive and accessible
 - Theme colors are consistently applied
 - Genty font remains only in logo
-
-### To-dos
-
-- [ ] Install ReactBits and Aceternity UI libraries and verify dependencies
-- [ ] Add Outfit/Sora for headings and DM Sans/Inter for body text to layout.tsx and globals.css
-- [ ] Create src/components/ui/reactbits/ and src/components/ui/aceternity/ directories with utility files
-- [ ] Integrate key Aceternity UI components (Bento Grid, Card Hover, Border Beam, Text Effects, 3D Cards)
-- [ ] Integrate ReactBits components (Animated Text, Gradients, Hover Effects, Scroll Animations)
-- [ ] Redesign HomeHero component with Aceternity UI hero, animated text, and gradient backgrounds
-- [ ] Replace PopularProducts grid with Bento Grid layout and add hover effects
-- [ ] Redesign ProductCard with 3D effects, border beams, and enhanced hover states
-- [ ] Transform FeaturedCategories with animated badges and interactive hover states
-- [ ] Redesign PopularOrganizations cards with 3D effects and animated backgrounds
-- [ ] Enhance AnimatedBanner with gradient overlays, animated beams, and text animations
-- [ ] Update all headings to use new heading font and body text to use new body font
-- [ ] Reduce blocky appearance with better spacing, rounded corners, and gradient overlays
-- [ ] Implement staggered fade-in and scroll-triggered animations across all pages
-- [ ] Add hover effects, button animations, and smooth transitions to interactive elements
-- [ ] Ensure all new components are mobile-responsive and performant
-- [ ] Test all pages across screen sizes, verify animations, check accessibility, and optimize performance

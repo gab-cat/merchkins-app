@@ -26,6 +26,7 @@ import {
   Receipt,
   Tag,
   Info,
+  Ticket,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
@@ -368,6 +369,17 @@ export function CartPage() {
                         {totals.selectedItems} of {totals.totalItems} items selected for checkout
                       </p>
                     )}
+
+                    {/* Voucher info */}
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-[#adfc04]/10 to-[#1d43d8]/5 border border-[#adfc04]/20">
+                      <div className="p-2 rounded-lg bg-[#adfc04]/20">
+                        <Ticket className="h-4 w-4 text-[#1d43d8]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-slate-700">Have a voucher code?</p>
+                        <p className="text-[10px] text-slate-500">Apply it at checkout for a discount</p>
+                      </div>
+                    </div>
 
                     {/* Checkout button */}
                     <Link href="/checkout" className="block pt-2">

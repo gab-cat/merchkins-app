@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Building2, Users, ShieldCheck, ScrollText, Megaphone, BarChart3, LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, ShieldCheck, ScrollText, Megaphone, BarChart3, LucideIcon, DollarSign } from 'lucide-react';
 
 interface NavItemProps {
   href: string;
@@ -76,6 +76,7 @@ export function SuperAdminNav() {
     { href: '/super-admin/overview', icon: LayoutDashboard, label: 'Overview' },
     { href: '/super-admin/organizations', icon: Building2, label: 'Organizations' },
     { href: '/super-admin/users', icon: Users, label: 'Users' },
+    { href: '/super-admin/payouts', icon: DollarSign, label: 'Payouts' },
   ];
 
   const securityItems = [

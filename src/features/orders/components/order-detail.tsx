@@ -10,7 +10,7 @@ import { ReportPaymentDialog } from './report-payment-dialog';
 import { OrderPaymentLink } from './order-payment-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CreditCard, ArrowLeft, Package, Clock, CheckCircle2, XCircle, Truck, MapPin, Receipt, ShoppingBag, Calendar, Hash } from 'lucide-react';
+import { CreditCard, ArrowLeft, Package, Clock, CheckCircle2, XCircle, Truck, MapPin, Receipt, ShoppingBag, Calendar, Hash, Ticket, Tag, Percent, Gift } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 import type { Id } from '@/convex/_generated/dataModel';
 
@@ -271,9 +271,25 @@ export function OrderDetail({ orderId }: { orderId: string }) {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between text-slate-600">
                   <span>Subtotal ({order.itemCount} items)</span>
-                  <span>{formatCurrency((order.totalAmount || 0) + (order.discountAmount || 0))}</span>
+                  <span>{formatCurrency((order.totalAmount || 0) + (order.voucherDiscount || order.discountAmount || 0))}</span>
                 </div>
-                {order.discountAmount > 0 && (
+                {/* Voucher discount display */}
+                {order.voucherCode && (order.voucherDiscount || 0) > 0 && (
+                  <div className="flex items-center justify-between text-emerald-600">
+                    <span className="flex items-center gap-2">
+                      <Ticket className="h-3.5 w-3.5" />
+                      <span>
+                        Voucher
+                        <span className="font-mono ml-1 text-xs bg-emerald-100 px-1.5 py-0.5 rounded">
+                          {order.voucherCode}
+                        </span>
+                      </span>
+                    </span>
+                    <span>-{formatCurrency(order.voucherDiscount)}</span>
+                  </div>
+                )}
+                {/* Legacy discount (non-voucher) */}
+                {!order.voucherCode && (order.discountAmount || 0) > 0 && (
                   <div className="flex items-center justify-between text-emerald-600">
                     <span>Discount</span>
                     <span>-{formatCurrency(order.discountAmount)}</span>
@@ -288,6 +304,50 @@ export function OrderDetail({ orderId }: { orderId: string }) {
               </div>
             </div>
           </motion.div>
+
+          {/* Voucher details card (if voucher was applied) */}
+          {order.voucherSnapshot && (
+            <motion.div variants={itemVariants} className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Ticket className="h-4 w-4 text-slate-400" />
+                <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Applied Voucher</h2>
+              </div>
+              <div className="rounded-xl border border-emerald-100 p-4 bg-gradient-to-r from-emerald-50/50 to-[#adfc04]/5">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-emerald-100 shrink-0">
+                    {(order.voucherSnapshot as { discountType?: string })?.discountType === 'PERCENTAGE' ? (
+                      <Percent className="h-4 w-4 text-emerald-600" />
+                    ) : (order.voucherSnapshot as { discountType?: string })?.discountType === 'FREE_ITEM' ? (
+                      <Gift className="h-4 w-4 text-emerald-600" />
+                    ) : (order.voucherSnapshot as { discountType?: string })?.discountType === 'FREE_SHIPPING' ? (
+                      <Truck className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                      <Tag className="h-4 w-4 text-emerald-600" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-emerald-700 font-mono">
+                        {(order.voucherSnapshot as { code?: string })?.code || order.voucherCode}
+                      </span>
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    </div>
+                    <p className="text-sm text-emerald-600 mt-0.5">
+                      {(order.voucherSnapshot as { name?: string })?.name || 'Voucher Applied'}
+                    </p>
+                    {(order.voucherSnapshot as { description?: string })?.description && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {(order.voucherSnapshot as { description?: string })?.description}
+                      </p>
+                    )}
+                    <p className="text-sm font-semibold text-emerald-700 mt-2">
+                      You saved {formatCurrency(order.voucherDiscount || 0)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Customer Info */}
           {order.customerInfo && (

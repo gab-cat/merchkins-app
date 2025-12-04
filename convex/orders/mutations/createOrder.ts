@@ -38,6 +38,8 @@ export const createOrderArgs = {
   paymentPreference: v.optional(v.union(v.literal('FULL'), v.literal('DOWNPAYMENT'))),
   estimatedDelivery: v.optional(v.number()),
   customerNotes: v.optional(v.string()),
+  // Voucher support
+  voucherCode: v.optional(v.string()),
 };
 
 function generateOrderNumber(now: number): string {
@@ -59,6 +61,7 @@ export const createOrderHandler = async (
     paymentPreference?: 'FULL' | 'DOWNPAYMENT';
     estimatedDelivery?: number;
     customerNotes?: string;
+    voucherCode?: string;
   }
 ) => {
   const currentUser = await requireAuthentication(ctx);
@@ -247,6 +250,116 @@ export const createOrderHandler = async (
     discountAmount += Math.max(0, it.originalPrice - it.price) * it.quantity;
   }
 
+  // Voucher validation and processing
+  let voucherId: Id<'vouchers'> | undefined;
+  let voucherCode: string | undefined;
+  let voucherDiscount = 0;
+  let voucherSnapshot: { code: string; name: string; discountType: string; discountValue: number } | undefined;
+
+  if (args.voucherCode) {
+    const normalizedCode = args.voucherCode.toUpperCase().trim();
+    
+    // Find voucher
+    const voucher = await ctx.db
+      .query('vouchers')
+      .withIndex('by_code', (q) => q.eq('code', normalizedCode))
+      .first();
+
+    if (!voucher || voucher.isDeleted) {
+      throw new Error('Invalid voucher code');
+    }
+
+    // Validate voucher is active
+    if (!voucher.isActive) {
+      throw new Error('This voucher is no longer active');
+    }
+
+    const now = Date.now();
+
+    // Check validity period
+    if (voucher.validFrom > now) {
+      throw new Error('This voucher is not valid yet');
+    }
+    if (voucher.validUntil && voucher.validUntil < now) {
+      throw new Error('This voucher has expired');
+    }
+
+    // Check overall usage limit
+    if (voucher.usageLimit && voucher.usedCount >= voucher.usageLimit) {
+      throw new Error('This voucher has reached its usage limit');
+    }
+
+    // Check per-user usage limit
+    if (voucher.usageLimitPerUser) {
+      const userUsages = await ctx.db
+        .query('voucherUsages')
+        .withIndex('by_voucher_user', (q) => 
+          q.eq('voucherId', voucher._id).eq('userId', args.customerId)
+        )
+        .collect();
+      
+      if (userUsages.length >= voucher.usageLimitPerUser) {
+        throw new Error('You have already used this voucher the maximum number of times');
+      }
+    }
+
+    // Check organization scope
+    if (voucher.organizationId && voucher.organizationId !== args.organizationId) {
+      throw new Error('This voucher is only valid for a specific store');
+    }
+
+    // Check minimum order amount (before voucher discount)
+    if (voucher.minOrderAmount && totalAmount < voucher.minOrderAmount) {
+      throw new Error(`Minimum order of ₱${voucher.minOrderAmount.toFixed(2)} required`);
+    }
+
+    // Check applicable products
+    if (voucher.applicableProductIds && voucher.applicableProductIds.length > 0) {
+      const orderProductIds = preparedItems.map((it) => it.productId);
+      const hasApplicable = orderProductIds.some((pid) => 
+        voucher.applicableProductIds!.some((apid) => String(apid) === String(pid))
+      );
+      if (!hasApplicable) {
+        throw new Error('This voucher is not valid for the products in your order');
+      }
+    }
+
+    // Calculate voucher discount
+    switch (voucher.discountType) {
+      case 'PERCENTAGE':
+        voucherDiscount = (totalAmount * voucher.discountValue) / 100;
+        if (voucher.maxDiscountAmount && voucherDiscount > voucher.maxDiscountAmount) {
+          voucherDiscount = voucher.maxDiscountAmount;
+        }
+        break;
+      case 'FIXED_AMOUNT':
+        voucherDiscount = Math.min(voucher.discountValue, totalAmount);
+        break;
+      case 'FREE_SHIPPING':
+        // Free shipping handled separately if applicable
+        voucherDiscount = 0;
+        break;
+      case 'FREE_ITEM':
+        // For free item, the discount value represents the item value
+        voucherDiscount = Math.min(voucher.discountValue, totalAmount);
+        break;
+    }
+
+    voucherDiscount = Math.round(voucherDiscount * 100) / 100;
+    voucherId = voucher._id;
+    voucherCode = voucher.code;
+    voucherSnapshot = {
+      code: voucher.code,
+      name: voucher.name,
+      discountType: voucher.discountType,
+      discountValue: voucher.discountValue,
+    };
+
+    // Apply voucher discount to total
+    totalAmount = Math.max(0, totalAmount - voucherDiscount);
+    discountAmount += voucherDiscount;
+  }
+
   const now = Date.now();
   const orderNumber = generateOrderNumber(now);
 
@@ -292,6 +405,11 @@ export const createOrderHandler = async (
     discountAmount,
     itemCount: preparedItems.reduce((sum, it) => sum + it.quantity, 0),
     uniqueProductCount: new Set(preparedItems.map((it) => String(it.productId))).size,
+    // Voucher information
+    voucherId,
+    voucherCode,
+    voucherDiscount: voucherDiscount > 0 ? voucherDiscount : undefined,
+    voucherSnapshot,
     estimatedDelivery: args.estimatedDelivery,
     customerSatisfactionSurveyId: undefined,
     customerNotes: args.customerNotes,
@@ -312,6 +430,34 @@ export const createOrderHandler = async (
 
   // Insert order
   const orderId = await ctx.db.insert('orders', orderDoc);
+
+  // Record voucher usage if voucher was applied
+  if (voucherId && voucherSnapshot) {
+    // Create voucher usage record
+    await ctx.db.insert('voucherUsages', {
+      voucherId,
+      orderId,
+      userId: customer._id,
+      organizationId: args.organizationId,
+      voucherSnapshot,
+      discountAmount: voucherDiscount,
+      userInfo: {
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        email: customer.email,
+      },
+      createdAt: now,
+    });
+
+    // Increment voucher usage count
+    const currentVoucher = await ctx.db.get(voucherId);
+    if (currentVoucher) {
+      await ctx.db.patch(voucherId, {
+        usedCount: currentVoucher.usedCount + 1,
+        updatedAt: now,
+      });
+    }
+  }
 
   // For large orders, insert separate order items
   if (!orderDoc.embeddedItems) {
@@ -437,7 +583,7 @@ export const createOrderHandler = async (
     'create_order',
     'DATA_CHANGE',
     'MEDIUM',
-    `Created order ${orderNumber} for ${customer.email}`,
+    `Created order ${orderNumber} for ${customer.email}${voucherCode ? ` with voucher ${voucherCode}` : ''}`,
     currentUser._id,
     args.organizationId,
     {
@@ -446,15 +592,20 @@ export const createOrderHandler = async (
       customerId: customer._id,
       itemCount: preparedItems.length,
       totalAmount,
+      voucherCode,
+      voucherDiscount,
     }
   );
 
   // Create order log for order creation
+  const voucherMessage = voucherCode && voucherDiscount > 0 
+    ? ` (Voucher ${voucherCode} applied: -₱${voucherDiscount.toFixed(2)})`
+    : '';
   await createSystemOrderLog(ctx, {
     orderId,
     logType: 'ORDER_CREATED',
     reason: `Order ${orderNumber} created`,
-    message: `Order placed with ${preparedItems.length} item(s) totaling ${totalAmount.toFixed(2)}`,
+    message: `Order placed with ${preparedItems.length} item(s) totaling ₱${totalAmount.toFixed(2)}${voucherMessage}`,
     isPublic: true,
     actorId: currentUser._id,
   });
@@ -471,5 +622,7 @@ export const createOrderHandler = async (
     xenditInvoiceUrl: createdOrder.xenditInvoiceUrl,
     xenditInvoiceId: createdOrder.xenditInvoiceId,
     totalAmount: createdOrder.totalAmount,
+    voucherApplied: !!voucherCode,
+    voucherDiscount: voucherDiscount > 0 ? voucherDiscount : undefined,
   };
 };

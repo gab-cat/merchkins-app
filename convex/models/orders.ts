@@ -74,6 +74,19 @@ export const orders = defineTable({
   itemCount: v.number(),
   uniqueProductCount: v.number(),
 
+  // Voucher information (if applied)
+  voucherId: v.optional(v.id('vouchers')),
+  voucherCode: v.optional(v.string()),
+  voucherDiscount: v.optional(v.number()), // Discount amount from voucher specifically
+  voucherSnapshot: v.optional(
+    v.object({
+      code: v.string(),
+      name: v.string(),
+      discountType: v.string(),
+      discountValue: v.number(),
+    })
+  ),
+
   estimatedDelivery: v.optional(v.number()),
   customerSatisfactionSurveyId: v.optional(v.id('surveyResponses')),
   customerNotes: v.optional(v.string()),

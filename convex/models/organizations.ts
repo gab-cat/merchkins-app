@@ -43,6 +43,18 @@ export const organizations = defineTable({
   activeProductCount: v.number(),
   totalOrderCount: v.number(),
 
+  // Payout settings
+  platformFeePercentage: v.optional(v.number()), // Default is 15% if not set
+  payoutBankDetails: v.optional(
+    v.object({
+      bankName: v.string(),
+      accountName: v.string(),
+      accountNumber: v.string(),
+      bankCode: v.optional(v.string()), // For automated payouts in the future
+      notificationEmail: v.optional(v.string()), // Email to receive payout notifications
+    })
+  ),
+
   createdAt: v.number(),
   updatedAt: v.number(),
 })

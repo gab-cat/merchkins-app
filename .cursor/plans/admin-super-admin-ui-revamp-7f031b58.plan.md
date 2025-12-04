@@ -1,4 +1,69 @@
-<!-- 7f031b58-4ea8-41df-88de-71a35df660bf 298a80c0-d59b-49ac-a3d5-c11b5f56a478 -->
+---
+name: "UI Revamp Plan: Admin & Super Admin Pages"
+overview: ""
+todos:
+  - id: 2473c5e6-5764-4514-87f3-6da9af370146
+    content: Install ReactBits and Aceternity UI libraries, verify Framer Motion configuration, and add data visualization library (recharts or similar)
+    status: pending
+  - id: 4014693e-7c0e-4bac-84da-dcd6d0e68156
+    content: Add professional fonts (Geist/Sora for headings, Inter for body) to layout.tsx and globals.css
+    status: pending
+  - id: fe5d238b-0bbb-4c47-b5a2-a5c46778b706
+    content: Create src/components/ui/reactbits/, src/components/ui/aceternity/, and src/components/admin/ directories with utility files
+    status: pending
+  - id: 1908897d-adef-4474-b228-0663c983ccf8
+    content: Integrate key Aceternity UI components (Bento Grid, Card Hover, Border Beam, Text Effects, 3D Cards, Animated Tabs)
+    status: pending
+  - id: 61da00de-bd8f-481f-aedd-5234552cd433
+    content: Integrate ReactBits components (Animated Text, Gradients, Hover Effects, Scroll Animations, Advanced Tables)
+    status: pending
+  - id: 02026431-d009-4bd6-9016-4414222cf302
+    content: Redesign admin overview dashboard with 3D metric cards, animated counters, interactive charts, and Bento Grid layout
+    status: pending
+  - id: 4fe1a8be-85c6-4ace-ac16-92c3d17a0ea8
+    content: Transform products page with advanced data grid, inline editing, bulk actions, card/table view toggle, and enhanced filtering
+    status: pending
+  - id: a5787b62-9773-443d-a664-89a08a29ce6f
+    content: Revamp orders page with advanced data grid, animated status badges, inline updates, order timeline visualization, and bulk actions
+    status: pending
+  - id: 5df90ba0-a9db-4c0f-aa25-211e48607099
+    content: Transform categories page with interactive tree view, drag-and-drop reordering, expand/collapse animations, and visual hierarchy
+    status: pending
+  - id: ccd8c3df-f91e-4803-ab11-cb7b2f612fe2
+    content: Redesign admin navigation with animated active states, hover effects, notification badges, collapsible sections, and mobile drawer
+    status: pending
+  - id: 54ba8807-cbfa-4ec8-af02-fbf95957dee3
+    content: Transform super admin overview with 3D metric cards, platform analytics charts, real-time metrics, and system health indicators
+    status: pending
+  - id: e788f775-b8f3-4208-8297-27f45a82652a
+    content: Revamp super admin organizations page with advanced data grid, organization cards view, inline editing, and comparison features
+    status: pending
+  - id: c8348714-cdd8-458f-a1ce-e5cd55533e3d
+    content: Transform super admin users page with advanced filtering, activity visualization, role management, and user detail modals
+    status: pending
+  - id: cea9c3df-4486-440f-9d87-5cefb4727c2d
+    content: Apply navigation enhancements to super admin navigation with role-based highlighting
+    status: pending
+  - id: 50ddc3f6-3288-4ef0-afab-fa168e1cbc1a
+    content: Create reusable advanced data table component with sorting, filtering, pagination, inline editing, and loading states
+    status: pending
+  - id: 33cd3182-0578-434b-b71b-0f65d3689b69
+    content: Add animated form fields, inline validation, multi-step forms, auto-save feedback, and contextual help tooltips
+    status: pending
+  - id: 1f17d73d-623f-477a-9db8-c8a7d8f72ce6
+    content: Add animated modal entrances/exits, backdrop blur, multi-step modals, and contextual action menus
+    status: pending
+  - id: 354b05e2-4026-4fde-aad5-46c93d9b47a6
+    content: Replace basic skeletons with animated versions, add engaging empty states, and implement progress indicators
+    status: pending
+  - id: e38ff029-48d7-4d18-b106-eaa8fd5442a1
+    content: Optimize animation performance, implement code splitting, lazy load components, and ensure fast load times
+    status: pending
+  - id: 5e37d7f2-cb72-488f-8e42-cb69178bbf10
+    content: Ensure animations respect prefers-reduced-motion, add ARIA labels, implement keyboard navigation, and test with screen readers
+    status: pending
+---
+
 # UI Revamp Plan: Admin & Super Admin Pages
 
 ## Overview
@@ -413,26 +478,3 @@ From **ReactBits**:
 - Animations enhance UX without being distracting
 - Theme colors are consistently applied
 - All interactions provide clear feedback
-
-### To-dos
-
-- [ ] Install ReactBits and Aceternity UI libraries, verify Framer Motion configuration, and add data visualization library (recharts or similar)
-- [ ] Add professional fonts (Geist/Sora for headings, Inter for body) to layout.tsx and globals.css
-- [ ] Create src/components/ui/reactbits/, src/components/ui/aceternity/, and src/components/admin/ directories with utility files
-- [ ] Integrate key Aceternity UI components (Bento Grid, Card Hover, Border Beam, Text Effects, 3D Cards, Animated Tabs)
-- [ ] Integrate ReactBits components (Animated Text, Gradients, Hover Effects, Scroll Animations, Advanced Tables)
-- [ ] Redesign admin overview dashboard with 3D metric cards, animated counters, interactive charts, and Bento Grid layout
-- [ ] Transform products page with advanced data grid, inline editing, bulk actions, card/table view toggle, and enhanced filtering
-- [ ] Revamp orders page with advanced data grid, animated status badges, inline updates, order timeline visualization, and bulk actions
-- [ ] Transform categories page with interactive tree view, drag-and-drop reordering, expand/collapse animations, and visual hierarchy
-- [ ] Redesign admin navigation with animated active states, hover effects, notification badges, collapsible sections, and mobile drawer
-- [ ] Transform super admin overview with 3D metric cards, platform analytics charts, real-time metrics, and system health indicators
-- [ ] Revamp super admin organizations page with advanced data grid, organization cards view, inline editing, and comparison features
-- [ ] Transform super admin users page with advanced filtering, activity visualization, role management, and user detail modals
-- [ ] Apply navigation enhancements to super admin navigation with role-based highlighting
-- [ ] Create reusable advanced data table component with sorting, filtering, pagination, inline editing, and loading states
-- [ ] Add animated form fields, inline validation, multi-step forms, auto-save feedback, and contextual help tooltips
-- [ ] Add animated modal entrances/exits, backdrop blur, multi-step modals, and contextual action menus
-- [ ] Replace basic skeletons with animated versions, add engaging empty states, and implement progress indicators
-- [ ] Optimize animation performance, implement code splitting, lazy load components, and ensure fast load times
-- [ ] Ensure animations respect prefers-reduced-motion, add ARIA labels, implement keyboard navigation, and test with screen readers

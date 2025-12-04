@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQuery } from 'convex/react';
 import { useAuth } from '@clerk/nextjs';
 import { api } from '@/convex/_generated/api';
+import { anyApi } from 'convex/server';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   CreditCard,
   ListChecks,
@@ -26,6 +28,11 @@ import {
   Truck,
   Receipt,
   ChevronRight,
+  Ticket,
+  X,
+  Tag,
+  Percent,
+  Gift,
 } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Card, CardContent } from '@/components/ui/card';
@@ -291,6 +298,21 @@ export function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
+  // Voucher state
+  const [voucherCode, setVoucherCode] = useState('');
+  const [voucherInput, setVoucherInput] = useState('');
+  const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
+  const [appliedVoucher, setAppliedVoucher] = useState<{
+    _id: Id<'vouchers'>;
+    code: string;
+    name: string;
+    description?: string;
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING';
+    discountValue: number;
+    discountAmount: number;
+  } | null>(null);
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+
   const selectedItems = useMemo(() => {
     const items = cart?.embeddedItems ?? [];
     return items.filter((i) => i.selected && i.quantity > 0);
@@ -314,6 +336,108 @@ export function CheckoutPage() {
       amount: selectedItems.reduce((s, i) => s + i.quantity * i.productInfo.price, 0),
     };
   }, [selectedItems]);
+
+  // Calculate totals with voucher discount
+  const totalsWithDiscount = useMemo(() => {
+    const subtotal = totals.amount;
+    const discount = appliedVoucher?.discountAmount ?? 0;
+    const total = Math.max(0, subtotal - discount);
+    return {
+      subtotal,
+      discount,
+      total,
+    };
+  }, [totals.amount, appliedVoucher]);
+
+  // Get product IDs for voucher validation
+  const productIds = useMemo(() => {
+    return selectedItems.map((item) => item.productInfo.productId);
+  }, [selectedItems]);
+
+  // Get unique organization IDs from selected items
+  const organizationIds = useMemo(() => {
+    const orgIds = new Set<string>();
+    selectedItems.forEach((item) => {
+      const orgId = (item.productInfo as { organizationId?: string }).organizationId;
+      if (orgId) orgIds.add(orgId);
+    });
+    return Array.from(orgIds);
+  }, [selectedItems]);
+
+  // Voucher validation query (only run when we have a voucher code to validate)
+  // Note: Type assertion needed until `bunx convex dev` regenerates types
+  const voucherValidation = useQuery(
+    anyApi.vouchers.queries.index.validateVoucher,
+    voucherCode && me
+      ? {
+          code: voucherCode,
+          userId: me._id,
+          organizationId: organizationIds.length === 1 ? (organizationIds[0] as Id<'organizations'>) : undefined,
+          orderAmount: totals.amount,
+          productIds: productIds as Id<'products'>[],
+        }
+      : 'skip'
+  ) as {
+    valid: boolean;
+    voucher?: {
+      _id: Id<'vouchers'>;
+      code: string;
+      name: string;
+      description?: string;
+      discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING';
+      discountValue: number;
+      minOrderAmount?: number;
+      maxDiscountAmount?: number;
+    };
+    discountAmount?: number;
+    error?: string;
+  } | undefined;
+
+  // Update applied voucher when validation result changes
+  useEffect(() => {
+    if (!voucherCode) {
+      setAppliedVoucher(null);
+      setVoucherError(null);
+      return;
+    }
+
+    if (voucherValidation === undefined) {
+      // Still loading
+      return;
+    }
+
+    if (voucherValidation.valid && voucherValidation.voucher) {
+      setAppliedVoucher({
+        ...voucherValidation.voucher,
+        discountAmount: voucherValidation.discountAmount ?? 0,
+      });
+      setVoucherError(null);
+    } else {
+      setAppliedVoucher(null);
+      setVoucherError(voucherValidation.error ?? 'Invalid voucher code');
+    }
+    setIsValidatingVoucher(false);
+  }, [voucherValidation, voucherCode]);
+
+  // Handle voucher application
+  const handleApplyVoucher = useCallback(() => {
+    const code = voucherInput.trim().toUpperCase();
+    if (!code) {
+      setVoucherError('Please enter a voucher code');
+      return;
+    }
+    setIsValidatingVoucher(true);
+    setVoucherError(null);
+    setVoucherCode(code);
+  }, [voucherInput]);
+
+  // Handle voucher removal
+  const handleRemoveVoucher = useCallback(() => {
+    setVoucherCode('');
+    setVoucherInput('');
+    setAppliedVoucher(null);
+    setVoucherError(null);
+  }, []);
 
   const shopSubtotals = useMemo(() => {
     return Object.entries(selectedByOrg).map(([orgId, group]) => {
@@ -354,12 +478,21 @@ export function CheckoutPage() {
           customerNote: it.note,
         }));
         const orgIdArg = orgId !== 'global' ? (orgId as unknown as Id<'organizations'>) : undefined;
+        
+        // Only apply voucher to the first order if multiple orgs, or if voucher is for specific org
+        const shouldApplyVoucher = appliedVoucher && (
+          !appliedVoucher.discountAmount || // No discount = always apply
+          organizationIds.length === 1 || // Single org = apply
+          Object.keys(selectedByOrg).indexOf(orgId) === 0 // First org in multi-org order
+        );
+        
         promises.push(
           createOrder({
             customerId: me._id,
             organizationId: orgIdArg,
             items,
             customerNotes: notes || undefined,
+            voucherCode: shouldApplyVoucher ? appliedVoucher?.code : undefined,
           })
         );
       }
@@ -524,6 +657,141 @@ export function CheckoutPage() {
               </div>
             </motion.div>
 
+            {/* Voucher code */}
+            <motion.div variants={itemVariants}>
+              <div className="rounded-2xl border border-slate-100 overflow-hidden">
+                <div className="px-5 py-4 bg-slate-50/80 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
+                      <Ticket className="h-4 w-4 text-[#1d43d8]" />
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-slate-900">Voucher Code</h2>
+                      <p className="text-xs text-slate-500">Have a promo code? Apply it here</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-5 space-y-4">
+                  {/* Applied voucher display */}
+                  <AnimatePresence mode="wait">
+                    {appliedVoucher ? (
+                      <motion.div
+                        key="applied"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-[#adfc04]/10 border border-emerald-200"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-emerald-100">
+                            {appliedVoucher.discountType === 'PERCENTAGE' ? (
+                              <Percent className="h-4 w-4 text-emerald-600" />
+                            ) : appliedVoucher.discountType === 'FREE_ITEM' ? (
+                              <Gift className="h-4 w-4 text-emerald-600" />
+                            ) : appliedVoucher.discountType === 'FREE_SHIPPING' ? (
+                              <Truck className="h-4 w-4 text-emerald-600" />
+                            ) : (
+                              <Tag className="h-4 w-4 text-emerald-600" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-emerald-700">{appliedVoucher.code}</span>
+                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            </div>
+                            <p className="text-xs text-emerald-600">{appliedVoucher.name}</p>
+                            {appliedVoucher.discountAmount > 0 && (
+                              <p className="text-sm font-medium text-emerald-700 mt-1">
+                                -{formatCurrency(appliedVoucher.discountAmount)} off
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRemoveVoucher}
+                          className="h-8 w-8 p-0 rounded-full hover:bg-red-100 hover:text-red-600 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="input"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="space-y-3"
+                      >
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Input
+                              placeholder="Enter voucher code"
+                              value={voucherInput}
+                              onChange={(e) => {
+                                setVoucherInput(e.target.value.toUpperCase());
+                                if (voucherError) setVoucherError(null);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleApplyVoucher();
+                                }
+                              }}
+                              className={cn(
+                                'uppercase font-mono text-sm tracking-wider rounded-xl border-slate-200 focus:border-[#1d43d8]/30 focus:ring-[#1d43d8]/10',
+                                voucherError && 'border-red-300 focus:border-red-300 focus:ring-red-100'
+                              )}
+                              disabled={isValidatingVoucher}
+                            />
+                            {voucherInput && !isValidatingVoucher && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setVoucherInput('');
+                                  setVoucherError(null);
+                                }}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                          <Button
+                            onClick={handleApplyVoucher}
+                            disabled={!voucherInput.trim() || isValidatingVoucher}
+                            className="rounded-xl bg-[#1d43d8] hover:bg-[#1d43d8]/90 px-5 disabled:bg-slate-200 disabled:text-slate-500"
+                          >
+                            {isValidatingVoucher ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              'Apply'
+                            )}
+                          </Button>
+                        </div>
+
+                        {/* Voucher error */}
+                        <AnimatePresence>
+                          {voucherError && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="flex items-center gap-2 text-sm text-red-600"
+                            >
+                              <AlertCircle className="h-4 w-4 shrink-0" />
+                              <span>{voucherError}</span>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+
             {/* Order notes */}
             <motion.div variants={itemVariants}>
               <div className="rounded-2xl border border-slate-100 overflow-hidden">
@@ -588,12 +856,44 @@ export function CheckoutPage() {
                       <span className="text-slate-500 text-xs">Calculated at payment</span>
                     </div>
 
+                    {/* Voucher discount */}
+                    <AnimatePresence>
+                      {appliedVoucher && appliedVoucher.discountAmount > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                        >
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="flex items-center gap-2 text-emerald-600">
+                              <Ticket className="h-3.5 w-3.5" />
+                              <span className="truncate">
+                                Voucher ({appliedVoucher.code})
+                              </span>
+                            </span>
+                            <span className="font-medium text-emerald-600">
+                              -{formatCurrency(appliedVoucher.discountAmount)}
+                            </span>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <div className="h-px bg-slate-100" />
 
                     {/* Total */}
                     <div className="flex items-center justify-between pt-1">
                       <span className="font-semibold text-slate-900">Total</span>
-                      <span className="text-2xl font-bold text-[#1d43d8]">{formatCurrency(totals.amount)}</span>
+                      <div className="text-right">
+                        {appliedVoucher && appliedVoucher.discountAmount > 0 && (
+                          <p className="text-sm text-slate-400 line-through">
+                            {formatCurrency(totals.amount)}
+                          </p>
+                        )}
+                        <span className="text-2xl font-bold text-[#1d43d8]">
+                          {formatCurrency(totalsWithDiscount.total)}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Error message */}

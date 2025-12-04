@@ -57,6 +57,7 @@ import {
   Hash,
   CircleDollarSign,
   MessageSquarePlus,
+  Ticket,
 } from 'lucide-react';
 
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'DELIVERED' | 'CANCELLED';
@@ -473,8 +474,22 @@ export default function AdminOrderDetailPage() {
               </CardHeader>
               <CardContent className="space-y-1">
                 <SummaryRow label="Items" value={String(order.itemCount || items.length)} />
-                <SummaryRow label="Subtotal" value={formatCurrency((order.totalAmount || 0) + (order.discountAmount || 0))} />
-                {(order.discountAmount || 0) > 0 && <SummaryRow label="Discount" value={formatCurrency(order.discountAmount || 0)} negative />}
+                <SummaryRow label="Subtotal" value={formatCurrency((order.totalAmount || 0) + (order.voucherDiscount || order.discountAmount || 0))} />
+                {/* Voucher discount display */}
+                {order.voucherCode && (order.voucherDiscount || 0) > 0 && (
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-emerald-600 flex items-center gap-1.5 text-sm">
+                      <Ticket className="h-3.5 w-3.5" />
+                      Voucher
+                      <code className="text-xs bg-emerald-100 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded font-mono">
+                        {order.voucherCode}
+                      </code>
+                    </span>
+                    <span className="text-emerald-600">-{formatCurrency(order.voucherDiscount || 0)}</span>
+                  </div>
+                )}
+                {/* Legacy discount (non-voucher) */}
+                {!order.voucherCode && (order.discountAmount || 0) > 0 && <SummaryRow label="Discount" value={formatCurrency(order.discountAmount || 0)} negative />}
                 <Separator className="my-3" />
                 <SummaryRow label="Total" value={formatCurrency(order.totalAmount || 0)} highlight />
 

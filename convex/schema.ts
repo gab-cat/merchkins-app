@@ -12,6 +12,7 @@ import {
 import { products, reviews } from './models/products';
 import { orders, orderItems, orderLogs } from './models/orders';
 import { payments } from './models/payments';
+import { payoutInvoices, payoutSettings } from './models/payouts';
 import { carts, cartItems } from './models/carts';
 import { categories } from './models/categories';
 import { permissions, userPermissions } from './models/permissions';
@@ -22,6 +23,7 @@ import { announcements } from './models/announcements';
 import { surveyResponses, surveyCategories } from './models/surveys';
 import { tickets, ticketUpdates, ticketReads } from './models/tickets';
 import { chatRooms, chatParticipants, chatMessages, messageReactions, chatRoomState } from './models/chats';
+import { vouchers, voucherUsages } from './models/vouchers';
 
 export default defineSchema({
   // User management
@@ -46,6 +48,10 @@ export default defineSchema({
 
   // Payment management
   payments,
+
+  // Payout management
+  payoutInvoices,
+  payoutSettings,
 
   // Cart management
   carts,
@@ -80,4 +86,8 @@ export default defineSchema({
   tickets,
   ticketUpdates,
   ticketReads,
+
+  // Vouchers
+  vouchers,
+  voucherUsages,
 });
