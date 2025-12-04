@@ -64,6 +64,9 @@ type Order = {
   xenditInvoiceUrl?: string | null;
   xenditInvoiceCreatedAt?: number | null;
   xenditInvoiceExpiryDate?: number | null;
+  customerInfo?: {
+    email: string;
+  };
 };
 
 function formatRelativeDate(ts: number) {
@@ -315,6 +318,9 @@ export function OrdersList() {
                             xenditInvoiceUrl={o.xenditInvoiceUrl}
                             xenditInvoiceCreatedAt={o.xenditInvoiceCreatedAt}
                             xenditInvoiceExpiryDate={o.xenditInvoiceExpiryDate}
+                            totalAmount={o.totalAmount}
+                            customerEmail={o.customerInfo?.email}
+                            orderNumber={o.orderNumber}
                             compact
                           />
                         </div>

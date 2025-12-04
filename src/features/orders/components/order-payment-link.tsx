@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAction } from 'convex/react';
+import { useAction, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { CreditCard, RefreshCw, AlertTriangle } from 'lucide-react';
@@ -15,6 +15,9 @@ interface OrderPaymentLinkProps {
   xenditInvoiceUrl?: string | null;
   xenditInvoiceCreatedAt?: number | null;
   xenditInvoiceExpiryDate?: number | null;
+  totalAmount?: number;
+  customerEmail?: string;
+  orderNumber?: string | null;
   compact?: boolean;
 }
 
@@ -25,10 +28,16 @@ export function OrderPaymentLink({
   xenditInvoiceUrl,
   xenditInvoiceCreatedAt,
   xenditInvoiceExpiryDate,
+  totalAmount,
+  customerEmail,
+  orderNumber,
   compact = false,
 }: OrderPaymentLinkProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const refreshInvoice = useAction(api.orders.mutations.index.refreshXenditInvoice);
+  const createInvoice = useAction(api.payments.actions.index.createXenditInvoice);
+  const updateOrderInvoice = useMutation(api.orders.mutations.index.createXenditInvoiceForOrder);
 
   // Only show payment link for PENDING orders that haven't been paid
   const shouldShowPayment = orderStatus === 'PENDING' && paymentStatus !== 'PAID';
@@ -61,17 +70,51 @@ export function OrderPaymentLink({
     }
   };
 
-  const handlePayNow = (e: React.MouseEvent) => {
+  const handlePayNow = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // If payment link exists, redirect immediately
     if (xenditInvoiceUrl) {
       window.location.href = xenditInvoiceUrl;
-    } else {
+      return;
+    }
+
+    // If no payment link exists, create one and then redirect
+    if (!totalAmount || !customerEmail) {
       showToast({
         type: 'error',
         title: 'Payment link not available',
         description: 'Please refresh the page and try again.',
       });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      showToast({ type: 'info', title: 'Creating payment link...', description: 'Please wait.' });
+
+      const invoice = await createInvoice({
+        orderId,
+        amount: totalAmount,
+        customerEmail,
+        externalId: orderNumber || `order-${orderId}`,
+      });
+
+      await updateOrderInvoice({
+        orderId,
+        xenditInvoiceId: invoice.invoiceId,
+        xenditInvoiceUrl: invoice.invoiceUrl,
+        xenditInvoiceExpiryDate: invoice.expiryDate,
+      });
+
+      showToast({ type: 'success', title: 'Payment link created', description: 'Redirecting...' });
+      window.location.href = invoice.invoiceUrl;
+    } catch (error) {
+      console.error('Failed to create invoice:', error);
+      showToast({ type: 'error', title: 'Failed to create payment link', description: 'Please try again.' });
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -100,26 +143,16 @@ export function OrderPaymentLink({
       );
     }
 
-    if (!xenditInvoiceUrl) {
-      return (
-        <div className="px-4 pb-4 pt-0">
-          <div className="flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-100 rounded-lg">
-            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-            <span className="text-xs text-amber-700 font-medium">Payment link generating...</span>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="px-4 pb-4 pt-0">
         <Button
           size="sm"
           onClick={handlePayNow}
+          disabled={isCreating}
           className="w-full h-9 bg-[#1d43d8] hover:bg-[#1d43d8]/90 text-white text-xs font-semibold rounded-lg shadow-sm"
         >
-          <CreditCard className="h-3.5 w-3.5 mr-1.5" />
-          Complete Payment
+          <CreditCard className={`h-3.5 w-3.5 mr-1.5 ${isCreating ? 'animate-pulse' : ''}`} />
+          {isCreating ? 'Creating link...' : 'Complete Payment'}
         </Button>
       </div>
     );
@@ -148,18 +181,6 @@ export function OrderPaymentLink({
     );
   }
 
-  if (!xenditInvoiceUrl) {
-    return (
-      <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
-        <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
-        <div className="flex-1">
-          <p className="text-sm font-medium text-amber-700">Payment setup in progress</p>
-          <p className="text-xs text-amber-600/80">Your payment link is being generated.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex items-center gap-3 p-4 bg-[#1d43d8]/5 border border-[#1d43d8]/10 rounded-xl">
       <CreditCard className="h-5 w-5 text-[#1d43d8] flex-shrink-0" />
@@ -167,9 +188,14 @@ export function OrderPaymentLink({
         <p className="text-sm font-medium text-[#1d43d8]">Complete your payment</p>
         <p className="text-xs text-slate-500">Pay securely with e-wallets, cards, or bank transfer</p>
       </div>
-      <Button size="sm" onClick={handlePayNow} className="flex-shrink-0 bg-[#1d43d8] hover:bg-[#1d43d8]/90">
-        <CreditCard className="h-4 w-4 mr-2" />
-        Pay Now
+      <Button 
+        size="sm" 
+        onClick={handlePayNow} 
+        disabled={isCreating}
+        className="flex-shrink-0 bg-[#1d43d8] hover:bg-[#1d43d8]/90"
+      >
+        <CreditCard className={`h-4 w-4 mr-2 ${isCreating ? 'animate-pulse' : ''}`} />
+        {isCreating ? 'Creating...' : 'Pay Now'}
       </Button>
     </div>
   );

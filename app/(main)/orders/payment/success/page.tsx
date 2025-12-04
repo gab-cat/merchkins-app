@@ -19,6 +19,7 @@ import {
   AlertCircle,
   ExternalLink,
   Loader2,
+  XCircle,
 } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { motion } from 'framer-motion';
@@ -94,6 +95,21 @@ const pulseVariants = {
 
 // Pending payment icon animation
 const pendingIconVariants = {
+  hidden: { scale: 0, rotate: -180 },
+  visible: {
+    scale: 1,
+    rotate: 0,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 200,
+      damping: 15,
+      delay: 0.1,
+    },
+  },
+};
+
+// Cancelled order icon animation
+const cancelledIconVariants = {
   hidden: { scale: 0, rotate: -180 },
   visible: {
     scale: 1,
@@ -239,8 +255,184 @@ export default function PaymentSuccessPage() {
   const isPaid = order.paymentStatus === 'PAID';
   const isPending = order.paymentStatus === 'PENDING';
   const isDownpayment = order.paymentStatus === 'DOWNPAYMENT';
+  const isCancelled = order.status === 'CANCELLED';
   const hasPaymentLink = !!order.xenditInvoiceUrl;
   const formattedAmount = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(order.totalAmount || 0);
+
+  // Helper function to get cancellation reason label
+  const getCancellationReasonLabel = (reason?: string) => {
+    switch (reason) {
+      case 'OUT_OF_STOCK':
+        return 'Out of Stock';
+      case 'CUSTOMER_REQUEST':
+        return 'Customer Request';
+      case 'PAYMENT_FAILED':
+        return 'Payment Failed';
+      case 'OTHERS':
+        return 'Other';
+      default:
+        return null;
+    }
+  };
+
+  // If order is cancelled, show the cancelled order UI
+  if (isCancelled) {
+    const cancellationReasonLabel = getCancellationReasonLabel(order.cancellationReason);
+
+    return (
+      <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
+        {/* Subtle ambient background effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-500/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#1d43d8]/[0.03] rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+        </div>
+
+        {/* Subtle dot pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `radial-gradient(#1d43d8 1px, transparent 1px)`,
+            backgroundSize: '24px 24px',
+          }}
+        ></div>
+
+        <div className="relative z-10 container mx-auto px-4 py-8">
+          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="max-w-md mx-auto">
+            {/* Cancelled Icon with animated ring */}
+            <motion.div variants={cancelledIconVariants} className="relative mx-auto w-24 h-24 mb-5">
+              {/* Outer pulsing ring */}
+              <motion.div
+                variants={pulseVariants}
+                initial="initial"
+                animate="pulse"
+                className="absolute inset-0 rounded-full bg-red-500/20"
+              ></motion.div>
+              {/* Inner ring */}
+              <div className="absolute inset-2 rounded-full bg-red-500/10"></div>
+              {/* Core circle */}
+              <div className="absolute inset-3 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/40">
+                <XCircle className="w-10 h-10 text-white drop-shadow-md" strokeWidth={2.5} />
+              </div>
+              {/* Sparkle decorations */}
+              <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' }} className="absolute inset-0">
+                <AlertCircle className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-red-400" />
+                <XCircle className="absolute top-1/2 -right-1 -translate-y-1/2 w-3 h-3 text-red-300" />
+              </motion.div>
+            </motion.div>
+
+            {/* Title Section */}
+            <motion.div variants={itemVariants} className="text-center mb-6">
+              <h1 className="text-3xl font-bold text-slate-900 mb-2 font-heading tracking-tight">
+                Order <span className="text-red-500">Cancelled</span>
+              </h1>
+              <p className="text-slate-500 text-sm">This order has been cancelled</p>
+            </motion.div>
+
+            {/* Main Card - Cancelled */}
+            <motion.div
+              variants={itemVariants}
+              className="relative rounded-xl border border-red-200 bg-white shadow-lg shadow-red-100/50 overflow-hidden"
+            >
+              {/* Cancelled banner */}
+              <div className="bg-gradient-to-r from-red-50 to-red-100 px-5 py-3 border-b border-red-200">
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-red-600" />
+                  <span className="text-sm font-medium text-red-700">Order has been cancelled</span>
+                </div>
+              </div>
+
+              <div className="p-5">
+                {/* Order number & Amount in one row */}
+                <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                  <div>
+                    <p className="text-slate-400 text-xs mb-0.5">Order</p>
+                    <span className="font-mono text-slate-900 font-semibold text-sm">{orderNumber}</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-slate-400 text-xs mb-0.5">Order Amount</p>
+                    <p className="text-2xl font-bold text-slate-900 font-heading">{formattedAmount}</p>
+                  </div>
+                </div>
+
+                {/* Compact Order details */}
+                <div className="flex gap-4 mb-4 text-sm">
+                  <div className="flex items-center gap-2 flex-1">
+                    <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+                      <XCircle className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-xs">Status</p>
+                      <span className="font-semibold text-sm text-red-600">Cancelled</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-1">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                      <CalendarDays className="w-4 h-4 text-slate-500" />
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-xs">Date</p>
+                      <span className="text-slate-900 font-medium text-sm">
+                        {new Date(order.orderDate).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cancellation reason */}
+                {cancellationReasonLabel && (
+                  <div className="rounded-lg bg-red-50 p-3 mb-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-red-800 text-sm font-medium mb-1">Cancellation Reason</p>
+                        <p className="text-red-700 text-xs leading-relaxed">{cancellationReasonLabel}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Information message */}
+                <div className="rounded-lg bg-slate-50 p-3 mb-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-slate-600 text-xs leading-relaxed">
+                        If you have any questions about this cancellation, please contact our support team.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex gap-2">
+                  <Link href={`/orders/${order._id}`} className="flex-1">
+                    <Button variant="outline" className="w-full h-10 border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-sm">
+                      <Package className="h-4 w-4 mr-1.5" />
+                      View Details
+                    </Button>
+                  </Link>
+                  <Link href="/orders" className="flex-1">
+                    <Button variant="outline" className="w-full h-10 border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-sm">
+                      All Orders
+                      <ArrowRight className="h-4 w-4 ml-1.5" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Footer note */}
+            <motion.p variants={itemVariants} className="text-center text-slate-400 text-xs mt-4">
+              Need help? Contact our support team for assistance
+            </motion.p>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   // If payment is pending, show the pending payment UI
   if (isPending || isDownpayment) {

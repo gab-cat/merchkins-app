@@ -9,13 +9,14 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default function Page({ searchParams }: PageProps) {
+export default async function Page({ searchParams }: PageProps) {
   // Handle payment redirects
-  const paymentStatus = searchParams.payment as string;
-  const orderId = searchParams.orderId as string;
+  const params = await searchParams;
+  const paymentStatus = params.payment as string;
+  const orderId = params.orderId as string;
 
   if (paymentStatus && orderId) {
     if (paymentStatus === 'success') {

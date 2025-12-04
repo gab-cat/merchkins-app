@@ -3,15 +3,31 @@
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useQuery, useMutation, useAction } from 'convex/react';
+import { useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { ReportPaymentDialog } from './report-payment-dialog';
 import { OrderPaymentLink } from './order-payment-link';
+import { OrderLogsSection } from './order-logs-section';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CreditCard, ArrowLeft, Package, Clock, CheckCircle2, XCircle, Truck, MapPin, Receipt, ShoppingBag, Calendar, Hash, Ticket, Tag, Percent, Gift } from 'lucide-react';
-import { showToast } from '@/lib/toast';
+import {
+  ArrowLeft,
+  Package,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Truck,
+  MapPin,
+  Receipt,
+  ShoppingBag,
+  Calendar,
+  Hash,
+  Ticket,
+  Tag,
+  Percent,
+  Gift,
+} from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 
 interface OrderItemUI {
@@ -108,38 +124,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
     includeItems: true,
   });
 
-  const createInvoice = useAction(api.payments.actions.index.createXenditInvoice);
-  const updateOrderInvoice = useMutation(api.orders.mutations.index.createXenditInvoiceForOrder);
-
   const loading = order === undefined;
-
-  const handleCreateInvoice = async () => {
-    if (!order) return;
-
-    try {
-      showToast({ type: 'info', title: 'Creating payment link...', description: 'Please wait.' });
-
-      const invoice = await createInvoice({
-        orderId: order._id,
-        amount: order.totalAmount || 0,
-        customerEmail: order.customerInfo.email,
-        externalId: order.orderNumber || `order-${order._id}`,
-      });
-
-      await updateOrderInvoice({
-        orderId: order._id,
-        xenditInvoiceId: invoice.invoiceId,
-        xenditInvoiceUrl: invoice.invoiceUrl,
-        xenditInvoiceExpiryDate: invoice.expiryDate,
-      });
-
-      showToast({ type: 'success', title: 'Payment link created', description: 'Redirecting...' });
-      window.location.href = invoice.invoiceUrl;
-    } catch (error) {
-      console.error('Failed to create invoice:', error);
-      showToast({ type: 'error', title: 'Failed to create payment link', description: 'Please try again.' });
-    }
-  };
 
   const items = useMemo<OrderItemUI[]>(() => {
     if (!order) return [];
@@ -236,6 +221,9 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                 xenditInvoiceUrl={order.xenditInvoiceUrl}
                 xenditInvoiceCreatedAt={order.xenditInvoiceCreatedAt}
                 xenditInvoiceExpiryDate={order.xenditInvoiceExpiryDate}
+                totalAmount={order.totalAmount}
+                customerEmail={order.customerInfo.email}
+                orderNumber={order.orderNumber}
               />
             </motion.div>
           )}
@@ -280,9 +268,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                       <Ticket className="h-3.5 w-3.5" />
                       <span>
                         Voucher
-                        <span className="font-mono ml-1 text-xs bg-emerald-100 px-1.5 py-0.5 rounded">
-                          {order.voucherCode}
-                        </span>
+                        <span className="font-mono ml-1 text-xs bg-emerald-100 px-1.5 py-0.5 rounded">{order.voucherCode}</span>
                       </span>
                     </span>
                     <span>-{formatCurrency(order.voucherDiscount)}</span>
@@ -332,17 +318,11 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                       </span>
                       <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     </div>
-                    <p className="text-sm text-emerald-600 mt-0.5">
-                      {(order.voucherSnapshot as { name?: string })?.name || 'Voucher Applied'}
-                    </p>
+                    <p className="text-sm text-emerald-600 mt-0.5">{(order.voucherSnapshot as { name?: string })?.name || 'Voucher Applied'}</p>
                     {(order.voucherSnapshot as { description?: string })?.description && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        {(order.voucherSnapshot as { description?: string })?.description}
-                      </p>
+                      <p className="text-xs text-slate-500 mt-1">{(order.voucherSnapshot as { description?: string })?.description}</p>
                     )}
-                    <p className="text-sm font-semibold text-emerald-700 mt-2">
-                      You saved {formatCurrency(order.voucherDiscount || 0)}
-                    </p>
+                    <p className="text-sm font-semibold text-emerald-700 mt-2">You saved {formatCurrency(order.voucherDiscount || 0)}</p>
                   </div>
                 </div>
               </div>
@@ -366,6 +346,11 @@ export function OrderDetail({ orderId }: { orderId: string }) {
             </motion.div>
           )}
 
+          {/* Order Activity Log - Public Only */}
+          <motion.div variants={itemVariants} className="mb-6">
+            <OrderLogsSection orderId={order._id} publicOnly={true} className="rounded-xl border border-slate-100 bg-white shadow-none" />
+          </motion.div>
+
           {/* Order ID */}
           <motion.div variants={itemVariants}>
             <div className="flex items-center justify-between text-xs text-slate-400 py-3 border-t border-slate-100">
@@ -379,14 +364,6 @@ export function OrderDetail({ orderId }: { orderId: string }) {
 
           {/* Actions */}
           <motion.div variants={itemVariants} className="mt-4 space-y-3">
-            {/* Show Pay Now button for pending orders without payment links */}
-            {order.status === 'PENDING' && order.paymentStatus !== 'PAID' && !order.xenditInvoiceUrl && (
-              <Button className="w-full h-11 bg-[#1d43d8] hover:bg-[#1d43d8]/90 font-semibold rounded-xl" onClick={handleCreateInvoice}>
-                <CreditCard className="h-4 w-4 mr-2" />
-                Pay Now
-              </Button>
-            )}
-
             {/* Show manual payment reporting */}
             {order.paymentStatus !== 'PAID' && (
               <ReportPaymentDialog orderId={String(order._id)} defaultAmount={order.totalAmount} defaultCurrency={'PHP'} />

@@ -218,7 +218,12 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
               <Icon className="h-4 w-4" />
               {tab.label}
               {tab.count > 0 && (
-                <span className={cn('text-xs px-1.5 py-0.5 rounded-full', isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted-foreground/20')}>
+                <span
+                  className={cn(
+                    'text-xs px-1.5 py-0.5 rounded-full',
+                    isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted-foreground/20'
+                  )}
+                >
                   {tab.count}
                 </span>
               )}
@@ -391,8 +396,10 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
                       showToast({ type: 'success', title: 'Invite deactivated' });
                     }}
                     onCopy={() => {
-                      navigator.clipboard.writeText(inv.code);
-                      showToast({ type: 'success', title: 'Code copied to clipboard' });
+                      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+                      const fullUrl = `${baseUrl}/invite/${inv.code}`;
+                      navigator.clipboard.writeText(fullUrl);
+                      showToast({ type: 'success', title: 'Invite URL copied to clipboard' });
                     }}
                     index={index}
                   />
@@ -545,6 +552,8 @@ function InviteLinkCard({
 }) {
   const expiresAt = invite.expiresAt ? new Date(invite.expiresAt) : null;
   const isExpired = expiresAt && expiresAt < new Date();
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const fullInviteUrl = `${baseUrl}/invite/${invite.code}`;
 
   return (
     <motion.div
@@ -558,7 +567,9 @@ function InviteLinkCard({
           <Link2 className={cn('h-5 w-5', isExpired ? 'text-red-600' : 'text-primary')} />
         </div>
         <div className="min-w-0">
-          <div className="font-mono text-sm font-medium">{invite.code}</div>
+          <div className="font-mono text-xs text-muted-foreground truncate max-w-[280px]" title={fullInviteUrl}>
+            {fullInviteUrl}
+          </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
             <span className="flex items-center gap-1">
               <Users className="h-3 w-3" />
@@ -577,7 +588,7 @@ function InviteLinkCard({
       <div className="flex items-center gap-2">
         <Button size="sm" variant="outline" onClick={onCopy}>
           <Copy className="h-3.5 w-3.5 mr-1.5" />
-          Copy
+          Copy URL
         </Button>
         <Button size="sm" variant="destructive" onClick={onDeactivate}>
           <XCircle className="h-3.5 w-3.5 mr-1.5" />
