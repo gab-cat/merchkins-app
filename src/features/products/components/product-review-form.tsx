@@ -169,6 +169,18 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
     );
   }
 
+  // Ensure currentUser exists before accessing properties
+  if (!currentUser) {
+    return (
+      <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <LogIn className="h-4 w-4" />
+          <span>Please sign in to leave a review</span>
+        </div>
+      </div>
+    );
+  }
+
   const userName =
     currentUser.firstName && currentUser.lastName ? `${currentUser.firstName} ${currentUser.lastName}` : currentUser.email.split('@')[0];
 
@@ -192,7 +204,9 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
                 <span className="text-sm font-medium text-slate-900 truncate">{userName}</span>
                 <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">Your review</span>
                 {existingReview.isVerifiedPurchase && (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" title="Verified Purchase" />
+                  <span title="Verified Purchase" className="flex-shrink-0">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  </span>
                 )}
               </div>
               <button

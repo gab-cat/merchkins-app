@@ -42,7 +42,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      type: 'spring',
+      type: 'spring' as const,
       stiffness: 100,
       damping: 15,
     },
@@ -55,7 +55,7 @@ const logoVariants = {
     opacity: 1,
     scale: 1,
     transition: {
-      type: 'spring',
+      type: 'spring' as const,
       stiffness: 200,
       damping: 20,
       delay: 0.1,
@@ -69,7 +69,7 @@ const buttonVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      type: 'spring',
+      type: 'spring' as const,
       stiffness: 100,
       damping: 15,
       delay: 0.4 + i * 0.08,
