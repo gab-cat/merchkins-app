@@ -6,6 +6,7 @@ import { useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/utils';
+import { R2Image } from '@/src/components/ui/r2-image';
 import {
   LayoutDashboard,
   Package,
@@ -18,6 +19,7 @@ import {
   BarChart3,
   Users,
   Settings,
+  Building2,
   LucideIcon,
 } from 'lucide-react';
 
@@ -136,8 +138,55 @@ export function AdminNav() {
     { href: `/admin/org-settings${suffix}`, icon: Settings, label: 'Settings' },
   ];
 
+  // Helper to check if a value is an R2 key
+  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
+  
+  // Get logo URL if it's an R2 key
+  const logoKey = organization?.logo;
+  const logoUrl = useQuery(
+    api.files.queries.index.getFileUrl,
+    logoKey && isKey(logoKey) ? { key: logoKey as string } : 'skip'
+  );
+  const finalLogoUrl = logoKey && isKey(logoKey) ? logoUrl : logoKey;
+  const hasLogo = !!finalLogoUrl;
+
   return (
     <nav className="p-2 font-admin-body">
+      {/* Organization Header */}
+      {organization && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 pb-6 border-b"
+        >
+          <Link
+            href={`/admin/overview${suffix}`}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors group"
+          >
+            <div className="h-10 w-10 rounded-lg overflow-hidden bg-muted flex items-center justify-center shrink-0 ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+              {hasLogo && logoKey ? (
+                <R2Image
+                  fileKey={logoKey}
+                  alt={`${organization.name} logo`}
+                  width={40}
+                  height={40}
+                  className="h-full w-full object-cover"
+                  fallbackClassName="h-full w-full"
+                />
+              ) : (
+                <Building2 className="h-5 w-5 text-primary" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
+                {organization.name}
+              </div>
+              <div className="text-xs text-muted-foreground truncate">/{organization.slug}</div>
+            </div>
+          </Link>
+        </motion.div>
+      )}
+
       <NavSection title="Dashboard" index={0}>
         {mainNavItems.map((item, i) => (
           <NavItem key={item.href} {...item} isActive={isActive(item.href.split('?')[0])} index={i} />

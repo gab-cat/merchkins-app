@@ -274,7 +274,7 @@ function SiteHeaderContent({
 
               <span
                 className={cn(
-                  'text-xl md:text-3xl font-bold relative z-10 transition-all duration-300',
+                  'text-2xl md:text-4xl font-bold! tracking-tighter relative z-10 transition-all duration-300',
                   isScrolled ? 'text-white' : shouldApplyTheme && organization?.name ? 'text-foreground' : 'font-genty',
                   !shouldApplyTheme && !isScrolled && 'group-hover:drop-shadow-[0_0_8px_rgba(173,252,4,0.5)]'
                 )}
@@ -388,6 +388,43 @@ function SiteHeaderContent({
               </motion.div>
             </motion.div>
           </form>
+          {/* My Orders Button - hidden when compressed */}
+          <SignedIn>
+            {!isScrolled && (
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'hidden md:flex gap-1.5 px-2.5 h-9 relative transition-all duration-300 rounded-lg',
+                    isScrolled
+                      ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
+                      : shouldApplyTheme
+                        ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                        : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                  )}
+                >
+                  <Link href="/orders" className="flex items-center gap-1.5">
+                    <Package
+                      className={cn(
+                        'h-4 w-4 transition-transform duration-300',
+                        isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'hidden sm:inline text-sm font-medium',
+                        isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
+                      )}
+                    >
+                      My Orders
+                    </span>
+                  </Link>
+                </Button>
+              </motion.div>
+            )}
+          </SignedIn>
           {/* Enhanced Support dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -547,9 +584,42 @@ function SiteHeaderContent({
               afterSignOutUrl="/"
               appearance={{
                 elements: {
-                  userButtonAvatarBox: '!size-8 hover:scale-105 transition-transform duration-200',
-                  userButtonPopoverCard: 'bg-white border shadow-lg',
-                  userButtonPopoverActionButton: 'text-neutral-700 hover:bg-accent/50 transition-colors',
+                  userButtonAvatarBox: '!size-8 hover:scale-105 transition-transform duration-200 ring-2 ring-transparent hover:ring-[#1d43d8]/20',
+                  userButtonPopoverCard: 'bg-white border border-slate-200 shadow-xl rounded-2xl overflow-hidden',
+                  userButtonPopoverActionButton: 'text-slate-700 hover:bg-slate-50 transition-colors rounded-lg mx-1',
+                  userButtonPopoverActionButtonText: 'font-medium text-sm',
+                  userButtonPopoverActionButtonIcon: 'text-slate-500',
+                  userButtonPopoverFooter: 'hidden',
+                  userProfileSection: 'p-0',
+                  userProfileSectionContent: 'p-0',
+                  pageScrollBox: 'p-0',
+                  page: 'p-0 gap-0',
+                  profilePage: 'p-0',
+                  profileSection: 'p-0',
+                  profileSectionContent: 'p-0',
+                  profileSectionHeader: 'hidden',
+                  profileSectionPrimaryButton: 'hidden',
+                  formContainer: 'p-0',
+                  formHeader: 'hidden',
+                  formButtonPrimary: 'bg-[#1d43d8] hover:bg-[#1d43d8]/90 rounded-xl font-semibold shadow-sm',
+                  formFieldInput: 'rounded-lg border-slate-200 focus:border-[#1d43d8] focus:ring-2 focus:ring-[#1d43d8]/20',
+                  card: 'shadow-none border-0 p-0',
+                  navbar: 'border-b border-slate-100 bg-slate-50/50',
+                  navbarButton:
+                    'text-sm font-medium text-slate-600 hover:text-[#1d43d8] data-[active=true]:text-[#1d43d8] data-[active=true]:border-[#1d43d8]',
+                  navbarButtonIcon: 'text-slate-500',
+                  scrollBox: 'bg-white',
+                  rootBox: 'w-full',
+                },
+                variables: {
+                  colorPrimary: '#1d43d8',
+                  colorText: '#0f172a',
+                  colorTextSecondary: '#64748b',
+                  colorBackground: '#ffffff',
+                  colorInputBackground: '#ffffff',
+                  colorInputText: '#0f172a',
+                  borderRadius: '0.75rem',
+                  fontFamily: 'var(--font-dm-sans)',
                 },
               }}
             >
@@ -580,7 +650,7 @@ function SiteHeaderContent({
               {/* Mobile Logo */}
               <Link
                 href={orgSlug ? `/o/${orgSlug}` : '/'}
-                className="flex items-center justify-center gap-2 font-bold tracking-tight mb-4"
+                className="flex items-center justify-center gap-2 font-bold! tracking-tight mb-4"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className={cn('text-2xl font-bold', shouldApplyTheme && organization?.name ? 'text-foreground' : 'font-genty')}>

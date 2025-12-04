@@ -212,13 +212,13 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
               onClick={() => setActiveTab(tab.id)}
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all',
-                isActive ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+                isActive ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
               )}
             >
               <Icon className="h-4 w-4" />
               {tab.label}
               {tab.count > 0 && (
-                <span className={cn('text-xs px-1.5 py-0.5 rounded-full', isActive ? 'bg-primary/10 text-primary' : 'bg-muted-foreground/20')}>
+                <span className={cn('text-xs px-1.5 py-0.5 rounded-full', isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted-foreground/20')}>
                   {tab.count}
                 </span>
               )}

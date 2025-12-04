@@ -21,6 +21,9 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ReceivePaymentDialog } from '@/src/features/orders/components/receive-payment-dialog';
+import { OrderLogsSection } from '@/src/features/orders/components/order-logs-section';
+import { AddOrderNoteDialog } from '@/src/features/orders/components/add-order-note-dialog';
+import { OrderStatusChangeDialog } from '@/src/features/orders/components/order-status-change-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +56,7 @@ import {
   Tag,
   Hash,
   CircleDollarSign,
+  MessageSquarePlus,
 } from 'lucide-react';
 
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'DELIVERED' | 'CANCELLED';
@@ -224,7 +228,7 @@ function OrderDetailSkeleton() {
 export default function AdminOrderDetailPage() {
   const params = useParams();
   const router = useRouter();
-  
+
   // Safely extract orderId from params
   const orderId = typeof params?.id === 'string' ? (params.id as Id<'orders'>) : null;
 
@@ -246,6 +250,18 @@ export default function AdminOrderDetailPage() {
   // State
   const [updating, setUpdating] = useState(false);
 
+  // State for status change dialogs
+  const [statusChangeDialog, setStatusChangeDialog] = useState<{
+    open: boolean;
+    type: 'status' | 'payment';
+    newValue: OrderStatus | PaymentStatus;
+  }>({ open: false, type: 'status', newValue: 'PENDING' });
+
+  // State for cancel dialog with note
+  const [cancelDialog, setCancelDialog] = useState<{
+    open: boolean;
+  }>({ open: false });
+
   const loading = order === undefined;
   const items = useMemo(() => {
     if (!order) return [] as OrderItem[];
@@ -255,43 +271,20 @@ export default function AdminOrderDetailPage() {
   }, [order]);
 
   // Handlers
-  async function handleStatusChange(next: OrderStatus) {
-    if (!order || updating) return;
-    setUpdating(true);
-    try {
-      await updateOrder({ orderId: order._id, status: next });
-      showToast({ type: 'success', title: `Order status updated to ${next.toLowerCase()}` });
-    } catch (err) {
-      showToast({ type: 'error', title: 'Failed to update status' });
-    } finally {
-      setUpdating(false);
-    }
+  function handleStatusButtonClick(next: OrderStatus) {
+    if (!order || updating || order.status === next) return;
+    setStatusChangeDialog({ open: true, type: 'status', newValue: next });
   }
 
-  async function handlePaymentChange(next: PaymentStatus) {
-    if (!order || updating) return;
-    setUpdating(true);
-    try {
-      await updateOrder({ orderId: order._id, paymentStatus: next });
-      showToast({ type: 'success', title: `Payment status updated to ${next.toLowerCase()}` });
-    } catch (err) {
-      showToast({ type: 'error', title: 'Failed to update payment status' });
-    } finally {
-      setUpdating(false);
-    }
+  function handlePaymentButtonClick(next: PaymentStatus) {
+    if (!order || updating || order.paymentStatus === next) return;
+    setStatusChangeDialog({ open: true, type: 'payment', newValue: next });
   }
 
-  async function handleCancel() {
+  function handleCancelClick() {
     if (!order || updating) return;
-    setUpdating(true);
-    try {
-      await cancelOrder({ orderId: order._id, reason: 'OTHERS', message: 'Cancelled by admin' });
-      showToast({ type: 'success', title: 'Order cancelled' });
-    } catch (err) {
-      showToast({ type: 'error', title: 'Failed to cancel order' });
-    } finally {
-      setUpdating(false);
-    }
+    // For cancellation, we'll use the status change dialog with CANCELLED
+    setStatusChangeDialog({ open: true, type: 'status', newValue: 'CANCELLED' });
   }
 
   // Handle invalid orderId
@@ -386,7 +379,7 @@ export default function AdminOrderDetailPage() {
                         variant={isActive ? 'default' : 'outline'}
                         size="sm"
                         disabled={isDisabled}
-                        onClick={() => handleStatusChange(status)}
+                        onClick={() => handleStatusButtonClick(status)}
                         className={cn('transition-all', isActive && 'pointer-events-none')}
                       >
                         <Icon className={cn('h-4 w-4 mr-1.5', !isActive && config.color)} />
@@ -398,26 +391,10 @@ export default function AdminOrderDetailPage() {
 
                 {order.status !== 'CANCELLED' && (
                   <div className="mt-4 pt-4 border-t">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                          <XCircle className="h-4 w-4 mr-1.5" />
-                          Cancel Order
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Cancel Order?</AlertDialogTitle>
-                          <AlertDialogDescription>This action cannot be undone. The order will be marked as cancelled.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Keep Order</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                            Cancel Order
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={handleCancelClick}>
+                      <XCircle className="h-4 w-4 mr-1.5" />
+                      Cancel Order
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -445,7 +422,7 @@ export default function AdminOrderDetailPage() {
                           variant={isActive ? 'default' : 'outline'}
                           size="sm"
                           disabled={updating}
-                          onClick={() => handlePaymentChange(status)}
+                          onClick={() => handlePaymentButtonClick(status)}
                           className={cn('transition-all', isActive && 'pointer-events-none')}
                         >
                           <Banknote className={cn('h-4 w-4 mr-1.5', !isActive && config.color)} />
@@ -595,6 +572,27 @@ export default function AdminOrderDetailPage() {
           </motion.div>
         </div>
       </div>
+
+      {/* Activity Log Section - Full Width */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Activity & Notes</h2>
+          <AddOrderNoteDialog orderId={order._id} />
+        </div>
+        <OrderLogsSection orderId={order._id} />
+      </motion.div>
+
+      {/* Status Change Dialog */}
+      {order && (
+        <OrderStatusChangeDialog
+          orderId={order._id}
+          open={statusChangeDialog.open}
+          onOpenChange={(open) => setStatusChangeDialog((prev) => ({ ...prev, open }))}
+          changeType={statusChangeDialog.type}
+          currentValue={statusChangeDialog.type === 'status' ? (order.status as OrderStatus) : (order.paymentStatus as PaymentStatus)}
+          newValue={statusChangeDialog.newValue}
+        />
+      )}
     </div>
   );
 }

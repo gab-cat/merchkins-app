@@ -2,11 +2,13 @@ import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 import { requireAuthentication, validateOrderExists, logAction, requireOrganizationPermission } from '../../helpers';
+import { createSystemOrderLog } from './createOrderLog';
 
 export const cancelOrderArgs = {
   orderId: v.id('orders'),
   reason: v.union(v.literal('OUT_OF_STOCK'), v.literal('CUSTOMER_REQUEST'), v.literal('PAYMENT_FAILED'), v.literal('OTHERS')),
   message: v.optional(v.string()),
+  userNote: v.optional(v.string()), // Required note from admin
 };
 
 export const cancelOrderHandler = async (
@@ -15,6 +17,7 @@ export const cancelOrderHandler = async (
     orderId: Id<'orders'>;
     reason: 'OUT_OF_STOCK' | 'CUSTOMER_REQUEST' | 'PAYMENT_FAILED' | 'OTHERS';
     message?: string;
+    userNote?: string;
   }
 ) => {
   const currentUser = await requireAuthentication(ctx);
@@ -125,6 +128,19 @@ export const cancelOrderHandler = async (
     order.organizationId ?? undefined,
     { orderId: order._id, reason: args.reason }
   );
+
+  // Create order log for cancellation
+  await createSystemOrderLog(ctx, {
+    orderId: order._id,
+    logType: 'ORDER_CANCELLED',
+    reason: `Order cancelled: ${args.reason}`,
+    message: args.message || `Cancelled by ${actorName}`,
+    userMessage: args.userNote,
+    previousValue: order.status,
+    newValue: 'CANCELLED',
+    isPublic: true,
+    actorId: currentUser._id,
+  });
 
   return order._id;
 };

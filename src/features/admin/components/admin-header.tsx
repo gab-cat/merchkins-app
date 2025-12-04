@@ -2,21 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useState, useEffect } from 'react';
 import { Menu, Bell, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { AdminNav } from '@/src/features/admin/components/admin-nav';
+import { AdminCommandPalette } from '@/src/features/admin/components/admin-command-palette';
 import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { cn } from '@/lib/utils';
-import { GradientBackground, GridPattern } from '@/src/components/ui/backgrounds';
 
 export function AdminHeader() {
   const pathname = usePathname();
   const params = useSearchParams();
-  const [query, setQuery] = useState('');
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   const areaLabel = useMemo(() => {
     if (!pathname) return 'Admin';
@@ -26,184 +25,133 @@ export function AdminHeader() {
 
   const orgSlug = params.get('org') ?? undefined;
 
-  const onSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const q = query.trim();
-    if (q.length === 0) return;
-    const base = pathname?.startsWith('/super-admin') ? '/super-admin' : '/admin';
-    const qp = new URLSearchParams();
-    qp.set('q', q);
-    if (orgSlug) qp.set('org', orgSlug);
-    window.location.href = `${base}?${qp.toString()}`;
+  // Keyboard shortcut handler (Cmd+K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check for Cmd+K (Mac) or Ctrl+K (Windows/Linux)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((open) => !open);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleSearchClick = () => {
+    setIsCommandPaletteOpen(true);
   };
 
   return (
     <header
       data-testid="admin-header"
-      className={cn('sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 relative overflow-hidden')}
+      className={cn(
+        'sticky top-0 z-50 w-full border-b border-border',
+        'bg-card/95 backdrop-blur-xl supports-[backdrop-filter]:bg-card/90',
+        'relative'
+      )}
     >
-      {/* Subtle animated background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
-        <GradientBackground variant="subtle" className="opacity-50" />
-        <GridPattern className="opacity-20" size={30} />
-      </div>
+      {/* Subtle bottom accent */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
 
-      {/* Enhanced animated gradient accent bar */}
-      <motion.div
-        className="relative h-0.5 w-full"
-        style={{
-          background: 'linear-gradient(90deg, transparent, rgba(29, 67, 216, 0.7), rgba(29, 67, 216, 1), rgba(29, 67, 216, 0.7), transparent)',
-        }}
-        animate={{
-          backgroundPosition: ['0%', '100%'],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
-
-      <div className="container mx-auto flex h-12 items-center gap-4 px-4 relative z-10">
-        <div className="flex items-center gap-3">
+      <div className="container mx-auto flex h-14 items-center gap-6 px-6 relative z-10">
+        <div className="flex items-center gap-4">
           <Sheet>
             <SheetTrigger asChild>
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Open navigation"
+                className="h-9 w-9 rounded-lg hover:bg-muted transition-colors"
               >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Open navigation"
-                  className="h-7 w-7 transition-all duration-300 rounded-lg hover:bg-primary/10 hover:text-primary"
-                >
-                  <Menu className="h-4 w-4" />
-                </Button>
-              </motion.div>
+                <Menu className="h-4 w-4" />
+              </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <div className="px-4 py-3 border-b bg-gradient-to-br from-primary/5 to-transparent">
-                <div className="text-sm text-muted-foreground font-medium">{areaLabel}</div>
-                <motion.div
-                  className={cn('font-semibold tracking-tight text-base', orgSlug ? '' : 'font-genty')}
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.2 }}
-                >
+            <SheetContent side="left" className="w-64 p-0 bg-card">
+              <div className="px-5 py-4 border-b border-border">
+                <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">{areaLabel}</div>
+                <div className={cn('text-lg font-semibold tracking-tight', orgSlug ? '' : 'font-genty')}>
                   {orgSlug ? (
-                    `Org: ${orgSlug}`
+                    <span className="text-foreground">Org: {orgSlug}</span>
                   ) : (
                     <>
-                      <span className="text-white">Merch</span>
+                      <span className="text-foreground">Merch</span>
                       <span className="text-brand-neon">kins</span>
                     </>
                   )}
-                </motion.div>
+                </div>
               </div>
               <div className="p-3">
                 <AdminNav />
               </div>
             </SheetContent>
           </Sheet>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.2 }}
+          <Link
+            href={pathname?.startsWith('/super-admin') ? '/super-admin' : '/admin'}
+            className="flex items-center transition-colors rounded-md px-2 py-1.5 hover:bg-muted/50"
           >
-            <Link
-              href={pathname?.startsWith('/super-admin') ? '/super-admin' : '/admin'}
-              className="flex items-center gap-2 transition-all duration-300 rounded-lg px-2 py-1 hover:bg-primary/5"
-            >
-              <span className="text-base font-semibold tracking-tight font-genty">{areaLabel}</span>
-            </Link>
-          </motion.div>
+            <span className="text-sm font-semibold tracking-tight font-admin-heading text-foreground">{areaLabel}</span>
+          </Link>
         </div>
 
-        <form onSubmit={onSearch} role="search" className="ml-4 hidden flex-1 items-center gap-2 md:flex group">
-          <motion.div
-            className="relative w-full max-w-md"
-            whileFocus={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors duration-300 group-focus-within:text-primary" />
-            <motion.div
-              className="absolute inset-0 rounded-md opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"
-              style={{
-                background: 'linear-gradient(135deg, rgba(29, 67, 216, 0.1), rgba(79, 125, 249, 0.1))',
-                filter: 'blur(6px)',
-              }}
-            />
+        <div className="hidden flex-1 items-center gap-3 md:flex max-w-lg">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onClick={handleSearchClick}
+              onFocus={handleSearchClick}
+              readOnly
               placeholder={`Search ${areaLabel.toLowerCase()}...`}
               aria-label="Search admin"
-              className="h-8 pl-9 text-sm border-0 bg-muted/50 backdrop-blur-sm focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all duration-300 rounded-md relative z-10"
+              className="h-9 pl-9 pr-4 text-sm bg-muted/60 border border-border/50 text-foreground placeholder:text-muted-foreground focus:bg-card focus:border-primary/50 focus:ring-1 focus:ring-primary/30 rounded-lg transition-all cursor-pointer"
             />
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          </div>
+          <Button
+            onClick={handleSearchClick}
+            variant="secondary"
+            size="sm"
+            className="h-9 px-4 text-sm font-medium rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors"
           >
-            <Button
-              type="submit"
-              variant="secondary"
-              size="sm"
-              className="h-8 px-4 text-sm font-medium transition-all duration-300 rounded-md hover:bg-primary hover:text-white hover:shadow-md"
-            >
-              Search
-            </Button>
-          </motion.div>
-        </form>
+            Search
+          </Button>
+        </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <motion.div
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Notifications"
+            className="h-9 w-9 rounded-lg hover:bg-muted transition-colors"
           >
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Notifications"
-              className="h-8 w-8 transition-all duration-300 rounded-lg hover:bg-primary/10 hover:text-primary"
-            >
-              <Bell className="h-4 w-4" />
-            </Button>
-          </motion.div>
+            <Bell className="h-4 w-4" />
+          </Button>
           <SignedOut>
             <Link href="/sign-in">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 px-4 text-sm font-medium rounded-lg hover:bg-muted transition-colors"
               >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-4 text-sm font-medium transition-all duration-300 rounded-lg hover:bg-primary/10 hover:text-primary"
-                >
-                  Sign in
-                </Button>
-              </motion.div>
+                Sign in
+              </Button>
             </Link>
           </SignedOut>
           <SignedIn>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
-            >
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: '!size-7 hover:scale-110 transition-transform duration-300 rounded-lg',
-                    userButtonPopoverCard: 'bg-white border shadow-lg rounded-lg',
-                    userButtonPopoverActionButton: 'text-neutral-700 hover:bg-primary/10 hover:text-primary transition-colors rounded-md',
-                  },
-                }}
-              />
-            </motion.div>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  userButtonAvatarBox: '!size-8 rounded-lg transition-opacity hover:opacity-80',
+                  userButtonPopoverCard: 'bg-background border shadow-lg rounded-lg',
+                  userButtonPopoverActionButton: 'text-foreground hover:bg-muted transition-colors rounded-md',
+                },
+              }}
+            />
           </SignedIn>
         </div>
       </div>
+      <AdminCommandPalette open={isCommandPaletteOpen} onOpenChange={setIsCommandPaletteOpen} orgSlug={orgSlug} />
     </header>
   );
 }

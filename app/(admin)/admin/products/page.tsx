@@ -258,6 +258,7 @@ export default function AdminProductsPage() {
         title="Products"
         description="Manage your product catalog, pricing, and inventory"
         icon={<Package className="h-5 w-5" />}
+        breadcrumbs={[{ label: 'Admin', href: `/admin/overview${suffix}` }, { label: 'Products', href: `/admin/products${suffix}` }]}
         actions={
           <Link href={`/admin/products/new${suffix}`}>
             <Button>

@@ -771,6 +771,7 @@ export const seedData = internalMutation({
           await ctx.db.insert('orderLogs', {
             createdById: processor._id,
             orderId: createdOrderId,
+            isSystemLog: true,
             creatorInfo: {
               firstName: processor.firstName,
               lastName: processor.lastName,
@@ -789,6 +790,7 @@ export const seedData = internalMutation({
             logType: 'STATUS_CHANGE',
             previousValue: 'PENDING',
             newValue: 'PROCESSING',
+            isPublic: true,
             createdAt: now,
             updatedAt: now,
           });

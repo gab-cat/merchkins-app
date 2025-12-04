@@ -97,6 +97,7 @@ export default function AdminOrdersPage() {
         title="Orders"
         description="Manage and process customer orders"
         icon={<ShoppingBag className="h-5 w-5" />}
+        breadcrumbs={[{ label: 'Admin', href: '/admin/overview' }, { label: 'Orders' }]}
         actions={
           <Link href="/admin/orders/new">
             <Button>

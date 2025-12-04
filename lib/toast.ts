@@ -46,7 +46,7 @@ const brandClassNames = {
   toast:
     'group pointer-events-auto select-none rounded-lg border bg-card text-card-foreground shadow-md ring-1 ring-border border-l-4 data-[type=success]:border-l-green-500 data-[type=error]:border-l-red-500 data-[type=warning]:border-l-amber-500 data-[type=info]:border-l-blue-500 backdrop-blur-sm',
   title: 'text-sm font-semibold',
-  description: 'text-xs text-muted-foreground',
+  description: 'text-xs text-slate-600 dark:text-slate-400',
   closeButton: 'text-muted-foreground hover:text-foreground transition-colors',
   actionButton: 'bg-secondary text-foreground hover:bg-secondary/80 transition-colors',
   cancelButton: 'bg-secondary text-foreground hover:bg-secondary/80 transition-colors',

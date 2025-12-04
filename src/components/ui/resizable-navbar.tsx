@@ -115,6 +115,7 @@ export function Navbar({ children, className, style }: NavbarProps) {
             maxWidth: isScrolled ? '56rem' : '100%',
             borderRadius: isScrolled ? '9999px' : '0px',
             backgroundColor: isScrolled ? 'rgba(0, 0, 0, 0.4)' : initialBgColor,
+            paddingLeft: isScrolled ? '1.5rem' : '0',
             paddingRight: isScrolled ? '1.5rem' : '0',
           }}
           transition={{

@@ -11,11 +11,209 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { showToast, promiseToast } from '@/lib/toast';
-import { Trash2, Plus, Minus, ShoppingCart, ShoppingBag, ArrowRight, CreditCard, Package, Store, Sparkles } from 'lucide-react';
+import {
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingCart,
+  ShoppingBag,
+  ArrowRight,
+  CreditCard,
+  Package,
+  Store,
+  Sparkles,
+  CheckCircle2,
+  Receipt,
+  Tag,
+  Info,
+} from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BlurFade } from '@/src/components/ui/animations/effects';
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring' as const, stiffness: 100, damping: 15 },
+  },
+};
+
+function formatCurrency(amount: number) {
+  try {
+    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
+  } catch {
+    return `₱${amount.toFixed(2)}`;
+  }
+}
+
+// Progress steps component
+function CartProgress({ currentStep }: { currentStep: number }) {
+  const steps = [
+    { label: 'Cart', icon: ShoppingBag },
+    { label: 'Checkout', icon: Receipt },
+    { label: 'Payment', icon: CreditCard },
+  ];
+
+  return (
+    <div className="flex items-center justify-center gap-2 mb-8">
+      {steps.map((step, index) => {
+        const Icon = step.icon;
+        const isActive = index === currentStep;
+        const isComplete = index < currentStep;
+
+        return (
+          <React.Fragment key={step.label}>
+            <div className="flex items-center gap-2">
+              <div
+                className={cn(
+                  'h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300',
+                  isComplete && 'bg-emerald-500 text-white',
+                  isActive && 'bg-[#1d43d8] text-white shadow-md shadow-[#1d43d8]/25',
+                  !isComplete && !isActive && 'bg-slate-100 text-slate-400'
+                )}
+              >
+                {isComplete ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+              </div>
+              <span
+                className={cn(
+                  'text-xs font-medium hidden sm:block',
+                  isActive ? 'text-[#1d43d8]' : isComplete ? 'text-emerald-600' : 'text-slate-400'
+                )}
+              >
+                {step.label}
+              </span>
+            </div>
+            {index < steps.length - 1 && (
+              <div className={cn('w-8 sm:w-12 h-0.5 rounded-full transition-colors', index < currentStep ? 'bg-emerald-500' : 'bg-slate-200')} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// Loading skeleton
+function CartSkeleton() {
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+        {/* Header skeleton */}
+        <div className="mb-8 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-slate-100 animate-pulse" />
+            <div className="h-8 w-32 rounded-lg bg-slate-100 animate-pulse" />
+          </div>
+          <div className="h-4 w-48 rounded-lg bg-slate-100 animate-pulse" />
+        </div>
+
+        {/* Progress skeleton */}
+        <div className="flex items-center justify-center gap-4 mb-8">
+          {[1, 2, 3].map((i) => (
+            <React.Fragment key={i}>
+              <div className="h-8 w-8 rounded-full bg-slate-100 animate-pulse" />
+              {i < 3 && <div className="w-12 h-0.5 bg-slate-100" />}
+            </React.Fragment>
+          ))}
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Left column skeleton */}
+          <div className="lg:col-span-2 space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl border border-slate-100 p-5">
+                <div className="flex items-start gap-4">
+                  <div className="h-5 w-5 rounded-md bg-slate-100 animate-pulse" />
+                  <div className="h-20 w-20 rounded-xl bg-slate-100 animate-pulse" />
+                  <div className="flex-1 space-y-3">
+                    <div className="h-5 w-3/4 rounded-lg bg-slate-100 animate-pulse" />
+                    <div className="h-4 w-1/2 rounded-lg bg-slate-100 animate-pulse" />
+                    <div className="flex gap-2">
+                      <div className="h-8 w-24 rounded-xl bg-slate-100 animate-pulse" />
+                      <div className="h-8 w-20 rounded-xl bg-slate-100 animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="h-6 w-20 rounded-lg bg-slate-100 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Right column skeleton */}
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-slate-100 p-6 space-y-4">
+              <div className="h-6 w-32 rounded-lg bg-slate-100 animate-pulse" />
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <div className="h-4 w-24 rounded-lg bg-slate-100 animate-pulse" />
+                  <div className="h-4 w-16 rounded-lg bg-slate-100 animate-pulse" />
+                </div>
+                <div className="h-px bg-slate-100" />
+                <div className="flex justify-between">
+                  <div className="h-5 w-20 rounded-lg bg-slate-100 animate-pulse" />
+                  <div className="h-7 w-28 rounded-lg bg-slate-100 animate-pulse" />
+                </div>
+              </div>
+              <div className="h-12 w-full rounded-xl bg-slate-100 animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Empty cart component
+function EmptyCart() {
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="max-w-md mx-auto px-4 py-16 text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          {/* Animated icon */}
+          <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ delay: 0.1, duration: 0.4 }} className="relative mb-8">
+            <div className="absolute inset-0 h-28 w-28 mx-auto rounded-3xl bg-gradient-to-br from-[#1d43d8]/20 to-[#adfc04]/20 blur-xl" />
+            <div className="relative h-28 w-28 mx-auto rounded-3xl bg-gradient-to-br from-[#1d43d8]/10 to-[#adfc04]/10 flex items-center justify-center border border-[#1d43d8]/10">
+              <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
+                <ShoppingCart className="h-12 w-12 text-[#1d43d8]/50" />
+              </motion.div>
+            </div>
+            <motion.div
+              className="absolute -top-1 -right-4 h-4 w-4 rounded-full bg-[#adfc04]"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </motion.div>
+
+          <h1 className="text-2xl font-bold mb-3 font-heading text-slate-900">Your cart is empty</h1>
+          <p className="text-slate-500 mb-8 text-base">Browse our products and add items to your cart to get started.</p>
+
+          <Link href="/">
+            <Button
+              size="lg"
+              className="group bg-[#1d43d8] hover:bg-[#1d43d8]/90 rounded-full px-8 h-12 text-base font-semibold shadow-lg shadow-[#1d43d8]/25 transition-all duration-300 hover:scale-105"
+            >
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              Start Shopping
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 export function CartPage() {
   const cart = useQuery(api.carts.queries.index.getCartByUser, {});
@@ -37,7 +235,7 @@ export function CartPage() {
     for (const raw of cart?.embeddedItems ?? []) {
       const item = raw as CartItem;
       const orgId = String(item.productInfo.organizationId ?? 'global');
-      const orgName = item.productInfo.organizationName ?? 'Storefront';
+      const orgName = item.productInfo.organizationName ?? 'Merchkins Store';
       if (!groups[orgId]) groups[orgId] = { name: orgName, items: [] };
       groups[orgId].items.push(item);
     }
@@ -57,161 +255,184 @@ export function CartPage() {
     }
   }
 
+  // Loading state
   if (cart === undefined) {
-    return (
-      <div className="min-h-screen">
-        <div className="container mx-auto px-4 sm:px-6 py-8">
-          <div className="grid gap-6">
-            {new Array(3).fill(null).map((_, i) => (
-              <Card key={`s-${i}`} className="animate-pulse rounded-2xl border-0 shadow-md">
-                <CardContent className="p-6">
-                  <div className="h-5 w-1/3 rounded-lg bg-secondary" />
-                  <div className="mt-4 h-16 w-full rounded-lg bg-secondary" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <CartSkeleton />;
   }
 
+  // Empty state
   if (!cart || !hasItems) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="container mx-auto px-4 py-16 text-center">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="max-w-md mx-auto"
-          >
-            <div className="h-28 w-28 mx-auto mb-8 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-              <Package className="h-14 w-14 text-primary/40" />
-            </div>
-            <h1 className="text-3xl font-bold mb-3 font-heading">Your cart is empty</h1>
-            <p className="text-muted-foreground mb-8 text-lg">Browse products and add items to your cart to get started.</p>
-            <Link href="/">
-              <Button
-                size="lg"
-                className="group rounded-full px-10 h-14 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <ShoppingBag className="mr-2 h-5 w-5" />
-                Start shopping
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </div>
-    );
+    return <EmptyCart />;
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
-
-      <div className="container mx-auto px-4 sm:px-6 py-8 relative z-10">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <BlurFade delay={0.1}>
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2.5 rounded-xl bg-primary/10">
-                <ShoppingCart className="h-6 w-6 text-primary" />
+              <div className="p-2.5 rounded-xl bg-[#1d43d8]/10">
+                <ShoppingCart className="h-6 w-6 text-[#1d43d8]" />
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold font-heading tracking-tight">Your Cart</h1>
+              <h1 className="text-2xl md:text-3xl font-bold font-heading tracking-tight text-slate-900">Your Cart</h1>
             </div>
-            <p className="text-muted-foreground">{totals.totalItems} items ready for checkout</p>
+            <p className="text-slate-500">
+              {totals.totalItems} item{totals.totalItems !== 1 ? 's' : ''} ready for checkout
+            </p>
           </div>
         </BlurFade>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        {/* Progress indicator */}
+        <BlurFade delay={0.15}>
+          <CartProgress currentStep={0} />
+        </BlurFade>
+
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid gap-8 lg:grid-cols-3">
           {/* Cart items */}
           <div className="lg:col-span-2 space-y-6">
             <AnimatePresence>
-              {Object.entries(groupedByOrg).map(([orgId, group], groupIndex) => (
-                <BlurFade key={orgId} delay={0.1 + groupIndex * 0.1}>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2.5">
-                      <Store className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-bold uppercase tracking-wider text-primary">{group.name}</span>
-                      <div className="h-px flex-1 bg-border/50" />
-                    </div>
-                    {group.items.map((item, itemIndex) => (
-                      <CartLineItem
-                        key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
-                        cartId={cart._id}
-                        item={item}
-                        index={itemIndex}
-                      />
-                    ))}
+              {Object.entries(groupedByOrg).map(([orgId, group]) => (
+                <motion.div key={orgId} variants={itemVariants} className="space-y-3">
+                  {/* Store header */}
+                  <div className="flex items-center gap-2">
+                    <Store className="h-4 w-4 text-[#1d43d8]" />
+                    <span className="text-sm font-semibold text-slate-700">{group.name}</span>
+                    <div className="h-px flex-1 bg-slate-100" />
+                    <span className="text-xs text-slate-400">
+                      {group.items.length} item{group.items.length !== 1 ? 's' : ''}
+                    </span>
                   </div>
-                </BlurFade>
+
+                  {/* Items */}
+                  {group.items.map((item, itemIndex) => (
+                    <CartLineItem
+                      key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
+                      cartId={cart._id}
+                      item={item}
+                      index={itemIndex}
+                    />
+                  ))}
+                </motion.div>
               ))}
             </AnimatePresence>
 
-            <BlurFade delay={0.4}>
-              <div className="pt-4 border-t">
-                <Button
-                  variant="ghost"
-                  onClick={handleClear}
-                  className="rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Clear cart
-                </Button>
-              </div>
-            </BlurFade>
+            {/* Clear cart button */}
+            <motion.div variants={itemVariants} className="pt-4 border-t border-slate-100">
+              <Button
+                variant="ghost"
+                onClick={handleClear}
+                className="rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Clear cart
+              </Button>
+            </motion.div>
           </div>
 
           {/* Order summary */}
           <div className="space-y-6">
-            <BlurFade delay={0.3}>
-              <Card className="sticky top-24 rounded-3xl border-0 shadow-xl overflow-hidden">
-                {/* Gradient header */}
-                <div className="relative p-6 bg-gradient-to-br from-primary via-primary/95 to-primary/90">
-                  <div className="absolute inset-0 bg-grid-pattern opacity-10" />
-                  <div className="relative z-10 flex items-center gap-3 text-white">
+            <motion.div variants={itemVariants}>
+              <Card className="sticky top-24 rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                {/* Header */}
+                <div className="px-5 py-4 bg-gradient-to-br from-[#1d43d8]/5 to-[#adfc04]/5 border-b border-slate-100">
+                  <div className="flex items-center gap-2 text-[#1d43d8]">
                     <Sparkles className="h-5 w-5" />
-                    <span className="font-bold text-lg font-heading">Order Summary</span>
+                    <h2 className="font-bold">Order Summary</h2>
                   </div>
                 </div>
 
-                <CardContent className="p-6">
+                <CardContent className="p-5">
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>Subtotal ({totals.totalItems} items)</span>
-                      <span className="font-medium">
-                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.totalValue)}
+                    {/* Subtotal */}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-slate-600">
+                        <Tag className="h-3.5 w-3.5 text-slate-400" />
+                        Subtotal ({totals.totalItems} items)
                       </span>
-                    </div>
-                    <div className="h-px bg-border" />
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold">Selected Total</span>
-                      <span className="text-2xl font-bold text-primary font-heading">
-                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.selectedValue)}
-                      </span>
+                      <span className="font-medium text-slate-900">{formatCurrency(totals.totalValue)}</span>
                     </div>
 
+                    <div className="h-px bg-slate-100" />
+
+                    {/* Selected total */}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="font-semibold text-slate-900">Selected Total</span>
+                      <span className="text-2xl font-bold text-[#1d43d8]">{formatCurrency(totals.selectedValue)}</span>
+                    </div>
+
+                    {/* Selection info */}
+                    {totals.selectedItems > 0 && (
+                      <p className="text-xs text-slate-500 flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        {totals.selectedItems} of {totals.totalItems} items selected for checkout
+                      </p>
+                    )}
+
+                    {/* Checkout button */}
                     <Link href="/checkout" className="block pt-2">
                       <Button
-                        className="group relative w-full h-14 rounded-2xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+                        className={cn(
+                          'group relative w-full h-12 rounded-xl text-base font-semibold transition-all duration-300 overflow-hidden',
+                          totals.selectedItems > 0
+                            ? 'bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-lg shadow-[#1d43d8]/25 hover:shadow-xl hover:shadow-[#1d43d8]/30'
+                            : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                        )}
                         disabled={totals.selectedItems === 0}
                       >
-                        <CreditCard className="mr-2 h-5 w-5" />
-                        Checkout ({totals.selectedItems} items)
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Checkout ({totals.selectedItems} item{totals.selectedItems !== 1 ? 's' : ''})
                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                         {/* Shimmer effect */}
-                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                        {totals.selectedItems > 0 && (
+                          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                        )}
                       </Button>
                     </Link>
+
+                    {/* Warning when nothing selected */}
+                    <AnimatePresence>
+                      {totals.selectedItems === 0 && (
+                        <motion.p
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="text-xs text-amber-600 text-center flex items-center justify-center gap-1"
+                        >
+                          <Info className="h-3 w-3" />
+                          Select items to proceed to checkout
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </CardContent>
               </Card>
-            </BlurFade>
+            </motion.div>
+
+            {/* Shopping benefits */}
+            <motion.div variants={itemVariants}>
+              <Card className="rounded-2xl border border-slate-100 overflow-hidden">
+                <CardContent className="p-5">
+                  <h3 className="font-semibold text-sm text-slate-900 mb-4">Why shop with us?</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                      <span className="text-xs text-slate-600">Secure payments with SSL encryption</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                      <span className="text-xs text-slate-600">Easy returns and refunds</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                      <span className="text-xs text-slate-600">24/7 customer support</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
@@ -246,11 +467,8 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
   const setSelected = useMutation(api.carts.mutations.index.setItemSelected);
   const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity);
   const setItemNote = useMutation(api.carts.mutations.index.setItemNote);
-  const addItem = useMutation(api.carts.mutations.index.addItem);
   const updateItemVariant = useMutation(api.carts.mutations.index.updateItemVariant);
   const product = useQuery(api.products.queries.index.getProductById, { productId: item.productInfo.productId });
-
-  // note input is uncontrolled; saving on blur
 
   async function handleDec() {
     await updateQty({
@@ -286,8 +504,6 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
     }
   }
 
-  // note saved inline onBlur; no separate save handler
-
   async function handleVariantChange(newVariantId?: string) {
     if ((newVariantId ?? null) === (item.variantId ?? null)) return;
     try {
@@ -298,7 +514,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
           oldVariantId: item.variantId,
           newVariantId: newVariantId,
           oldSize: item.size,
-          newSize: undefined, // Reset size when changing variant
+          newSize: undefined,
         }),
         { loading: 'Updating variant…', success: 'Variant updated', error: () => 'Failed to update variant' }
       );
@@ -308,7 +524,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
   }
 
   async function handleSizeChange(newSize?: { id: string; label: string; price?: number }) {
-    if (!item.variantId) return; // Size can only be changed if variant is selected
+    if (!item.variantId) return;
     const currentSizeId = item.size?.id ?? null;
     const newSizeId = newSize?.id ?? null;
     if (currentSizeId === newSizeId) return;
@@ -319,7 +535,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
           cartId: cartId,
           productId: item.productInfo.productId,
           oldVariantId: item.variantId,
-          newVariantId: item.variantId, // Keep same variant
+          newVariantId: item.variantId,
           oldSize: item.size,
           newSize: newSize,
         }),
@@ -331,15 +547,16 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05, duration: 0.4 }}>
+    <motion.div variants={itemVariants}>
       <Card
         className={cn(
-          'rounded-2xl border-2 transition-all duration-300 overflow-hidden',
-          item.selected ? 'border-primary/30 bg-primary/[0.02] shadow-lg shadow-primary/5' : 'border-transparent bg-card shadow-md hover:shadow-lg'
+          'rounded-xl border transition-all duration-200 overflow-hidden group',
+          item.selected ? 'border-[#1d43d8]/30 bg-[#1d43d8]/[0.02] shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm'
         )}
       >
-        <CardContent className="p-5">
+        <CardContent className="p-4">
           <div className="flex items-start gap-4">
+            {/* Checkbox */}
             <div className="pt-1">
               <Checkbox
                 checked={item.selected}
@@ -352,33 +569,38 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                   });
                 }}
                 aria-label="Select item"
-                className="h-5 w-5 rounded-md border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                className={cn(
+                  'h-5 w-5 rounded-md border-2 transition-colors',
+                  item.selected ? 'border-[#1d43d8] data-[state=checked]:bg-[#1d43d8]' : 'border-slate-300'
+                )}
               />
             </div>
 
-            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl shadow-md">
+            {/* Product image */}
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-50 border border-slate-100">
               {item.productInfo.imageUrl?.[0] ? (
                 <R2Image
                   fileKey={item.productInfo.imageUrl[0]}
                   alt={item.productInfo.title}
                   width={80}
                   height={80}
-                  className="h-full w-full object-cover bg-secondary"
+                  className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="h-full w-full bg-gradient-to-br from-secondary to-secondary/60 rounded-xl flex items-center justify-center">
-                  <Package className="h-8 w-8 text-muted-foreground/50" />
+                <div className="h-full w-full flex items-center justify-center">
+                  <Package className="h-8 w-8 text-slate-300" />
                 </div>
               )}
             </div>
 
-            <div className="flex-1 space-y-3">
+            {/* Product info */}
+            <div className="flex-1 min-w-0 space-y-3">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="text-base font-semibold leading-tight text-foreground">{item.productInfo.title}</div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price)} each
-                  </div>
+                  <h3 className="font-semibold text-sm text-slate-900 leading-tight group-hover:text-[#1d43d8] transition-colors">
+                    {item.productInfo.title}
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">{formatCurrency(item.productInfo.price)} each</p>
 
                   {/* Variant and size selectors */}
                   <div className="flex flex-wrap gap-2 mt-3">
@@ -388,16 +610,16 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-8 text-xs justify-between border-muted hover:border-primary/30 bg-white rounded-xl"
+                            className="h-8 text-xs justify-between border-slate-200 hover:border-[#1d43d8]/30 bg-white rounded-lg"
                             aria-label="Select variant"
                           >
                             <span className="truncate">{item.productInfo.variantName ?? 'Select variant'}</span>
-                            <span aria-hidden className="ml-1">
+                            <span aria-hidden className="ml-1 text-slate-400">
                               ▾
                             </span>
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="min-w-[12rem] rounded-xl shadow-xl border-0">
+                        <DropdownMenuContent align="start" className="min-w-[12rem] rounded-xl shadow-xl border border-slate-100">
                           <DropdownMenuRadioGroup value={item.variantId ?? ''} onValueChange={(val) => handleVariantChange(val || undefined)}>
                             {product.variants
                               .filter((v) => v.isActive)
@@ -405,9 +627,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                                 <DropdownMenuRadioItem key={v.variantId} value={v.variantId} className="text-xs rounded-lg">
                                   <div className="flex items-center justify-between w-full">
                                     <span>{v.variantName}</span>
-                                    <span className="ml-2 font-medium text-primary">
-                                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}
-                                    </span>
+                                    <span className="ml-2 font-medium text-[#1d43d8]">{formatCurrency(v.price)}</span>
                                   </div>
                                 </DropdownMenuRadioItem>
                               ))}
@@ -427,16 +647,16 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-8 text-xs justify-between border-muted hover:border-primary/30 bg-white rounded-xl"
+                                className="h-8 text-xs justify-between border-slate-200 hover:border-[#1d43d8]/30 bg-white rounded-lg"
                                 aria-label="Select size"
                               >
                                 <span className="truncate">Size: {item.size?.label ?? 'Select'}</span>
-                                <span aria-hidden className="ml-1">
+                                <span aria-hidden className="ml-1 text-slate-400">
                                   ▾
                                 </span>
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="min-w-[10rem] rounded-xl shadow-xl border-0">
+                            <DropdownMenuContent align="start" className="min-w-[10rem] rounded-xl shadow-xl border border-slate-100">
                               <DropdownMenuRadioGroup
                                 value={item.size?.id ?? ''}
                                 onValueChange={(val) => {
@@ -449,9 +669,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                                     <div className="flex items-center justify-between w-full">
                                       <span>{size.label}</span>
                                       {size.price !== undefined && (
-                                        <span className="ml-2 font-medium text-primary">
-                                          {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(size.price)}
-                                        </span>
+                                        <span className="ml-2 font-medium text-[#1d43d8]">{formatCurrency(size.price)}</span>
                                       )}
                                     </div>
                                   </DropdownMenuRadioItem>
@@ -463,34 +681,35 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                       })()}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-primary">
-                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price * item.quantity)}
-                  </div>
+
+                {/* Price */}
+                <div className="text-right shrink-0">
+                  <p className="text-lg font-bold text-[#1d43d8]">{formatCurrency(item.productInfo.price * item.quantity)}</p>
                 </div>
               </div>
 
+              {/* Quantity and remove */}
               <div className="flex items-center justify-between gap-4">
                 {/* Quantity selector */}
-                <div className="inline-flex items-center gap-1 bg-white rounded-full border-2 border-muted shadow-sm p-1">
+                <div className="inline-flex items-center gap-1 bg-slate-50 rounded-full border border-slate-200 p-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleDec}
                     aria-label="Decrease quantity"
-                    className="h-8 w-8 p-0 rounded-full hover:bg-primary/10"
+                    className="h-7 w-7 p-0 rounded-full hover:bg-white hover:shadow-sm"
                   >
-                    <Minus className="h-4 w-4" />
+                    <Minus className="h-3.5 w-3.5" />
                   </Button>
-                  <span className="min-w-10 text-center text-base font-semibold">{item.quantity}</span>
+                  <span className="min-w-8 text-center text-sm font-semibold">{item.quantity}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleInc}
                     aria-label="Increase quantity"
-                    className="h-8 w-8 p-0 rounded-full hover:bg-primary/10"
+                    className="h-7 w-7 p-0 rounded-full hover:bg-white hover:shadow-sm"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-3.5 w-3.5" />
                   </Button>
                 </div>
 
@@ -498,33 +717,32 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                   variant="ghost"
                   size="sm"
                   onClick={handleRemove}
-                  className="h-8 px-3 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+                  className="h-8 px-3 text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-full"
                 >
-                  <Trash2 className="h-4 w-4 mr-1.5" /> Remove
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  Remove
                 </Button>
               </div>
 
               {/* Note input */}
-              <div className="flex items-center gap-2">
-                <Input
-                  defaultValue={item.note ?? ''}
-                  placeholder="Add a note..."
-                  className="h-9 text-sm rounded-xl border-muted focus:border-primary"
-                  onBlur={async (e) => {
-                    try {
-                      await setItemNote({
-                        cartId: cartId,
-                        productId: item.productInfo.productId,
-                        variantId: item.variantId,
-                        note: e.target.value.trim() || undefined,
-                      });
-                      showToast({ type: 'success', title: 'Note saved' });
-                    } catch {
-                      showToast({ type: 'error', title: 'Failed to save note' });
-                    }
-                  }}
-                />
-              </div>
+              <Input
+                defaultValue={item.note ?? ''}
+                placeholder="Add a note for this item..."
+                className="h-9 text-sm rounded-lg border-slate-200 focus:border-[#1d43d8]/30 focus:ring-[#1d43d8]/10"
+                onBlur={async (e) => {
+                  try {
+                    await setItemNote({
+                      cartId: cartId,
+                      productId: item.productInfo.productId,
+                      variantId: item.variantId,
+                      note: e.target.value.trim() || undefined,
+                    });
+                    showToast({ type: 'success', title: 'Note saved' });
+                  } catch {
+                    showToast({ type: 'error', title: 'Failed to save note' });
+                  }
+                }}
+              />
             </div>
           </div>
         </CardContent>

@@ -142,6 +142,7 @@ export function AdminOverviewContentNew() {
         title="Dashboard Overview"
         description="Monitor your store performance and activity"
         icon={<TrendingUp className="h-5 w-5" />}
+        breadcrumbs={[{ label: 'Admin', href: `/admin/overview${suffix}` }]}
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>

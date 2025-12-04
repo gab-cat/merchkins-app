@@ -10,6 +10,8 @@ import { updateOrderStatsArgs, updateOrderStatsHandler } from './updateOrderStat
 import { refreshXenditInvoiceArgs, refreshXenditInvoiceHandler } from './refreshXenditInvoice';
 import { updateOrderXenditInvoiceArgs, updateOrderXenditInvoiceHandler } from './updateOrderXenditInvoice';
 import { createXenditInvoiceForOrderArgs, createXenditInvoiceForOrderHandler } from './createXenditInvoiceForOrder';
+import { createOrderLogArgs, createOrderLogHandler } from './createOrderLog';
+import { updateOrderWithNoteArgs, updateOrderWithNoteHandler } from './updateOrderWithNote';
 
 export const createOrder = mutation({
   args: createOrderArgs,
@@ -19,6 +21,11 @@ export const createOrder = mutation({
 export const updateOrder = mutation({
   args: updateOrderArgs,
   handler: updateOrderHandler,
+});
+
+export const updateOrderWithNote = mutation({
+  args: updateOrderWithNoteArgs,
+  handler: updateOrderWithNoteHandler,
 });
 
 export const cancelOrder = mutation({
@@ -55,4 +62,9 @@ export const updateOrderXenditInvoice = internalMutation({
 export const updateOrderStats = internalMutation({
   args: updateOrderStatsArgs,
   handler: updateOrderStatsHandler,
+});
+
+export const createOrderLog = mutation({
+  args: createOrderLogArgs,
+  handler: createOrderLogHandler,
 });

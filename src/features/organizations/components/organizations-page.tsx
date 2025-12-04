@@ -5,14 +5,29 @@ import Link from 'next/link';
 import { useQuery, useMutation } from 'convex/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { BlurFade } from '@/src/components/ui/animations/effects';
-import { UserPlus, ShoppingBag, Users, Building2, Search, ArrowRight, Sparkles, Globe, Lock, Mail, ExternalLink, Settings } from 'lucide-react';
+import { RoleBadge, OrgTypeBadge } from '@/src/components/ui/role-badge';
+import {
+  UserPlus,
+  ShoppingBag,
+  Users,
+  Building2,
+  Search,
+  ArrowRight,
+  Sparkles,
+  Globe,
+  Lock,
+  Mail,
+  ExternalLink,
+  Settings,
+  ChevronRight,
+} from 'lucide-react';
 
 type Organization = Doc<'organizations'>;
 
@@ -153,22 +168,13 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                               </div>
                               <div className="min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <div className="font-bold text-base truncate">{org.name}</div>
-                                  {role && (
-                                    <Badge
-                                      className={`text-[10px] font-semibold rounded-full px-2.5 py-0.5 ${
-                                        role === 'ADMIN'
-                                          ? 'bg-primary text-white'
-                                          : role === 'STAFF'
-                                            ? 'bg-blue-100 text-blue-700 border-blue-200'
-                                            : 'bg-muted text-muted-foreground'
-                                      }`}
-                                    >
-                                      {role}
-                                    </Badge>
-                                  )}
+                                  <div className="font-bold text-base truncate group-hover:text-primary transition-colors">{org.name}</div>
+                                  {role && <RoleBadge role={role} size="md" />}
                                 </div>
-                                <div className="text-sm text-muted-foreground truncate">/{org.slug}</div>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <OrgTypeBadge type={org.organizationType as 'PUBLIC' | 'PRIVATE'} size="sm" />
+                                  <span className="text-sm text-muted-foreground">/{org.slug}</span>
+                                </div>
                                 {org.description && <p className="mt-1 line-clamp-1 text-sm text-muted-foreground max-w-prose">{org.description}</p>}
                               </div>
                             </div>

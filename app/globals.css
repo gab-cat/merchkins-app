@@ -96,7 +96,7 @@
 
 :root {
   --radius: 0.75rem;
-  --background: #1d43d8;
+  --background: #ffffff;
   --foreground: oklch(0.16 0.02 270);
   /* Defaults for header/footer theme variables */
   --header-bg: var(--primary);
@@ -140,7 +140,7 @@
 }
 
 .dark {
-  --background: #1d43d8;
+  --background: #ffffff;
   --foreground: oklch(0.95 0.01 270);
   --card: oklch(0.12 0.02 270);
   --card-foreground: oklch(0.95 0.01 270);

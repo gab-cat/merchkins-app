@@ -1,30 +1,15 @@
+'use client';
+
 import React, { Suspense } from 'react';
 import { AdminGuard } from '@/src/features/admin/components/admin-guard';
 import { OrgMembersManager } from '@/src/features/organizations/components/org-members-manager';
-import { ConvexHttpClient } from 'convex/browser';
+import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { notFound, redirect } from 'next/navigation';
-import { auth } from '@clerk/nextjs/server';
-import { Doc } from '@/convex/_generated/dataModel';
+import { useSearchParams } from 'next/navigation';
 import { Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PageHeader } from '@/src/components/admin/page-header';
 
-type Organization = Doc<'organizations'>;
-
-// Type for organizations with membership info returned by getOrganizationsByUser
-type OrganizationWithMembership = Organization & {
-  membershipInfo?: {
-    role?: 'ADMIN' | 'STAFF' | 'MEMBER';
-    joinedAt?: number;
-    permissions?: Array<{
-      permissionCode: string;
-      canCreate: boolean;
-      canRead: boolean;
-      canUpdate: boolean;
-      canDelete: boolean;
-    }>;
-  };
-};
 
 // Loading skeleton
 function MembersSkeleton() {
@@ -48,68 +33,47 @@ function MembersSkeleton() {
   );
 }
 
-export default async function Page({ searchParams }: { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  const params = (await searchParams) || {};
-  const rawOrg = params['org'];
-  const orgSlug = Array.isArray(rawOrg) ? rawOrg[0] : rawOrg;
+export default function Page() {
+  const searchParams = useSearchParams();
+  const orgSlug = searchParams.get('org');
+  const suffix = orgSlug ? `?org=${orgSlug}` : '';
 
-  const client = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL as string);
+  const organization = useQuery(
+    api.organizations.queries.index.getOrganizationBySlug,
+    orgSlug ? { slug: orgSlug } : 'skip'
+  );
 
-  // Fallback: if no org is specified, choose a sensible default and redirect
-  if (!orgSlug) {
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      redirect('/organizations');
-    }
-    const currentUser = await client.query(api.users.queries.index.getCurrentUser, { clerkId });
-    if (!currentUser?._id) {
-      redirect('/organizations');
-    }
-    const orgs = (await client.query(api.organizations.queries.index.getOrganizationsByUser, {
-      userId: currentUser._id,
-    })) as OrganizationWithMembership[];
-
-    const preferred =
-      (orgs || []).find((o: OrganizationWithMembership) => o?.membershipInfo?.role === 'ADMIN' || o?.membershipInfo?.role === 'STAFF') ||
-      (orgs || [])[0];
-    if (preferred?.slug) {
-      redirect(`/admin/org-members?org=${preferred.slug}`);
-    }
-    redirect('/organizations');
+  if (organization === undefined) {
+    return (
+      <div className="font-admin-body space-y-6">
+        <MembersSkeleton />
+      </div>
+    );
   }
 
-  const organization = await client.query(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug as string });
-
-  if (!organization) return notFound();
+  if (!organization) {
+    return (
+      <div className="font-admin-body space-y-6">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Organization not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="font-admin-body space-y-6">
       <AdminGuard />
 
-      {/* Page Header */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Users className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold font-admin-heading tracking-tight">Organization Members</h1>
-            <p className="text-sm text-muted-foreground">Manage members of {organization.name}</p>
-          </div>
-        </div>
-
-        {/* Breadcrumbs */}
-        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mt-2">
-          <a href={`/admin/overview?org=${orgSlug}`} className="hover:text-foreground transition-colors">
-            Admin
-          </a>
-          <span>/</span>
-          <span className="text-foreground">Members</span>
-        </nav>
-      </div>
+      <PageHeader
+        title="Organization Members"
+        description={`Manage members of ${organization.name}`}
+        icon={<Users className="h-5 w-5" />}
+        breadcrumbs={[{ label: 'Admin', href: `/admin/overview${suffix}` }, { label: 'Members' }]}
+      />
 
       <Suspense fallback={<MembersSkeleton />}>
-        <OrgMembersManager organizationId={organization._id} orgSlug={orgSlug as string} />
+        <OrgMembersManager organizationId={organization._id} orgSlug={orgSlug || ''} />
       </Suspense>
     </div>
   );

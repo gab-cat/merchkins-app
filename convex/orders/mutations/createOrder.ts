@@ -12,6 +12,7 @@ import {
   requireOrganizationPermission,
 } from '../../helpers';
 import { internal } from '../../_generated/api';
+import { createSystemOrderLog } from './createOrderLog';
 
 type OrderItemInput = {
   productId: Id<'products'>;
@@ -447,6 +448,16 @@ export const createOrderHandler = async (
       totalAmount,
     }
   );
+
+  // Create order log for order creation
+  await createSystemOrderLog(ctx, {
+    orderId,
+    logType: 'ORDER_CREATED',
+    reason: `Order ${orderNumber} created`,
+    message: `Order placed with ${preparedItems.length} item(s) totaling ${totalAmount.toFixed(2)}`,
+    isPublic: true,
+    actorId: currentUser._id,
+  });
 
   // Return order details including Xendit invoice info
   const createdOrder = await ctx.db.get(orderId);

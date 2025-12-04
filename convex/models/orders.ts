@@ -140,16 +140,21 @@ export const orderItems = defineTable({
 
 // Enhanced order logs with embedded user info
 export const orderLogs = defineTable({
-  createdById: v.id('users'),
+  createdById: v.optional(v.id('users')), // null for system logs
   orderId: v.id('orders'),
 
-  // Embedded creator info
-  creatorInfo: v.object({
-    firstName: v.optional(v.string()),
-    lastName: v.optional(v.string()),
-    email: v.string(),
-    imageUrl: v.optional(v.string()),
-  }),
+  // Flag to distinguish system-generated vs manual logs
+  isSystemLog: v.boolean(),
+
+  // Embedded creator info (populated for manual logs, null for system)
+  creatorInfo: v.optional(
+    v.object({
+      firstName: v.optional(v.string()),
+      lastName: v.optional(v.string()),
+      email: v.string(),
+      imageUrl: v.optional(v.string()),
+    })
+  ),
 
   // Embedded order info for context
   orderInfo: v.object({
@@ -159,20 +164,25 @@ export const orderLogs = defineTable({
     totalAmount: v.number(),
   }),
 
-  reason: v.string(),
-  message: v.optional(v.string()),
-  userMessage: v.optional(v.string()),
+  reason: v.string(), // System-generated reason/description
+  message: v.optional(v.string()), // System message details
+  userMessage: v.optional(v.string()), // User-provided note (required for status/payment changes)
   logType: v.union(
+    v.literal('ORDER_CREATED'),
     v.literal('STATUS_CHANGE'),
     v.literal('PAYMENT_UPDATE'),
     v.literal('ITEM_MODIFICATION'),
     v.literal('NOTE_ADDED'),
-    v.literal('SYSTEM_UPDATE')
+    v.literal('SYSTEM_UPDATE'),
+    v.literal('ORDER_CANCELLED')
   ),
 
   // Previous and new values for change tracking
   previousValue: v.optional(v.string()),
   newValue: v.optional(v.string()),
+
+  // Public visibility flag - visible to customers
+  isPublic: v.boolean(),
 
   createdAt: v.number(),
   updatedAt: v.number(),
@@ -180,4 +190,5 @@ export const orderLogs = defineTable({
   .index('by_order', ['orderId'])
   .index('by_creator', ['createdById'])
   .index('by_log_type', ['logType'])
-  .index('by_order_type', ['orderId', 'logType']);
+  .index('by_order_type', ['orderId', 'logType'])
+  .index('by_order_public', ['orderId', 'isPublic']);

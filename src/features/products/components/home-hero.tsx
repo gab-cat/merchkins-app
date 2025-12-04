@@ -29,8 +29,8 @@ export function HomeHero() {
               <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tighter">
                 Bring your brand to life with{' '}
                 <span className="relative inline-block">
-                  <span className="relative z-10 inline-block bg-primary px-4 py-1 md:px-6 md:py-2 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <span className="font-genty">
+                  <span className="relative z-10 inline-block bg-primary px-3 py-1 md:px-6 md:py-2 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <span className="font-genty tracking-normal">
                       <span className="text-white">Merch</span>
                       <span className="text-brand-neon">kins</span>
                     </span>

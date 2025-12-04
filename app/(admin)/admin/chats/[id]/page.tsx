@@ -7,6 +7,8 @@ import { api } from '@/convex/_generated/api';
 import type { Id, Doc } from '@/convex/_generated/dataModel';
 import { ChatThread } from '@/src/features/chats/components/chat-thread';
 import { ChatInput } from '@/src/features/chats/components/chat-input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MessageSquare } from 'lucide-react';
 import { useAuth } from '@clerk/nextjs';
 
 type ChatMessage = Doc<'chatMessages'>;
@@ -38,8 +40,30 @@ export default function AdminChatDetailPage() {
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1">
         {messagesLoading ? (
-          <div className="flex h-full items-center justify-center">
-            <div className="text-sm text-muted-foreground">Loading messages...</div>
+          <div className="flex h-full flex-col gap-2 overflow-y-auto p-4 bg-card">
+            {/* Loading skeleton messages */}
+            {new Array(5).fill(null).map((_, i) => (
+              <div
+                key={`skeleton-${i}`}
+                className={`flex items-end gap-2 ${i % 3 === 0 ? 'justify-end' : 'justify-start'}`}
+              >
+                {i % 3 !== 0 && <Skeleton className="h-7 w-7 rounded-full shrink-0" />}
+                <div
+                  className={`max-w-[75%] rounded-2xl px-3 py-2 ${
+                    i % 3 === 0 ? 'bg-muted rounded-br-sm' : 'bg-muted rounded-bl-sm'
+                  }`}
+                >
+                  <Skeleton className={`h-4 ${i % 2 === 0 ? 'w-48' : 'w-32'} rounded`} />
+                  <Skeleton className="h-3 w-16 rounded mt-2" />
+                </div>
+                {i % 3 === 0 && <Skeleton className="h-7 w-7 rounded-full shrink-0" />}
+              </div>
+            ))}
+            {/* Loading indicator */}
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <MessageSquare className="h-4 w-4 text-muted-foreground animate-pulse" />
+              <span className="text-xs text-muted-foreground">Loading messages...</span>
+            </div>
           </div>
         ) : (
           <ChatThread messages={list as ChatMessage[]} currentUserId={me?._id ? String(me._id) : undefined} chatRoomId={String(params.id)} />

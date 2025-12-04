@@ -255,6 +255,7 @@ export default function AdminCategoriesPage() {
         title="Categories"
         description="Manage your product category hierarchy"
         icon={<Shapes className="h-5 w-5" />}
+        breadcrumbs={[{ label: 'Admin', href: '/admin/overview' }, { label: 'Categories' }]}
         actions={
           <Link href="/admin/categories/new">
             <Button>

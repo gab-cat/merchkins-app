@@ -112,17 +112,15 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
       </SheetTrigger>
 
       <SheetContent side="right" className="p-0 bg-white border-none text-foreground w-full sm:max-w-md">
-        {/* Gradient header */}
-        <SheetHeader className="relative overflow-hidden border-b">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary to-primary/90" />
-          <div className="absolute inset-0 bg-grid-pattern opacity-10" />
-          <SheetTitle className="relative z-10 px-6 py-5 inline-flex items-center gap-3 text-lg font-bold text-white font-heading">
-            <div className="p-2 rounded-xl bg-white/20 backdrop-blur-sm">
-              <ShoppingCart className="h-5 w-5" />
+        {/* Header */}
+        <SheetHeader className="relative border-b bg-white">
+          <SheetTitle className="relative z-10 px-4 py-3 inline-flex items-center gap-3 text-lg font-bold text-primary font-heading">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <ShoppingCart className="h-5 w-5 text-primary" />
             </div>
             Your Cart
             {totals.totalItems > 0 && (
-              <span className="ml-auto text-sm font-medium bg-white/20 px-3 py-1 rounded-full">{totals.totalItems} items</span>
+              <span className="ml-auto text-sm font-medium bg-primary/10 text-primary px-3 py-1 rounded-full">{totals.totalItems} items</span>
             )}
           </SheetTitle>
         </SheetHeader>

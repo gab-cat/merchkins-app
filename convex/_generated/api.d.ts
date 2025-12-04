@@ -114,6 +114,7 @@ import type * as messages_queries_getMessagesByEmail from "../messages/queries/g
 import type * as messages_queries_index from "../messages/queries/index.js";
 import type * as messages_queries_searchMessages from "../messages/queries/searchMessages.js";
 import type * as migrations_backfillImageUrls from "../migrations/backfillImageUrls.js";
+import type * as migrations_backfillOrderLogs from "../migrations/backfillOrderLogs.js";
 import type * as models_announcements from "../models/announcements.js";
 import type * as models_carts from "../models/carts.js";
 import type * as models_categories from "../models/categories.js";
@@ -131,6 +132,7 @@ import type * as models_tickets from "../models/tickets.js";
 import type * as models_users from "../models/users.js";
 import type * as orders_mutations_cancelOrder from "../orders/mutations/cancelOrder.js";
 import type * as orders_mutations_createOrder from "../orders/mutations/createOrder.js";
+import type * as orders_mutations_createOrderLog from "../orders/mutations/createOrderLog.js";
 import type * as orders_mutations_createXenditInvoiceForOrder from "../orders/mutations/createXenditInvoiceForOrder.js";
 import type * as orders_mutations_deleteOrder from "../orders/mutations/deleteOrder.js";
 import type * as orders_mutations_index from "../orders/mutations/index.js";
@@ -138,10 +140,12 @@ import type * as orders_mutations_refreshXenditInvoice from "../orders/mutations
 import type * as orders_mutations_restoreOrder from "../orders/mutations/restoreOrder.js";
 import type * as orders_mutations_updateOrder from "../orders/mutations/updateOrder.js";
 import type * as orders_mutations_updateOrderStats from "../orders/mutations/updateOrderStats.js";
+import type * as orders_mutations_updateOrderWithNote from "../orders/mutations/updateOrderWithNote.js";
 import type * as orders_mutations_updateOrderXenditInvoice from "../orders/mutations/updateOrderXenditInvoice.js";
 import type * as orders_queries_getDashboardAnalytics from "../orders/queries/getDashboardAnalytics.js";
 import type * as orders_queries_getOrderAnalytics from "../orders/queries/getOrderAnalytics.js";
 import type * as orders_queries_getOrderById from "../orders/queries/getOrderById.js";
+import type * as orders_queries_getOrderLogs from "../orders/queries/getOrderLogs.js";
 import type * as orders_queries_getOrders from "../orders/queries/getOrders.js";
 import type * as orders_queries_getOrdersPage from "../orders/queries/getOrdersPage.js";
 import type * as orders_queries_index from "../orders/queries/index.js";
@@ -405,6 +409,7 @@ declare const fullApi: ApiFromModules<{
   "messages/queries/index": typeof messages_queries_index;
   "messages/queries/searchMessages": typeof messages_queries_searchMessages;
   "migrations/backfillImageUrls": typeof migrations_backfillImageUrls;
+  "migrations/backfillOrderLogs": typeof migrations_backfillOrderLogs;
   "models/announcements": typeof models_announcements;
   "models/carts": typeof models_carts;
   "models/categories": typeof models_categories;
@@ -422,6 +427,7 @@ declare const fullApi: ApiFromModules<{
   "models/users": typeof models_users;
   "orders/mutations/cancelOrder": typeof orders_mutations_cancelOrder;
   "orders/mutations/createOrder": typeof orders_mutations_createOrder;
+  "orders/mutations/createOrderLog": typeof orders_mutations_createOrderLog;
   "orders/mutations/createXenditInvoiceForOrder": typeof orders_mutations_createXenditInvoiceForOrder;
   "orders/mutations/deleteOrder": typeof orders_mutations_deleteOrder;
   "orders/mutations/index": typeof orders_mutations_index;
@@ -429,10 +435,12 @@ declare const fullApi: ApiFromModules<{
   "orders/mutations/restoreOrder": typeof orders_mutations_restoreOrder;
   "orders/mutations/updateOrder": typeof orders_mutations_updateOrder;
   "orders/mutations/updateOrderStats": typeof orders_mutations_updateOrderStats;
+  "orders/mutations/updateOrderWithNote": typeof orders_mutations_updateOrderWithNote;
   "orders/mutations/updateOrderXenditInvoice": typeof orders_mutations_updateOrderXenditInvoice;
   "orders/queries/getDashboardAnalytics": typeof orders_queries_getDashboardAnalytics;
   "orders/queries/getOrderAnalytics": typeof orders_queries_getOrderAnalytics;
   "orders/queries/getOrderById": typeof orders_queries_getOrderById;
+  "orders/queries/getOrderLogs": typeof orders_queries_getOrderLogs;
   "orders/queries/getOrders": typeof orders_queries_getOrders;
   "orders/queries/getOrdersPage": typeof orders_queries_getOrdersPage;
   "orders/queries/index": typeof orders_queries_index;
