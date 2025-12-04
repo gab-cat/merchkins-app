@@ -221,9 +221,7 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
             </div>
 
             {/* Comment */}
-            {existingReview.comment && (
-              <p className="text-sm text-slate-600 leading-relaxed mt-1.5 whitespace-pre-wrap">{existingReview.comment}</p>
-            )}
+            {existingReview.comment && <p className="text-sm text-slate-600 leading-relaxed mt-1.5 whitespace-pre-wrap">{existingReview.comment}</p>}
           </div>
         </div>
       </motion.div>
@@ -232,11 +230,7 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
 
   // Show form (either for new review or editing existing)
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-slate-100 bg-white p-3"
-    >
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-slate-100 bg-white p-3">
       <div className="flex gap-2.5">
         <Avatar className="h-8 w-8 flex-shrink-0 ring-1 ring-slate-100">
           <AvatarImage src={currentUser.imageUrl} alt={userName} />
@@ -301,12 +295,7 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
             </div>
 
             {/* Submit */}
-            <Button
-              type="submit"
-              disabled={isSubmitting || rating === 0}
-              size="sm"
-              className="w-full h-8 text-xs font-medium rounded-lg"
-            >
+            <Button type="submit" disabled={isSubmitting || rating === 0} size="sm" className="w-full h-8 text-xs font-medium rounded-lg">
               {isSubmitting ? (
                 'Submitting...'
               ) : (

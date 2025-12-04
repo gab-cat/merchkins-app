@@ -83,12 +83,8 @@ export function ProductReviewsList({ productId, currentUserId }: ProductReviewsL
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-sm font-medium text-slate-900 truncate">{userName}</span>
-                    {isOwnReview && (
-                      <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">You</span>
-                    )}
-                    {review.isVerifiedPurchase && (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" title="Verified Purchase" />
-                    )}
+                    {isOwnReview && <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">You</span>}
+                    {review.isVerifiedPurchase && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 flex-shrink-0" title="Verified Purchase" />}
                   </div>
                   <span className="text-[11px] text-slate-400 flex-shrink-0">
                     {new Date(review.createdAt).toLocaleDateString('en-US', {
@@ -109,9 +105,7 @@ export function ProductReviewsList({ productId, currentUserId }: ProductReviewsL
                 </div>
 
                 {/* Comment */}
-                {review.comment && (
-                  <p className="text-sm text-slate-600 leading-relaxed mt-1.5 whitespace-pre-wrap">{review.comment}</p>
-                )}
+                {review.comment && <p className="text-sm text-slate-600 leading-relaxed mt-1.5 whitespace-pre-wrap">{review.comment}</p>}
 
                 {/* Merchant response */}
                 {review.merchantResponse && (

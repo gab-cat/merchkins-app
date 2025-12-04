@@ -493,9 +493,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                   <h2 className="text-lg font-bold text-slate-900 tracking-tight font-heading">Reviews</h2>
                 </div>
                 {product.reviewsCount !== undefined && product.reviewsCount > 0 && (
-                  <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full ml-1">
-                    {product.reviewsCount}
-                  </span>
+                  <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full ml-1">{product.reviewsCount}</span>
                 )}
               </div>
             </div>
