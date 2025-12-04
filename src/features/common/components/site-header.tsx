@@ -275,8 +275,9 @@ function SiteHeaderContent({
               <span
                 className={cn(
                   'text-2xl md:text-4xl font-bold! tracking-tighter relative z-10 transition-all duration-300',
-                  isScrolled ? 'text-white' : shouldApplyTheme && organization?.name ? 'text-foreground' : 'font-genty',
-                  !shouldApplyTheme && !isScrolled && 'group-hover:drop-shadow-[0_0_8px_rgba(173,252,4,0.5)]'
+                  isScrolled ? 'text-white' : shouldApplyTheme && organization?.name ? 'text-primary' : 'font-genty',
+                  !shouldApplyTheme && !isScrolled && 'group-hover:drop-shadow-[0_0_8px_rgba(173,252,4,0.5)]',
+                  organization && 'font-outfit'
                 )}
               >
                 {shouldApplyTheme ? (
@@ -653,7 +654,13 @@ function SiteHeaderContent({
                 className="flex items-center justify-center gap-2 font-bold! tracking-tight mb-4"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <span className={cn('text-2xl font-bold', shouldApplyTheme && organization?.name ? 'text-foreground' : 'font-genty')}>
+                <span
+                  className={cn(
+                    'text-2xl font-bold',
+                    shouldApplyTheme && organization?.name ? 'text-primary' : 'font-genty',
+                    organization && 'font-outfit'
+                  )}
+                >
                   {shouldApplyTheme ? (
                     organization?.name
                   ) : (

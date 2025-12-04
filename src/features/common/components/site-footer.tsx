@@ -186,11 +186,11 @@ export function SiteFooter() {
         >
           <h2
             className={cn(
-              'w-full text-[clamp(4rem,15vw,12rem)] font-bold tracking-tighter leading-none font-heading text-foreground',
-              shouldApplyTheme ? '' : ''
+              'w-full text-[clamp(4rem,15vw,12rem)] font-bold tracking-tighter leading-none font-heading overflow-x-visible',
+              shouldApplyTheme && organization ? 'text-primary' : 'text-foreground'
             )}
             style={{
-              fontSize: 'clamp(4rem, 15vw, 12rem)',
+              fontSize: 'clamp(8rem, 18vw, 16rem)',
               lineHeight: '1',
             }}
           >
@@ -198,8 +198,7 @@ export function SiteFooter() {
               organization?.name || 'Merchkins'
             ) : (
               <>
-                <span className="text-primary">Merch</span>
-                <span className="text-primary">kins</span>
+                <span className="text-primary">Merchkins</span>
               </>
             )}
           </h2>

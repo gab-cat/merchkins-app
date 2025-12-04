@@ -105,9 +105,15 @@ function ProductCard({ product, orgSlug, index }: ProductCardProps) {
           </span>
         </div>
         <div className="mt-2 flex items-center gap-2">
-          <Badge variant={product.inventory > 10 ? 'default' : product.inventory > 0 ? 'secondary' : 'destructive'} className="text-[10px]">
-            {product.inventory} in stock
-          </Badge>
+          {product.inventoryType === 'PREORDER' ? (
+            <Badge variant="outline" className="text-[10px] border-orange-200 bg-orange-50 text-orange-700">
+              Preorder
+            </Badge>
+          ) : (
+            <Badge variant={product.inventory > 10 ? 'default' : product.inventory > 0 ? 'secondary' : 'destructive'} className="text-[10px]">
+              {product.inventory} in stock
+            </Badge>
+          )}
         </div>
       </div>
     </motion.div>
@@ -171,9 +177,15 @@ function ProductListItem({ product, orgSlug, index }: ProductListItemProps) {
       {/* Price & Stock */}
       <div className="text-right shrink-0">
         <div className="font-bold text-sm text-primary">{formatCurrency(product.minPrice ?? 0)}</div>
-        <Badge variant={product.inventory > 10 ? 'default' : product.inventory > 0 ? 'secondary' : 'destructive'} className="text-[10px] mt-1">
-          {product.inventory} in stock
-        </Badge>
+        {product.inventoryType === 'PREORDER' ? (
+          <Badge variant="outline" className="text-[10px] mt-1 border-orange-200 bg-orange-50 text-orange-700">
+            Preorder
+          </Badge>
+        ) : (
+          <Badge variant={product.inventory > 10 ? 'default' : product.inventory > 0 ? 'secondary' : 'destructive'} className="text-[10px] mt-1">
+            {product.inventory} in stock
+          </Badge>
+        )}
       </div>
 
       {/* Actions */}

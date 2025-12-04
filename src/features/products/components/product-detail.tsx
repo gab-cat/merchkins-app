@@ -102,10 +102,31 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
     return selectedVariant.sizes.find((s) => s.id === selectedSizeId);
   }, [selectedVariant, selectedSizeId]);
 
+  // Auto-select single variant and size when applicable
+  React.useEffect(() => {
+    if (product && activeVariants.length === 1 && !selectedVariantId) {
+      const singleVariant = activeVariants[0];
+      setSelectedVariantId(singleVariant.variantId);
+
+      // Auto-select size if there's exactly one size
+      if (singleVariant.sizes && singleVariant.sizes.length === 1) {
+        setSelectedSizeId(singleVariant.sizes[0].id);
+      }
+    }
+  }, [product, activeVariants, selectedVariantId]);
+
+  // Auto-select size when variant changes and has exactly one size
+  React.useEffect(() => {
+    if (selectedVariant && selectedVariant.sizes && selectedVariant.sizes.length === 1 && !selectedSizeId) {
+      setSelectedSizeId(selectedVariant.sizes[0].id);
+    }
+  }, [selectedVariant, selectedSizeId]);
+
   const price = selectedVariant
     ? computeEffectivePrice(selectedVariant, selectedSize)
     : (product?.minPrice ?? product?.maxPrice ?? product?.supposedPrice ?? 0);
-  const inStock = (selectedVariant?.inventory ?? product?.inventory ?? 0) > 0;
+  // PREORDER products always have infinite stock, STOCK products check inventory
+  const inStock = product?.inventoryType === 'PREORDER' || (selectedVariant?.inventory ?? product?.inventory ?? 0) > 0;
 
   async function handleAddToCart() {
     requireAuth(async () => {
@@ -238,7 +259,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
               <BlurFade delay={0.2}>
                 <div className="space-y-3">
                   <h1
-                    className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground leading-tight font-heading"
+                    className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-foreground leading-tight font-outfit"
                     data-testid="product-title"
                   >
                     {product.title}
@@ -299,8 +320,8 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                 </BlurFade>
               )}
 
-              {/* Variant Selection */}
-              {activeVariants.length > 0 && (
+              {/* Variant Selection - Only show if there are multiple variants OR multiple sizes */}
+              {activeVariants.length > 0 && (activeVariants.length > 1 || (selectedVariant?.sizes && selectedVariant.sizes.length > 1)) && (
                 <BlurFade delay={0.4}>
                   <div className="space-y-3">
                     <span className="text-sm font-semibold text-foreground">Select Variant & Size</span>
@@ -344,7 +365,15 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
               {/* Status badges */}
               <BlurFade delay={0.45}>
                 <div className="flex flex-wrap items-center gap-2">
-                  {inStock ? (
+                  {product.inventoryType === 'PREORDER' ? (
+                    <Badge
+                      variant="outline"
+                      data-testid="inventory-status"
+                      className="text-xs px-3 py-1.5 font-medium rounded-full border-orange-200 bg-orange-50 text-orange-700"
+                    >
+                      <Sparkles className="h-3 w-3 mr-1.5" /> Preorder Available
+                    </Badge>
+                  ) : inStock ? (
                     <Badge
                       variant="secondary"
                       data-testid="inventory-status"
@@ -355,11 +384,6 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                   ) : (
                     <Badge variant="destructive" data-testid="inventory-status" className="text-xs px-3 py-1.5 font-medium rounded-full">
                       <span className="mr-1.5">✗</span> Out of stock
-                    </Badge>
-                  )}
-                  {product.inventoryType === 'PREORDER' && (
-                    <Badge variant="outline" className="text-xs px-3 py-1.5 font-medium rounded-full border-orange-200 bg-orange-50 text-orange-700">
-                      <Sparkles className="h-3 w-3 mr-1.5" /> Preorder
                     </Badge>
                   )}
                   {product.isBestPrice && (
@@ -377,17 +401,18 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                     size="lg"
                     onClick={handleAddToCart}
                     disabled={Boolean(
-                      !inStock ||
+                      // PREORDER products are always available, only check stock for STOCK products
+                      (product.inventoryType === 'STOCK' && !inStock) ||
                         (activeVariants.length > 0 && !selectedVariantId) ||
                         (selectedVariantId && selectedVariant?.sizes && selectedVariant.sizes.length > 0 && !selectedSizeId)
                     )}
                     aria-label="Add to cart"
                     className="group relative overflow-hidden flex-1 h-14 text-base font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    {inStock ? (
+                    {product.inventoryType === 'PREORDER' || inStock ? (
                       <>
                         <ShoppingCart className="mr-2 h-5 w-5" />
-                        Add to cart
+                        {product.inventoryType === 'PREORDER' ? 'Preorder now' : 'Add to cart'}
                         <ArrowRight className="ml-2 h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                         {/* Shimmer effect */}
                         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />

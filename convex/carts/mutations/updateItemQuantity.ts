@@ -81,7 +81,8 @@ export const updateItemQuantityHandler = async (
     });
   }
 
-  const newQuantity = Math.min(args.quantity, variantInventory);
+  // Only limit quantity for STOCK items, PREORDER items can have any quantity
+  const newQuantity = product.inventoryType === 'STOCK' ? Math.min(args.quantity, variantInventory) : args.quantity;
   const existing = items[index];
   const quantityDiff = newQuantity - existing.quantity;
   items[index] = { ...existing, quantity: newQuantity, addedAt: now };

@@ -110,11 +110,13 @@ export const addItemHandler = async (
     variantInventory = variant.inventory;
   }
 
-  if (variantInventory <= 0) {
+  // Only check inventory for STOCK items, PREORDER items have infinite stock
+  if (product.inventoryType === 'STOCK' && variantInventory <= 0) {
     throw new Error('Item is out of stock');
   }
 
-  const quantityToAdd = Math.min(args.quantity, variantInventory);
+  // Only limit quantity for STOCK items, PREORDER items can have any quantity
+  const quantityToAdd = product.inventoryType === 'STOCK' ? Math.min(args.quantity, variantInventory) : args.quantity;
 
   const now = Date.now();
   const selected = args.selected ?? true;

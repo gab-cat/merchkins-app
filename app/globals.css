@@ -553,6 +553,15 @@
     letter-spacing: -0.02em;
   }
 
+  /* Utility class for Outfit font */
+  .font-outfit {
+    font-family:
+      var(--font-outfit),
+      system-ui,
+      -apple-system,
+      sans-serif;
+  }
+
   /* Gradient text with brand colors */
   .text-gradient-brand {
     background: linear-gradient(135deg, #1d43d8 0%, #4f7df9 50%, #adfc04 100%);

@@ -100,7 +100,7 @@ export function ProductCard({
           {/* Content */}
           <CardHeader className="flex-1 space-y-1.5 p-4 pt-3 min-h-[90px] relative z-10">
             <CardTitle
-              className="line-clamp-2 text-base font-semibold leading-tight text-foreground group-hover:text-primary transition-colors duration-300 font-heading"
+              className="line-clamp-2 text-base font-semibold leading-tight text-foreground group-hover:text-primary transition-colors duration-300 font-outfit"
               data-testid="product-card-title"
             >
               {title}

@@ -111,7 +111,8 @@ export const updateItemVariantHandler = async (
     newVariantInventory = variant.inventory;
   }
 
-  if (newVariantInventory <= 0) {
+  // Only check inventory for STOCK items, PREORDER items have infinite stock
+  if (product.inventoryType === 'STOCK' && newVariantInventory <= 0) {
     throw new Error('New variant is out of stock');
   }
 
@@ -132,7 +133,8 @@ export const updateItemVariantHandler = async (
 
   // Update the item with new variant and size info
   const existingItem = items[index];
-  const newQuantity = Math.min(existingItem.quantity, newVariantInventory);
+  // Only limit quantity for STOCK items, PREORDER items can have any quantity
+  const newQuantity = product.inventoryType === 'STOCK' ? Math.min(existingItem.quantity, newVariantInventory) : existingItem.quantity;
 
   items[index] = {
     ...existingItem,
