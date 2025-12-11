@@ -2,6 +2,9 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  eslint: {
+    dirs: ['pages', 'app', 'components', 'lib', 'src', 'convex'],
+  },
   images: {
     formats: ['image/avif'],
     remotePatterns: [
