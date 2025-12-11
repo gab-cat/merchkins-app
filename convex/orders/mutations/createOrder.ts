@@ -258,7 +258,7 @@ export const createOrderHandler = async (
 
   if (args.voucherCode) {
     const normalizedCode = args.voucherCode.toUpperCase().trim();
-    
+
     // Find voucher
     const voucher = await ctx.db
       .query('vouchers')
@@ -293,11 +293,9 @@ export const createOrderHandler = async (
     if (voucher.usageLimitPerUser) {
       const userUsages = await ctx.db
         .query('voucherUsages')
-        .withIndex('by_voucher_user', (q) => 
-          q.eq('voucherId', voucher._id).eq('userId', args.customerId)
-        )
+        .withIndex('by_voucher_user', (q) => q.eq('voucherId', voucher._id).eq('userId', args.customerId))
         .collect();
-      
+
       if (userUsages.length >= voucher.usageLimitPerUser) {
         throw new Error('You have already used this voucher the maximum number of times');
       }
@@ -316,9 +314,7 @@ export const createOrderHandler = async (
     // Check applicable products
     if (voucher.applicableProductIds && voucher.applicableProductIds.length > 0) {
       const orderProductIds = preparedItems.map((it) => it.productId);
-      const hasApplicable = orderProductIds.some((pid) => 
-        voucher.applicableProductIds!.some((apid) => String(apid) === String(pid))
-      );
+      const hasApplicable = orderProductIds.some((pid) => voucher.applicableProductIds!.some((apid) => String(apid) === String(pid)));
       if (!hasApplicable) {
         throw new Error('This voucher is not valid for the products in your order');
       }
@@ -598,9 +594,7 @@ export const createOrderHandler = async (
   );
 
   // Create order log for order creation
-  const voucherMessage = voucherCode && voucherDiscount > 0 
-    ? ` (Voucher ${voucherCode} applied: -₱${voucherDiscount.toFixed(2)})`
-    : '';
+  const voucherMessage = voucherCode && voucherDiscount > 0 ? ` (Voucher ${voucherCode} applied: -₱${voucherDiscount.toFixed(2)})` : '';
   await createSystemOrderLog(ctx, {
     orderId,
     logType: 'ORDER_CREATED',

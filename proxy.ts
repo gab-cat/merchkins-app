@@ -4,7 +4,6 @@ import { NextResponse } from 'next/server';
 export default clerkMiddleware(async (auth, req) => {
   // Handle subdomain redirects before auth
   const hostname = req.headers.get('host');
-  const pathname = req.nextUrl.pathname;
 
   // Only process subdomains on production domains
   if (hostname && hostname.includes('.merchkins.com')) {
@@ -70,4 +69,5 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/webhooks(.*)',
+  '/monitoring(.*)',
 ]);

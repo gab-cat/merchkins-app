@@ -3,8 +3,7 @@ import { logAction } from '../../helpers';
 import { internal } from '../../_generated/api';
 import type { XenditWebhookEvent } from '../../../types/xendit';
 import { v } from 'convex/values';
-import { Doc, Id } from '../../_generated/dataModel';
-import { createSystemOrderLog } from '../../orders/mutations/createOrderLog';
+import { Doc } from '../../_generated/dataModel';
 
 export const handleXenditWebhookArgs = {
   webhookEvent: v.any(), // Allow any webhook data from Xendit
@@ -12,11 +11,10 @@ export const handleXenditWebhookArgs = {
 
 export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webhookEvent: XenditWebhookEvent }) => {
   const webhookEvent = args.webhookEvent;
-
-  // Only process PAID and EXPIRED statuses
-  if (webhookEvent.status !== 'PAID' && webhookEvent.status !== 'EXPIRED') {
+  // Only process successful payments
+  if (webhookEvent.status !== 'PAID') {
     console.log(`Ignoring webhook event with status: ${webhookEvent.status}`);
-    return { processed: false, reason: `Status ${webhookEvent.status} not handled` };
+    return { processed: false, reason: 'Not a successful payment' };
   }
 
   // Get the system admin user for webhook operations
@@ -44,13 +42,6 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
   }
 
   const order = orders;
-
-  // Handle EXPIRED status - cancel the order
-  if (webhookEvent.status === 'EXPIRED') {
-    return await handleExpiredInvoice(ctx, webhookEvent, order, systemUser);
-  }
-
-  // Handle PAID status - process payment (existing logic)
 
   // Check if payment already exists for this order and transaction
   const existingPayment = await ctx.db
@@ -189,151 +180,3 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
     orderId: order._id,
   };
 };
-
-/**
- * Handle expired invoice webhook event by cancelling the associated order
- */
-async function handleExpiredInvoice(ctx: MutationCtx, webhookEvent: XenditWebhookEvent, order: Doc<'orders'>, systemUser: Doc<'users'>) {
-  const orderNumber = webhookEvent.external_id;
-
-  console.log(`Processing expired invoice for order ${orderNumber}`);
-
-  // Edge case: Order already cancelled - idempotent
-  if (order.status === 'CANCELLED') {
-    console.log(`Order ${orderNumber} is already cancelled, skipping`);
-    return { processed: true, reason: 'Order already cancelled' };
-  }
-
-  // Edge case: Order already delivered - should not cancel
-  if (order.status === 'DELIVERED') {
-    console.log(`Order ${orderNumber} is already delivered, cannot cancel`);
-    return { processed: false, reason: 'Cannot cancel delivered order' };
-  }
-
-  // Edge case: Order already paid - should not cancel
-  if (order.paymentStatus === 'PAID') {
-    console.log(`Order ${orderNumber} is already paid, skipping cancellation`);
-    return { processed: false, reason: 'Order already paid' };
-  }
-
-  const now = Date.now();
-  const actorName = 'Xendit Payment System';
-
-  // Update order status to CANCELLED
-  const history = [
-    {
-      status: 'CANCELLED' as const,
-      changedBy: systemUser._id,
-      changedByName: actorName,
-      reason: 'Invoice expired - payment not received',
-      changedAt: now,
-    },
-    ...order.recentStatusHistory,
-  ].slice(0, 5);
-
-  await ctx.db.patch(order._id, {
-    status: 'CANCELLED',
-    cancellationReason: 'PAYMENT_FAILED',
-    recentStatusHistory: history as Doc<'orders'>['recentStatusHistory'],
-    updatedAt: now,
-  });
-
-  // Restock inventory for STOCK products
-  try {
-    // Load items (embedded or separate table)
-    const items =
-      order.embeddedItems && order.embeddedItems.length > 0
-        ? order.embeddedItems.map((i) => ({
-            productId: i.productInfo.productId,
-            variantId: i.variantId as string | undefined,
-            quantity: i.quantity,
-          }))
-        : await ctx.db
-            .query('orderItems')
-            .withIndex('by_order', (q) => q.eq('orderId', order._id))
-            .collect()
-            .then((rows) =>
-              rows.map((r) => ({
-                productId: r.productInfo.productId,
-                variantId: r.variantId as string | undefined,
-                quantity: r.quantity,
-              }))
-            );
-
-    // Group quantities per product and variant
-    const byProduct: Map<string, { total: number; byVariant: Map<string, number> }> = new Map();
-    for (const it of items) {
-      const key = String(it.productId);
-      if (!byProduct.has(key)) byProduct.set(key, { total: 0, byVariant: new Map() });
-      const entry = byProduct.get(key)!;
-      entry.total += it.quantity;
-      if (it.variantId) {
-        entry.byVariant.set(it.variantId, (entry.byVariant.get(it.variantId) || 0) + it.quantity);
-      }
-    }
-
-    for (const [productIdStr, data] of byProduct.entries()) {
-      const productId = productIdStr as unknown as Id<'products'>;
-      const product = await ctx.db.get(productId);
-      if (!product) continue;
-      if (product.inventoryType !== 'STOCK') continue;
-
-      const nowTs = Date.now();
-      // Restore product aggregate inventory
-      const newInventory = Math.max(0, (product.inventory || 0) + data.total);
-
-      // Restore variant inventories
-      let variants = product.variants;
-      if (data.byVariant.size > 0) {
-        variants = product.variants.map((v) => {
-          const inc = v.variantId ? data.byVariant.get(v.variantId) || 0 : 0;
-          if (inc > 0) {
-            return { ...v, inventory: v.inventory + inc, updatedAt: nowTs };
-          }
-          return v;
-        });
-      }
-
-      await ctx.db.patch(productId, { inventory: newInventory, variants, updatedAt: nowTs });
-    }
-  } catch (error) {
-    // Best-effort restock; do not block cancellation on restock failure
-    console.error(`Error restocking inventory for order ${orderNumber}:`, error);
-  }
-
-  // Log the cancellation event
-  await logAction(
-    ctx,
-    'xendit_invoice_expired',
-    'SYSTEM_EVENT',
-    'HIGH',
-    `Invoice expired for order ${orderNumber} - order cancelled`,
-    undefined, // System action
-    order.organizationId ?? undefined,
-    {
-      orderId: order._id,
-      invoiceId: webhookEvent.id,
-      orderNumber,
-      provider: 'XENDIT',
-    }
-  );
-
-  // Create order log for cancellation
-  await createSystemOrderLog(ctx, {
-    orderId: order._id,
-    logType: 'ORDER_CANCELLED',
-    reason: 'Order cancelled due to non-payment',
-    message: `Invoice expired - payment was not received within the allowed time. Order has been automatically cancelled.`,
-    previousValue: order.status,
-    newValue: 'CANCELLED',
-    isPublic: true,
-    actorId: systemUser._id,
-  });
-
-  console.log(`Successfully cancelled order ${orderNumber} due to expired invoice`);
-  return {
-    processed: true,
-    orderId: order._id,
-    reason: 'Order cancelled due to expired invoice',
-  };
-}

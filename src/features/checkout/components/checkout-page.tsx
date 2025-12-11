@@ -1,291 +1,21 @@
 'use client';
 
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useMutation, useQuery } from 'convex/react';
 import { useAuth } from '@clerk/nextjs';
 import { api } from '@/convex/_generated/api';
-import { anyApi } from 'convex/server';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  CreditCard,
-  ListChecks,
-  StickyNote,
-  ShoppingBag,
-  ArrowRight,
-  ArrowLeft,
-  Shield,
-  Package,
-  Store,
-  Sparkles,
-  CheckCircle2,
-  Loader2,
-  AlertCircle,
-  Clock,
-  Lock,
-  Truck,
-  Receipt,
-  ChevronRight,
-  Ticket,
-  X,
-  Tag,
-  Percent,
-  Gift,
-} from 'lucide-react';
+import { CreditCard, ListChecks, StickyNote, ShoppingBag, ArrowRight, Shield, Package, Store, Sparkles, CheckCircle2 } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
 import { showToast, promiseToast } from '@/lib/toast';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { BlurFade } from '@/src/components/ui/animations/effects';
-import { cn } from '@/lib/utils';
 
-// Animation variants matching orders page
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 100, damping: 15 },
-  },
-};
-
-function formatCurrency(amount: number) {
-  try {
-    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
-  } catch {
-    return `₱${amount.toFixed(2)}`;
-  }
-}
-
-// Progress steps component
-function CheckoutProgress({ currentStep }: { currentStep: number }) {
-  const steps = [
-    { label: 'Cart', icon: ShoppingBag },
-    { label: 'Checkout', icon: Receipt },
-    { label: 'Payment', icon: CreditCard },
-  ];
-
-  return (
-    <div className="flex items-center justify-center gap-2 mb-8">
-      {steps.map((step, index) => {
-        const Icon = step.icon;
-        const isActive = index === currentStep;
-        const isComplete = index < currentStep;
-
-        return (
-          <React.Fragment key={step.label}>
-            <div className="flex items-center gap-2">
-              <div
-                className={cn(
-                  'h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300',
-                  isComplete && 'bg-emerald-500 text-white',
-                  isActive && 'bg-[#1d43d8] text-white shadow-md shadow-[#1d43d8]/25',
-                  !isComplete && !isActive && 'bg-slate-100 text-slate-400'
-                )}
-              >
-                {isComplete ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-              </div>
-              <span
-                className={cn(
-                  'text-xs font-medium hidden sm:block',
-                  isActive ? 'text-[#1d43d8]' : isComplete ? 'text-emerald-600' : 'text-slate-400'
-                )}
-              >
-                {step.label}
-              </span>
-            </div>
-            {index < steps.length - 1 && (
-              <div className={cn('w-8 sm:w-12 h-0.5 rounded-full transition-colors', index < currentStep ? 'bg-emerald-500' : 'bg-slate-200')} />
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
-
-// Loading skeleton
-function CheckoutSkeleton() {
-  return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        {/* Header skeleton */}
-        <div className="mb-8 space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-slate-100 animate-pulse" />
-            <div className="h-8 w-32 rounded-lg bg-slate-100 animate-pulse" />
-          </div>
-          <div className="h-4 w-64 rounded-lg bg-slate-100 animate-pulse" />
-        </div>
-
-        {/* Progress skeleton */}
-        <div className="flex items-center justify-center gap-4 mb-8">
-          {[1, 2, 3].map((i) => (
-            <React.Fragment key={i}>
-              <div className="h-8 w-8 rounded-full bg-slate-100 animate-pulse" />
-              {i < 3 && <div className="w-12 h-0.5 bg-slate-100" />}
-            </React.Fragment>
-          ))}
-        </div>
-
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Left column skeleton */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl border border-slate-100 p-6 space-y-4">
-              <div className="h-6 w-32 rounded-lg bg-slate-100 animate-pulse" />
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100">
-                  <div className="h-16 w-16 rounded-xl bg-slate-100 animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded-lg bg-slate-100 animate-pulse" />
-                    <div className="h-3 w-1/2 rounded-lg bg-slate-100 animate-pulse" />
-                  </div>
-                  <div className="h-5 w-16 rounded-lg bg-slate-100 animate-pulse" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right column skeleton */}
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-100 p-6 space-y-4">
-              <div className="h-6 w-32 rounded-lg bg-slate-100 animate-pulse" />
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <div className="h-4 w-24 rounded-lg bg-slate-100 animate-pulse" />
-                  <div className="h-4 w-16 rounded-lg bg-slate-100 animate-pulse" />
-                </div>
-                <div className="h-px bg-slate-100" />
-                <div className="flex justify-between">
-                  <div className="h-5 w-16 rounded-lg bg-slate-100 animate-pulse" />
-                  <div className="h-6 w-24 rounded-lg bg-slate-100 animate-pulse" />
-                </div>
-              </div>
-              <div className="h-12 w-full rounded-xl bg-slate-100 animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Empty state component
-function EmptyCheckout() {
-  return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="max-w-md mx-auto px-4 py-16 text-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          {/* Animated icon */}
-          <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ delay: 0.1, duration: 0.4 }} className="relative mb-8">
-            <div className="absolute inset-0 h-28 w-28 mx-auto rounded-3xl bg-gradient-to-br from-[#1d43d8]/20 to-[#adfc04]/20 blur-xl" />
-            <div className="relative h-28 w-28 mx-auto rounded-3xl bg-gradient-to-br from-[#1d43d8]/10 to-[#adfc04]/10 flex items-center justify-center border border-[#1d43d8]/10">
-              <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
-                <ShoppingBag className="h-12 w-12 text-[#1d43d8]/50" />
-              </motion.div>
-            </div>
-            <motion.div
-              className="absolute -top-1 -right-4 h-4 w-4 rounded-full bg-[#adfc04]"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-          </motion.div>
-
-          <h1 className="text-2xl font-bold mb-3 font-heading text-slate-900">Nothing to checkout</h1>
-          <p className="text-slate-500 mb-8 text-base">Select at least one item in your cart to proceed with checkout.</p>
-
-          <Link href="/cart">
-            <Button
-              size="lg"
-              className="group bg-[#1d43d8] hover:bg-[#1d43d8]/90 rounded-full px-8 h-12 text-base font-semibold shadow-lg shadow-[#1d43d8]/25 transition-all duration-300 hover:scale-105"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              Back to Cart
-            </Button>
-          </Link>
-        </motion.div>
-      </div>
-    </div>
-  );
-}
-
-// Checkout item component
-interface CheckoutItemProps {
-  item: {
-    productInfo: {
-      productId: Id<'products'>;
-      title: string;
-      price: number;
-      imageUrl?: string[];
-      variantName?: string | null;
-      organizationId?: Id<'organizations'>;
-      organizationName?: string;
-    };
-    quantity: number;
-    variantId?: string;
-    note?: string;
-    size?: { label: string };
-  };
-}
-
-function CheckoutItem({ item }: CheckoutItemProps) {
-  return (
-    <motion.div
-      variants={itemVariants}
-      className="flex items-center gap-4 p-4 rounded-xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all duration-200 group"
-    >
-      {/* Product image */}
-      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50 border border-slate-100">
-        {item.productInfo.imageUrl?.[0] ? (
-          <R2Image
-            fileKey={item.productInfo.imageUrl[0]}
-            alt={item.productInfo.title}
-            width={64}
-            height={64}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="h-full w-full flex items-center justify-center">
-            <Package className="h-6 w-6 text-slate-300" />
-          </div>
-        )}
-      </div>
-
-      {/* Product info */}
-      <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-sm text-slate-900 truncate group-hover:text-[#1d43d8] transition-colors">{item.productInfo.title}</h4>
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
-          {item.productInfo.variantName && <span className="text-xs text-slate-500">{item.productInfo.variantName}</span>}
-          {item.size && (
-            <span className="px-2 py-0.5 rounded-full bg-[#1d43d8]/10 text-[#1d43d8] text-[10px] font-medium">Size: {item.size.label}</span>
-          )}
-        </div>
-        <p className="text-xs text-slate-400 mt-1">
-          {item.quantity} × {formatCurrency(item.productInfo.price)}
-        </p>
-      </div>
-
-      {/* Price */}
-      <div className="text-right shrink-0">
-        <p className="font-bold text-[#1d43d8]">{formatCurrency(item.quantity * item.productInfo.price)}</p>
-      </div>
-    </motion.div>
-  );
-}
-
-// Main checkout component
 export function CheckoutPage() {
   const { userId: clerkId } = useAuth();
   const cart = useQuery(api.carts.queries.index.getCartByUser, {});
@@ -298,21 +28,6 @@ export function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
-  // Voucher state
-  const [voucherCode, setVoucherCode] = useState('');
-  const [voucherInput, setVoucherInput] = useState('');
-  const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
-  const [appliedVoucher, setAppliedVoucher] = useState<{
-    _id: Id<'vouchers'>;
-    code: string;
-    name: string;
-    description?: string;
-    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING';
-    discountValue: number;
-    discountAmount: number;
-  } | null>(null);
-  const [voucherError, setVoucherError] = useState<string | null>(null);
-
   const selectedItems = useMemo(() => {
     const items = cart?.embeddedItems ?? [];
     return items.filter((i) => i.selected && i.quantity > 0);
@@ -323,7 +38,7 @@ export function CheckoutPage() {
     const groups: Record<string, { name: string; items: Array<Line> }> = {};
     for (const raw of selectedItems as Array<Line>) {
       const orgId = String(raw.productInfo.organizationId ?? 'global');
-      const orgName = raw.productInfo.organizationName ?? 'Merchkins Store';
+      const orgName = raw.productInfo.organizationName ?? 'Storefront';
       if (!groups[orgId]) groups[orgId] = { name: orgName, items: [] };
       groups[orgId].items.push(raw);
     }
@@ -337,114 +52,11 @@ export function CheckoutPage() {
     };
   }, [selectedItems]);
 
-  // Calculate totals with voucher discount
-  const totalsWithDiscount = useMemo(() => {
-    const subtotal = totals.amount;
-    const discount = appliedVoucher?.discountAmount ?? 0;
-    const total = Math.max(0, subtotal - discount);
-    return {
-      subtotal,
-      discount,
-      total,
-    };
-  }, [totals.amount, appliedVoucher]);
-
-  // Get product IDs for voucher validation
-  const productIds = useMemo(() => {
-    return selectedItems.map((item) => item.productInfo.productId);
-  }, [selectedItems]);
-
-  // Get unique organization IDs from selected items
-  const organizationIds = useMemo(() => {
-    const orgIds = new Set<string>();
-    selectedItems.forEach((item) => {
-      const orgId = (item.productInfo as { organizationId?: string }).organizationId;
-      if (orgId) orgIds.add(orgId);
-    });
-    return Array.from(orgIds);
-  }, [selectedItems]);
-
-  // Voucher validation query (only run when we have a voucher code to validate)
-  // Note: Type assertion needed until `bunx convex dev` regenerates types
-  const voucherValidation = useQuery(
-    anyApi.vouchers.queries.index.validateVoucher,
-    voucherCode && me
-      ? {
-          code: voucherCode,
-          userId: me._id,
-          organizationId: organizationIds.length === 1 ? (organizationIds[0] as Id<'organizations'>) : undefined,
-          orderAmount: totals.amount,
-          productIds: productIds as Id<'products'>[],
-        }
-      : 'skip'
-  ) as {
-    valid: boolean;
-    voucher?: {
-      _id: Id<'vouchers'>;
-      code: string;
-      name: string;
-      description?: string;
-      discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING';
-      discountValue: number;
-      minOrderAmount?: number;
-      maxDiscountAmount?: number;
-    };
-    discountAmount?: number;
-    error?: string;
-  } | undefined;
-
-  // Update applied voucher when validation result changes
-  useEffect(() => {
-    if (!voucherCode) {
-      setAppliedVoucher(null);
-      setVoucherError(null);
-      return;
-    }
-
-    if (voucherValidation === undefined) {
-      // Still loading
-      return;
-    }
-
-    if (voucherValidation.valid && voucherValidation.voucher) {
-      setAppliedVoucher({
-        ...voucherValidation.voucher,
-        discountAmount: voucherValidation.discountAmount ?? 0,
-      });
-      setVoucherError(null);
-    } else {
-      setAppliedVoucher(null);
-      setVoucherError(voucherValidation.error ?? 'Invalid voucher code');
-    }
-    setIsValidatingVoucher(false);
-  }, [voucherValidation, voucherCode]);
-
-  // Handle voucher application
-  const handleApplyVoucher = useCallback(() => {
-    const code = voucherInput.trim().toUpperCase();
-    if (!code) {
-      setVoucherError('Please enter a voucher code');
-      return;
-    }
-    setIsValidatingVoucher(true);
-    setVoucherError(null);
-    setVoucherCode(code);
-  }, [voucherInput]);
-
-  // Handle voucher removal
-  const handleRemoveVoucher = useCallback(() => {
-    setVoucherCode('');
-    setVoucherInput('');
-    setAppliedVoucher(null);
-    setVoucherError(null);
-  }, []);
-
   const shopSubtotals = useMemo(() => {
     return Object.entries(selectedByOrg).map(([orgId, group]) => {
       const quantity = group.items.reduce((s, i) => s + i.quantity, 0);
       const amount = group.items.reduce((s, i) => s + i.quantity * i.productInfo.price, 0);
       return {
-        orgId,
         name: group.name,
         quantity,
         amount,
@@ -478,28 +90,19 @@ export function CheckoutPage() {
           customerNote: it.note,
         }));
         const orgIdArg = orgId !== 'global' ? (orgId as unknown as Id<'organizations'>) : undefined;
-        
-        // Only apply voucher to the first order if multiple orgs, or if voucher is for specific org
-        const shouldApplyVoucher = appliedVoucher && (
-          !appliedVoucher.discountAmount || // No discount = always apply
-          organizationIds.length === 1 || // Single org = apply
-          Object.keys(selectedByOrg).indexOf(orgId) === 0 // First org in multi-org order
-        );
-        
         promises.push(
           createOrder({
             customerId: me._id,
             organizationId: orgIdArg,
             items,
             customerNotes: notes || undefined,
-            voucherCode: shouldApplyVoucher ? appliedVoucher?.code : undefined,
           })
         );
       }
 
       const results = await promiseToast(Promise.all(promises), {
-        loading: 'Processing your order…',
-        success: 'Order placed successfully!',
+        loading: 'Placing order…',
+        success: 'Order placed, removing items from cart...',
         error: () => 'Failed to place order',
       });
 
@@ -525,30 +128,18 @@ export function CheckoutPage() {
 
       // Check if any order has a Xendit invoice URL
       let xenditUrl: string | null = null;
-      let firstOrderId: string | null = null;
-
       for (const result of results) {
-        if (result && typeof result === 'object') {
-          // Capture the first order ID
-          if (!firstOrderId && 'orderId' in result && result.orderId) {
-            firstOrderId = result.orderId;
-          }
-          // Check for Xendit invoice URL
-          if ('xenditInvoiceUrl' in result && result.xenditInvoiceUrl) {
-            xenditUrl = result.xenditInvoiceUrl;
-            break;
-          }
+        if (result && typeof result === 'object' && 'xenditInvoiceUrl' in result && result.xenditInvoiceUrl) {
+          xenditUrl = result.xenditInvoiceUrl;
+          break;
         }
       }
 
       if (xenditUrl) {
         // Redirect to Xendit payment page
         window.location.href = xenditUrl;
-      } else if (firstOrderId) {
-        // Redirect to success page to show payment status
-        window.location.href = `/orders/payment/success?orderId=${firstOrderId}`;
       } else {
-        // Fallback to orders page if no order ID
+        // Fallback to orders page if no payment URL
         window.location.href = '/orders';
       }
     } catch (err: unknown) {
@@ -560,375 +151,243 @@ export function CheckoutPage() {
     }
   }
 
-  // Loading state
   if (cart === undefined || me === undefined) {
-    return <CheckoutSkeleton />;
+    return (
+      <div className="min-h-screen">
+        <div className="container mx-auto px-4 sm:px-6 py-8">
+          <div className="grid gap-6">
+            {new Array(2).fill(null).map((_, i) => (
+              <Card key={`s-${i}`} className="animate-pulse rounded-2xl border-0 shadow-md">
+                <CardContent className="p-6">
+                  <div className="h-5 w-1/3 rounded-lg bg-secondary" />
+                  <div className="mt-4 h-16 w-full rounded-lg bg-secondary" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  // Empty state
   if (!canCheckout) {
-    return <EmptyCheckout />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="container mx-auto px-4 py-16 text-center">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="max-w-md mx-auto"
+          >
+            <div className="h-28 w-28 mx-auto mb-8 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+              <ShoppingBag className="h-14 w-14 text-primary/40" />
+            </div>
+            <h1 className="text-3xl font-bold mb-3 font-heading">Nothing to checkout</h1>
+            <p className="text-muted-foreground mb-8 text-lg">Select at least one item in your cart to proceed.</p>
+            <Link href="/cart">
+              <Button
+                size="lg"
+                className="group rounded-full px-10 h-14 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Package className="mr-2 h-5 w-5" />
+                Back to cart
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        {/* Back link */}
-        <BlurFade delay={0.05}>
-          <Link href="/cart" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#1d43d8] mb-6 transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Cart
-          </Link>
-        </BlurFade>
+    <div className="min-h-screen">
+      {/* Background pattern */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
 
+      <div className="container mx-auto px-4 sm:px-6 py-8 relative z-10">
         {/* Header */}
         <BlurFade delay={0.1}>
-          <div className="mb-6">
+          <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2.5 rounded-xl bg-[#1d43d8]/10">
-                <Receipt className="h-6 w-6 text-[#1d43d8]" />
+              <div className="p-2.5 rounded-xl bg-primary/10">
+                <CreditCard className="h-6 w-6 text-primary" />
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold font-heading tracking-tight text-slate-900">Checkout</h1>
+              <h1 className="text-2xl md:text-3xl font-bold font-heading tracking-tight">Checkout</h1>
             </div>
-            <p className="text-slate-500">Review your order and complete your purchase</p>
+            <p className="text-muted-foreground">Review your order and complete your purchase</p>
           </div>
         </BlurFade>
 
-        {/* Progress indicator */}
-        <BlurFade delay={0.15}>
-          <CheckoutProgress currentStep={1} />
-        </BlurFade>
-
-        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid gap-8 lg:grid-cols-3">
-          {/* Left column - Order items */}
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Order items */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Review items */}
-            <motion.div variants={itemVariants}>
-              <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                {/* Section header */}
-                <div className="px-5 py-4 bg-slate-50/80 border-b border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
-                        <ListChecks className="h-4 w-4 text-[#1d43d8]" />
-                      </div>
-                      <h2 className="font-bold text-slate-900">Review Items</h2>
+            {/* Review items card */}
+            <BlurFade delay={0.2}>
+              <Card className="rounded-3xl border-0 shadow-lg overflow-hidden">
+                <div className="relative p-5 bg-gradient-to-r from-muted/50 to-muted/30 border-b">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-white shadow-sm">
+                      <ListChecks className="h-5 w-5 text-primary" />
                     </div>
-                    <span className="text-sm text-slate-500 bg-white px-2.5 py-1 rounded-full border border-slate-100">
-                      {totals.quantity} item{totals.quantity !== 1 ? 's' : ''}
-                    </span>
+                    <span className="font-bold text-lg font-heading">Review Items</span>
+                    <span className="ml-auto text-sm text-muted-foreground">{totals.quantity} items</span>
                   </div>
                 </div>
-
-                {/* Items by organization */}
-                <div className="p-5 space-y-6">
-                  {Object.entries(selectedByOrg).map(([orgId, group]) => (
-                    <motion.div key={orgId} variants={itemVariants} className="space-y-3">
-                      {/* Store header */}
+                <CardContent className="p-5 space-y-5">
+                  {Object.entries(selectedByOrg).map(([orgId, group], groupIndex) => (
+                    <motion.div
+                      key={orgId}
+                      className="space-y-3"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 + groupIndex * 0.1 }}
+                    >
                       <div className="flex items-center gap-2">
-                        <Store className="h-4 w-4 text-[#1d43d8]" />
-                        <span className="text-sm font-semibold text-slate-700">{group.name}</span>
-                        <div className="h-px flex-1 bg-slate-100" />
-                        <span className="text-xs text-slate-400">
-                          {group.items.length} item{group.items.length !== 1 ? 's' : ''}
-                        </span>
+                        <Store className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-bold uppercase tracking-wider text-primary">{group.name}</span>
+                        <div className="h-px flex-1 bg-border/50" />
                       </div>
-
-                      {/* Items */}
-                      <div className="space-y-2">
-                        {group.items.map((item) => (
-                          <CheckoutItem
-                            key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
-                            item={item as CheckoutItemProps['item']}
-                          />
-                        ))}
-                      </div>
-
-                      {/* Store subtotal */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <span className="text-sm text-slate-500">Store subtotal</span>
-                        <span className="font-semibold text-slate-900">
-                          {formatCurrency(group.items.reduce((s, i) => s + i.quantity * i.productInfo.price, 0))}
-                        </span>
-                      </div>
+                      {group.items.map((it, itemIndex) => (
+                        <motion.div
+                          key={`${String(it.productInfo.productId)}::${it.productInfo.variantName ?? 'default'}`}
+                          className="flex items-center gap-4 p-4 rounded-2xl bg-muted/30 border border-muted/50 hover:bg-muted/50 transition-colors"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 + itemIndex * 0.05 }}
+                        >
+                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl shadow-sm">
+                            {it.productInfo.imageUrl?.[0] ? (
+                              <R2Image
+                                fileKey={it.productInfo.imageUrl[0]}
+                                alt={it.productInfo.title}
+                                width={64}
+                                height={64}
+                                className="h-full w-full object-cover bg-secondary"
+                              />
+                            ) : (
+                              <div className="h-full w-full bg-gradient-to-br from-secondary to-secondary/60 rounded-xl flex items-center justify-center">
+                                <Package className="h-6 w-6 text-muted-foreground/50" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-sm leading-tight">
+                              {it.productInfo.title}
+                              {it.productInfo.variantName && (
+                                <span className="ml-2 text-xs text-muted-foreground font-normal">• {it.productInfo.variantName}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
+                              <span>
+                                {it.quantity} ×{' '}
+                                {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(it.productInfo.price)}
+                              </span>
+                              {'size' in it && it.size && (
+                                <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
+                                  Size: {it.size.label}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-base font-bold text-primary shrink-0">
+                            {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(it.quantity * it.productInfo.price)}
+                          </div>
+                        </motion.div>
+                      ))}
                     </motion.div>
                   ))}
-                </div>
-              </div>
-            </motion.div>
+                </CardContent>
+              </Card>
+            </BlurFade>
 
-            {/* Voucher code */}
-            <motion.div variants={itemVariants}>
-              <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                <div className="px-5 py-4 bg-slate-50/80 border-b border-slate-100">
+            {/* Order notes card */}
+            <BlurFade delay={0.3}>
+              <Card className="rounded-3xl border-0 shadow-lg overflow-hidden">
+                <div className="relative p-5 bg-gradient-to-r from-muted/50 to-muted/30 border-b">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
-                      <Ticket className="h-4 w-4 text-[#1d43d8]" />
+                    <div className="p-2 rounded-xl bg-white shadow-sm">
+                      <StickyNote className="h-5 w-5 text-primary" />
                     </div>
-                    <div>
-                      <h2 className="font-bold text-slate-900">Voucher Code</h2>
-                      <p className="text-xs text-slate-500">Have a promo code? Apply it here</p>
-                    </div>
+                    <span className="font-bold text-lg font-heading">Order Notes</span>
                   </div>
                 </div>
-                <div className="p-5 space-y-4">
-                  {/* Applied voucher display */}
-                  <AnimatePresence mode="wait">
-                    {appliedVoucher ? (
-                      <motion.div
-                        key="applied"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-[#adfc04]/10 border border-emerald-200"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-emerald-100">
-                            {appliedVoucher.discountType === 'PERCENTAGE' ? (
-                              <Percent className="h-4 w-4 text-emerald-600" />
-                            ) : appliedVoucher.discountType === 'FREE_ITEM' ? (
-                              <Gift className="h-4 w-4 text-emerald-600" />
-                            ) : appliedVoucher.discountType === 'FREE_SHIPPING' ? (
-                              <Truck className="h-4 w-4 text-emerald-600" />
-                            ) : (
-                              <Tag className="h-4 w-4 text-emerald-600" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-emerald-700">{appliedVoucher.code}</span>
-                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                            </div>
-                            <p className="text-xs text-emerald-600">{appliedVoucher.name}</p>
-                            {appliedVoucher.discountAmount > 0 && (
-                              <p className="text-sm font-medium text-emerald-700 mt-1">
-                                -{formatCurrency(appliedVoucher.discountAmount)} off
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleRemoveVoucher}
-                          className="h-8 w-8 p-0 rounded-full hover:bg-red-100 hover:text-red-600 transition-colors"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="input"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="space-y-3"
-                      >
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
-                            <Input
-                              placeholder="Enter voucher code"
-                              value={voucherInput}
-                              onChange={(e) => {
-                                setVoucherInput(e.target.value.toUpperCase());
-                                if (voucherError) setVoucherError(null);
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  handleApplyVoucher();
-                                }
-                              }}
-                              className={cn(
-                                'uppercase font-mono text-sm tracking-wider rounded-xl border-slate-200 focus:border-[#1d43d8]/30 focus:ring-[#1d43d8]/10',
-                                voucherError && 'border-red-300 focus:border-red-300 focus:ring-red-100'
-                              )}
-                              disabled={isValidatingVoucher}
-                            />
-                            {voucherInput && !isValidatingVoucher && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setVoucherInput('');
-                                  setVoucherError(null);
-                                }}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                            )}
-                          </div>
-                          <Button
-                            onClick={handleApplyVoucher}
-                            disabled={!voucherInput.trim() || isValidatingVoucher}
-                            className="rounded-xl bg-[#1d43d8] hover:bg-[#1d43d8]/90 px-5 disabled:bg-slate-200 disabled:text-slate-500"
-                          >
-                            {isValidatingVoucher ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              'Apply'
-                            )}
-                          </Button>
-                        </div>
-
-                        {/* Voucher error */}
-                        <AnimatePresence>
-                          {voucherError && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="flex items-center gap-2 text-sm text-red-600"
-                            >
-                              <AlertCircle className="h-4 w-4 shrink-0" />
-                              <span>{voucherError}</span>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Order notes */}
-            <motion.div variants={itemVariants}>
-              <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                <div className="px-5 py-4 bg-slate-50/80 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
-                      <StickyNote className="h-4 w-4 text-[#1d43d8]" />
-                    </div>
-                    <div>
-                      <h2 className="font-bold text-slate-900">Order Notes</h2>
-                      <p className="text-xs text-slate-500">Add special instructions (optional)</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-5">
-                  <Textarea
-                    placeholder="Any special requests or delivery instructions..."
+                <CardContent className="p-5">
+                  <Input
+                    placeholder="Add special instructions for your order (optional)"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="min-h-24 rounded-xl border-slate-200 focus:border-[#1d43d8]/30 focus:ring-[#1d43d8]/10 resize-none"
+                    className="h-12 rounded-xl border-muted focus:border-primary text-base"
                   />
-                </div>
-              </div>
-            </motion.div>
+                </CardContent>
+              </Card>
+            </BlurFade>
           </div>
 
-          {/* Right column - Order summary */}
+          {/* Order summary sidebar */}
           <div className="space-y-6">
-            {/* Summary card */}
-            <motion.div variants={itemVariants}>
-              <Card className="sticky top-24 rounded-2xl pt-0 border border-slate-100 overflow-hidden shadow-sm">
-                {/* Header */}
-                <div className="px-5 py-4 bg-gradient-to-br from-[#1d43d8]/5 to-[#adfc04]/5 border-b border-slate-100">
-                  <div className="flex items-center gap-2 text-[#1d43d8]">
+            <BlurFade delay={0.4}>
+              <Card className="sticky top-24 rounded-3xl border-0 shadow-xl overflow-hidden">
+                {/* Gradient header */}
+                <div className="relative p-6 bg-gradient-to-br from-primary via-primary/95 to-primary/90">
+                  <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+                  <div className="relative z-10 flex items-center gap-3 text-white">
                     <Sparkles className="h-5 w-5" />
-                    <h2 className="font-bold">Order Summary</h2>
+                    <span className="font-bold text-lg font-heading">Order Summary</span>
                   </div>
                 </div>
 
-                <CardContent className="p-5">
+                <CardContent className="p-6">
                   <div className="space-y-4">
                     {/* Shop subtotals */}
                     {shopSubtotals.map((shop) => (
-                      <div key={shop.orgId} className="flex items-center justify-between text-sm">
-                        <span className="flex items-center gap-2 text-slate-600">
-                          <Store className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="truncate max-w-32">{shop.name}</span>
-                          <span className="text-slate-400">({shop.quantity})</span>
+                      <div key={shop.name} className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span className="flex items-center gap-2">
+                          <Store className="h-3.5 w-3.5" />
+                          {shop.name} ({shop.quantity})
                         </span>
-                        <span className="font-medium text-slate-900">{formatCurrency(shop.amount)}</span>
+                        <span className="font-medium">
+                          {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(shop.amount)}
+                        </span>
                       </div>
                     ))}
 
-                    <div className="h-px bg-slate-100" />
+                    <div className="h-px bg-border" />
 
-                    {/* Shipping estimate */}
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-slate-600">
-                        <Truck className="h-3.5 w-3.5 text-slate-400" />
-                        Shipping
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold">Total</span>
+                      <span className="text-2xl font-bold text-primary font-heading">
+                        {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.amount)}
                       </span>
-                      <span className="text-slate-500 text-xs">Calculated at payment</span>
                     </div>
 
-                    {/* Voucher discount */}
-                    <AnimatePresence>
-                      {appliedVoucher && appliedVoucher.discountAmount > 0 && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                        >
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-2 text-emerald-600">
-                              <Ticket className="h-3.5 w-3.5" />
-                              <span className="truncate">
-                                Voucher ({appliedVoucher.code})
-                              </span>
-                            </span>
-                            <span className="font-medium text-emerald-600">
-                              -{formatCurrency(appliedVoucher.discountAmount)}
-                            </span>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    <div className="h-px bg-slate-100" />
-
-                    {/* Total */}
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="font-semibold text-slate-900">Total</span>
-                      <div className="text-right">
-                        {appliedVoucher && appliedVoucher.discountAmount > 0 && (
-                          <p className="text-sm text-slate-400 line-through">
-                            {formatCurrency(totals.amount)}
-                          </p>
-                        )}
-                        <span className="text-2xl font-bold text-[#1d43d8]">
-                          {formatCurrency(totalsWithDiscount.total)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Error message */}
-                    <AnimatePresence>
-                      {error && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="flex items-start gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-xl border border-red-100"
-                        >
-                          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                          <span>{error}</span>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-sm text-destructive bg-destructive/10 p-3 rounded-xl border border-destructive/20"
+                      >
+                        {error}
+                      </motion.div>
+                    )}
 
                     {/* Terms agreement */}
-                    <div className="flex items-start gap-3 pt-2">
+                    <div className="flex items-start space-x-3 pt-2">
                       <Checkbox
                         id="terms-agreement"
                         checked={agreeToTerms}
                         onCheckedChange={(checked) => setAgreeToTerms(checked === true)}
-                        className={cn(
-                          'mt-0.5 h-5 w-5 rounded-md border-2 transition-colors',
-                          !agreeToTerms ? 'border-slate-300' : 'border-[#1d43d8] data-[state=checked]:bg-[#1d43d8]'
-                        )}
+                        className={`mt-0.5 h-5 w-5 rounded-md border-2 ${!agreeToTerms ? 'border-destructive data-[state=unchecked]:bg-destructive/5' : 'data-[state=checked]:bg-primary data-[state=checked]:border-primary'}`}
                       />
-                      <label htmlFor="terms-agreement" className="text-sm text-slate-600 leading-relaxed cursor-pointer">
+                      <label htmlFor="terms-agreement" className="text-sm leading-relaxed cursor-pointer">
                         I agree to the{' '}
-                        <Link href="/terms" className="text-[#1d43d8] hover:underline font-medium">
+                        <Link href="/terms" className="text-primary hover:underline font-medium">
                           Terms of Service
                         </Link>{' '}
                         and{' '}
-                        <Link href="/privacy" className="text-[#1d43d8] hover:underline font-medium">
+                        <Link href="/privacy" className="text-primary hover:underline font-medium">
                           Privacy Policy
                         </Link>
                       </label>
@@ -936,87 +395,62 @@ export function CheckoutPage() {
 
                     {/* Place order button */}
                     <Button
-                      className={cn(
-                        'group relative w-full h-12 rounded-xl text-base font-semibold transition-all duration-300 overflow-hidden mt-2',
-                        agreeToTerms
-                          ? 'bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-lg shadow-[#1d43d8]/25 hover:shadow-xl hover:shadow-[#1d43d8]/30'
-                          : 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                      )}
+                      className="group relative w-full h-14 rounded-2xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden mt-2"
                       onClick={handlePlaceOrder}
                       disabled={isPlacing || !agreeToTerms}
+                      aria-label="Place order"
                     >
                       {isPlacing ? (
                         <>
-                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Processing...
+                          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="mr-2">
+                            <Package className="h-5 w-5" />
+                          </motion.div>
+                          Placing order…
                         </>
                       ) : (
                         <>
-                          <ShoppingBag className="h-4 w-4 mr-2" />
+                          <CreditCard className="mr-2 h-5 w-5" />
                           Place Order
-                          <ChevronRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
+                          <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                           {/* Shimmer effect */}
                           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                         </>
                       )}
                     </Button>
 
-                    {/* Terms warning */}
-                    <AnimatePresence>
-                      {!agreeToTerms && (
-                        <motion.p
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="text-xs text-amber-600 text-center flex items-center justify-center gap-1"
-                        >
-                          <Clock className="h-3 w-3" />
-                          Please agree to the terms to continue
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
+                    {!agreeToTerms && <p className="text-xs text-destructive text-center">Please agree to the terms to continue</p>}
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </BlurFade>
 
             {/* Trust badges */}
-            <motion.div variants={itemVariants}>
-              <Card className="rounded-2xl border border-slate-100 overflow-hidden">
+            <BlurFade delay={0.5}>
+              <Card className="rounded-2xl border-0 shadow-md overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-emerald-50">
-                      <Shield className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-sm text-slate-900">Secure Checkout</h3>
-                      <p className="text-xs text-slate-500">Your data is protected</p>
-                    </div>
+                    <Shield className="h-5 w-5 text-green-600" />
+                    <span className="font-semibold text-sm">Secure Checkout</span>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span className="text-xs text-slate-600">SSL Encrypted</span>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    By placing this order, you agree to our terms of service. All sales are final and refunds are processed according to our refund
+                    policy.
+                  </p>
+                  <div className="flex items-center gap-4 mt-4 pt-4 border-t text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <span>SSL Encrypted</span>
                     </div>
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span className="text-xs text-slate-600">Safe Payment</span>
-                    </div>
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span className="text-xs text-slate-600">Money Back</span>
-                    </div>
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span className="text-xs text-slate-600">24/7 Support</span>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <span>Safe Payment</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </BlurFade>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
