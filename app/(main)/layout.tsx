@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 import { SiteHeader } from '@/src/features/common/components/site-header';
 import { SiteFooter } from '@/src/features/common/components/site-footer';
 import ErrorBoundary from '@/src/components/error-boundary';
-import { PlatformBackground } from '@/src/components/ui/backgrounds/platform-background';
+// import { PlatformBackground } from '@/src/components/ui/backgrounds/platform-background';
 
 export const metadata: Metadata = {
   title: 'Merchkins',
