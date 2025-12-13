@@ -5,4 +5,5 @@ export { AboutSection } from './AboutSection';
 export { BentoGrid } from './BentoGrid';
 export { StatsSection } from './StatsSection';
 export { ServicesSection } from './ServicesSection';
+export { ProcessSection } from './ProcessSection';
 export { LandingFooter } from './LandingFooter';

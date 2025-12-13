@@ -32,7 +32,7 @@ export function HeroSection() {
   return (
     <section className="relative min-h-[85vh] flex items-center overflow-hidden">
       {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-white" />
+      <div className="absolute inset-0 bg-gradient-to-br bg-white" />
 
       {/* Decorative elements */}
       <div className="absolute top-20 right-10 w-72 h-72 bg-[#1d43d8]/5 rounded-full blur-3xl" />

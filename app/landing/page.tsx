@@ -4,6 +4,7 @@ import { HeroSection } from '@/src/components/landing/HeroSection';
 import { AboutSection } from '@/src/components/landing/AboutSection';
 import { BentoGrid } from '@/src/components/landing/BentoGrid';
 import { StatsSection } from '@/src/components/landing/StatsSection';
+import { ProcessSection } from '@/src/components/landing/ProcessSection';
 import { ServicesSection } from '@/src/components/landing/ServicesSection';
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://merchkins.com';
@@ -55,6 +56,7 @@ export default function LandingPage() {
         <AboutSection />
         <BentoGrid />
         <StatsSection />
+        <ProcessSection />
         <ServicesSection />
       </main>
       <SiteFooter />
