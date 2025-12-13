@@ -12,6 +12,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { orgSlug, slug } = await params;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com';
   const client = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL as string);
   const organization = await client.query(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug });
   if (!organization) return {};
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   } catch {}
 
   const title = product?.title ? `${product.title} — ${organization.name}` : `Product — ${organization.name}`;
-  const description = product?.description || 'View product details and purchase options.';
+  const description = product?.description || `View product details and purchase options from ${organization.name}.`;
 
   // Resolve product image URL for Open Graph
   let ogImage = product?.imageUrl?.[0] || organization.logo || '/favicon.ico';
@@ -47,15 +48,54 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    alternates: { canonical: `/o/${orgSlug}/p/${slug}` },
+    keywords: [
+      product?.title || '',
+      organization.name,
+      'custom merchandise',
+      'personalized products',
+      product?.categoryInfo?.name || '',
+      ...(product?.tags || []),
+    ].filter(Boolean),
+    alternates: { canonical: `${baseUrl}/o/${orgSlug}/p/${slug}` },
     icons: {
       icon: faviconUrl,
     },
     openGraph: {
       title,
       description,
-      url: `/o/${orgSlug}/p/${slug}`,
-      images: ogImage ? [{ url: ogImage as string }] : undefined,
+      url: `${baseUrl}/o/${orgSlug}/p/${slug}`,
+      siteName: organization.name,
+      locale: 'en_US',
+      type: 'website',
+      images: ogImage
+        ? [
+            {
+              url: ogImage as string,
+              width: 1200,
+              height: 630,
+              alt: product?.title || organization.name,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      site: '@merchkins',
+      creator: '@merchkins',
+      images: ogImage ? [ogImage as string] : undefined,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
   };
 }

@@ -24,6 +24,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     });
 
+    // Add landing page
+    sitemapEntries.push({
+      url: `${baseUrl}/landing`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    });
+
     // Fetch all public products
     try {
       // Get all products (this will include both global and org-specific products)

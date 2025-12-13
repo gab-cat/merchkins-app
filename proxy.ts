@@ -71,4 +71,5 @@ const isPublicRoute = createRouteMatcher([
   '/webhooks(.*)',
   '/monitoring(.*)',
   '/api/invoices/generate-pdf(.*)',
+  '/landing(.*)',
 ]);

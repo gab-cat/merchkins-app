@@ -5,7 +5,10 @@ import { SiteFooter } from '@/src/features/common/components/site-footer';
 import ErrorBoundary from '@/src/components/error-boundary';
 
 export const metadata: Metadata = {
-  title: 'Merchkins',
+  title: 'Merchkins Storefront',
+  description: 'Discover unique custom merchandise from top organizations. Shop personalized products and support your favorite creators.',
+  keywords: ['custom merch', 'personalized products', 'merchandise', 'organization store', 'branded products'],
+  authors: [{ name: 'Merchkins' }],
 };
 
 export default function StorefrontLayout({ children }: { children: ReactNode }) {
@@ -22,14 +25,3 @@ export default function StorefrontLayout({ children }: { children: ReactNode }) 
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
