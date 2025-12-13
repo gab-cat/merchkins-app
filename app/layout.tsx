@@ -6,6 +6,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from '@/components/ui/sonner';
 import { OrgThemeController } from '@/src/features/organizations/components/org-theme-controller';
 import { LoadingProvider } from '@/src/components/loading-provider';
+import { ConvexQueryCacheProvider } from 'convex-helpers/react/cache/provider';
 
 const outfit = Outfit({
   variable: '--font-outfit',
@@ -76,13 +77,15 @@ export default function RootLayout({
           }}
         >
           <ConvexClientProvider>
-            <LoadingProvider>
-              <div className="min-h-dvh flex flex-col">
-                <OrgThemeController />
-                <main className="flex flex-col bg-white text-black min-h-[80vh] w-full relative">{children}</main>
-              </div>
-              <Toaster />
-            </LoadingProvider>
+            <ConvexQueryCacheProvider>
+              <LoadingProvider>
+                <div className="min-h-dvh flex flex-col">
+                  <OrgThemeController />
+                  <main className="flex flex-col bg-white text-black min-h-[80vh] w-full relative">{children}</main>
+                </div>
+                <Toaster />
+              </LoadingProvider>
+            </ConvexQueryCacheProvider>
           </ConvexClientProvider>
         </ClerkProvider>
       </body>

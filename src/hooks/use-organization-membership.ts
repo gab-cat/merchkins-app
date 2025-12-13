@@ -1,4 +1,4 @@
-import { useQuery } from 'convex/react';
+import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { useAuth } from '@clerk/nextjs';
 import { api } from '@/convex/_generated/api';
 

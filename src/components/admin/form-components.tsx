@@ -58,11 +58,7 @@ export function FormCard({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn('rounded-xl border bg-card overflow-hidden', className)}
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={cn('rounded-xl border bg-card overflow-hidden', className)}>
       <div
         className={cn('flex items-center justify-between px-5 py-4 border-b bg-muted/30', collapsible && 'cursor-pointer select-none')}
         onClick={() => collapsible && setIsOpen(!isOpen)}
@@ -231,11 +227,7 @@ export function FormActions({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn(
-        'flex items-center justify-between gap-4 pt-6 mt-6 border-t',
-        sticky && 'sticky bottom-0 bg-white py-4 -mx-4 px-4',
-        className
-      )}
+      className={cn('flex items-center justify-between gap-4 pt-6 mt-6 border-t', sticky && 'sticky bottom-0 bg-white py-4 -mx-4 px-4', className)}
     >
       <div className="flex items-center gap-2">
         {showDelete && onDelete && (
@@ -476,6 +468,7 @@ export interface VariantSize {
   id: string;
   label: string;
   price?: number;
+  inventory?: number;
 }
 
 export interface Variant {
@@ -679,7 +672,7 @@ export function VariantBuilder({ variants, onChange, errors, className, renderVa
                             exit={{ opacity: 0, x: -10 }}
                             className="flex items-center gap-2 p-2 rounded-md bg-white border"
                           >
-                            <div className="flex-1 grid grid-cols-2 gap-2">
+                            <div className="flex-1 grid grid-cols-3 gap-2">
                               <Input
                                 placeholder="Size label (e.g., S, M, L)"
                                 value={size.label}
@@ -689,11 +682,23 @@ export function VariantBuilder({ variants, onChange, errors, className, renderVa
                               <Input
                                 type="number"
                                 step="0.01"
-                                placeholder="Price override (optional)"
+                                placeholder="Price (optional)"
                                 value={size.price ?? ''}
                                 onChange={(e) =>
                                   updateSize(index, sizeIndex, {
                                     price: e.target.value ? parseFloat(e.target.value) : undefined,
+                                  })
+                                }
+                                className="h-8 text-sm"
+                              />
+                              <Input
+                                type="number"
+                                min="0"
+                                placeholder="Stock (optional)"
+                                value={size.inventory ?? ''}
+                                onChange={(e) =>
+                                  updateSize(index, sizeIndex, {
+                                    inventory: e.target.value ? parseInt(e.target.value) : undefined,
                                   })
                                 }
                                 className="h-8 text-sm"
@@ -712,19 +717,11 @@ export function VariantBuilder({ variants, onChange, errors, className, renderVa
                         ))}
                       </div>
                     )}
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => addSize(index)}
-                      className="w-full h-8 text-xs"
-                    >
+                    <Button type="button" variant="secondary" size="sm" onClick={() => addSize(index)} className="w-full h-8 text-xs">
                       <Plus className="h-3 w-3 mr-1.5" />
                       Add Size
                     </Button>
-                    <p className="text-xs text-muted-foreground">
-                      Add sizes for this variant (e.g., S, M, L, XL). Price override is optional.
-                    </p>
+                    <p className="text-xs text-muted-foreground">Add sizes for this variant (e.g., S, M, L, XL). Price override is optional.</p>
                   </motion.div>
                 )}
               </AnimatePresence>

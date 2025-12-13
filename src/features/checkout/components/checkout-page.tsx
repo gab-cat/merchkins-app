@@ -491,6 +491,10 @@ export function CheckoutPage() {
         const items = group.items.map((it) => ({
           productId: it.productInfo.productId,
           variantId: 'variantId' in it ? (it as { variantId?: string }).variantId : undefined,
+          size:
+            'size' in it && it.size
+              ? { id: (it as { size: { id: string; label: string } }).size.id, label: (it as { size: { id: string; label: string } }).size.label }
+              : undefined,
           quantity: it.quantity,
           price: it.productInfo.price,
           customerNote: it.note,

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useQuery } from 'convex/react';
+
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { cn, buildR2PublicUrl } from '@/lib/utils';
@@ -25,6 +25,7 @@ import {
   BookOpen,
   Receipt,
 } from 'lucide-react';
+import { useQuery } from 'convex-helpers/react/cache';
 
 interface NavItemProps {
   href: string;
@@ -46,6 +47,7 @@ function NavItem({ href, icon: Icon, label, badge, isActive, index }: NavItemPro
             : 'text-muted-foreground hover:bg-primary/10 hover:text-foreground hover:translate-x-1'
         )}
         href={href}
+        prefetch
       >
         {/* Active indicator */}
         {isActive && (

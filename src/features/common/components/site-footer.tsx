@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { useQuery } from 'convex/react';
+import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -54,23 +54,23 @@ export function SiteFooter() {
   React.useEffect(() => {
     let resizeTimeout: NodeJS.Timeout;
     const CLAMP_VALUE = 'clamp(6rem, 18vw, 24rem)';
-    
+
     const scaleText = () => {
       if (!brandTextRef.current || !containerRef.current) return;
-      
+
       const container = containerRef.current;
       const text = brandTextRef.current;
-      
+
       // Restore clamp value first to get accurate measurement
       text.style.fontSize = CLAMP_VALUE;
-      
+
       // Force reflow to get accurate measurements with clamp applied
       void text.offsetWidth;
-      
+
       // Get computed styles after clamp is applied
       const containerWidth = container.offsetWidth;
       const textWidth = text.scrollWidth;
-      
+
       // Only scale if there's significant overflow (more than 10px)
       if (textWidth > containerWidth + 10 && containerWidth > 0) {
         // Text overflows - calculate scale factor to fit
@@ -92,7 +92,7 @@ export function SiteFooter() {
     // Small delay to ensure DOM is ready and animations complete
     const initialTimeout = setTimeout(scaleText, 100);
     window.addEventListener('resize', debouncedScaleText);
-    
+
     // Use ResizeObserver for more accurate container size tracking
     const resizeObserver = new ResizeObserver(debouncedScaleText);
     if (containerRef.current) {

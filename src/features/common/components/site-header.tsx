@@ -5,11 +5,23 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ShoppingCart, Search, Building2, Package, User as UserIcon, MessageSquare, Ticket, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
+import {
+  ShoppingCart,
+  Search,
+  Building2,
+  Package,
+  User as UserIcon,
+  MessageSquare,
+  Ticket,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  LogIn,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { useQuery } from 'convex/react';
+import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { SignedIn, SignedOut, UserButton, useAuth, SignInButton, SignUpButton } from '@clerk/nextjs';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
@@ -483,7 +495,10 @@ function SiteHeaderContent({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild data-testid="support-tickets">
-                  <Link href={orgSlug ? `/o/${orgSlug}/tickets` : '/tickets'} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
+                  <Link
+                    href={orgSlug ? `/o/${orgSlug}/tickets` : '/tickets'}
+                    className="flex items-center gap-2 hover:bg-accent/50 transition-colors"
+                  >
                     <Ticket className="h-4 w-4" />
                     <span>Tickets</span>
                     {totalTicketUnread > 0 && (
@@ -548,27 +563,9 @@ function SiteHeaderContent({
               <SignInButton mode="modal">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
-                    variant="ghost"
                     size="sm"
                     className={cn(
-                      'h-9 px-3 text-sm font-medium transition-all duration-300 rounded-lg',
-                      isScrolled
-                        ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
-                        : shouldApplyTheme
-                          ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
-                          : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
-                    )}
-                  >
-                    Sign in
-                  </Button>
-                </motion.div>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
-                    size="sm"
-                    className={cn(
-                      'px-3 h-9 text-sm font-medium transition-all duration-300 rounded-lg shadow-lg',
+                      'px-3 md:px-5 h-9 text-sm font-medium transition-all duration-300 rounded-full shadow-lg',
                       isScrolled
                         ? 'bg-white/20 hover:bg-white/30 text-white hover:shadow-xl backdrop-blur-sm'
                         : shouldApplyTheme
@@ -577,10 +574,11 @@ function SiteHeaderContent({
                     )}
                     style={isScrolled ? undefined : !shouldApplyTheme ? { backgroundColor: '#adfc04', color: '#000000' } : undefined}
                   >
-                    Register
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Sign In
                   </Button>
                 </motion.div>
-              </SignUpButton>
+              </SignInButton>
             </div>
           </SignedOut>
           <SignedIn>

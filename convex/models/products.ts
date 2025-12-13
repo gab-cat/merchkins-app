@@ -65,6 +65,7 @@ export const products = defineTable({
             id: v.string(),
             label: v.string(),
             price: v.optional(v.number()), // Optional price override for this size
+            inventory: v.optional(v.number()), // Optional stock per size (for STOCK products)
           })
         )
       ),

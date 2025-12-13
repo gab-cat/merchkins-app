@@ -98,16 +98,24 @@ export const addItemHandler = async (
       if (!args.size) {
         throw new Error('Size selection required for this variant');
       }
-      const sizeExists = variant.sizes.some((s) => s.id === args.size!.id);
-      if (!sizeExists) {
+      const selectedSize = variant.sizes.find((s) => s.id === args.size!.id);
+      if (!selectedSize) {
         throw new Error('Selected size not found for this variant');
+      }
+
+      // Use size-level inventory if available, otherwise use variant inventory
+      if (selectedSize.inventory !== undefined) {
+        variantInventory = selectedSize.inventory;
       }
     }
 
     // Compute effective price: size.price || variant.price
     price = args.size?.price ?? variant.price;
     variantName = variant.variantName;
-    variantInventory = variant.inventory;
+    // Only use variant inventory if not already set by size
+    if (!args.size || !(variant.sizes?.find((s) => s.id === args.size!.id)?.inventory !== undefined)) {
+      variantInventory = variant.inventory;
+    }
   }
 
   // Only check inventory for STOCK items, PREORDER items have infinite stock

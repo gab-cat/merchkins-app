@@ -279,7 +279,12 @@ export default function AdminEditProductPage() {
 
   const safeUpdateVariant = async (
     variantId: string,
-    fields: Partial<{ variantName: string; price: number; inventory: number; sizes: Array<{ id: string; label: string; price?: number }> }>
+    fields: Partial<{
+      variantName: string;
+      price: number;
+      inventory: number;
+      sizes: Array<{ id: string; label: string; price?: number; inventory?: number }>;
+    }>
   ) => {
     if (!product) return;
     try {
@@ -317,15 +322,19 @@ export default function AdminEditProductPage() {
 
   const updateSizeInVariant = async (
     variantId: string,
-    currentSizes: Array<{ id: string; label: string; price?: number }>,
+    currentSizes: Array<{ id: string; label: string; price?: number; inventory?: number }>,
     sizeIndex: number,
-    updates: Partial<{ label: string; price?: number }>
+    updates: Partial<{ label: string; price?: number; inventory?: number }>
   ) => {
     const updatedSizes = currentSizes.map((s, i) => (i === sizeIndex ? { ...s, ...updates } : s));
     await safeUpdateVariant(variantId, { sizes: updatedSizes });
   };
 
-  const removeSizeFromVariant = async (variantId: string, currentSizes: Array<{ id: string; label: string; price?: number }>, sizeIndex: number) => {
+  const removeSizeFromVariant = async (
+    variantId: string,
+    currentSizes: Array<{ id: string; label: string; price?: number; inventory?: number }>,
+    sizeIndex: number
+  ) => {
     const updatedSizes = currentSizes.filter((_, i) => i !== sizeIndex);
     await safeUpdateVariant(variantId, { sizes: updatedSizes });
   };
@@ -796,7 +805,7 @@ export default function AdminEditProductPage() {
                                       exit={{ opacity: 0, x: -10 }}
                                       className="flex items-center gap-2 p-2 rounded-md bg-background border"
                                     >
-                                      <div className="flex-1 grid grid-cols-2 gap-2">
+                                      <div className="flex-1 grid grid-cols-3 gap-2">
                                         <Input
                                           placeholder="Size label (e.g., S, M, L)"
                                           defaultValue={size.label}
@@ -810,12 +819,25 @@ export default function AdminEditProductPage() {
                                         <Input
                                           type="number"
                                           step="0.01"
-                                          placeholder="Price override (optional)"
+                                          placeholder="Price (optional)"
                                           defaultValue={size.price ?? ''}
                                           onBlur={(e) => {
                                             const newPrice = e.target.value ? parseFloat(e.target.value) : undefined;
                                             if (newPrice !== size.price) {
                                               updateSizeInVariant(v.variantId, v.sizes!, sizeIndex, { price: newPrice });
+                                            }
+                                          }}
+                                          className="h-8 text-sm"
+                                        />
+                                        <Input
+                                          type="number"
+                                          min="0"
+                                          placeholder="Stock (optional)"
+                                          defaultValue={size.inventory ?? ''}
+                                          onBlur={(e) => {
+                                            const newInventory = e.target.value ? parseInt(e.target.value) : undefined;
+                                            if (newInventory !== size.inventory) {
+                                              updateSizeInVariant(v.variantId, v.sizes!, sizeIndex, { inventory: newInventory });
                                             }
                                           }}
                                           className="h-8 text-sm"
@@ -845,7 +867,7 @@ export default function AdminEditProductPage() {
                                 Add Size
                               </Button>
                               <p className="text-xs text-muted-foreground">
-                                Add sizes for this variant (e.g., S, M, L, XL). Price override is optional.
+                                Add sizes for this variant (e.g., S, M, L, XL). Price and stock overrides are optional.
                               </p>
                             </motion.div>
                           )}

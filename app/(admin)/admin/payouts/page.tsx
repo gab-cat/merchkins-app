@@ -32,7 +32,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
-import { InvoiceDetailDialog } from '@/src/features/admin/payouts/components';
+import { InvoiceDetailDialog, BankCombobox, BankChannel } from '@/src/features/admin/payouts/components';
+import { Separator } from '@/components/ui/separator';
 
 // Types
 type PayoutStatus = 'PENDING' | 'PROCESSING' | 'PAID' | 'CANCELLED';
@@ -401,44 +402,77 @@ export default function AdminPayoutsPage() {
         </div>
       </motion.div>
 
-      {/* Bank Details Card */}
+      {/* Bank Details Card - Enhanced */}
       {organization?.payoutBankDetails && (
-        <Card className="py-1">
-          <CardHeader className="pb-0 pt-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Payout Account
-              </CardTitle>
-              <Button size="sm" variant="ghost" onClick={handleOpenBankDetailsDialog}>
-                <Pencil className="h-4 w-4 mr-2" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative rounded-xl border border-border/50 bg-gradient-to-br from-card via-card to-muted/20 overflow-hidden"
+        >
+          {/* Decorative accent */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary to-brand-neon" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+
+          <div className="relative p-5">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-base font-admin-heading">Payout Account</h3>
+                  <p className="text-xs text-muted-foreground">Bank details for receiving payments</p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleOpenBankDetailsDialog}
+                className="border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-colors"
+              >
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
                 Edit
               </Button>
             </div>
-          </CardHeader>
-          <CardContent className="py-0">
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Bank</span>
-                <p className="font-medium">{organization.payoutBankDetails.bankName}</p>
+
+            {/* Bank Info Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Bank / E-Wallet</span>
+                <p className="font-semibold text-sm">{organization.payoutBankDetails.bankName}</p>
+                {organization.payoutBankDetails.bankCode && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-mono">
+                    {organization.payoutBankDetails.bankCode}
+                  </Badge>
+                )}
               </div>
-              <div>
-                <span className="text-muted-foreground">Account Name</span>
-                <p className="font-medium">{organization.payoutBankDetails.accountName}</p>
+              <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Account Name</span>
+                <p className="font-semibold text-sm">{organization.payoutBankDetails.accountName}</p>
               </div>
-              <div>
-                <span className="text-muted-foreground">Account Number</span>
-                <p className="font-medium">{organization.payoutBankDetails.accountNumber}</p>
+              <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Account Number</span>
+                <p className="font-semibold text-sm font-mono tracking-wide">{organization.payoutBankDetails.accountNumber}</p>
               </div>
             </div>
+
+            {/* Notification Email */}
             {organization.payoutBankDetails.notificationEmail && (
-              <div className="mt-4 pt-4 border-t">
-                <span className="text-muted-foreground text-sm">Notification Email</span>
-                <p className="font-medium text-sm">{organization.payoutBankDetails.notificationEmail}</p>
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-md bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                    <Info className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Notification Email</span>
+                    <p className="font-medium text-sm">{organization.payoutBankDetails.notificationEmail}</p>
+                  </div>
+                </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
       )}
 
       {/* Invoices Table */}
@@ -493,94 +527,146 @@ export default function AdminPayoutsPage() {
         onViewInvoice={handleViewInvoice}
       />
 
-      {/* Bank Details Form Dialog */}
+      {/* Bank Details Form Dialog - Enhanced */}
       <Dialog open={bankDetailsDialogOpen} onOpenChange={setBankDetailsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{organization?.payoutBankDetails ? 'Edit Bank Details' : 'Add Bank Details'}</DialogTitle>
-            <DialogDescription>
-              {organization?.payoutBankDetails
-                ? 'Update your bank account information for payouts.'
-                : 'Add your bank account information to receive payouts.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden border border-border/50">
+          {/* Gradient Header */}
+          <div className="relative bg-gradient-to-br from-primary via-primary to-primary/90 px-6 py-5 overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+            <div className="absolute top-1/2 right-1/4 w-12 h-12 bg-brand-neon/20 rounded-full blur-xl" />
 
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="bankName">
-                Bank Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="bankName"
-                placeholder="e.g., BDO, BPI, Metrobank"
-                value={bankName}
-                onChange={(e) => setBankName(e.target.value)}
-                disabled={isSubmitting}
-              />
+            <DialogHeader className="relative z-10">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <DialogTitle className="text-white font-bold text-lg font-admin-heading">
+                    {organization?.payoutBankDetails ? 'Edit Payout Account' : 'Add Payout Account'}
+                  </DialogTitle>
+                  <DialogDescription className="text-white/70 text-sm">
+                    {organization?.payoutBankDetails ? 'Update your bank account information' : 'Add your bank account to receive payouts'}
+                  </DialogDescription>
+                </div>
+              </motion.div>
+            </DialogHeader>
+          </div>
+
+          {/* Form Content */}
+          <div className="px-6 py-5 space-y-5 max-h-[60vh] overflow-y-auto">
+            {/* Bank/E-Wallet Selection */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-4 bg-primary rounded-full" />
+                <h4 className="font-semibold text-sm">Bank or E-Wallet</h4>
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  Select Bank / E-Wallet <span className="text-destructive">*</span>
+                </Label>
+                <BankCombobox
+                  value={bankCode}
+                  bankName={bankName}
+                  onValueChange={(code, bankData) => {
+                    setBankCode(code);
+                    if (bankData) {
+                      setBankName(bankData.name);
+                    }
+                  }}
+                  onBankNameChange={setBankName}
+                  disabled={isSubmitting}
+                />
+                <p className="text-xs text-muted-foreground">Search and select your bank or e-wallet from the list</p>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="accountName">
-                Account Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="accountName"
-                placeholder="Account holder name"
-                value={accountName}
-                onChange={(e) => setAccountName(e.target.value)}
-                disabled={isSubmitting}
-              />
+            <Separator />
+
+            {/* Account Details */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-4 bg-primary rounded-full" />
+                <h4 className="font-semibold text-sm">Account Details</h4>
+              </div>
+
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="accountName">
+                    Account Holder Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="accountName"
+                    placeholder="e.g., Juan Dela Cruz"
+                    value={accountName}
+                    onChange={(e) => setAccountName(e.target.value)}
+                    disabled={isSubmitting}
+                    className="h-10"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accountNumber">
+                    Account Number <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="accountNumber"
+                    placeholder="e.g., 1234567890"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    disabled={isSubmitting}
+                    className="h-10 font-mono"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="accountNumber">
-                Account Number <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="accountNumber"
-                placeholder="Account number"
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                disabled={isSubmitting}
-              />
-            </div>
+            <Separator />
 
-            <div className="space-y-2">
-              <Label htmlFor="bankCode">Bank Code (Optional)</Label>
-              <Input
-                id="bankCode"
-                placeholder="e.g., BDO, BPI"
-                value={bankCode}
-                onChange={(e) => setBankCode(e.target.value)}
-                disabled={isSubmitting}
-              />
-              <p className="text-xs text-muted-foreground">Bank code for automated payouts (optional)</p>
-            </div>
+            {/* Notifications */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-4 bg-amber-500 rounded-full" />
+                <h4 className="font-semibold text-sm">Notifications</h4>
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                  Optional
+                </Badge>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="notificationEmail">Notification Email (Optional)</Label>
-              <Input
-                id="notificationEmail"
-                type="email"
-                placeholder="payouts@example.com"
-                value={notificationEmail}
-                onChange={(e) => setNotificationEmail(e.target.value)}
-                disabled={isSubmitting}
-              />
-              <p className="text-xs text-muted-foreground">
-                Email address to receive payout notifications. If not set, notifications will be sent to organization admins.
-              </p>
+              <div className="space-y-2">
+                <Label htmlFor="notificationEmail">Notification Email</Label>
+                <Input
+                  id="notificationEmail"
+                  type="email"
+                  placeholder="payouts@example.com"
+                  value={notificationEmail}
+                  onChange={(e) => setNotificationEmail(e.target.value)}
+                  disabled={isSubmitting}
+                  className="h-10"
+                />
+                <p className="text-xs text-muted-foreground">Receive payout notifications at this email. Defaults to org admin emails if not set.</p>
+              </div>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setBankDetailsDialogOpen(false)} disabled={isSubmitting}>
+          {/* Footer */}
+          <div className="border-t border-border/50 bg-muted/30 px-6 py-4 flex items-center justify-end gap-3">
+            <Button variant="ghost" onClick={() => setBankDetailsDialogOpen(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleSubmitBankDetails} disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : organization?.payoutBankDetails ? 'Update' : 'Save'}
+            <Button onClick={handleSubmitBankDetails} disabled={isSubmitting} className="min-w-[100px]">
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : organization?.payoutBankDetails ? (
+                'Update Account'
+              ) : (
+                'Save Account'
+              )}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

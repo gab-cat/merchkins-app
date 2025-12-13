@@ -1,0 +1,111 @@
+﻿Channel code,Channel type,Channel name,Country,Currencies,Min amount,Max amount,Flight time
+PH_ABP,Bank,AllBank Inc.,Philippines,PHP,1,100000000,15 minutes
+PH_AIB,Bank,Amanah Islamic Investment Bank,Philippines,PHP,1,100000000,15 minutes
+PH_AUB,Bank,Asia United Bank (AUB),Philippines,PHP,1,100000000,15 minutes
+PH_ANZ,Bank,Australia and New Zealand Bank,Philippines,PHP,1,100000000,15 minutes
+PH_BCH,Bank,"Bank of China, Ltd. - Manila Branch",Philippines,PHP,1,100000000,15 minutes
+PH_BDO,Bank,"Banco De Oro Unibank, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_BKB,Bank,"Bangkok Bank Public Co, Ltd.",Philippines,PHP,1,100000000,15 minutes
+PH_BKI,Bank,Bangko Kabayan Inc,Philippines,PHP,1,100000000,15 minutes
+PH_BMB,Bank,"Bangko Mabuhay (A Rural Bank), Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_BNSP,Bank,Bangko Nuestra Señora Del Pilar Inc,Philippines,PHP,1,100000000,15 minutes
+PH_BOA,Bank,"Bank of America, N.A.",Philippines,PHP,1,100000000,15 minutes
+PH_BOC,Bank,Bank of Commerce,Philippines,PHP,1,100000000,15 minutes
+PH_BOF,Bank,Bank of Florida,Philippines,PHP,1,100000000,15 minutes
+PH_BOM,Bank,Bank of Makati,Philippines,PHP,1,100000000,15 minutes
+PH_BPI,Bank,Bank of the Philippine Islands (BPI),Philippines,PHP,1,100000000,15 minutes
+PH_BPIDB,Bank,"BPI Direct BanKO, Inc., A Savings Bank",Philippines,PHP,1,100000000,15 minutes
+PH_BRB,Bank,Binangonan Rural Bank (BRBDigital),Philippines,PHP,1,100000000,15 minutes
+PH_CAB,Bank,Cantilan Bank,Philippines,PHP,1,100000000,15 minutes
+PH_CBB,Bank,Country Builders Bank Inc,Philippines,PHP,1,100000000,15 minutes
+PH_CBC,Bank,China Banking Corporation,Philippines,PHP,1,100000000,15 minutes
+PH_CRBR,Bank,Netbank (Community Rural Bank of Romblon),Philippines,PHP,1,100000000,15 minutes
+PH_CBS,Bank,China Bank Savings,Philippines,PHP,1,100000000,15 minutes
+PH_CEBRUR,Bank,"Cebuana Lhuillier Rural Bank, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_CIMB,Bank,CIMB Bank Philippines,Philippines,PHP,1,100000000,15 minutes
+PH_CITI,Bank,"Citibank, N.A.",Philippines,PHP,1,100000000,15 minutes
+PH_CMG,Bank,Camalig Bank,Philippines,PHP,1,100000000,15 minutes
+PH_CRBR,Bank,Community Rural Bank of Romblon,Philippines,PHP,1,100000000,15 minutes
+PH_CRD,Bank,CARD Bank,Philippines,PHP,1,100000000,15 minutes
+PH_CRDSB,Bank,"CARD SME Bank, Inc., A Thrift Bank",Philippines,PHP,1,100000000,15 minutes
+PH_CTBC,Bank,CTBC Bank (Philippines) Corp.,Philippines,PHP,1,100000000,15 minutes
+PH_CTS,Bank,"City Savings Bank, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_DEUTSCHE,Bank,Deutsche Bank AG,Philippines,PHP,1,100000000,15 minutes
+PH_DBI,Bank,"Dungganon Bank (A Microfinance Rural Bank), Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_DBP,Bank,Development Bank of the Philippines,Philippines,PHP,1,100000000,15 minutes
+PH_DCDB,Bank,Dumaguete City Development Bank,Philippines,PHP,1,100000000,15 minutes
+PH_EQB,Bank,"Equicom Savings Bank, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_EWB,Bank,East West Banking Corporation,Philippines,PHP,1,100000000,15 minutes
+PH_EWR,Bank,EastWest Rural Bank or Komo,Philippines,PHP,1,100000000,15 minutes
+PH_FBC,Bank,First Consolidated Bank Inc,Philippines,PHP,1,100000000,15 minutes
+PH_GOTYME,Bank,GoTyme Bank,Philippines,PHP,1,100000000,15 minutes
+PH_GRB,Bank,Guagua Rural Bank Inc,Philippines,PHP,1,100000000,15 minutes
+PH_HSBC,Bank,Hong Kong and Shanghai Banking Corp.,Philippines,PHP,1,100000000,15 minutes
+PH_IBI,Bank,Innovative Rural Bank Inc,Philippines,PHP,1,100000000,15 minutes
+PH_IBK,Bank,Industrial Bank of Korea,Philippines,PHP,1,100000000,15 minutes
+PH_ICBC,Bank,Industrial and Commercial Bank of China (ICBC) - Manila Branch,Philippines,PHP,1,100000000,15 minutes
+PH_ISLA,Bank,ISLA Bank,Philippines,PHP,1,100000000,15 minutes
+PH_JPM,Bank,"JP Morgan Chase Bank, NA.",Philippines,PHP,1,100000000,15 minutes
+PH_KEB,Bank,Korea Exchange Bank,Philippines,PHP,1,100000000,15 minutes
+PH_KHB,Bank,KEB Hana Bank - Manila Branch,Philippines,PHP,1,100000000,15 minutes
+PH_LBP,Bank,Land Bank of The Philippines,Philippines,PHP,1,100000000,15 minutes
+PH_LSB,Bank,"Legazpi Savings Bank, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_MAYA,Bank,"Maya Bank, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_MCCB,Bank,Mindanao Consolidated Cooperative Bank,Philippines,PHP,1,100000000,15 minutes
+PH_MEGA,Bank,"Mega International Commercial Bank Co, Ltd.",Philippines,PHP,1,100000000,15 minutes
+PH_MET,Bank,Metropolitan Bank and Trust Company (Metrobank),Philippines,PHP,1,100000000,15 minutes
+PH_MIZUHO,Bank,"Mizuho Bank, Ltd. - Manila Branch",Philippines,PHP,1,100000000,15 minutes
+PH_MPI,Bank,Maybank Philippines,Philippines,PHP,1,100000000,15 minutes
+PH_MSB,Bank,"Malayan Bank Savings and Mortgage Bank, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_MUFG,Bank,"MUFG Bank, Ltd.",Philippines,PHP,1,100000000,15 minutes
+PH_NLK,Bank,Infoserve Incorporated (Nationlink),Philippines,PHP,1,100000000,15 minutes
+PH_OMNI,Bank,"Omnipay, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_ONB,Bank,BDO Network Bank,Philippines,PHP,1,100000000,15 minutes
+PH_OWN,Bank,"Own Bank, The Rural Bank of Cavite City, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_PAR,Bank,"Partner Rural Bank (Cotabato), Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_PAS,Bank,Pacific Ace Savings,Philippines,PHP,1,100000000,15 minutes
+PH_PBB,Bank,"Philippine Business Bank, Inc., A Savings Bank",Philippines,PHP,1,100000000,15 minutes
+PH_PBC,Bank,Philippine Bank of Communications (PBCOM),Philippines,PHP,1,100000000,15 minutes
+PH_PNB,Bank,Philippine National Bank (PNB),Philippines,PHP,1,100000000,15 minutes
+PH_PNB,Bank,PNB Savings Bank,Philippines,PHP,1,100000000,15 minutes
+PH_PRB,Bank,Producers Bank,Philippines,PHP,1,100000000,15 minutes
+PH_PSB,Bank,Philippine Savings Bank (PSBank),Philippines,PHP,1,100000000,15 minutes
+PH_PTC,Bank,Philippine Trust Company,Philippines,PHP,1,100000000,15 minutes
+PH_PVB,Bank,Philippine Veterans Bank,Philippines,PHP,1,100000000,15 minutes
+PH_QCB,Bank,"Queen City Development Bank, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_QCRB,Bank,"Quezon Capital Rural Bank, Inc",Philippines,PHP,1,100000000,15 minutes
+PH_RABI,Bank,Rang-Ay Bank Inc,Philippines,PHP,1,100000000,15 minutes
+PH_RBD,Bank,Rural Bank of Digos,Philippines,PHP,1,100000000,15 minutes
+PH_RBG,Bank,"Rural Bank of Guinobatan, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_RBMI,Bank,"Rural Bank of Montalban, Inc",Philippines,PHP,1,100000000,15 minutes
+PH_RCBC,Bank,Rizal Commercial Banking Corporation (RCBC),Philippines,PHP,1,100000000,15 minutes
+PH_ROB,Bank,Robinsons Bank,Philippines,PHP,1,100000000,15 minutes
+PH_SBA,Bank,Sterling Bank of Asia,Philippines,PHP,1,100000000,15 minutes
+PH_SCB,Bank,Standard Chartered Bank,Philippines,PHP,1,100000000,15 minutes
+PH_SEA,Bank,Seabank Philippines Inc.,Philippines,PHP,1,100000000,15 minutes
+PH_SEC,Bank,Security Bank Corporation,Philippines,PHP,1,100000000,15 minutes
+PH_SHB,Bank,Shinhan Bank - Manila Branch,Philippines,PHP,1,100000000,15 minutes
+PH_SMBC,Bank,Sumitomo Mitsui Banking Corporation (SMBC),Philippines,PHP,1,100000000,15 minutes
+PH_SSB,Bank,Sun Savings Bank,Philippines,PHP,1,100000000,15 minutes
+PH_TONIK,Bank,"Tonik Digital Bank, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_TYSB,Bank,"Tong Yang Savings Bank, Inc.",Philippines,PHP,1,100000000,15 minutes
+PH_UBP,Bank,Union Bank of the Philippines (UBP),Philippines,PHP,1,999999999999,15 minutes
+PH_UDP,Bank,Union Digital Bank,Philippines,PHP,1,100000000,15 minutes
+PH_UNO,Bank,"UNObank, Inc",Philippines,PHP,1,100000000,15 minutes
+PH_UCBSB,Bank,UCPB Savings bank,Philippines,PHP,1,100000000,15 minutes
+PH_UCPB,Bank,United Coconut Planters Bank (UCPB),Philippines,PHP,1,100000000,15 minutes
+PH_UOB,Bank,"United Overseas Bank, Ltd. (UOB) - Manila Branch",Philippines,PHP,1,100000000,15 minutes
+PH_WDB,Bank,Wealth Development Bank Corporation,Philippines,PHP,1,100000000,15 minutes
+PH_CBCI,E-Wallet,"CIS Bayad Center, Inc. (CBCI)",Philippines,PHP,1,100000000,15 minutes
+PH_COINS,E-Wallet,Coins.PH,Philippines,PHP,1,5000000,15 minutes
+PH_DCP,E-Wallet,DCPAY Philippines,Philippines,PHP,1,5000000,15 minutes
+PH_GCASH,E-Wallet,GCash,Philippines,PHP,1,200000,15 minutes
+PH_GRABPAY,E-Wallet,GrabPay,Philippines,PHP,1,200000,15 minutes
+PH_JUANCASH,E-Wallet,Zybi Tech Inc.,Philippines,PHP,1,200000,15 minutes
+PH_LULU,E-Wallet,Lulu Financial Services (Phils) Inc.,Philippines,PHP,1,200000,15 minutes
+PH_PAYMAYA,E-Wallet,PayMaya,Philippines,PHP,1,200000,15 minutes
+PH_PPS,E-Wallet,PalawanPay,Philippines,PHP,1,200000,15 minutes
+PH_SHOPEE,E-Wallet,ShopeePay,Philippines,PHP,1,200000,15 minutes
+PH_SPY,E-Wallet,*Starpay Corporation,Philippines,PHP,1,200000,15 minutes
+PH_TAYOCASH,E-Wallet,Tayocash Inc.,Philippines,PHP,1,200000,15 minutes
+PH_USSC,E-Wallet,USSC Money Services Inc,Philippines,PHP,1,200000,15 minutes

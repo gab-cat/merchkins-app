@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useQuery } from 'convex/react';
+import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { OrderPaymentLink } from './order-payment-link';

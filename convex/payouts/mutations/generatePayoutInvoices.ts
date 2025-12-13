@@ -125,10 +125,8 @@ export const generatePayoutInvoicesHandler = async (
     const orderSummary = orders.map((order) => {
       const hasRefundVoucher = order.voucherSnapshot?.discountType === 'REFUND';
       // For display: show original amount before voucher for REFUND vouchers
-      const displayAmount = hasRefundVoucher && order.voucherDiscount 
-        ? order.totalAmount + order.voucherDiscount 
-        : order.totalAmount;
-      
+      const displayAmount = hasRefundVoucher && order.voucherDiscount ? order.totalAmount + order.voucherDiscount : order.totalAmount;
+
       return {
         orderId: order._id,
         orderNumber: order.orderNumber || `ORD-${order._id.slice(-8)}`,
@@ -152,7 +150,7 @@ export const generatePayoutInvoicesHandler = async (
     for (const order of orders) {
       // Get items from embeddedItems
       const embeddedItems = order.embeddedItems || [];
-      
+
       // For large orders, also fetch from orderItems table
       const orderItemsFromDb = await ctx.db
         .query('orderItems')
@@ -168,10 +166,16 @@ export const generatePayoutInvoicesHandler = async (
         // Handle variantId - ensure it's a string
         const variantId = item.variantId && typeof item.variantId === 'string' ? item.variantId : 'default';
         const variantName = item.productInfo.variantName || 'Default';
-        // Handle size - could be from orderItems table (has size field) or embeddedItems (no size field)
+        // Handle size - could be object (from embeddedItems) or string (from orderItems)
         let size = 'One Size';
-        if ('size' in item && item.size && typeof item.size === 'string') {
-          size = item.size;
+        if ('size' in item && item.size) {
+          if (typeof item.size === 'string') {
+            // orderItems table stores size as string
+            size = item.size;
+          } else if (typeof item.size === 'object' && 'label' in item.size) {
+            // embeddedItems stores size as { id, label }
+            size = (item.size as { id: string; label: string }).label;
+          }
         }
         const quantity = item.quantity;
         const amount = item.price * item.quantity;

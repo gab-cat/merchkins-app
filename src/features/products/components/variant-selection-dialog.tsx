@@ -19,6 +19,7 @@ interface ProductVariant {
     id: string;
     label: string;
     price?: number;
+    inventory?: number;
   }>;
 }
 
@@ -33,6 +34,7 @@ interface VariantSelectionDialogProps {
   onVariantChange: (variantId: string | undefined) => void;
   onSizeChange: (sizeId: string | undefined) => void;
   onConfirm: () => void;
+  inventoryType?: 'STOCK' | 'PREORDER';
 }
 
 export function VariantSelectionDialog({
@@ -46,6 +48,7 @@ export function VariantSelectionDialog({
   onVariantChange,
   onSizeChange,
   onConfirm,
+  inventoryType = 'STOCK',
 }: VariantSelectionDialogProps) {
   const [tempVariantId, setTempVariantId] = useState<string | undefined>(selectedVariantId);
   const [tempSizeId, setTempSizeId] = useState<string | undefined>(selectedSizeId);
@@ -224,30 +227,52 @@ export function VariantSelectionDialog({
                 Choose Size
               </h4>
               <div className="flex flex-wrap gap-2">
-                {selectedVariant.sizes!.map((size) => (
-                  <button
-                    key={size.id}
-                    type="button"
-                    onClick={() => handleSizeSelect(size.id)}
-                    className={`px-4 py-2 cursor-pointer rounded-lg border text-sm font-medium transition-all duration-200 ${
-                      tempSizeId === size.id
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border hover:border-primary/30 bg-card hover:bg-primary/5'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>{size.label}</span>
-                      {size.price !== undefined && size.price !== selectedVariant.price && (
-                        <Badge variant="outline" className="text-xs">
-                          {new Intl.NumberFormat(undefined, {
-                            style: 'currency',
-                            currency: 'PHP',
-                          }).format(size.price)}
-                        </Badge>
-                      )}
-                    </div>
-                  </button>
-                ))}
+                {selectedVariant.sizes!.map((size) => {
+                  // Determine size availability for STOCK products
+                  const isStockProduct = inventoryType === 'STOCK';
+                  const sizeInventory = size.inventory;
+                  const variantInventory = selectedVariant.inventory;
+                  // For STOCK: check size inventory if set, otherwise check variant inventory
+                  const effectiveInventory = sizeInventory !== undefined ? sizeInventory : variantInventory;
+                  const isSoldOut = isStockProduct && effectiveInventory <= 0;
+                  const isLowStock = isStockProduct && effectiveInventory > 0 && effectiveInventory <= 5;
+
+                  return (
+                    <button
+                      key={size.id}
+                      type="button"
+                      onClick={() => !isSoldOut && handleSizeSelect(size.id)}
+                      disabled={isSoldOut}
+                      className={`px-4 py-2 cursor-pointer rounded-lg border text-sm font-medium transition-all duration-200 ${
+                        isSoldOut
+                          ? 'border-border bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                          : tempSizeId === size.id
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border hover:border-primary/30 bg-card hover:bg-primary/5'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={isSoldOut ? 'line-through' : ''}>{size.label}</span>
+                        {isSoldOut ? (
+                          <Badge variant="destructive" className="text-xs">
+                            Sold Out
+                          </Badge>
+                        ) : isLowStock ? (
+                          <Badge variant="secondary" className="text-xs text-orange-600 bg-orange-50 border-orange-200">
+                            {effectiveInventory} left
+                          </Badge>
+                        ) : size.price !== undefined && size.price !== selectedVariant.price ? (
+                          <Badge variant="outline" className="text-xs">
+                            {new Intl.NumberFormat(undefined, {
+                              style: 'currency',
+                              currency: 'PHP',
+                            }).format(size.price)}
+                          </Badge>
+                        ) : null}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

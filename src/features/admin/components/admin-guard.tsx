@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useAuth } from '@clerk/nextjs';
+import { useQuery } from 'convex-helpers/react/cache';
 
 export function AdminGuard() {
   const router = useRouter();

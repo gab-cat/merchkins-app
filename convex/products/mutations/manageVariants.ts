@@ -27,6 +27,7 @@ export const addVariantArgs = {
         id: v.string(),
         label: v.string(),
         price: v.optional(v.number()),
+        inventory: v.optional(v.number()),
       })
     )
   ),
@@ -45,6 +46,7 @@ export const addVariantHandler = async (
       id: string;
       label: string;
       price?: number;
+      inventory?: number;
     }>;
   }
 ) => {
@@ -208,6 +210,7 @@ export const updateVariantArgs = {
         id: v.string(),
         label: v.string(),
         price: v.optional(v.number()),
+        inventory: v.optional(v.number()),
       })
     )
   ),
@@ -227,6 +230,7 @@ export const updateVariantHandler = async (
       id: string;
       label: string;
       price?: number;
+      inventory?: number;
     }>;
   }
 ) => {

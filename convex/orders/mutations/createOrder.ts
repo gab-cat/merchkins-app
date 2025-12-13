@@ -17,6 +17,10 @@ import { createSystemOrderLog } from './createOrderLog';
 type OrderItemInput = {
   productId: Id<'products'>;
   variantId?: string;
+  size?: {
+    id: string;
+    label: string;
+  };
   quantity: number;
   price?: number; // Optional override for staff/admin custom pricing
   customerNote?: string;
@@ -30,6 +34,12 @@ export const createOrderArgs = {
     v.object({
       productId: v.id('products'),
       variantId: v.optional(v.string()),
+      size: v.optional(
+        v.object({
+          id: v.string(),
+          label: v.string(),
+        })
+      ),
       quantity: v.number(),
       price: v.optional(v.number()),
       customerNote: v.optional(v.string()),
@@ -138,6 +148,7 @@ export const createOrderHandler = async (
   // Build item snapshots and validate inventory
   type PreparedItem = {
     variantId?: string;
+    size?: { id: string; label: string };
     productId: Id<'products'>;
     quantity: number;
     price: number;
@@ -155,9 +166,11 @@ export const createOrderHandler = async (
   };
 
   const preparedItems: Array<PreparedItem> = [];
-  // Track per-product/variant totals for inventory updates and stats
+  // Track per-product/variant/size totals for inventory updates and stats
   const productIdToQty: Map<string, number> = new Map();
   const productIdToVariantQty: Map<string, Map<string, number>> = new Map();
+  // Track size-level quantities: productId -> variantId -> sizeId -> quantity
+  const productIdToVariantSizeQty: Map<string, Map<string, Map<string, number>>> = new Map();
 
   for (const item of args.items) {
     const product = await validateProductExists(ctx, item.productId);
@@ -203,6 +216,22 @@ export const createOrderHandler = async (
       basePrice = variant.price;
       variantName = variant.variantName;
       availableInventory = variant.inventory;
+
+      // Check size-level inventory if a size is selected
+      if (item.size && variant.sizes && variant.sizes.length > 0) {
+        const selectedSize = variant.sizes.find((s) => s.id === item.size!.id);
+        if (!selectedSize) {
+          throw new Error('Selected size not found for this variant');
+        }
+        // Use size inventory if available, otherwise fall back to variant inventory
+        if (selectedSize.inventory !== undefined) {
+          availableInventory = selectedSize.inventory;
+        }
+        // Use size price if available
+        if (selectedSize.price !== undefined) {
+          basePrice = selectedSize.price;
+        }
+      }
     }
 
     // Enforce inventory for STOCK items
@@ -218,6 +247,7 @@ export const createOrderHandler = async (
 
     preparedItems.push({
       variantId: item.variantId,
+      size: item.size,
       productId: product._id,
       quantity: item.quantity,
       price: priceToCharge,
@@ -242,6 +272,19 @@ export const createOrderHandler = async (
       }
       const vmap = productIdToVariantQty.get(String(product._id))!;
       vmap.set(item.variantId, (vmap.get(item.variantId) || 0) + item.quantity);
+
+      // Track size-level quantities if a size is selected
+      if (item.size) {
+        if (!productIdToVariantSizeQty.has(String(product._id))) {
+          productIdToVariantSizeQty.set(String(product._id), new Map());
+        }
+        const vsmap = productIdToVariantSizeQty.get(String(product._id))!;
+        if (!vsmap.has(item.variantId)) {
+          vsmap.set(item.variantId, new Map());
+        }
+        const smap = vsmap.get(item.variantId)!;
+        smap.set(item.size.id, (smap.get(item.size.id) || 0) + item.quantity);
+      }
     }
   }
 
@@ -401,6 +444,7 @@ export const createOrderHandler = async (
       preparedItems.length <= 20
         ? preparedItems.map((it) => ({
             variantId: it.variantId,
+            size: it.size,
             productInfo: {
               productId: it.productId,
               title: it.productSnapshot.title,
@@ -521,6 +565,7 @@ export const createOrderHandler = async (
         originalPrice: it.originalPrice,
         appliedRole: 'STANDARD',
         customerNote: it.customerNote,
+        size: it.size?.label, // Store size label for orderItems table
         createdAt: now,
         updatedAt: now,
       });
@@ -530,24 +575,89 @@ export const createOrderHandler = async (
   // Update product stats and inventory, and category/org/user stats
   // - Increment product totalOrders once per product present in order
   // - Increment variant orderCount by quantity
-  // - Decrement inventory for STOCK items
+  // - Decrement inventory for STOCK items (including size-level inventory)
   for (const [productIdStr, totalQty] of productIdToQty.entries()) {
     const productId = productIdStr as unknown as Id<'products'>;
     const product = await ctx.db.get(productId);
     if (!product) continue;
 
     const variantMap = productIdToVariantQty.get(productIdStr);
+    const sizeMap = productIdToVariantSizeQty.get(productIdStr);
     const variantUpdates: Array<{ variantId: string; incrementOrders?: number; newInventory?: number }> = [];
+
+    // Build updated variants array with size inventory deductions
+    let updatedVariants = product.variants;
+
+    if (variantMap && product.inventoryType === 'STOCK') {
+      updatedVariants = product.variants.map((v) => {
+        const variantQty = variantMap.get(v.variantId);
+        if (!variantQty) return v;
+
+        // Check if there are size-level quantities for this variant
+        const variantSizeMap = sizeMap?.get(v.variantId);
+
+        let updatedSizes = v.sizes;
+        if (variantSizeMap && v.sizes) {
+          // Deduct from size inventories
+          updatedSizes = v.sizes.map((s) => {
+            const sizeQty = variantSizeMap.get(s.id);
+            if (!sizeQty || s.inventory === undefined) return s;
+            return {
+              ...s,
+              inventory: Math.max(0, s.inventory - sizeQty),
+            };
+          });
+        }
+
+        // Calculate variant inventory deduction
+        // Only deduct from variant inventory if size doesn't have its own inventory
+        let variantInventoryDeduction = 0;
+        if (variantSizeMap) {
+          for (const [sizeId, sizeQty] of variantSizeMap.entries()) {
+            const size = v.sizes?.find((s) => s.id === sizeId);
+            // If size doesn't have its own inventory, deduct from variant
+            if (!size || size.inventory === undefined) {
+              variantInventoryDeduction += sizeQty;
+            }
+          }
+          // Also account for items without size selection
+          const totalSizeQty = Array.from(variantSizeMap.values()).reduce((sum, q) => sum + q, 0);
+          variantInventoryDeduction += variantQty - totalSizeQty;
+        } else {
+          // No size selection, deduct full quantity from variant
+          variantInventoryDeduction = variantQty;
+        }
+
+        return {
+          ...v,
+          inventory: Math.max(0, v.inventory - variantInventoryDeduction),
+          sizes: updatedSizes,
+          updatedAt: now,
+        };
+      });
+    }
 
     if (variantMap) {
       for (const [variantId, qty] of variantMap.entries()) {
         const existing = product.variants.find((vx) => vx.variantId === variantId);
         let newInventory: number | undefined = undefined;
         if (existing && product.inventoryType === 'STOCK') {
-          newInventory = Math.max(0, existing.inventory - qty);
+          const updatedVariant = updatedVariants.find((vx) => vx.variantId === variantId);
+          newInventory = updatedVariant?.inventory ?? Math.max(0, existing.inventory - qty);
         }
         variantUpdates.push({ variantId, incrementOrders: qty, newInventory });
       }
+    }
+
+    // Patch product with updated variants (including size inventories)
+    if (product.inventoryType === 'STOCK') {
+      const aggregateQty = totalQty;
+      const newProductInventory = Math.max(0, (product.inventory || 0) - aggregateQty);
+      await ctx.db.patch(productId, {
+        inventory: newProductInventory,
+        variants: updatedVariants,
+        updatedAt: now,
+      });
     }
 
     await ctx.runMutation(internal.products.mutations.index.updateProductStats, {
@@ -555,13 +665,6 @@ export const createOrderHandler = async (
       incrementOrders: 1,
       variantUpdates: variantUpdates.length > 0 ? variantUpdates : undefined,
     });
-
-    // Update product-level inventory if STOCK and product tracks aggregate inventory
-    if (product.inventoryType === 'STOCK') {
-      const aggregateQty = totalQty;
-      const newProductInventory = Math.max(0, (product.inventory || 0) - aggregateQty);
-      await ctx.db.patch(productId, { inventory: newProductInventory, updatedAt: now });
-    }
 
     // Update category stats (order count + revenue)
     if (product.categoryId) {

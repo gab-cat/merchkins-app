@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useQuery, usePreloadedQuery, Preloaded } from 'convex/react';
+import { usePreloadedQuery, Preloaded } from 'convex/react';
+import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { api } from '@/convex/_generated/api';
 import { Badge } from '@/components/ui/badge';
 import { BlurFade } from '@/src/components/ui/animations';

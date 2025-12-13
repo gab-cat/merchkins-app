@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, MessageSquare, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useQuery } from 'convex/react';
+import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { api } from '@/convex/_generated/api';
 import { useAuth } from '@clerk/nextjs';
 

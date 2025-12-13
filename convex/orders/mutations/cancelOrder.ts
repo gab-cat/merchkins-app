@@ -132,7 +132,7 @@ export const cancelOrderHandler = async (
     // Best-effort payment update; do not block cancellation on payment update failure
   }
 
-  // Restock inventory for STOCK products
+  // Restock inventory for STOCK products (including size-level inventory)
   try {
     // Load items (embedded or separate table)
     const items =
@@ -140,6 +140,7 @@ export const cancelOrderHandler = async (
         ? order.embeddedItems.map((i) => ({
             productId: i.productInfo.productId,
             variantId: i.variantId as string | undefined,
+            sizeId: i.size?.id as string | undefined,
             quantity: i.quantity,
           }))
         : await ctx.db
@@ -150,19 +151,38 @@ export const cancelOrderHandler = async (
               rows.map((r) => ({
                 productId: r.productInfo.productId,
                 variantId: r.variantId as string | undefined,
+                sizeId: undefined as string | undefined, // orderItems stores size as label, not id
                 quantity: r.quantity,
               }))
             );
 
-    // Group quantities per product and variant
-    const byProduct: Map<string, { total: number; byVariant: Map<string, number> }> = new Map();
+    // Group quantities per product, variant, and size
+    const byProduct: Map<
+      string,
+      {
+        total: number;
+        byVariant: Map<string, number>;
+        byVariantSize: Map<string, Map<string, number>>;
+      }
+    > = new Map();
+
     for (const it of items) {
       const key = String(it.productId);
-      if (!byProduct.has(key)) byProduct.set(key, { total: 0, byVariant: new Map() });
+      if (!byProduct.has(key)) {
+        byProduct.set(key, { total: 0, byVariant: new Map(), byVariantSize: new Map() });
+      }
       const entry = byProduct.get(key)!;
       entry.total += it.quantity;
       if (it.variantId) {
         entry.byVariant.set(it.variantId, (entry.byVariant.get(it.variantId) || 0) + it.quantity);
+        // Track size-level quantities
+        if (it.sizeId) {
+          if (!entry.byVariantSize.has(it.variantId)) {
+            entry.byVariantSize.set(it.variantId, new Map());
+          }
+          const sizeMap = entry.byVariantSize.get(it.variantId)!;
+          sizeMap.set(it.sizeId, (sizeMap.get(it.sizeId) || 0) + it.quantity);
+        }
       }
     }
 
@@ -176,13 +196,37 @@ export const cancelOrderHandler = async (
       // Restore product aggregate inventory
       const newInventory = Math.max(0, (product.inventory || 0) + data.total);
 
-      // Restore variant inventories
+      // Restore variant and size inventories
       let variants = product.variants;
       if (data.byVariant.size > 0) {
         variants = product.variants.map((v) => {
-          const inc = v.variantId ? data.byVariant.get(v.variantId) || 0 : 0;
-          if (inc > 0) {
-            return { ...v, inventory: v.inventory + inc, updatedAt: nowTs };
+          const variantInc = v.variantId ? data.byVariant.get(v.variantId) || 0 : 0;
+          const variantSizeMap = v.variantId ? data.byVariantSize.get(v.variantId) : undefined;
+
+          // Restore size inventories
+          let updatedSizes = v.sizes;
+          let sizeInventoryRestored = 0;
+          if (variantSizeMap && v.sizes) {
+            updatedSizes = v.sizes.map((s) => {
+              const sizeInc = variantSizeMap.get(s.id) || 0;
+              if (sizeInc > 0 && s.inventory !== undefined) {
+                sizeInventoryRestored += sizeInc;
+                return { ...s, inventory: s.inventory + sizeInc };
+              }
+              return s;
+            });
+          }
+
+          // Only restore to variant inventory what wasn't restored to size inventory
+          const variantInventoryInc = variantInc - sizeInventoryRestored;
+
+          if (variantInc > 0) {
+            return {
+              ...v,
+              inventory: v.inventory + variantInventoryInc,
+              sizes: updatedSizes,
+              updatedAt: nowTs,
+            };
           }
           return v;
         });
@@ -308,7 +352,7 @@ export async function cancelOrderInternal(
     // Best-effort payment update; do not block cancellation on payment update failure
   }
 
-  // Restock inventory for STOCK products
+  // Restock inventory for STOCK products (including size-level inventory)
   try {
     // Load items (embedded or separate table)
     const items =
@@ -316,6 +360,7 @@ export async function cancelOrderInternal(
         ? order.embeddedItems.map((i) => ({
             productId: i.productInfo.productId,
             variantId: i.variantId as string | undefined,
+            sizeId: i.size?.id as string | undefined,
             quantity: i.quantity,
           }))
         : await ctx.db
@@ -326,19 +371,38 @@ export async function cancelOrderInternal(
               rows.map((r) => ({
                 productId: r.productInfo.productId,
                 variantId: r.variantId as string | undefined,
+                sizeId: undefined as string | undefined, // orderItems stores size as label, not id
                 quantity: r.quantity,
               }))
             );
 
-    // Group quantities per product and variant
-    const byProduct: Map<string, { total: number; byVariant: Map<string, number> }> = new Map();
+    // Group quantities per product, variant, and size
+    const byProduct: Map<
+      string,
+      {
+        total: number;
+        byVariant: Map<string, number>;
+        byVariantSize: Map<string, Map<string, number>>;
+      }
+    > = new Map();
+
     for (const it of items) {
       const key = String(it.productId);
-      if (!byProduct.has(key)) byProduct.set(key, { total: 0, byVariant: new Map() });
+      if (!byProduct.has(key)) {
+        byProduct.set(key, { total: 0, byVariant: new Map(), byVariantSize: new Map() });
+      }
       const entry = byProduct.get(key)!;
       entry.total += it.quantity;
       if (it.variantId) {
         entry.byVariant.set(it.variantId, (entry.byVariant.get(it.variantId) || 0) + it.quantity);
+        // Track size-level quantities
+        if (it.sizeId) {
+          if (!entry.byVariantSize.has(it.variantId)) {
+            entry.byVariantSize.set(it.variantId, new Map());
+          }
+          const sizeMap = entry.byVariantSize.get(it.variantId)!;
+          sizeMap.set(it.sizeId, (sizeMap.get(it.sizeId) || 0) + it.quantity);
+        }
       }
     }
 
@@ -352,13 +416,37 @@ export async function cancelOrderInternal(
       // Restore product aggregate inventory
       const newInventory = Math.max(0, (product.inventory || 0) + data.total);
 
-      // Restore variant inventories
+      // Restore variant and size inventories
       let variants = product.variants;
       if (data.byVariant.size > 0) {
         variants = product.variants.map((v) => {
-          const inc = v.variantId ? data.byVariant.get(v.variantId) || 0 : 0;
-          if (inc > 0) {
-            return { ...v, inventory: v.inventory + inc, updatedAt: nowTs };
+          const variantInc = v.variantId ? data.byVariant.get(v.variantId) || 0 : 0;
+          const variantSizeMap = v.variantId ? data.byVariantSize.get(v.variantId) : undefined;
+
+          // Restore size inventories
+          let updatedSizes = v.sizes;
+          let sizeInventoryRestored = 0;
+          if (variantSizeMap && v.sizes) {
+            updatedSizes = v.sizes.map((s) => {
+              const sizeInc = variantSizeMap.get(s.id) || 0;
+              if (sizeInc > 0 && s.inventory !== undefined) {
+                sizeInventoryRestored += sizeInc;
+                return { ...s, inventory: s.inventory + sizeInc };
+              }
+              return s;
+            });
+          }
+
+          // Only restore to variant inventory what wasn't restored to size inventory
+          const variantInventoryInc = variantInc - sizeInventoryRestored;
+
+          if (variantInc > 0) {
+            return {
+              ...v,
+              inventory: v.inventory + variantInventoryInc,
+              sizes: updatedSizes,
+              updatedAt: nowTs,
+            };
           }
           return v;
         });

@@ -49,6 +49,14 @@ export const orders = defineTable({
       v.object({
         variantId: v.optional(v.string()),
 
+        // Size selection for the variant (when variant has sizes)
+        size: v.optional(
+          v.object({
+            id: v.string(),
+            label: v.string(),
+          })
+        ),
+
         // Embedded product info
         productInfo: v.object({
           productId: v.id('products'),
@@ -147,7 +155,7 @@ export const orderItems = defineTable({
   originalPrice: v.number(),
   appliedRole: v.string(),
   customerNote: v.optional(v.string()),
-  size: v.optional(v.union(v.literal('XS'), v.literal('S'), v.literal('M'), v.literal('L'), v.literal('XL'), v.literal('XXL'))),
+  size: v.optional(v.string()), // Flexible string to support any size label
   createdAt: v.number(),
   updatedAt: v.number(),
 })

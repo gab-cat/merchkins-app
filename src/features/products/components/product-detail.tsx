@@ -576,6 +576,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
           onVariantChange={setSelectedVariantId}
           onSizeChange={setSelectedSizeId}
           onConfirm={() => setVariantDialogOpen(false)}
+          inventoryType={product.inventoryType}
         />
       )}
 
