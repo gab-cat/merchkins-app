@@ -279,8 +279,7 @@ export function generateUniqueFilename(originalFilename: string): string {
 
 /**
  * Build public URL from R2 file key
- * Returns deterministic public URL if NEXT_PUBLIC_R2_PUBLIC_URL is configured,
- * otherwise returns the key as-is (caller should use signed URLs)
+ * Returns deterministic public URL using r2.merchkins.com domain
  */
 export function buildPublicUrl(key: string): string | null {
   if (!key) return null;
@@ -290,8 +289,8 @@ export function buildPublicUrl(key: string): string | null {
     return key;
   }
 
-  // If we have a public base URL configured, construct the public URL
-  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+  // Use hardcoded public domain, fallback to environment variable
+  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://r2.merchkins.com';
   if (baseUrl) {
     return `${baseUrl.replace(/\/+$/, '')}/${key.replace(/^\/+/, '')}`;
   }

@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
-import { ReportPaymentDialog } from './report-payment-dialog';
 import { OrderPaymentLink } from './order-payment-link';
 import { OrderLogsSection } from './order-logs-section';
+import { CancelOrderModal } from './cancel-order-modal';
+import { RefundRequestModal } from './refund-request-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,8 +28,12 @@ import {
   Tag,
   Percent,
   Gift,
+  X,
+  RotateCcw,
+  AlertCircle,
 } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
+import { buildR2PublicUrl } from '@/lib/utils';
 
 interface OrderItemUI {
   productInfo: {
@@ -101,6 +106,47 @@ function PaymentStatusBadge({ value }: { value?: string }) {
   );
 }
 
+function RefundRequestBadge({ status }: { status: 'PENDING' | 'APPROVED' | 'REJECTED' }) {
+  const getStatusConfig = (status: 'PENDING' | 'APPROVED' | 'REJECTED') => {
+    switch (status) {
+      case 'PENDING':
+        return {
+          icon: Clock,
+          bg: 'bg-amber-50',
+          text: 'text-amber-600',
+          border: 'border-amber-200',
+          label: 'Refund Request Pending',
+        };
+      case 'APPROVED':
+        return {
+          icon: CheckCircle2,
+          bg: 'bg-emerald-50',
+          text: 'text-emerald-600',
+          border: 'border-emerald-200',
+          label: 'Refund Approved',
+        };
+      case 'REJECTED':
+        return {
+          icon: XCircle,
+          bg: 'bg-red-50',
+          text: 'text-red-600',
+          border: 'border-red-200',
+          label: 'Refund Request Declined',
+        };
+    }
+  };
+
+  const config = getStatusConfig(status);
+  const Icon = config.icon;
+
+  return (
+    <Badge className={`text-xs px-3 py-1.5 font-medium rounded-full border shadow-none ${config.bg} ${config.text} ${config.border}`}>
+      <Icon className="h-3.5 w-3.5 mr-1.5" />
+      {config.label}
+    </Badge>
+  );
+}
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -124,7 +170,20 @@ export function OrderDetail({ orderId }: { orderId: string }) {
     includeItems: true,
   });
 
+  const refundRequest = useQuery(api.refundRequests.queries.index.getRefundRequestByOrder, {
+    orderId: orderId as Id<'orders'>,
+  });
+
   const loading = order === undefined;
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+
+  // Check if order can be cancelled
+  const canCancel = order && order.status !== 'DELIVERED' && order.status !== 'CANCELLED';
+  const isPaid = order?.paymentStatus === 'PAID';
+
+  // Check if refund request is possible (paid order within 24 hours)
+  const canRequestRefund = isPaid && canCancel && !refundRequest;
 
   const items = useMemo<OrderItemUI[]>(() => {
     if (!order) return [];
@@ -225,6 +284,62 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                 customerEmail={order.customerInfo.email}
                 orderNumber={order.orderNumber}
               />
+            </motion.div>
+          )}
+
+          {/* Refund Request Section */}
+          {isPaid && (
+            <motion.div variants={itemVariants} className="mb-6">
+              {refundRequest ? (
+                <div className="rounded-xl border border-slate-100 p-4 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-slate-50">
+                        <RotateCcw className="h-5 w-5 text-slate-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-900">Refund Request</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {refundRequest.status === 'PENDING' && 'Your request is being reviewed'}
+                          {refundRequest.status === 'APPROVED' && 'Your refund has been approved'}
+                          {refundRequest.status === 'REJECTED' && 'Your refund request was declined'}
+                        </p>
+                      </div>
+                    </div>
+                    <RefundRequestBadge status={refundRequest.status} />
+                  </div>
+                  {refundRequest.adminMessage && (
+                    <div className="mt-3 pt-3 border-t border-slate-100">
+                      <p className="text-xs text-slate-600">
+                        <span className="font-medium">Admin Note:</span> {refundRequest.adminMessage}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : canRequestRefund ? (
+                <div className="rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50/50 to-orange-50/50 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div className="p-2 rounded-lg bg-amber-100 shrink-0">
+                        <RotateCcw className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-slate-900 mb-1">Need a Refund?</h3>
+                        <p className="text-xs text-slate-600 mb-3">
+                          Request a refund within 24 hours of payment. Approved refunds will be issued as platform vouchers.
+                        </p>
+                        <Button
+                          onClick={() => setRefundModalOpen(true)}
+                          className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg h-9 px-4 text-sm font-semibold shadow-sm"
+                        >
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                          Request Refund
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </motion.div>
           )}
 
@@ -364,11 +479,39 @@ export function OrderDetail({ orderId }: { orderId: string }) {
 
           {/* Actions */}
           <motion.div variants={itemVariants} className="mt-4 space-y-3">
-            {/* Show manual payment reporting */}
-            {order.paymentStatus !== 'PAID' && (
-              <ReportPaymentDialog orderId={String(order._id)} defaultAmount={order.totalAmount} defaultCurrency={'PHP'} />
+            {/* Cancel Order Button */}
+            {canCancel && !isPaid && (
+              <Button variant="outline" className="w-full border-red-200 text-red-700 hover:bg-red-50" onClick={() => setCancelModalOpen(true)}>
+                <X className="h-4 w-4 mr-2" />
+                Cancel Order
+              </Button>
             )}
           </motion.div>
+
+          {/* Modals */}
+          {order && (
+            <>
+              <CancelOrderModal
+                orderId={order._id}
+                orderNumber={order.orderNumber}
+                isPaid={isPaid}
+                open={cancelModalOpen}
+                onOpenChange={setCancelModalOpen}
+                onSuccess={() => {
+                  // Convex queries automatically refetch when data changes
+                }}
+              />
+              <RefundRequestModal
+                orderId={order._id}
+                orderNumber={order.orderNumber}
+                open={refundModalOpen}
+                onOpenChange={setRefundModalOpen}
+                onSuccess={() => {
+                  // Convex queries automatically refetch when data changes
+                }}
+              />
+            </>
+          )}
         </motion.div>
       </div>
     </div>
@@ -376,7 +519,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
 }
 
 function ProductImage({ imageKey }: { imageKey?: string }) {
-  const url = useQuery(api.files.queries.index.getFileUrl, imageKey ? { key: imageKey } : 'skip');
+  const url = buildR2PublicUrl(imageKey || null);
   if (!url) {
     return (
       <div className="h-14 w-14 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">

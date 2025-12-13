@@ -16,6 +16,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { showToast } from '@/lib/toast';
 import { fadeInUp } from '@/lib/animations';
 import { Id } from '@/convex/_generated/dataModel';
+import { buildR2PublicUrl } from '@/lib/utils';
 
 interface JoinOrganizationDialogProps {
   open: boolean;
@@ -43,23 +44,9 @@ export const JoinOrganizationDialog: React.FC<JoinOrganizationDialogProps> = ({
   // Helper function to check if value is a file key (not a URL)
   const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
 
-  // Resolve logo URL if it's a key
-  const logoUrl = useQuery(
-    api.files.queries.index.getFileUrl,
-    organizationLogoUrl && isKey(organizationLogoUrl) ? { key: organizationLogoUrl } : 'skip'
-  );
-
-  // Resolve banner URL if it's a key
-  const bannerUrl = useQuery(
-    api.files.queries.index.getFileUrl,
-    organizationBannerUrl && isKey(organizationBannerUrl) ? { key: organizationBannerUrl } : 'skip'
-  );
-
-  // Determine the final logo URL to use
-  const finalLogoUrl = organizationLogoUrl && isKey(organizationLogoUrl) ? logoUrl : organizationLogoUrl;
-
-  // Determine the final banner URL to use
-  const finalBannerUrl = organizationBannerUrl && isKey(organizationBannerUrl) ? bannerUrl : organizationBannerUrl;
+  // Use public URL builder for logo and banner
+  const finalLogoUrl = buildR2PublicUrl(organizationLogoUrl || null);
+  const finalBannerUrl = buildR2PublicUrl(organizationBannerUrl || null);
 
   const handleJoin = async () => {
     try {
@@ -88,12 +75,7 @@ export const JoinOrganizationDialog: React.FC<JoinOrganizationDialogProps> = ({
           <div className="relative -mx-6 -mt-6 mb-4">
             {organizationBannerUrl && finalBannerUrl ? (
               <div className="aspect-[4/1] rounded-t-lg overflow-hidden">
-                <R2Image
-                  fileKey={isKey(organizationBannerUrl) ? organizationBannerUrl : finalBannerUrl}
-                  alt={`${organizationName} banner`}
-                  fill
-                  className="object-cover"
-                />
+                <R2Image fileKey={organizationBannerUrl || undefined} alt={`${organizationName} banner`} fill className="object-cover" />
                 <div className="absolute inset-0 bg-black/10" />
               </div>
             ) : (
@@ -102,7 +84,7 @@ export const JoinOrganizationDialog: React.FC<JoinOrganizationDialogProps> = ({
             <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
               <motion.div {...fadeInUp} className="flex size-22 items-center justify-center rounded-full bg-white border-4 border-white shadow-lg">
                 <Avatar className="size-20">
-                  <AvatarImage className="object-cover" src={finalLogoUrl} alt={organizationName} />
+                  <AvatarImage className="object-cover" src={finalLogoUrl || '/favicon.ico'} alt={organizationName} />
                   <AvatarFallback className="bg-gradient-to-br from-blue-100 to-purple-100 text-blue-700 text-lg">
                     {organizationName.charAt(0).toUpperCase()}
                   </AvatarFallback>

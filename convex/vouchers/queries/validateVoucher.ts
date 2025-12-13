@@ -18,14 +18,14 @@ type ValidationResult = {
     code: string;
     name: string;
     description?: string;
-    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING';
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING' | 'REFUND';
     discountValue: number;
     minOrderAmount?: number;
     maxDiscountAmount?: number;
   };
   discountAmount?: number;
   error?: string;
-  errorCode?: 
+  errorCode?:
     | 'NOT_FOUND'
     | 'INACTIVE'
     | 'EXPIRED'
@@ -49,16 +49,16 @@ export const validateVoucherHandler = async (
   }
 ): Promise<ValidationResult> => {
   const now = Date.now();
-  
+
   // Normalize code
   const normalizedCode = args.code.toUpperCase().trim();
-  
+
   // Find voucher by code
   const voucher = await ctx.db
     .query('vouchers')
     .withIndex('by_code', (q) => q.eq('code', normalizedCode))
     .first();
-  
+
   if (!voucher || voucher.isDeleted) {
     return {
       valid: false,
@@ -108,11 +108,9 @@ export const validateVoucherHandler = async (
   if (args.userId && voucher.usageLimitPerUser) {
     const userUsages = await ctx.db
       .query('voucherUsages')
-      .withIndex('by_voucher_user', (q) => 
-        q.eq('voucherId', voucher._id).eq('userId', args.userId!)
-      )
+      .withIndex('by_voucher_user', (q) => q.eq('voucherId', voucher._id).eq('userId', args.userId!))
       .collect();
-    
+
     if (userUsages.length >= voucher.usageLimitPerUser) {
       return {
         valid: false,
@@ -122,14 +120,37 @@ export const validateVoucherHandler = async (
     }
   }
 
-  // Check organization scope
-  if (voucher.organizationId) {
-    if (!args.organizationId || args.organizationId !== voucher.organizationId) {
+  // Special handling for REFUND vouchers
+  if (voucher.discountType === 'REFUND') {
+    // REFUND vouchers are personal - must be assigned to the user
+    if (!args.userId) {
       return {
         valid: false,
-        error: 'This voucher is only valid for a specific store',
-        errorCode: 'ORGANIZATION_MISMATCH',
+        error: 'You must be logged in to use this voucher',
+        errorCode: 'USER_USAGE_LIMIT_REACHED',
       };
+    }
+
+    if (voucher.assignedToUserId && voucher.assignedToUserId !== args.userId) {
+      return {
+        valid: false,
+        error: 'This voucher is not assigned to you',
+        errorCode: 'USER_USAGE_LIMIT_REACHED',
+      };
+    }
+
+    // REFUND vouchers are platform-wide (no organization restriction)
+    // Skip organization check for REFUND type
+  } else {
+    // Check organization scope for non-REFUND vouchers
+    if (voucher.organizationId) {
+      if (!args.organizationId || args.organizationId !== voucher.organizationId) {
+        return {
+          valid: false,
+          error: 'This voucher is only valid for a specific store',
+          errorCode: 'ORGANIZATION_MISMATCH',
+        };
+      }
     }
   }
 
@@ -152,11 +173,9 @@ export const validateVoucherHandler = async (
         errorCode: 'PRODUCTS_NOT_APPLICABLE',
       };
     }
-    
-    const hasApplicableProduct = args.productIds.some((pid) =>
-      voucher.applicableProductIds!.includes(pid)
-    );
-    
+
+    const hasApplicableProduct = args.productIds.some((pid) => voucher.applicableProductIds!.includes(pid));
+
     if (!hasApplicableProduct) {
       return {
         valid: false,
@@ -175,11 +194,9 @@ export const validateVoucherHandler = async (
         errorCode: 'PRODUCTS_NOT_APPLICABLE',
       };
     }
-    
-    const hasApplicableCategory = args.categoryIds.some((cid) =>
-      voucher.applicableCategoryIds!.includes(cid)
-    );
-    
+
+    const hasApplicableCategory = args.categoryIds.some((cid) => voucher.applicableCategoryIds!.includes(cid));
+
     if (!hasApplicableCategory) {
       return {
         valid: false,
@@ -191,7 +208,7 @@ export const validateVoucherHandler = async (
 
   // Calculate discount amount
   let discountAmount = 0;
-  
+
   switch (voucher.discountType) {
     case 'PERCENTAGE':
       discountAmount = (args.orderAmount * voucher.discountValue) / 100;
@@ -200,16 +217,18 @@ export const validateVoucherHandler = async (
         discountAmount = voucher.maxDiscountAmount;
       }
       break;
-    
+
     case 'FIXED_AMOUNT':
+    case 'REFUND':
+      // REFUND vouchers work like FIXED_AMOUNT
       discountAmount = Math.min(voucher.discountValue, args.orderAmount);
       break;
-    
+
     case 'FREE_SHIPPING':
       // Free shipping - set a fixed value or handle separately
       discountAmount = 0; // Shipping handling would be separate
       break;
-    
+
     case 'FREE_ITEM':
       // Free item discount is the value of the item (handled during order creation)
       discountAmount = voucher.discountValue; // This should be the item price

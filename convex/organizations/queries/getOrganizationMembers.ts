@@ -48,3 +48,44 @@ export const getOrganizationMembersHandler = async (
 
   return results;
 };
+
+// Internal version that doesn't require authentication (for use in actions/mutations)
+export const getOrganizationMembersInternalHandler = async (
+  ctx: QueryCtx,
+  args: {
+    organizationId: Id<'organizations'>;
+    role?: 'ADMIN' | 'STAFF' | 'MEMBER';
+    isActive?: boolean;
+    limit?: number;
+    cursor?: string;
+  }
+) => {
+  const { organizationId, role, isActive = true, limit = 50, cursor } = args;
+
+  // Validate organization exists and is active
+  const organization = await ctx.db.get(organizationId);
+  if (!organization || organization.isDeleted) {
+    throw new Error('Organization not found or inactive');
+  }
+
+  let queryBuilder;
+
+  // Apply filters
+  if (role) {
+    queryBuilder = ctx.db
+      .query('organizationMembers')
+      .withIndex('by_organization_role', (q) => q.eq('organizationId', organizationId).eq('role', role));
+  } else {
+    queryBuilder = ctx.db.query('organizationMembers').withIndex('by_organization', (q) => q.eq('organizationId', organizationId));
+  }
+
+  queryBuilder = queryBuilder.filter((q) => q.eq(q.field('isActive'), isActive));
+
+  // Apply pagination
+  const results = await queryBuilder.order('desc').paginate({
+    numItems: limit,
+    cursor: cursor || null,
+  });
+
+  return results;
+};

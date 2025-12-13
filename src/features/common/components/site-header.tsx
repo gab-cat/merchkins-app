@@ -44,6 +44,7 @@ export function SiteHeader() {
     if (!pathname) return undefined;
 
     // First check if we're on a subdomain (hostname-based detection)
+    // Using window.location.hostname for subdomain detection (Next.js doesn't provide client-side hostname API)
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
       if (
@@ -426,82 +427,84 @@ function SiteHeaderContent({
               </motion.div>
             )}
           </SignedIn>
-          {/* Enhanced Support dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    'gap-1.5 px-2.5 h-9 relative transition-all duration-300 rounded-lg',
-                    isScrolled
-                      ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
-                      : shouldApplyTheme
-                        ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
-                        : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
-                  )}
-                >
-                  <MessageSquare
+          {/* Enhanced Support dropdown - hidden when compressed */}
+          {!isScrolled && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className={cn(
-                      'h-4 w-4 transition-transform duration-300 group-hover:rotate-12',
-                      isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'hidden sm:inline text-sm font-medium',
-                      isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
+                      'gap-1.5 px-2.5 h-9 relative transition-all duration-300 rounded-lg',
+                      isScrolled
+                        ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
+                        : shouldApplyTheme
+                          ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                          : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
                     )}
                   >
-                    Support
-                  </span>
-                  {totalSupportUnread > 0 && (
-                    <motion.span
-                      className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-medium shadow-lg"
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                    <MessageSquare
+                      className={cn(
+                        'h-4 w-4 transition-transform duration-300 group-hover:rotate-12',
+                        isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'hidden sm:inline text-sm font-medium',
+                        isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
+                      )}
                     >
-                      {totalSupportUnread}
-                    </motion.span>
-                  )}
-                </Button>
-              </motion.div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 animate-in fade-in-0 zoom-in-95">
-              <DropdownMenuItem asChild data-testid="support-chats">
-                <Link href={orgSlug ? `/o/${orgSlug}/chats` : '/chats'} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>Chats</span>
-                  {totalChatUnread > 0 && (
-                    <span className="ml-auto h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center animate-pulse font-medium">
-                      {totalChatUnread}
+                      Support
                     </span>
-                  )}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild data-testid="support-tickets">
-                <Link href={orgSlug ? `/o/${orgSlug}/tickets` : '/tickets'} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
-                  <Ticket className="h-4 w-4" />
-                  <span>Tickets</span>
-                  {totalTicketUnread > 0 && (
-                    <span className="ml-auto h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center animate-pulse font-medium">
-                      {totalTicketUnread}
-                    </span>
-                  )}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild data-testid="support-new-ticket">
-                <Link
-                  href={orgSlug ? `/o/${orgSlug}/tickets/new` : '/tickets/new'}
-                  className="flex items-center gap-2 hover:bg-accent/50 transition-colors"
-                >
-                  <Ticket className="h-4 w-4" />
-                  <span>Create ticket</span>
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                    {totalSupportUnread > 0 && (
+                      <motion.span
+                        className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-medium shadow-lg"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {totalSupportUnread}
+                      </motion.span>
+                    )}
+                  </Button>
+                </motion.div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 animate-in fade-in-0 zoom-in-95">
+                <DropdownMenuItem asChild data-testid="support-chats">
+                  <Link href={orgSlug ? `/o/${orgSlug}/chats` : '/chats'} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Chats</span>
+                    {totalChatUnread > 0 && (
+                      <span className="ml-auto h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center animate-pulse font-medium">
+                        {totalChatUnread}
+                      </span>
+                    )}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild data-testid="support-tickets">
+                  <Link href={orgSlug ? `/o/${orgSlug}/tickets` : '/tickets'} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
+                    <Ticket className="h-4 w-4" />
+                    <span>Tickets</span>
+                    {totalTicketUnread > 0 && (
+                      <span className="ml-auto h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center animate-pulse font-medium">
+                        {totalTicketUnread}
+                      </span>
+                    )}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild data-testid="support-new-ticket">
+                  <Link
+                    href={orgSlug ? `/o/${orgSlug}/tickets/new` : '/tickets/new'}
+                    className="flex items-center gap-2 hover:bg-accent/50 transition-colors"
+                  >
+                    <Ticket className="h-4 w-4" />
+                    <span>Create ticket</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           <SignedIn>
             <CartSheet initialCount={totalItems}>

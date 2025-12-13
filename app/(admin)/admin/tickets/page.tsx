@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useOffsetPagination } from '@/src/hooks/use-pagination';
+import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
+import { DateRangeFilter, DateRange } from '@/src/components/ui/date-range-filter';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import { cn } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
@@ -63,6 +65,9 @@ type TicketWithInfo = Doc<'tickets'>;
 type TicketQueryArgs = {
   status?: TicketStatus;
   priority?: TicketPriority;
+  dateFrom?: number;
+  dateTo?: number;
+  search?: string;
   limit?: number;
   offset?: number;
 };
@@ -221,15 +226,21 @@ export default function AdminTicketsPage() {
   const [status, setStatus] = useState<TicketStatus | 'ALL'>('ALL');
   const [priority, setPriority] = useState<TicketPriority | 'ALL'>('ALL');
   const [search, setSearch] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange>({});
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const debouncedSearch = useDebouncedSearch(search, 300);
 
   const baseArgs = useMemo(
     (): TicketQueryArgs => ({
       status: status === 'ALL' ? undefined : status,
       priority: priority === 'ALL' ? undefined : priority,
+      dateFrom: dateRange.dateFrom,
+      dateTo: dateRange.dateTo,
+      search: debouncedSearch || undefined,
     }),
-    [status, priority]
+    [status, priority, dateRange, debouncedSearch]
   );
 
   const {
@@ -247,18 +258,6 @@ export default function AdminTicketsPage() {
 
   const createTicket = useMutation(api.tickets.mutations.index.createTicket);
   const addTicketUpdate = useMutation(api.tickets.mutations.index.addTicketUpdate);
-
-  // Filter tickets client-side by search
-  const filteredTickets = useMemo(() => {
-    let result = tickets;
-
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter((t) => [t.title, t.description || '', t.creatorInfo?.email || '', t._id].join(' ').toLowerCase().includes(q));
-    }
-
-    return result;
-  }, [tickets, search]);
 
   // Calculate metrics
   const metrics = useMemo(() => {
@@ -381,6 +380,7 @@ export default function AdminTicketsPage() {
               </SelectItem>
             </SelectContent>
           </Select>
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
           <RefreshCw className={cn('h-4 w-4 mr-1', refreshing && 'animate-spin')} />
@@ -391,7 +391,7 @@ export default function AdminTicketsPage() {
       {/* Results count */}
       {!loading && (
         <p className="text-sm text-muted-foreground">
-          {filteredTickets.length} ticket{filteredTickets.length !== 1 ? 's' : ''} found
+          {tickets.length} ticket{tickets.length !== 1 ? 's' : ''} found
         </p>
       )}
 
@@ -438,13 +438,13 @@ export default function AdminTicketsPage() {
                     <TableCell />
                   </TableRow>
                 ))
-              ) : filteredTickets.length === 0 ? (
+              ) : tickets.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-40">
                     <EmptyState
                       icon={<Inbox className="h-12 w-12 text-muted-foreground" />}
                       title="No tickets found"
-                      description={search ? `No tickets match "${search}"` : 'Create a ticket to start tracking support requests'}
+                      description={search || dateRange.dateFrom || dateRange.dateTo ? `No tickets match your filters` : 'Create a ticket to start tracking support requests'}
                       action={{
                         label: 'Create Ticket',
                         onClick: () => setIsCreateOpen(true),
@@ -453,7 +453,7 @@ export default function AdminTicketsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredTickets.map((ticket, index) => {
+                tickets.map((ticket, index) => {
                   const statusConfig = STATUS_CONFIG[ticket.status as TicketStatus];
                   const StatusIcon = statusConfig?.icon || AlertCircle;
 

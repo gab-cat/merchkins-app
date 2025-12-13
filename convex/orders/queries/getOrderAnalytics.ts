@@ -25,6 +25,11 @@ export const getOrderAnalyticsHandler = async (ctx: QueryCtx, args: { organizati
 
   const orders = await filtered.collect();
 
+  // Helper function to check if order should be excluded from revenue calculations
+  const isExcludedFromRevenue = (order: typeof orders[0]) => {
+    return order.status === 'CANCELLED' || order.paymentStatus === 'REFUNDED';
+  };
+
   const totalsByStatus: Record<string, number> = {};
   const totalsByPayment: Record<string, number> = {};
   let totalRevenue = 0;
@@ -32,19 +37,25 @@ export const getOrderAnalyticsHandler = async (ctx: QueryCtx, args: { organizati
 
   for (const o of orders) {
     orderCount += 1;
-    totalRevenue += o.totalAmount;
     totalsByStatus[o.status] = (totalsByStatus[o.status] || 0) + 1;
     totalsByPayment[o.paymentStatus] = (totalsByPayment[o.paymentStatus] || 0) + 1;
+    // Only include revenue if order is not excluded
+    if (!isExcludedFromRevenue(o)) {
+      totalRevenue += o.totalAmount;
+    }
   }
 
-  // Top customers by spend
+  // Top customers by spend (only counting non-excluded orders)
   const byCustomer: Record<string, { customerId: string; amount: number; count: number; name: string }> = {};
   for (const o of orders) {
-    const key = String(o.customerId);
-    const name = `${o.customerInfo.firstName ?? ''} ${o.customerInfo.lastName ?? ''}`.trim() || o.customerInfo.email;
-    if (!byCustomer[key]) byCustomer[key] = { customerId: key, amount: 0, count: 0, name };
-    byCustomer[key].amount += o.totalAmount;
-    byCustomer[key].count += 1;
+    // Only count orders that are not excluded from revenue
+    if (!isExcludedFromRevenue(o)) {
+      const key = String(o.customerId);
+      const name = `${o.customerInfo.firstName ?? ''} ${o.customerInfo.lastName ?? ''}`.trim() || o.customerInfo.email;
+      if (!byCustomer[key]) byCustomer[key] = { customerId: key, amount: 0, count: 0, name };
+      byCustomer[key].amount += o.totalAmount;
+      byCustomer[key].count += 1;
+    }
   }
   const topCustomers = Object.values(byCustomer)
     .sort((a, b) => b.amount - a.amount)

@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useMutation, useQuery, usePreloadedQuery } from 'convex/react';
 import { useAuth } from '@clerk/nextjs';
@@ -52,6 +53,9 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
   if (slug === '_error_test_') {
     throw new Error('Intentional test error for error boundary validation');
   }
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { userId: clerkId } = useAuth();
   const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip');
   const { requireAuth, dialogOpen, setDialogOpen } = useRequireAuth();
@@ -149,9 +153,12 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
       if (organization?.organizationType === 'PUBLIC' && !isMember) {
         if (!isAuthenticated) {
           // Redirect to sign-in with return URL
-          const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+          const currentUrl =
+            typeof window !== 'undefined'
+              ? `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+              : '';
           const signInUrl = `/sign-in?redirectUrl=${encodeURIComponent(currentUrl)}`;
-          window.location.href = signInUrl;
+          router.push(signInUrl);
           return;
         }
         setJoinDialogOpen(true);
@@ -457,14 +464,18 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Store className="h-4 w-4 text-primary flex-shrink-0" />
-                          <Link href={`/o/${organization.slug}`} className="font-bold text-foreground hover:text-primary transition-colors text-lg">
+                          <Link
+                            href={`/o/${organization.slug}`}
+                            className="font-bold text-foreground hover:text-primary transition-colors text-lg"
+                            prefetch
+                          >
                             {organization.name}
                           </Link>
                         </div>
                         {organization.description && <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{organization.description}</p>}
                       </div>
                       <Button asChild variant="ghost" size="sm" className="shrink-0 rounded-full">
-                        <Link href={`/o/${organization.slug}`} className="text-primary hover:text-primary/80">
+                        <Link href={`/o/${organization.slug}`} className="text-primary hover:text-primary/80" prefetch>
                           Visit <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
                         </Link>
                       </Button>

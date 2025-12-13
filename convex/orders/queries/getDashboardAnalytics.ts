@@ -57,6 +57,15 @@ export const getDashboardAnalyticsHandler = async (ctx: QueryCtx, args: { organi
   const currentOrders = allOrders.filter((o) => o.orderDate >= startTime);
   const previousOrders = allOrders.filter((o) => o.orderDate >= previousStartTime && o.orderDate < startTime);
 
+  // Helper function to check if order should be excluded from revenue calculations
+  const isExcludedFromRevenue = (order: typeof allOrders[0]) => {
+    return order.status === 'CANCELLED' || order.paymentStatus === 'REFUNDED';
+  };
+
+  // Filter orders for revenue calculations (exclude cancelled and refunded)
+  const currentOrdersForRevenue = currentOrders.filter((o) => !isExcludedFromRevenue(o));
+  const previousOrdersForRevenue = previousOrders.filter((o) => !isExcludedFromRevenue(o));
+
   // Fetch products
   let productsQuery;
   if (args.organizationId) {
@@ -67,16 +76,16 @@ export const getDashboardAnalyticsHandler = async (ctx: QueryCtx, args: { organi
 
   const products = await productsQuery.filter((q) => q.eq(q.field('isDeleted'), false)).collect();
 
-  // Calculate current period metrics
-  const currentRevenue = currentOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-  const currentOrderCount = currentOrders.length;
+  // Calculate current period metrics (using filtered orders for revenue)
+  const currentRevenue = currentOrdersForRevenue.reduce((sum, o) => sum + o.totalAmount, 0);
+  const currentOrderCount = currentOrders.length; // Count all orders for display
   const currentViews = products.reduce((sum, p) => sum + p.viewCount, 0);
-  const currentAvgOrderValue = currentOrderCount > 0 ? currentRevenue / currentOrderCount : 0;
+  const currentAvgOrderValue = currentOrdersForRevenue.length > 0 ? currentRevenue / currentOrdersForRevenue.length : 0;
 
-  // Calculate previous period metrics
-  const previousRevenue = previousOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-  const previousOrderCount = previousOrders.length;
-  const previousAvgOrderValue = previousOrderCount > 0 ? previousRevenue / previousOrderCount : 0;
+  // Calculate previous period metrics (using filtered orders for revenue)
+  const previousRevenue = previousOrdersForRevenue.reduce((sum, o) => sum + o.totalAmount, 0);
+  const previousOrderCount = previousOrders.length; // Count all orders for display
+  const previousAvgOrderValue = previousOrdersForRevenue.length > 0 ? previousRevenue / previousOrdersForRevenue.length : 0;
 
   // Calculate trends (percentage change)
   const revenueTrend = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
@@ -92,6 +101,7 @@ export const getDashboardAnalyticsHandler = async (ctx: QueryCtx, args: { organi
     const pointEnd = pointStart + groupByDays * 24 * 60 * 60 * 1000;
 
     const pointOrders = currentOrders.filter((o) => o.orderDate >= pointStart && o.orderDate < pointEnd);
+    const pointOrdersForRevenue = pointOrders.filter((o) => !isExcludedFromRevenue(o));
 
     timeSeries.push({
       date: new Date(pointStart).toLocaleDateString('en-US', {
@@ -100,8 +110,8 @@ export const getDashboardAnalyticsHandler = async (ctx: QueryCtx, args: { organi
         ...(groupByDays >= 30 && { year: '2-digit' }),
       }),
       timestamp: pointStart,
-      revenue: pointOrders.reduce((sum, o) => sum + o.totalAmount, 0),
-      orders: pointOrders.length,
+      revenue: pointOrdersForRevenue.reduce((sum, o) => sum + o.totalAmount, 0),
+      orders: pointOrders.length, // Count all orders for display
       views: 0, // Would need order_logs or analytics table for accurate views over time
     });
   }
@@ -115,7 +125,10 @@ export const getDashboardAnalyticsHandler = async (ctx: QueryCtx, args: { organi
       statusCounts[order.status] = { count: 0, amount: 0 };
     }
     statusCounts[order.status].count += 1;
-    statusCounts[order.status].amount += order.totalAmount;
+    // Only include amount if order is not excluded from revenue
+    if (!isExcludedFromRevenue(order)) {
+      statusCounts[order.status].amount += order.totalAmount;
+    }
   }
 
   for (const [status, data] of Object.entries(statusCounts)) {
@@ -131,7 +144,10 @@ export const getDashboardAnalyticsHandler = async (ctx: QueryCtx, args: { organi
       paymentCounts[order.paymentStatus] = { count: 0, amount: 0 };
     }
     paymentCounts[order.paymentStatus].count += 1;
-    paymentCounts[order.paymentStatus].amount += order.totalAmount;
+    // Only include amount if order is not excluded from revenue
+    if (!isExcludedFromRevenue(order)) {
+      paymentCounts[order.paymentStatus].amount += order.totalAmount;
+    }
   }
 
   for (const [status, data] of Object.entries(paymentCounts)) {

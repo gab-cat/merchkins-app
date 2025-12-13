@@ -44,7 +44,7 @@ export function ProductCard({
   const formattedPrice = minPrice !== undefined ? new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(minPrice) : '';
 
   return (
-    <Link href={href} aria-label={`View ${title}`} className={cn('group block h-full', className)} data-testid="product-card" prefetch>
+    <Link href={href} aria-label={`View ${title}`} className={cn('group block h-full', className)} data-testid={`product-card-${_id}`} prefetch>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -8,6 +8,7 @@ import { v } from 'convex/values';
  * - FIXED_AMOUNT: Fixed amount off (e.g., ₱100 off)
  * - FREE_ITEM: Free item with purchase (value = item quantity)
  * - FREE_SHIPPING: Free shipping (future use)
+ * - REFUND: Refund voucher issued for cancelled orders (platform-wide, personal)
  */
 export const vouchers = defineTable({
   isDeleted: v.boolean(),
@@ -21,12 +22,7 @@ export const vouchers = defineTable({
   description: v.optional(v.string()),
 
   // Discount type and value
-  discountType: v.union(
-    v.literal('PERCENTAGE'),
-    v.literal('FIXED_AMOUNT'),
-    v.literal('FREE_ITEM'),
-    v.literal('FREE_SHIPPING')
-  ),
+  discountType: v.union(v.literal('PERCENTAGE'), v.literal('FIXED_AMOUNT'), v.literal('FREE_ITEM'), v.literal('FREE_SHIPPING'), v.literal('REFUND')),
   discountValue: v.number(), // Percentage (0-100) or fixed amount
 
   // Constraints
@@ -62,6 +58,11 @@ export const vouchers = defineTable({
       logo: v.optional(v.string()),
     })
   ),
+
+  // Refund voucher tracking (for REFUND type vouchers)
+  sourceRefundRequestId: v.optional(v.id('refundRequests')),
+  sourceOrderId: v.optional(v.id('orders')),
+  assignedToUserId: v.optional(v.id('users')), // Personal voucher assignment
 
   createdAt: v.number(),
   updatedAt: v.number(),

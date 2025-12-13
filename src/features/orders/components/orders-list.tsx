@@ -305,7 +305,31 @@ export function OrdersList() {
                             </div>
                             <div className="flex flex-col items-end gap-1.5">
                               <span className="font-bold text-[#1d43d8] text-sm">{formatCurrency(o.totalAmount)}</span>
-                              <StatusBadge value={o.status} />
+                              {o.status === 'PENDING' && o.paymentStatus !== 'PAID' ? (
+                                <>
+                                  {/* Short button for desktop - replaces badge */}
+                                  <div onClick={(e) => e.stopPropagation()} className="hidden md:block">
+                                    <OrderPaymentLink
+                                      orderId={o._id as Id<'orders'>}
+                                      orderStatus={o.status}
+                                      paymentStatus={o.paymentStatus}
+                                      xenditInvoiceUrl={o.xenditInvoiceUrl}
+                                      xenditInvoiceCreatedAt={o.xenditInvoiceCreatedAt}
+                                      xenditInvoiceExpiryDate={o.xenditInvoiceExpiryDate}
+                                      totalAmount={o.totalAmount}
+                                      customerEmail={o.customerInfo?.email}
+                                      orderNumber={o.orderNumber}
+                                      short
+                                    />
+                                  </div>
+                                  {/* Badge for mobile - shown when short button is hidden */}
+                                  <div className="md:hidden">
+                                    <StatusBadge value={o.status} />
+                                  </div>
+                                </>
+                              ) : (
+                                <StatusBadge value={o.status} />
+                              )}
                             </div>
                           </div>
                         </div>

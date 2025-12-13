@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -63,6 +63,7 @@ const pulseVariants = {
 };
 
 export default function PaymentFailurePage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
@@ -251,7 +252,12 @@ export default function PaymentFailurePage() {
               <div className="space-y-2">
                 {canRetryPayment && order.xenditInvoiceUrl && (
                   <Button
-                    onClick={() => (window.location.href = order.xenditInvoiceUrl!)}
+                    onClick={() => {
+                      // External Xendit URL - use window.location for external redirects
+                      if (order.xenditInvoiceUrl) {
+                        window.location.href = order.xenditInvoiceUrl;
+                      }
+                    }}
                     className="w-full h-12 bg-[#1d43d8] hover:bg-[#1d43d8]/90 text-white font-semibold shadow-md shadow-[#1d43d8]/20"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />

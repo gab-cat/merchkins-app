@@ -36,3 +36,8 @@ export const updateMessageStats = internalMutation({
   args: updateMessageStatsArgs,
   handler: updateMessageStatsHandler,
 });
+
+export const createMessageInternal = internalMutation({
+  args: createMessageArgs,
+  handler: createMessageHandler,
+});

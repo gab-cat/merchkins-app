@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id, Doc } from '@/convex/_generated/dataModel';
-import { cn } from '@/lib/utils';
+import { cn, buildR2PublicUrl } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -396,6 +396,7 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
                       showToast({ type: 'success', title: 'Invite deactivated' });
                     }}
                     onCopy={() => {
+                      // Using window.location.origin for URL construction (needed for invite link)
                       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
                       const fullUrl = `${baseUrl}/invite/${inv.code}`;
                       navigator.clipboard.writeText(fullUrl);
@@ -552,6 +553,7 @@ function InviteLinkCard({
 }) {
   const expiresAt = invite.expiresAt ? new Date(invite.expiresAt) : null;
   const isExpired = expiresAt && expiresAt < new Date();
+  // Using window.location.origin for URL construction (needed for invite link)
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const fullInviteUrl = `${baseUrl}/invite/${invite.code}`;
 
@@ -644,9 +646,7 @@ function JoinRequestCard({
 }
 
 function MemberAvatar({ imageUrl, firstName, lastName }: { imageUrl?: string; firstName?: string; lastName?: string }) {
-  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
-  const url = useQuery(api.files.queries.index.getFileUrl, isKey(imageUrl) ? { key: imageUrl as string } : 'skip');
-  const displayUrl = url || imageUrl;
+  const displayUrl = buildR2PublicUrl(imageUrl || null);
   const initials = [firstName?.[0], lastName?.[0]].filter(Boolean).join('').toUpperCase() || 'U';
 
   return (

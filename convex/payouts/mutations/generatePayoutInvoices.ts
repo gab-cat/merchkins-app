@@ -83,8 +83,25 @@ export const generatePayoutInvoicesHandler = async (
     }
 
     // Calculate totals
-    const grossAmount = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+    // For REFUND vouchers: seller gets full original value (platform absorbs voucher cost)
+    // For regular vouchers: seller gets discounted value (seller provides discount)
+    const grossAmount = orders.reduce((sum, order) => {
+      // For REFUND voucher orders, seller gets full original value
+      if (order.voucherSnapshot?.discountType === 'REFUND' && order.voucherDiscount) {
+        return sum + order.totalAmount + order.voucherDiscount;
+      }
+      return sum + order.totalAmount;
+    }, 0);
     const itemCount = orders.reduce((sum, order) => sum + order.itemCount, 0);
+
+    // Calculate total voucher discounts from non-refund vouchers (seller absorbs these)
+    const totalVoucherDiscount = orders.reduce((sum, order) => {
+      // Only count non-refund voucher discounts
+      if (order.voucherDiscount && order.voucherSnapshot?.discountType !== 'REFUND') {
+        return sum + order.voucherDiscount;
+      }
+      return sum;
+    }, 0);
 
     // Check minimum payout threshold
     if (grossAmount < minimumPayout) {
@@ -104,15 +121,122 @@ export const generatePayoutInvoicesHandler = async (
       orderCount: orders.length,
     });
 
-    // Build order summary
-    const orderSummary = orders.map((order) => ({
-      orderId: order._id,
-      orderNumber: order.orderNumber || `ORD-${order._id.slice(-8)}`,
-      orderDate: order.orderDate,
-      customerName: `${order.customerInfo.firstName || ''} ${order.customerInfo.lastName || ''}`.trim() || order.customerInfo.email,
-      totalAmount: order.totalAmount,
-      itemCount: order.itemCount,
-    }));
+    // Build order summary with voucher info
+    const orderSummary = orders.map((order) => {
+      const hasRefundVoucher = order.voucherSnapshot?.discountType === 'REFUND';
+      // For display: show original amount before voucher for REFUND vouchers
+      const displayAmount = hasRefundVoucher && order.voucherDiscount 
+        ? order.totalAmount + order.voucherDiscount 
+        : order.totalAmount;
+      
+      return {
+        orderId: order._id,
+        orderNumber: order.orderNumber || `ORD-${order._id.slice(-8)}`,
+        orderDate: order.orderDate,
+        customerName: `${order.customerInfo.firstName || ''} ${order.customerInfo.lastName || ''}`.trim() || order.customerInfo.email,
+        totalAmount: displayAmount,
+        itemCount: order.itemCount,
+        voucherDiscount: order.voucherDiscount,
+        voucherCode: order.voucherCode,
+        hasRefundVoucher,
+      };
+    });
+
+    // Build product summary by aggregating all items across orders
+    // Map structure: productId -> { productTitle, variants: Map<variantId, { variantName, sizes: Map<size, { quantity, amount }> }> }
+    type SizeMap = Map<string, { quantity: number; amount: number }>;
+    type VariantData = { variantName: string; sizes: SizeMap; totalQuantity: number; totalAmount: number };
+    type ProductData = { productTitle: string; variants: Map<string, VariantData>; totalQuantity: number; totalAmount: number };
+    const productMap = new Map<string, ProductData>();
+
+    for (const order of orders) {
+      // Get items from embeddedItems
+      const embeddedItems = order.embeddedItems || [];
+      
+      // For large orders, also fetch from orderItems table
+      const orderItemsFromDb = await ctx.db
+        .query('orderItems')
+        .withIndex('by_order', (q) => q.eq('orderId', order._id))
+        .collect();
+
+      // Combine items (embeddedItems for small orders, orderItems for large ones)
+      const allItems = embeddedItems.length > 0 ? embeddedItems : orderItemsFromDb;
+
+      for (const item of allItems) {
+        const productId = item.productInfo.productId as string;
+        const productTitle = item.productInfo.title;
+        // Handle variantId - ensure it's a string
+        const variantId = item.variantId && typeof item.variantId === 'string' ? item.variantId : 'default';
+        const variantName = item.productInfo.variantName || 'Default';
+        // Handle size - could be from orderItems table (has size field) or embeddedItems (no size field)
+        let size = 'One Size';
+        if ('size' in item && item.size && typeof item.size === 'string') {
+          size = item.size;
+        }
+        const quantity = item.quantity;
+        const amount = item.price * item.quantity;
+
+        if (!productMap.has(productId)) {
+          productMap.set(productId, {
+            productTitle,
+            variants: new Map(),
+            totalQuantity: 0,
+            totalAmount: 0,
+          });
+        }
+
+        const product = productMap.get(productId)!;
+        product.totalQuantity += quantity;
+        product.totalAmount += amount;
+
+        if (!product.variants.has(variantId)) {
+          product.variants.set(variantId, {
+            variantName,
+            sizes: new Map(),
+            totalQuantity: 0,
+            totalAmount: 0,
+          });
+        }
+
+        const variant = product.variants.get(variantId)!;
+        variant.totalQuantity += quantity;
+        variant.totalAmount += amount;
+
+        if (!variant.sizes.has(size)) {
+          variant.sizes.set(size, { quantity: 0, amount: 0 });
+        }
+
+        const sizeData = variant.sizes.get(size)!;
+        sizeData.quantity += quantity;
+        sizeData.amount += amount;
+      }
+    }
+
+    // Convert maps to arrays, filtering out items with 0 quantity
+    const productSummary = Array.from(productMap.entries())
+      .map(([productId, product]) => ({
+        productId,
+        productTitle: product.productTitle,
+        totalQuantity: product.totalQuantity,
+        totalAmount: product.totalAmount,
+        variants: Array.from(product.variants.entries())
+          .map(([variantId, variant]) => ({
+            variantId,
+            variantName: variant.variantName,
+            totalQuantity: variant.totalQuantity,
+            totalAmount: variant.totalAmount,
+            sizes: Array.from(variant.sizes.entries())
+              .map(([size, data]) => ({
+                size,
+                quantity: data.quantity,
+                amount: data.amount,
+              }))
+              .filter((s) => s.quantity > 0), // Filter out 0 quantity sizes
+          }))
+          .filter((v) => v.totalQuantity > 0), // Filter out 0 quantity variants
+      }))
+      .filter((p) => p.totalQuantity > 0) // Filter out 0 quantity products
+      .sort((a, b) => b.totalQuantity - a.totalQuantity); // Sort by quantity descending
 
     // Generate invoice number: PI-{YYYYMMDD}-{slug}-{seq}
     const dateStr = new Date(args.periodEnd).toISOString().slice(0, 10).replace(/-/g, '');
@@ -142,9 +266,11 @@ export const generatePayoutInvoicesHandler = async (
       platformFeePercentage: feePercentage,
       platformFeeAmount,
       netAmount,
+      totalVoucherDiscount: totalVoucherDiscount > 0 ? totalVoucherDiscount : undefined,
       orderCount: orders.length,
       itemCount,
       orderSummary,
+      productSummary,
       status: 'PENDING',
       statusHistory: [
         {

@@ -13,6 +13,7 @@ import { BlurFade } from '@/src/components/ui/animations/effects';
 import { cn } from '@/lib/utils';
 import { MessageSquare, Search, Plus, Users, ChevronRight, MessageCircle, ArrowRight, Sparkles } from 'lucide-react';
 import { showToast, promiseToast } from '@/lib/toast';
+import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
 
 function formatRelativeTime(timestamp: number): string {
   const now = Date.now();
@@ -49,18 +50,22 @@ export function ChatsPage() {
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
   );
 
-  const rooms = useQuery(api.chats.queries.index.getChatRooms, organization?._id ? { organizationId: organization._id } : {});
-  const createChatRoom = useMutation(api.chats.mutations.index.createChatRoom);
-
   const [search, setSearch] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
+  const debouncedSearch = useDebouncedSearch(search, 300);
 
-  const filtered = useMemo(() => {
-    if (!rooms) return [];
-    const q = search.trim().toLowerCase();
-    if (!q) return rooms;
-    return rooms.filter((r: Doc<'chatRooms'>) => (r.name || '').toLowerCase().includes(q));
-  }, [rooms, search]);
+  const rooms = useQuery(
+    api.chats.queries.index.getChatRooms,
+    organization?._id
+      ? {
+          organizationId: organization._id,
+          ...(debouncedSearch.trim() ? { search: debouncedSearch.trim() } : {}),
+        }
+      : debouncedSearch.trim()
+        ? { search: debouncedSearch.trim() }
+        : {}
+  );
+  const createChatRoom = useMutation(api.chats.mutations.index.createChatRoom);
 
   const loading = organization === undefined || rooms === undefined;
 
@@ -206,7 +211,7 @@ export function ChatsPage() {
             {!loading && rooms && rooms.length > 0 && (
               <AnimatePresence mode="wait">
                 <div className="space-y-2">
-                  {(filtered || []).map((r: Doc<'chatRooms'>, index: number) => {
+                  {rooms.map((r: Doc<'chatRooms'>, index: number) => {
                     const displayName = r.name || 'Direct Chat';
                     const initials = displayName
                       .split(' ')
@@ -270,13 +275,13 @@ export function ChatsPage() {
                   })}
 
                   {/* Search empty state */}
-                  {filtered.length === 0 && search.trim() && (
+                  {rooms.length === 0 && debouncedSearch.trim() && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
                       <div className="h-12 w-12 mx-auto mb-3 rounded-xl bg-slate-100 flex items-center justify-center">
                         <Search className="h-6 w-6 text-slate-400" />
                       </div>
                       <p className="text-sm text-slate-500">
-                        No conversations match "<span className="font-medium text-slate-700">{search}</span>"
+                        No conversations match "<span className="font-medium text-slate-700">{debouncedSearch}</span>"
                       </p>
                     </motion.div>
                   )}

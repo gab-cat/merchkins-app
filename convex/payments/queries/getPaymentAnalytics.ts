@@ -32,20 +32,28 @@ export const getPaymentAnalyticsHandler = async (
 
   const rows = await filtered.collect();
 
+  // Payment statuses that should be excluded from revenue calculations
+  const excludedStatuses = new Set(['REFUNDED', 'CANCELLED', 'REFUND_PENDING']);
+
   let totalAmount = 0;
   let count = 0;
   let byMethod: Record<string, { amount: number; count: number }> = {};
   let byStatus: Record<string, { amount: number; count: number }> = {};
 
   for (const p of rows) {
-    totalAmount += p.amount;
-    count += 1;
-    byMethod[p.paymentMethod] = byMethod[p.paymentMethod] || { amount: 0, count: 0 };
-    byMethod[p.paymentMethod].amount += p.amount;
-    byMethod[p.paymentMethod].count += 1;
+    // Count all payments for status breakdown
     byStatus[p.paymentStatus] = byStatus[p.paymentStatus] || { amount: 0, count: 0 };
     byStatus[p.paymentStatus].amount += p.amount;
     byStatus[p.paymentStatus].count += 1;
+
+    // Only include payments that are not refunded/cancelled in revenue calculations
+    if (!excludedStatuses.has(p.paymentStatus)) {
+      totalAmount += p.amount;
+      count += 1;
+      byMethod[p.paymentMethod] = byMethod[p.paymentMethod] || { amount: 0, count: 0 };
+      byMethod[p.paymentMethod].amount += p.amount;
+      byMethod[p.paymentMethod].count += 1;
+    }
   }
 
   return {

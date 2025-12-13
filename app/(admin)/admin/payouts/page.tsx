@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery, useAction, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
@@ -32,6 +32,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
+import { InvoiceDetailDialog } from '@/src/features/admin/payouts/components';
 
 // Types
 type PayoutStatus = 'PENDING' | 'PROCESSING' | 'PAID' | 'CANCELLED';
@@ -94,6 +95,7 @@ function PayoutStatusBadge({ status }: { status: PayoutStatus }) {
 
 export default function AdminPayoutsPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const orgSlug = searchParams.get('org');
 
   const [selectedInvoice, setSelectedInvoice] = useState<PayoutInvoice | null>(null);
@@ -154,9 +156,9 @@ export default function AdminPayoutsPage() {
     }
   };
 
-  // Handle open invoice URL
-  const handleOpenInvoiceUrl = (url: string) => {
-    window.open(url, '_blank');
+  // Handle view invoice - navigate to invoice page
+  const handleViewInvoice = (invoice: PayoutInvoice) => {
+    router.push(`/admin/payouts/invoices/${invoice._id}?org=${orgSlug}`);
   };
 
   // Handle generate and upload PDF to R2
@@ -461,12 +463,10 @@ export default function AdminPayoutsPage() {
                 <Download className="h-4 w-4 mr-2" />
                 Download PDF
               </DropdownMenuItem>
-              {row.invoiceUrl && (
-                <DropdownMenuItem onClick={() => handleOpenInvoiceUrl(row.invoiceUrl)}>
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Open Invoice Link
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem onClick={() => handleViewInvoice(row)}>
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View Invoice Page
+              </DropdownMenuItem>
             </>
           )}
         />
@@ -486,136 +486,12 @@ export default function AdminPayoutsPage() {
       )}
 
       {/* Invoice Detail Dialog */}
-      <Dialog open={!!selectedInvoice} onOpenChange={() => setSelectedInvoice(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
-            <DialogDescription>{selectedInvoice?.invoiceNumber}</DialogDescription>
-          </DialogHeader>
-
-          {selectedInvoice && (
-            <div className="space-y-6">
-              {/* Invoice URL Link */}
-              {selectedInvoice.invoiceUrl && (
-                <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ExternalLink className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-700 dark:text-blue-400">Invoice Link Available</span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenInvoiceUrl(selectedInvoice.invoiceUrl!)}
-                      className="text-blue-600 border-blue-300 hover:bg-blue-100"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      Open Link
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Generate Invoice URL if not exists */}
-              {!selectedInvoice.invoiceUrl && (
-                <div className="rounded-lg border border-dashed border-muted-foreground/30 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">No permanent invoice link</span>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => handleGenerateAndUploadPdf(selectedInvoice)} disabled={isGeneratingPdf}>
-                      {isGeneratingPdf ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <FileText className="h-4 w-4 mr-1" />
-                          Generate & Upload PDF
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Period */}
-              <div className="rounded-lg border p-4">
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">Period Covered</h4>
-                <p className="font-semibold">{formatDate(selectedInvoice.periodStart)}</p>
-                <p className="text-sm text-muted-foreground">to {formatDate(selectedInvoice.periodEnd)}</p>
-              </div>
-
-              {/* Financial Summary */}
-              <div className="rounded-lg border p-4 space-y-3">
-                <h4 className="font-medium">Financial Summary</h4>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-muted-foreground">Gross Sales</span>
-                  <span className="font-medium">{formatCurrency(selectedInvoice.grossAmount)}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-muted-foreground">Platform Fee ({selectedInvoice.platformFeePercentage}%)</span>
-                  <span className="text-red-600">-{formatCurrency(selectedInvoice.platformFeeAmount)}</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="font-semibold">Your Payout</span>
-                  <span className="font-bold text-emerald-600 text-xl">{formatCurrency(selectedInvoice.netAmount)}</span>
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <p className="text-2xl font-bold">{selectedInvoice.orderCount}</p>
-                  <p className="text-sm text-muted-foreground">Orders</p>
-                </div>
-                <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <p className="text-2xl font-bold">{selectedInvoice.itemCount}</p>
-                  <p className="text-sm text-muted-foreground">Items Sold</p>
-                </div>
-                <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <PayoutStatusBadge status={selectedInvoice.status} />
-                  <p className="text-sm text-muted-foreground mt-1">Status</p>
-                </div>
-              </div>
-
-              {/* Payment Info (if paid) */}
-              {selectedInvoice.status === 'PAID' && selectedInvoice.paidAt && (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-800 p-4">
-                  <h4 className="font-medium text-emerald-700 dark:text-emerald-400 mb-2">✓ Payment Received</h4>
-                  <p className="text-sm">Paid on {formatDate(selectedInvoice.paidAt)}</p>
-                  {selectedInvoice.paymentReference && <p className="text-sm mt-1">Reference: {selectedInvoice.paymentReference}</p>}
-                  {selectedInvoice.paymentNotes && <p className="text-sm mt-1">Notes: {selectedInvoice.paymentNotes}</p>}
-                </div>
-              )}
-
-              {/* Pending Info */}
-              {selectedInvoice.status === 'PENDING' && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-4">
-                  <h4 className="font-medium text-amber-700 dark:text-amber-400 mb-2">⏳ Payment Pending</h4>
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    Your payout will be processed on the upcoming Friday. You will receive an email notification once the payment has been sent.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedInvoice(null)}>
-              Close
-            </Button>
-            {selectedInvoice && (
-              <Button onClick={() => handleDownloadPdf(selectedInvoice)}>
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <InvoiceDetailDialog
+        invoice={selectedInvoice}
+        isOpen={!!selectedInvoice}
+        onClose={() => setSelectedInvoice(null)}
+        onViewInvoice={handleViewInvoice}
+      />
 
       {/* Bank Details Form Dialog */}
       <Dialog open={bankDetailsDialogOpen} onOpenChange={setBankDetailsDialogOpen}>

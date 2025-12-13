@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAction, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ interface OrderPaymentLinkProps {
   customerEmail?: string;
   orderNumber?: string | null;
   compact?: boolean;
+  short?: boolean; // Short button variant to replace badge
 }
 
 export function OrderPaymentLink({
@@ -32,7 +34,9 @@ export function OrderPaymentLink({
   customerEmail,
   orderNumber,
   compact = false,
+  short = false,
 }: OrderPaymentLinkProps) {
+  const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const refreshInvoice = useAction(api.orders.mutations.index.refreshXenditInvoice);
@@ -61,6 +65,7 @@ export function OrderPaymentLink({
       });
 
       if (result.invoiceUrl) {
+        // External Xendit URL - use window.location for external redirects
         window.location.href = result.invoiceUrl;
       }
     } catch (error) {
@@ -74,7 +79,7 @@ export function OrderPaymentLink({
     e.preventDefault();
     e.stopPropagation();
     
-    // If payment link exists, redirect immediately
+    // If payment link exists, redirect immediately (external Xendit URL)
     if (xenditInvoiceUrl) {
       window.location.href = xenditInvoiceUrl;
       return;
@@ -109,6 +114,7 @@ export function OrderPaymentLink({
       });
 
       showToast({ type: 'success', title: 'Payment link created', description: 'Redirecting...' });
+      // External Xendit URL - use window.location for external redirects
       window.location.href = invoice.invoiceUrl;
     } catch (error) {
       console.error('Failed to create invoice:', error);
@@ -118,11 +124,41 @@ export function OrderPaymentLink({
     }
   };
 
-  // Compact mode for order list
+  // Short button variant to replace badge (for desktop)
+  if (short) {
+    if (isExpired) {
+      return (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleRefreshInvoice}
+          disabled={isRefreshing}
+          className="h-6 px-2.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-100 rounded-full"
+        >
+          <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        size="sm"
+        onClick={handlePayNow}
+        disabled={isCreating}
+        className="h-6 px-2.5 text-xs font-medium bg-[#1d43d8] hover:bg-[#1d43d8]/90 text-white rounded-full shadow-sm"
+      >
+        <CreditCard className={`h-3 w-3 mr-1 ${isCreating ? 'animate-pulse' : ''}`} />
+        {isCreating ? 'Creating...' : 'Pay Now'}
+      </Button>
+    );
+  }
+
+  // Compact mode for order list (long button for mobile)
   if (compact) {
     if (isExpired) {
       return (
-        <div className="px-4 pb-4 pt-0">
+        <div className="px-4 pb-4 pt-0 md:hidden">
           <div className="flex items-center justify-between gap-2 p-2.5 bg-red-50 border border-red-100 rounded-lg">
             <div className="flex items-center gap-2 text-xs text-red-600">
               <AlertTriangle className="h-3.5 w-3.5" />
@@ -144,7 +180,7 @@ export function OrderPaymentLink({
     }
 
     return (
-      <div className="px-4 pb-4 pt-0">
+      <div className="px-4 pb-4 pt-0 md:hidden">
         <Button
           size="sm"
           onClick={handlePayNow}

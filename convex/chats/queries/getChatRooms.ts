@@ -5,9 +5,10 @@ import { requireAuthentication } from '../../helpers';
 
 export const getChatRoomsArgs = {
   organizationId: v.optional(v.id('organizations')),
+  search: v.optional(v.string()),
 };
 
-export const getChatRoomsHandler = async (ctx: QueryCtx, args: { organizationId?: Id<'organizations'> }) => {
+export const getChatRoomsHandler = async (ctx: QueryCtx, args: { organizationId?: Id<'organizations'>; search?: string }) => {
   const currentUser = await requireAuthentication(ctx);
 
   // Rooms where user is embedded participant
@@ -34,9 +35,18 @@ export const getChatRoomsHandler = async (ctx: QueryCtx, args: { organizationId?
 
   // Remove duplicates
   const byId = new Map(filtered.filter(Boolean).map((r) => [r!._id, r!]));
-  const result = Array.from(byId.values())
+  let result = Array.from(byId.values())
     .filter((r) => r.isActive)
     .sort((a, b) => (b.lastMessageAt || 0) - (a.lastMessageAt || 0));
+
+  // Apply search filter if provided
+  if (args.search && args.search.trim()) {
+    const searchTerm = args.search.toLowerCase().trim();
+    result = result.filter((r) => {
+      const name = (r.name || '').toLowerCase();
+      return name.includes(searchTerm);
+    });
+  }
 
   return result;
 };

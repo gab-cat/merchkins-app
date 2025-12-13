@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   Building2,
   TrendingUp,
-  Download,
   Mail,
   Eye,
   Settings,
@@ -23,7 +22,8 @@ import {
   Play,
   Undo2,
   ExternalLink,
-  Loader2,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { MetricCard, MetricGrid, PageHeader, DataTable, StatusBadge, DropdownMenuItem, DropdownMenuSeparator } from '@/src/components/admin';
 import { Button } from '@/components/ui/button';
@@ -57,6 +57,12 @@ interface PayoutInvoice {
     slug: string;
     logo?: string;
     logoUrl?: string;
+    bankDetails?: {
+      bankName: string;
+      accountName: string;
+      accountNumber: string;
+      notificationEmail?: string;
+    };
   };
   periodStart: number;
   periodEnd: number;
@@ -161,8 +167,8 @@ export default function SuperAdminPayoutsPage() {
   const [revertDialogOpen, setRevertDialogOpen] = useState(false);
   const [revertReason, setRevertReason] = useState('');
   const [isReverting, setIsReverting] = useState(false);
-  // PDF generation state
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // Copy state
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Get current user
   const { user: currentUser } = useCurrentUser();
@@ -180,7 +186,6 @@ export default function SuperAdminPayoutsPage() {
   const revertPayoutStatus = useMutation(api.payouts.mutations.index.revertPayoutStatus);
 
   // Actions
-  const generatePdf = useAction(api.payouts.actions.index.generateInvoicePdf);
   const sendPaymentEmail = useAction(api.payouts.actions.index.sendPaymentConfirmationEmail);
   const triggerManualGeneration = useAction(api.payouts.actions.index.triggerPayoutGenerationManual);
 
@@ -230,25 +235,6 @@ export default function SuperAdminPayoutsPage() {
       toast.error((error as Error).message || 'Failed to mark invoice as paid');
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  // Handle PDF download
-  const handleDownloadPdf = async (invoice: PayoutInvoice) => {
-    try {
-      const result = await generatePdf({ invoiceId: invoice._id });
-      if (result.success && result.pdfBase64) {
-        // Create download link
-        const link = document.createElement('a');
-        link.href = `data:application/pdf;base64,${result.pdfBase64}`;
-        link.download = `${invoice.invoiceNumber}.pdf`;
-        link.click();
-        toast.success('PDF downloaded');
-      } else {
-        toast.error(result.error || 'Failed to generate PDF');
-      }
-    } catch (error) {
-      toast.error('Failed to generate PDF');
     }
   };
 
@@ -358,34 +344,21 @@ export default function SuperAdminPayoutsPage() {
     }
   };
 
-  // Handle generate and upload PDF to R2
-  const handleGenerateAndUploadPdf = async (invoice: PayoutInvoice) => {
-    setIsGeneratingPdf(true);
-    try {
-      const result = await generatePdf({ invoiceId: invoice._id, uploadToR2: true });
-      if (result.success) {
-        if (result.invoiceUrl) {
-          toast.success('PDF generated and uploaded successfully');
-          // Update selected invoice if it's the same one
-          if (selectedInvoice?._id === invoice._id) {
-            setSelectedInvoice({ ...selectedInvoice, invoiceUrl: result.invoiceUrl });
-          }
-        } else {
-          toast.success('PDF generated');
-        }
-      } else {
-        toast.error(result.error || 'Failed to generate PDF');
-      }
-    } catch (error) {
-      toast.error('Failed to generate PDF');
-    } finally {
-      setIsGeneratingPdf(false);
-    }
+  // Handle view invoice in new tab
+  const handleViewInvoice = (invoice: PayoutInvoice) => {
+    window.open(`/admin/payouts/invoices/${invoice._id}`, '_blank');
   };
 
-  // Handle open invoice URL
-  const handleOpenInvoiceUrl = (url: string) => {
-    window.open(url, '_blank');
+  // Handle copy to clipboard
+  const handleCopy = async (text: string, fieldName: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      toast.success(`${fieldName} copied to clipboard`);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (error) {
+      toast.error('Failed to copy to clipboard');
+    }
   };
 
   // Table columns
@@ -581,16 +554,10 @@ export default function SuperAdminPayoutsPage() {
                   <Eye className="h-4 w-4 mr-2" />
                   View Details
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDownloadPdf(row)}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
+                <DropdownMenuItem onClick={() => handleViewInvoice(row)}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Invoice
                 </DropdownMenuItem>
-                {row.invoiceUrl && (
-                  <DropdownMenuItem onClick={() => handleOpenInvoiceUrl(row.invoiceUrl)}>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Open Invoice Link
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 {row.status === 'PENDING' && (
                   <DropdownMenuItem
@@ -642,9 +609,9 @@ export default function SuperAdminPayoutsPage() {
                   <Eye className="h-4 w-4 mr-2" />
                   View Details
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDownloadPdf(row)}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
+                <DropdownMenuItem onClick={() => handleViewInvoice(row)}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Invoice
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -679,16 +646,10 @@ export default function SuperAdminPayoutsPage() {
                   <Eye className="h-4 w-4 mr-2" />
                   View Details
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDownloadPdf(row)}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
+                <DropdownMenuItem onClick={() => handleViewInvoice(row)}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Invoice
                 </DropdownMenuItem>
-                {row.invoiceUrl && (
-                  <DropdownMenuItem onClick={() => handleOpenInvoiceUrl(row.invoiceUrl)}>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Open Invoice Link
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
@@ -768,114 +729,167 @@ export default function SuperAdminPayoutsPage() {
 
       {/* Invoice Detail Dialog */}
       <Dialog open={!!selectedInvoice && !markPaidDialogOpen && !revertDialogOpen} onOpenChange={() => setSelectedInvoice(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
-            <DialogDescription>{selectedInvoice?.invoiceNumber}</DialogDescription>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-3">
+            <DialogTitle className="text-lg">{selectedInvoice?.invoiceNumber}</DialogTitle>
+            <DialogDescription className="text-xs">
+              {formatDateRange(selectedInvoice?.periodStart ?? 0, selectedInvoice?.periodEnd ?? 0)}
+            </DialogDescription>
           </DialogHeader>
 
           {selectedInvoice && (
-            <div className="space-y-6">
-              {/* Invoice URL Link */}
-              {selectedInvoice.invoiceUrl && (
-                <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ExternalLink className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-700 dark:text-blue-400">Invoice Link Available</span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenInvoiceUrl(selectedInvoice.invoiceUrl!)}
-                      className="text-blue-600 border-blue-300 hover:bg-blue-100"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      Open Link
-                    </Button>
-                  </div>
-                </div>
-              )}
+            <div className="space-y-3">
+              {/* View Invoice Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleViewInvoice(selectedInvoice)}
+                className="w-full text-blue-600 border-blue-300 hover:bg-blue-50"
+              >
+                <ExternalLink className="h-3.5 w-3.5 mr-2" />
+                View Invoice in New Tab
+              </Button>
 
-              {/* Generate Invoice URL if not exists */}
-              {!selectedInvoice.invoiceUrl && (
-                <div className="rounded-lg border border-dashed border-muted-foreground/30 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">No permanent invoice link</span>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => handleGenerateAndUploadPdf(selectedInvoice)} disabled={isGeneratingPdf}>
-                      {isGeneratingPdf ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <FileText className="h-4 w-4 mr-1" />
-                          Generate & Upload PDF
-                        </>
-                      )}
-                    </Button>
-                  </div>
+              {/* Organization & Period - Compact */}
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="rounded-md border p-2.5">
+                  <p className="text-xs text-muted-foreground mb-1">Organization</p>
+                  <p className="font-semibold text-sm truncate">{selectedInvoice.organizationInfo.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">/{selectedInvoice.organizationInfo.slug}</p>
                 </div>
-              )}
-
-              {/* Organization & Period */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-lg border p-4">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Organization</h4>
-                  <p className="font-semibold">{selectedInvoice.organizationInfo.name}</p>
-                  <p className="text-sm text-muted-foreground">/{selectedInvoice.organizationInfo.slug}</p>
-                </div>
-                <div className="rounded-lg border p-4">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Period</h4>
-                  <p className="font-semibold">{formatDate(selectedInvoice.periodStart)}</p>
-                  <p className="text-sm text-muted-foreground">to {formatDate(selectedInvoice.periodEnd)}</p>
+                <div className="rounded-md border p-2.5">
+                  <p className="text-xs text-muted-foreground mb-1">Period</p>
+                  <p className="font-semibold text-sm">{formatDate(selectedInvoice.periodStart)}</p>
+                  <p className="text-xs text-muted-foreground">to {formatDate(selectedInvoice.periodEnd)}</p>
                 </div>
               </div>
 
-              {/* Financial Summary */}
-              <div className="rounded-lg border p-4 space-y-3">
-                <h4 className="font-medium">Financial Summary</h4>
-                <div className="flex justify-between py-2 border-b">
+              {/* Payee Bank Details */}
+              {selectedInvoice.organizationInfo.bankDetails && (
+                <div className="rounded-md border p-2.5 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Payee Bank Details</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-0.5">Bank Name</p>
+                        <p className="font-medium text-sm truncate">{selectedInvoice.organizationInfo.bankDetails.bankName}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 shrink-0"
+                        onClick={() => handleCopy(selectedInvoice.organizationInfo.bankDetails!.bankName, 'Bank Name')}
+                      >
+                        {copiedField === 'Bank Name' ? (
+                          <Check className="h-3.5 w-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-0.5">Account Name</p>
+                        <p className="font-medium text-sm truncate">{selectedInvoice.organizationInfo.bankDetails.accountName}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 shrink-0"
+                        onClick={() => handleCopy(selectedInvoice.organizationInfo.bankDetails!.accountName, 'Account Name')}
+                      >
+                        {copiedField === 'Account Name' ? (
+                          <Check className="h-3.5 w-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-0.5">Account Number</p>
+                        <p className="font-medium font-mono text-sm truncate">{selectedInvoice.organizationInfo.bankDetails.accountNumber}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 shrink-0"
+                        onClick={() => handleCopy(selectedInvoice.organizationInfo.bankDetails!.accountNumber, 'Account Number')}
+                      >
+                        {copiedField === 'Account Number' ? (
+                          <Check className="h-3.5 w-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
+                    {selectedInvoice.organizationInfo.bankDetails.notificationEmail && (
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-muted-foreground mb-0.5">Email</p>
+                          <p className="font-medium text-sm truncate">{selectedInvoice.organizationInfo.bankDetails.notificationEmail}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 shrink-0"
+                          onClick={() => handleCopy(selectedInvoice.organizationInfo.bankDetails!.notificationEmail!, 'Email')}
+                        >
+                          {copiedField === 'Email' ? (
+                            <Check className="h-3.5 w-3.5 text-emerald-600" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Financial Summary - Compact */}
+              <div className="rounded-md border p-2.5 space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Financial Summary</p>
+                <div className="flex justify-between text-sm py-1 border-b">
                   <span className="text-muted-foreground">Gross Sales</span>
                   <span className="font-medium">{formatCurrency(selectedInvoice.grossAmount)}</span>
                 </div>
-                <div className="flex justify-between py-2 border-b">
+                <div className="flex justify-between text-sm py-1 border-b">
                   <span className="text-muted-foreground">Platform Fee ({selectedInvoice.platformFeePercentage}%)</span>
                   <span className="text-red-600">-{formatCurrency(selectedInvoice.platformFeeAmount)}</span>
                 </div>
-                <div className="flex justify-between py-2">
+                <div className="flex justify-between text-sm pt-1">
                   <span className="font-semibold">Net Payout</span>
-                  <span className="font-bold text-emerald-600 text-xl">{formatCurrency(selectedInvoice.netAmount)}</span>
+                  <span className="font-bold text-emerald-600 text-base">{formatCurrency(selectedInvoice.netAmount)}</span>
                 </div>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <p className="text-2xl font-bold">{selectedInvoice.orderCount}</p>
-                  <p className="text-sm text-muted-foreground">Orders</p>
+              {/* Stats - Compact */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="text-center p-2 rounded-md bg-muted/50">
+                  <p className="text-lg font-bold">{selectedInvoice.orderCount}</p>
+                  <p className="text-xs text-muted-foreground">Orders</p>
                 </div>
-                <div className="text-center p-4 rounded-lg bg-muted/50">
-                  <p className="text-2xl font-bold">{selectedInvoice.itemCount}</p>
-                  <p className="text-sm text-muted-foreground">Items</p>
+                <div className="text-center p-2 rounded-md bg-muted/50">
+                  <p className="text-lg font-bold">{selectedInvoice.itemCount}</p>
+                  <p className="text-xs text-muted-foreground">Items</p>
                 </div>
-                <div className="text-center p-4 rounded-lg bg-muted/50">
+                <div className="text-center p-2 rounded-md bg-muted/50">
                   <PayoutStatusBadge status={selectedInvoice.status} />
-                  <p className="text-sm text-muted-foreground mt-1">Status</p>
                 </div>
               </div>
 
-              {/* Payment Info (if paid) */}
+              {/* Payment Info (if paid) - Compact */}
               {selectedInvoice.status === 'PAID' && selectedInvoice.paidAt && (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-800 p-4">
-                  <h4 className="font-medium text-emerald-700 dark:text-emerald-400 mb-2">Payment Confirmed</h4>
-                  <p className="text-sm">Paid on {formatDate(selectedInvoice.paidAt)}</p>
-                  {selectedInvoice.paymentReference && <p className="text-sm">Reference: {selectedInvoice.paymentReference}</p>}
-                  {selectedInvoice.paymentNotes && <p className="text-sm mt-1">Notes: {selectedInvoice.paymentNotes}</p>}
+                <div className="rounded-md border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-800 p-2.5">
+                  <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400 mb-1">Payment Confirmed</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">Paid on {formatDate(selectedInvoice.paidAt)}</p>
+                  {selectedInvoice.paymentReference && (
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">Ref: {selectedInvoice.paymentReference}</p>
+                  )}
+                  {selectedInvoice.paymentNotes && (
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5 italic">"{selectedInvoice.paymentNotes}"</p>
+                  )}
                 </div>
               )}
             </div>
@@ -886,12 +900,6 @@ export default function SuperAdminPayoutsPage() {
               <Button variant="outline" onClick={() => setSelectedInvoice(null)}>
                 Close
               </Button>
-              {selectedInvoice && (
-                <Button variant="outline" onClick={() => handleDownloadPdf(selectedInvoice)}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
-              )}
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               {selectedInvoice && selectedInvoice.status === 'PENDING' && (

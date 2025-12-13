@@ -98,6 +98,9 @@ export const orders = defineTable({
   xenditInvoiceExpiryDate: v.optional(v.number()),
   xenditInvoiceCreatedAt: v.optional(v.number()),
 
+  // Checkout session for grouped payments
+  checkoutId: v.optional(v.string()),
+
   // Embedded status history for quick access (last 5 changes)
   recentStatusHistory: v.array(
     v.object({
@@ -121,7 +124,8 @@ export const orders = defineTable({
   .index('by_customer_status', ['customerId', 'status'])
   .index('by_organization_status', ['organizationId', 'status'])
   .index('by_order_date', ['orderDate'])
-  .index('by_estimated_delivery', ['estimatedDelivery']);
+  .index('by_estimated_delivery', ['estimatedDelivery'])
+  .index('by_checkout_id', ['checkoutId']);
 
 // Separate order items table for large orders (>20 items)
 export const orderItems = defineTable({

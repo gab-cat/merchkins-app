@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
+import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -236,12 +237,15 @@ function VouchersEmptyState({ onCreate }: { onCreate: () => void }) {
 }
 
 export default function AdminVouchersPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const orgSlug = searchParams.get('org');
   const suffix = orgSlug ? `?org=${orgSlug}` : '';
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+
+  const debouncedSearch = useDebouncedSearch(search, 300);
 
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,
@@ -255,6 +259,7 @@ export default function AdminVouchersPage() {
       typeFilter !== 'all'
         ? (typeFilter as 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING')
         : undefined,
+    search: debouncedSearch || undefined,
     includeExpired: true,
     limit: 100,
   });
@@ -264,14 +269,6 @@ export default function AdminVouchersPage() {
 
   const vouchers = vouchersResult?.vouchers ?? [];
   const loading = vouchersResult === undefined;
-
-  const results = useMemo(() => {
-    if (!search) return vouchers;
-    const q = search.toLowerCase();
-    return vouchers.filter(
-      (v) => v.code.toLowerCase().includes(q) || v.name.toLowerCase().includes(q) || v.description?.toLowerCase().includes(q)
-    );
-  }, [vouchers, search]);
 
   const handleToggle = async (voucherId: Id<'vouchers'>, isActive: boolean) => {
     await promiseToast(toggleVoucher({ voucherId, isActive }), {
@@ -344,7 +341,7 @@ export default function AdminVouchersPage() {
       {/* Results count */}
       {!loading && (
         <p className="text-sm text-muted-foreground">
-          {results.length} voucher{results.length !== 1 ? 's' : ''} found
+          {vouchers.length} voucher{vouchers.length !== 1 ? 's' : ''} found
         </p>
       )}
 
@@ -363,9 +360,9 @@ export default function AdminVouchersPage() {
               </div>
             ))}
           </motion.div>
-        ) : results.length === 0 ? (
+        ) : vouchers.length === 0 ? (
           <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <VouchersEmptyState onCreate={() => (window.location.href = `/admin/vouchers/new${suffix}`)} />
+            <VouchersEmptyState onCreate={() => router.push(`/admin/vouchers/new${suffix}`)} />
           </motion.div>
         ) : (
           <motion.div
@@ -375,7 +372,7 @@ export default function AdminVouchersPage() {
             exit={{ opacity: 0 }}
             className="rounded-xl border overflow-hidden"
           >
-            {results.map((voucher, index) => (
+            {vouchers.map((voucher, index) => (
               <VoucherListItem
                 key={voucher._id}
                 voucher={voucher as EnrichedVoucher}

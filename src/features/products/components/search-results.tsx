@@ -14,6 +14,7 @@ import { Clock, TrendingUp, Star, TrendingDown, Search, Package, Sparkles } from
 import { ProductCard } from './product-card';
 import { BlurFade } from '@/src/components/ui/animations';
 import { Doc } from '@/convex/_generated/dataModel';
+import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
 
 type Product = Doc<'products'>;
 
@@ -21,6 +22,7 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [q, setQ] = useState(searchParams.get('q') ?? '');
+  const debouncedQ = useDebouncedSearch(q, 300);
   type SortOption = 'newest' | 'popular' | 'rating' | 'price_low' | 'price_high';
   const [sortBy, setSortBy] = useState<SortOption>('newest');
 
@@ -28,20 +30,32 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
     setQ(searchParams.get('q') ?? '');
   }, [searchParams]);
 
+  // Update URL when debounced value changes (but only if different from current URL param)
+  useEffect(() => {
+    const currentQ = searchParams.get('q') ?? '';
+    if (debouncedQ.trim() !== currentQ.trim()) {
+      const url = orgSlug
+        ? `/o/${orgSlug}/search${debouncedQ.trim() ? `?q=${encodeURIComponent(debouncedQ.trim())}` : ''}`
+        : `/search${debouncedQ.trim() ? `?q=${encodeURIComponent(debouncedQ.trim())}` : ''}`;
+      router.replace(url);
+    }
+  }, [debouncedQ, orgSlug, router, searchParams]);
+
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
   );
 
   // Use search when there's a query, otherwise use popular products
-  const searchArgs = q.trim()
+  // Use debouncedQ for query to avoid excessive requests
+  const searchArgs = debouncedQ.trim()
     ? {
-        query: q.trim(),
+        query: debouncedQ.trim(),
         limit: 50,
         ...(organization?._id ? { organizationId: organization._id } : {}),
       }
     : 'skip';
-  const popularArgs = !q.trim()
+  const popularArgs = !debouncedQ.trim()
     ? {
         limit: 50,
         ...(organization?._id ? { organizationId: organization._id } : {}),
@@ -51,8 +65,8 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
   const searchResult = useQuery(api.products.queries.index.searchProducts, searchArgs);
   const popularResult = useQuery(api.products.queries.index.getPopularProducts, popularArgs);
 
-  const loading = q.trim() !== '' && searchResult === undefined;
-  const result = q.trim() ? searchResult : popularResult;
+  const loading = debouncedQ.trim() !== '' && searchResult === undefined;
+  const result = debouncedQ.trim() ? searchResult : popularResult;
   const products = useMemo(() => {
     const list = result?.products ?? [];
     const copy = [...list];
@@ -79,7 +93,8 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    router.push(orgSlug ? `/o/${orgSlug}/search?q=${encodeURIComponent(q.trim())}` : `/search?q=${encodeURIComponent(q.trim())}`);
+    // Use debouncedQ for immediate URL update on submit
+    router.push(orgSlug ? `/o/${orgSlug}/search?q=${encodeURIComponent(debouncedQ.trim())}` : `/search?q=${encodeURIComponent(debouncedQ.trim())}`);
   }
 
   return (
@@ -90,11 +105,11 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
           <div className="flex items-center gap-2">
             <Search className="h-5 w-5 text-primary" />
             <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight font-heading">
-              {q.trim() ? `Search results for "${q}"` : 'Browse Products'}
+              {debouncedQ.trim() ? `Search results for "${debouncedQ}"` : 'Browse Products'}
             </h1>
           </div>
           <p className="text-muted-foreground text-sm">
-            {q.trim() ? `Found ${products.length} product${products.length !== 1 ? 's' : ''}` : 'Discover amazing products'}
+            {debouncedQ.trim() ? `Found ${products.length} product${products.length !== 1 ? 's' : ''}` : 'Discover amazing products'}
           </p>
         </div>
       </BlurFade>
@@ -201,7 +216,7 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
       </div>
 
       {/* Empty state */}
-      {!loading && q.trim() && products.length === 0 && (
+      {!loading && debouncedQ.trim() && products.length === 0 && (
         <BlurFade>
           <div className="text-center py-16 px-4">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6">
@@ -209,7 +224,7 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
             </div>
             <h3 className="text-xl font-semibold text-foreground font-heading mb-2">No products found</h3>
             <p className="text-muted-foreground text-base max-w-md mx-auto">
-              We couldn&apos;t find any products matching &quot;{q}&quot;. Try adjusting your search terms or browse our categories.
+              We couldn&apos;t find any products matching &quot;{debouncedQ}&quot;. Try adjusting your search terms or browse our categories.
             </p>
           </div>
         </BlurFade>

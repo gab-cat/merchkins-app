@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useOffsetPagination } from '@/src/hooks/use-pagination';
+import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
 import { R2Image } from '@/src/components/ui/r2-image';
 import Link from 'next/link';
 import { Doc, Id } from '@/convex/_generated/dataModel';
@@ -23,6 +24,7 @@ type Product = Doc<'products'>;
 type ProductQueryArgs = {
   organizationId?: Id<'organizations'>;
   sortBy?: string;
+  search?: string;
   limit?: number;
   offset?: number;
 };
@@ -219,12 +221,15 @@ function ProductListItem({ product, orgSlug, index }: ProductListItemProps) {
 }
 
 export default function AdminProductsPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const orgSlug = searchParams.get('org');
   const suffix = orgSlug ? `?org=${orgSlug}` : '';
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+
+  const debouncedSearch = useDebouncedSearch(search, 300);
 
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,
@@ -235,8 +240,9 @@ export default function AdminProductsPage() {
     (): ProductQueryArgs => ({
       organizationId: orgSlug ? organization?._id : undefined,
       sortBy,
+      search: debouncedSearch || undefined,
     }),
-    [orgSlug, organization, sortBy]
+    [orgSlug, organization, sortBy, debouncedSearch]
   );
 
   const {
@@ -257,12 +263,6 @@ export default function AdminProductsPage() {
       return !!typedRes.hasMore;
     },
   });
-
-  const results = useMemo(() => {
-    if (!search) return products;
-    const q = search.toLowerCase();
-    return products.filter((p: Product) => [p.title, p.description || '', ...(p.tags || [])].join(' ').toLowerCase().includes(q));
-  }, [products, search]);
 
   return (
     <div className="space-y-6 font-admin-body">
@@ -320,7 +320,7 @@ export default function AdminProductsPage() {
       {/* Results count */}
       {!loading && (
         <p className="text-sm text-muted-foreground">
-          {results.length} product{results.length !== 1 ? 's' : ''} found
+          {products.length} product{products.length !== 1 ? 's' : ''} found
         </p>
       )}
 
@@ -354,9 +354,9 @@ export default function AdminProductsPage() {
               </div>
             )}
           </motion.div>
-        ) : results.length === 0 ? (
+        ) : products.length === 0 ? (
           <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <ProductsEmptyState onCreate={() => (window.location.href = `/admin/products/new${suffix}`)} />
+            <ProductsEmptyState onCreate={() => router.push(`/admin/products/new${suffix}`)} />
           </motion.div>
         ) : viewMode === 'grid' ? (
           <motion.div
@@ -366,7 +366,7 @@ export default function AdminProductsPage() {
             exit={{ opacity: 0 }}
             className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
           >
-            {results.map((product: Product, index: number) => (
+            {products.map((product: Product, index: number) => (
               <ProductCard key={product._id} product={product} orgSlug={orgSlug} index={index} />
             ))}
           </motion.div>
@@ -378,7 +378,7 @@ export default function AdminProductsPage() {
             exit={{ opacity: 0 }}
             className="rounded-xl border overflow-hidden"
           >
-            {results.map((product: Product, index: number) => (
+            {products.map((product: Product, index: number) => (
               <ProductListItem key={product._id} product={product} orgSlug={orgSlug} index={index} />
             ))}
           </motion.div>

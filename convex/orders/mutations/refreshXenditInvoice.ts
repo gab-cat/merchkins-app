@@ -42,20 +42,49 @@ export const refreshXenditInvoiceHandler = async (
     throw new Error('Order not found');
   }
 
-  // Check permissions - user can refresh their own order, staff/admin can refresh any
-  if (currentUser._id !== order.customerId && !currentUser.isStaff && !currentUser.isAdmin) {
-    throw new Error('You can only refresh payment links for your own orders');
+  // Check if this order is part of a checkout session
+  if (order.checkoutId) {
+    // Handle grouped payment refresh
+    const session = await ctx.runQuery(api.checkoutSessions.queries.index.getCheckoutSessionById, {
+      checkoutId: order.checkoutId,
+    });
+
+    if (!session) {
+      throw new Error('Checkout session not found');
+    }
+
+    // Check if invoice exists and is expired
+    if (!session.xenditInvoiceCreatedAt) {
+      throw new Error('No payment invoice found for this checkout session');
+    }
+
+    // Check if invoice is expired
+    const isExpired = checkInvoiceExpiry(session.xenditInvoiceCreatedAt);
+    if (!isExpired) {
+      // Return existing invoice URL if not expired
+      return {
+        invoiceUrl: session.xenditInvoiceUrl || '',
+        isExpired: false,
+      };
+    }
+
+    // Refresh grouped invoice
+    try {
+      const newInvoice = await ctx.runAction(internal.payments.actions.createGroupedXenditInvoice.createGroupedXenditInvoiceInternal, {
+        checkoutId: order.checkoutId,
+      });
+
+      return {
+        invoiceUrl: newInvoice.invoiceUrl,
+        isExpired: true,
+      };
+    } catch (error) {
+      console.error('Failed to refresh grouped Xendit invoice:', error);
+      throw new Error('Failed to refresh payment link. Please try again.');
+    }
   }
 
-  if (order.isDeleted) {
-    throw new Error('Order not found');
-  }
-
-  // Check permissions - user can refresh their own order, staff/admin can refresh any
-  if (currentUser._id !== order.customerId && !currentUser.isStaff && !currentUser.isAdmin) {
-    throw new Error('You can only refresh payment links for your own orders');
-  }
-
+  // Single order payment (backward compatibility)
   // Check if invoice exists and is expired
   if (!order.xenditInvoiceCreatedAt) {
     throw new Error('No payment invoice found for this order');

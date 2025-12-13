@@ -12,6 +12,9 @@ import { ShoppingBag, Plus, Search, Filter, Calendar, User, Package, Clock, Exte
 import { PageHeader, OrderStatusBadge, PaymentStatusBadge, OrdersEmptyState } from '@/src/components/admin';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DateRangeFilter, DateRange } from '@/src/components/ui/date-range-filter';
+import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
+import { useCursorPagination } from '@/src/hooks/use-pagination';
 import { cn } from '@/lib/utils';
 
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'DELIVERED' | 'CANCELLED';
@@ -41,39 +44,67 @@ function formatTime(timestamp: number) {
   });
 }
 
+type Order = {
+  _id: string;
+  orderNumber?: string;
+  status: string;
+  paymentStatus?: string;
+  orderDate: number;
+  itemCount: number;
+  totalAmount?: number;
+  customerInfo?: { email?: string; firstName?: string; lastName?: string };
+};
+
+type OrderQueryArgs = {
+  status?: OrderStatus;
+  paymentStatus?: PaymentStatus;
+  dateFrom?: number;
+  dateTo?: number;
+  search?: string;
+  includeDeleted?: boolean;
+  limit?: number;
+  cursor?: string | null;
+};
+
 export default function AdminOrdersPage() {
   const [status, setStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | 'ALL'>('ALL');
   const [search, setSearch] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange>({});
   const [refreshing, setRefreshing] = useState(false);
 
-  const ordersResult = useQuery(api.orders.queries.index.getOrdersPage, {
-    status: status === 'ALL' ? undefined : status,
-    paymentStatus: paymentStatus === 'ALL' ? undefined : paymentStatus,
-    includeDeleted: true,
-    limit: 100,
-    cursor: undefined,
-  }) as unknown as {
-    page?: Array<{
-      _id: string;
-      orderNumber?: string;
-      status: string;
-      paymentStatus?: string;
-      orderDate: number;
-      itemCount: number;
-      totalAmount?: number;
-      customerInfo?: { email?: string; name?: string };
-    }>;
-  };
+  const debouncedSearch = useDebouncedSearch(search, 300);
 
-  const loading = ordersResult === undefined;
+  const baseArgs = useMemo(
+    (): OrderQueryArgs => ({
+      status: status === 'ALL' ? undefined : status,
+      paymentStatus: paymentStatus === 'ALL' ? undefined : paymentStatus,
+      dateFrom: dateRange.dateFrom,
+      dateTo: dateRange.dateTo,
+      search: debouncedSearch || undefined,
+      includeDeleted: true,
+    }),
+    [status, paymentStatus, dateRange, debouncedSearch]
+  );
 
-  const filtered = useMemo(() => {
-    const orders = ordersResult?.page ?? [];
-    if (!search) return orders;
-    const q = search.toLowerCase();
-    return orders.filter((o) => [o.orderNumber || '', o.customerInfo?.email || '', o.customerInfo?.name || ''].join(' ').toLowerCase().includes(q));
-  }, [ordersResult?.page, search]);
+  const {
+    items: orders,
+    isLoading: loading,
+    hasMore,
+    loadMore,
+  } = useCursorPagination<Order, OrderQueryArgs>({
+    query: api.orders.queries.index.getOrdersPage,
+    baseArgs,
+    limit: 25,
+    selectPage: (res: unknown) => {
+      const typedRes = res as { page: Order[]; isDone: boolean; continueCursor: string | null };
+      return {
+        page: typedRes.page || [],
+        isDone: typedRes.isDone ?? false,
+        continueCursor: typedRes.continueCursor ?? null,
+      };
+    },
+  });
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -82,14 +113,13 @@ export default function AdminOrdersPage() {
 
   // Stats
   const stats = useMemo(() => {
-    const orders = ordersResult?.page ?? [];
     return {
       total: orders.length,
       pending: orders.filter((o) => o.status === 'PENDING').length,
       processing: orders.filter((o) => o.status === 'PROCESSING').length,
       delivered: orders.filter((o) => o.status === 'DELIVERED').length,
     };
-  }, [ordersResult?.page]);
+  }, [orders]);
 
   return (
     <div className="space-y-6 font-admin-body">
@@ -161,6 +191,7 @@ export default function AdminOrdersPage() {
               <SelectItem value="REFUNDED">Refunded</SelectItem>
             </SelectContent>
           </Select>
+          <DateRangeFilter value={dateRange} onChange={setDateRange} />
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
           <RefreshCw className={cn('h-4 w-4 mr-1', refreshing && 'animate-spin')} />
@@ -171,7 +202,7 @@ export default function AdminOrdersPage() {
       {/* Results count */}
       {!loading && (
         <p className="text-sm text-muted-foreground">
-          {filtered.length} order{filtered.length !== 1 ? 's' : ''} found
+          {orders.length} order{orders.length !== 1 ? 's' : ''} found
         </p>
       )}
 
@@ -219,14 +250,14 @@ export default function AdminOrdersPage() {
                     <TableCell />
                   </TableRow>
                 ))
-              ) : filtered.length === 0 ? (
+              ) : orders.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="h-40">
                     <OrdersEmptyState />
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((order, index) => (
+                orders.map((order, index) => (
                   <motion.tr
                     key={order._id}
                     initial={{ opacity: 0 }}
@@ -264,7 +295,11 @@ export default function AdminOrdersPage() {
                         <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                           <User className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        <span className="text-sm truncate max-w-[150px]">{order.customerInfo?.name || order.customerInfo?.email || 'N/A'}</span>
+                        <span className="text-sm truncate max-w-[150px]">
+                          {order.customerInfo?.firstName || order.customerInfo?.lastName
+                            ? `${order.customerInfo.firstName || ''} ${order.customerInfo.lastName || ''}`.trim()
+                            : order.customerInfo?.email || 'N/A'}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -296,6 +331,15 @@ export default function AdminOrdersPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Load More */}
+      {hasMore && !loading && (
+        <div className="flex justify-center pt-4">
+          <Button variant="outline" onClick={loadMore}>
+            Load More Orders
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

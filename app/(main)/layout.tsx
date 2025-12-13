@@ -13,7 +13,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
   return (
     <div className="relative min-h-screen">
       {/* Full-width animated platform background */}
-      <PlatformBackground />
+      {/* <PlatformBackground /> */}
 
       {/* Content layer */}
       <div className="relative z-10">

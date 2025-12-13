@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { User, ShoppingCart, X } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -28,15 +28,16 @@ export const SignInRequiredDialog: React.FC<SignInRequiredDialogProps> = ({
 }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const handleContinue = () => {
     if (onContinue) {
       onContinue();
     } else {
       // Default behavior: navigate to sign-in with return URL
-      const searchParams = new URLSearchParams(window.location.search);
-      searchParams.set('next', pathname);
-      router.push(`/sign-in?${searchParams.toString()}`);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('next', pathname);
+      router.push(`/sign-in?${params.toString()}`);
     }
     onOpenChange(false);
   };

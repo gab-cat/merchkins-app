@@ -39,6 +39,9 @@ export const payoutInvoices = defineTable({
   platformFeeAmount: v.number(), // Platform fee deducted
   netAmount: v.number(), // Amount to be paid out to org
 
+  // Voucher discount summary (non-refund vouchers only - seller absorbs cost)
+  totalVoucherDiscount: v.optional(v.number()), // Total discount from non-refund vouchers
+
   // Order summary
   orderCount: v.number(),
   itemCount: v.number(),
@@ -52,7 +55,40 @@ export const payoutInvoices = defineTable({
       customerName: v.string(),
       totalAmount: v.number(),
       itemCount: v.number(),
+      // Voucher info for display purposes
+      voucherDiscount: v.optional(v.number()),
+      voucherCode: v.optional(v.string()),
+      hasRefundVoucher: v.optional(v.boolean()),
     })
+  ),
+
+  // Product summary aggregated by Product → Variant → Size
+  productSummary: v.optional(
+    v.array(
+      v.object({
+        productId: v.string(),
+        productTitle: v.string(),
+        totalQuantity: v.number(),
+        totalAmount: v.number(),
+        variants: v.array(
+          v.object({
+            variantId: v.string(),
+            variantName: v.string(),
+            totalQuantity: v.number(),
+            totalAmount: v.number(),
+            sizes: v.optional(
+              v.array(
+                v.object({
+                  size: v.string(),
+                  quantity: v.number(),
+                  amount: v.number(),
+                })
+              )
+            ),
+          })
+        ),
+      })
+    )
   ),
 
   // Status

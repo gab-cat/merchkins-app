@@ -1,10 +1,10 @@
-import { query } from '../../_generated/server';
+import { query, internalQuery } from '../../_generated/server';
 import { getOrganizationByIdArgs, getOrganizationByIdHandler } from './getOrganizationById';
 import { getOrganizationsArgs, getOrganizationsHandler } from './getOrganizations';
 import { checkOrganizationPermissionArgs, checkOrganizationPermissionHandler } from './checkOrganizationPermission';
 import { getOrganizationBySlugArgs, getOrganizationBySlugHandler } from './getOrganizationBySlug';
 import { getOrganizationsByUserArgs, getOrganizationsByUserHandler } from './getOrganizationsByUser';
-import { getOrganizationMembersArgs, getOrganizationMembersHandler } from './getOrganizationMembers';
+import { getOrganizationMembersArgs, getOrganizationMembersHandler, getOrganizationMembersInternalHandler } from './getOrganizationMembers';
 import { getOrganizationAnalyticsArgs, getOrganizationAnalyticsHandler } from './getOrganizationAnalytics';
 import { getInviteLinkByCodeArgs, getInviteLinkByCodeHandler } from './getInviteLinkByCode';
 import { getOrganizationInviteLinksArgs, getOrganizationInviteLinksHandler } from './getOrganizationInviteLinks';
@@ -35,6 +35,11 @@ export const getOrganizationsByUser = query({
 export const getOrganizationMembers = query({
   args: getOrganizationMembersArgs,
   handler: getOrganizationMembersHandler,
+});
+
+export const getOrganizationMembersInternal = internalQuery({
+  args: getOrganizationMembersArgs,
+  handler: getOrganizationMembersInternalHandler,
 });
 export const getOrganizationAnalytics = query({
   args: getOrganizationAnalyticsArgs,

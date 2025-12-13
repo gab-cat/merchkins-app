@@ -13,7 +13,7 @@ import type { Id } from '@/convex/_generated/dataModel';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { Users, ShoppingBag, UserPlus, Building2, ArrowRight, Sparkles, Crown, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { BlurFade } from '@/src/components/ui/animations';
-import { cn } from '@/lib/utils';
+import { cn, buildR2PublicUrl } from '@/lib/utils';
 
 interface PopularOrganizationsProps {
   limit?: number;
@@ -81,14 +81,13 @@ export function PopularOrganizations({ limit = 8, preloadedOrganizations }: Popu
   };
 
   const renderOrgLogo = (org: PopularOrg, size: number = 56) => {
-    if (org.logoUrl) {
-      return <Image src={org.logoUrl as string} alt={`${org.name} logo`} width={size} height={size} className="h-full w-full object-cover" />;
-    }
-    if (org.logo && isKey(org.logo)) {
-      return <R2Image fileKey={org.logo as string} alt={`${org.name} logo`} width={size} height={size} className="h-full w-full object-cover" />;
-    }
-    if (org.logo) {
-      return <Image src={org.logo as string} alt={`${org.name} logo`} width={size} height={size} className="h-full w-full object-cover" />;
+    // Use logoUrl if available, otherwise use logo key
+    const logoKey = org.logoUrl || org.logo;
+    if (logoKey) {
+      const publicUrl = buildR2PublicUrl(logoKey);
+      if (publicUrl) {
+        return <Image src={publicUrl} alt={`${org.name} logo`} width={size} height={size} className="h-full w-full object-cover" />;
+      }
     }
     return (
       <div className="h-full w-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground text-lg font-bold">
@@ -190,7 +189,7 @@ export function PopularOrganizations({ limit = 8, preloadedOrganizations }: Popu
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <Link href={`/o/${featuredOrg.slug}`} className="group block h-full">
+              <Link href={`/o/${featuredOrg.slug}`} className="group block h-full" prefetch>
                 <div
                   className={cn(
                     'relative h-full min-h-[320px] rounded-3xl overflow-hidden',
@@ -283,7 +282,7 @@ export function PopularOrganizations({ limit = 8, preloadedOrganizations }: Popu
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1, duration: 0.4 }}
                 >
-                  <Link href={`/o/${org.slug}`} className="group block h-full">
+                  <Link href={`/o/${org.slug}`} className="group block h-full" prefetch>
                     <Card
                       className={cn(
                         'h-full overflow-hidden rounded-2xl border bg-card shadow-sm py-0',

@@ -4,6 +4,7 @@ import { internal } from '../../_generated/api';
 import type { XenditWebhookEvent } from '../../../types/xendit';
 import { v } from 'convex/values';
 import { Doc } from '../../_generated/dataModel';
+import { createSystemOrderLog } from '../../orders/mutations/createOrderLog';
 
 export const handleXenditWebhookArgs = {
   webhookEvent: v.any(), // Allow any webhook data from Xendit
@@ -29,19 +30,238 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
   }
 
   // Find the order by external_id (should match order number)
-  const orderNumber = webhookEvent.external_id;
-  const orders = await ctx.db
+  const externalId = webhookEvent.external_id;
+  const now = Date.now();
+  const paymentAmount = webhookEvent.paid_amount || webhookEvent.amount;
+  const processingFee = webhookEvent.fees_paid_amount || 0;
+  const netAmount = Math.max(0, paymentAmount - processingFee);
+
+  // Check if this is a grouped payment (checkout session)
+  const isGroupedPayment = externalId.startsWith('checkout-');
+
+  if (isGroupedPayment) {
+    // Extract checkout ID
+    const checkoutId = externalId.replace('checkout-', '');
+
+    // Get checkout session
+    const session = await ctx.db
+      .query('checkoutSessions')
+      .withIndex('by_checkout_id', (q) => q.eq('checkoutId', checkoutId))
+      .first();
+
+    if (!session) {
+      console.error(`Checkout session not found for external_id: ${externalId}`);
+      return { processed: false, reason: 'Checkout session not found', statusCode: 404 };
+    }
+
+    // Check if payment already processed for this session
+    const existingPayment = await ctx.db
+      .query('payments')
+      .withIndex('by_order', (q) => q.eq('orderId', session.orderIds[0]))
+      .filter((q) =>
+        q.and(q.eq(q.field('isDeleted'), false), q.eq(q.field('transactionId'), webhookEvent.id), q.eq(q.field('paymentProvider'), 'XENDIT'))
+      )
+      .first();
+
+    if (existingPayment) {
+      console.log(`Payment already processed for transaction: ${webhookEvent.id}`);
+      return { processed: true, reason: 'Payment already exists' };
+    }
+
+    // Get all orders in the session
+    const orders = await Promise.all(session.orderIds.map((orderId) => ctx.db.get(orderId)));
+
+    const validOrders = orders.filter((order): order is NonNullable<typeof order> => order !== null && !order.isDeleted);
+
+    if (validOrders.length === 0) {
+      console.error(`No valid orders found in checkout session: ${checkoutId}`);
+      return { processed: false, reason: 'No valid orders found', statusCode: 404 };
+    }
+
+    // Process payment for each order
+    const paymentIds: string[] = [];
+    const orderIds: string[] = [];
+
+    for (const order of validOrders) {
+      // Check if payment already exists for this specific order
+      const orderExistingPayment = await ctx.db
+        .query('payments')
+        .withIndex('by_order', (q) => q.eq('orderId', order._id))
+        .filter((q) =>
+          q.and(q.eq(q.field('isDeleted'), false), q.eq(q.field('transactionId'), webhookEvent.id), q.eq(q.field('paymentProvider'), 'XENDIT'))
+        )
+        .first();
+
+      if (orderExistingPayment) {
+        console.log(`Payment already exists for order ${order._id}`);
+        continue;
+      }
+
+      // Calculate proportional payment amount for this order
+      const orderPaymentAmount = (order.totalAmount / session.totalAmount) * paymentAmount;
+      const orderProcessingFee = (order.totalAmount / session.totalAmount) * processingFee;
+      const orderNetAmount = Math.max(0, orderPaymentAmount - orderProcessingFee);
+
+      const paymentDoc = {
+        isDeleted: false,
+        organizationId: order.organizationId,
+        orderId: order._id,
+        userId: order.customerId,
+        processedById: undefined, // System processed
+        paymentDate: now,
+        amount: orderPaymentAmount,
+        processingFee: orderProcessingFee || undefined,
+        netAmount: orderNetAmount,
+        paymentMethod: 'XENDIT' as const,
+        paymentSite: 'OFFSITE' as const,
+        paymentStatus: 'VERIFIED' as const,
+        referenceNo: `XENDIT-${webhookEvent.id}`,
+        currency: webhookEvent.currency,
+        transactionId: webhookEvent.id,
+        paymentProvider: 'XENDIT',
+        xenditInvoiceId: webhookEvent.id,
+        metadata: webhookEvent as unknown as Record<string, unknown>,
+
+        // Embedded order info
+        orderInfo: {
+          orderNumber: order.orderNumber,
+          customerName: order.customerInfo.firstName
+            ? `${order.customerInfo.firstName} ${order.customerInfo.lastName || ''}`.trim()
+            : order.customerInfo.email,
+          customerEmail: order.customerInfo.email,
+          totalAmount: order.totalAmount,
+          orderDate: order.orderDate,
+          status: order.status,
+        },
+
+        // Embedded user info
+        userInfo: {
+          firstName: order.customerInfo.firstName,
+          lastName: order.customerInfo.lastName,
+          email: order.customerInfo.email,
+          phone: order.customerInfo.phone,
+          imageUrl: order.customerInfo.imageUrl,
+        },
+
+        verificationDate: now,
+        reconciliationStatus: 'MATCHED' as const,
+
+        statusHistory: [
+          {
+            status: 'VERIFIED',
+            changedBy: systemUser._id,
+            changedByName: 'Xendit Payment System',
+            reason: 'Payment confirmed via webhook (grouped payment)',
+            changedAt: now,
+          },
+        ],
+
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      const paymentId = await ctx.db.insert('payments', paymentDoc);
+      paymentIds.push(paymentId);
+      orderIds.push(order._id);
+
+      // Update order status to PROCESSING and payment status to PAID
+      const statusUpdate = {
+        status: 'PROCESSING' as const,
+        changedBy: systemUser._id,
+        changedByName: 'Xendit Payment System',
+        reason: 'Payment confirmed via webhook (grouped payment)',
+        changedAt: now,
+      };
+
+      const currentHistory = order.recentStatusHistory || [];
+      const updatedHistory = [statusUpdate, ...currentHistory.slice(0, 4)]; // Keep last 5 entries
+
+      await ctx.db.patch(order._id, {
+        status: 'PROCESSING',
+        paymentStatus: 'PAID',
+        recentStatusHistory: updatedHistory as Doc<'orders'>['recentStatusHistory'],
+        updatedAt: now,
+      });
+
+      // Recalculate order payment stats
+      await ctx.runMutation(internal.payments.mutations.index.updatePaymentStats, {
+        orderId: order._id,
+        actorId: systemUser._id,
+        actorName: 'Xendit Payment System',
+      });
+
+      // Create order log for payment received
+      await createSystemOrderLog(ctx, {
+        orderId: order._id,
+        logType: 'PAYMENT_UPDATE',
+        reason: 'Payment received',
+        message: `Payment of ₱${orderPaymentAmount.toFixed(2)} ${webhookEvent.currency} received via Xendit (Transaction: ${webhookEvent.id})`,
+        previousValue: 'PENDING',
+        newValue: 'PAID',
+        isPublic: true,
+        actorId: systemUser._id,
+      });
+
+      // Create order log for status change to PROCESSING
+      await createSystemOrderLog(ctx, {
+        orderId: order._id,
+        logType: 'STATUS_CHANGE',
+        reason: 'Order status updated',
+        message: `Order status changed to PROCESSING after payment confirmation`,
+        previousValue: order.status,
+        newValue: 'PROCESSING',
+        isPublic: true,
+        actorId: systemUser._id,
+      });
+
+      // Log the payment event for this order
+      await logAction(
+        ctx,
+        'xendit_payment_received',
+        'SYSTEM_EVENT',
+        'HIGH',
+        `Payment of ${orderPaymentAmount.toFixed(2)} ${webhookEvent.currency} received via Xendit for order ${order.orderNumber} (grouped payment)`,
+        undefined, // System action
+        order.organizationId,
+        {
+          paymentId,
+          orderId: order._id,
+          amount: orderPaymentAmount,
+          transactionId: webhookEvent.id,
+          provider: 'XENDIT',
+          checkoutId,
+        }
+      );
+    }
+
+    // Update checkout session status to PAID
+    await ctx.db.patch(session._id, {
+      status: 'PAID',
+      updatedAt: now,
+    });
+
+    console.log(`Successfully processed grouped Xendit payment for checkout session ${checkoutId}`);
+    return {
+      processed: true,
+      paymentIds,
+      orderIds,
+      checkoutId,
+    };
+  }
+
+  // Single order payment (backward compatibility)
+  // Find the order by external_id (should match order number)
+  const orderNumber = externalId;
+  const order = await ctx.db
     .query('orders')
     .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
     .filter((q) => q.eq(q.field('orderNumber'), orderNumber))
     .first();
 
-  if (!orders) {
+  if (!order) {
     console.error(`Order not found for external_id: ${orderNumber}`);
     return { processed: false, reason: 'Order not found', statusCode: 404 };
   }
-
-  const order = orders;
 
   // Check if payment already exists for this order and transaction
   const existingPayment = await ctx.db
@@ -58,11 +278,6 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
   }
 
   // Create payment record
-  const now = Date.now();
-  const paymentAmount = webhookEvent.paid_amount || webhookEvent.amount;
-  const processingFee = webhookEvent.fees_paid_amount || 0;
-  const netAmount = Math.max(0, paymentAmount - processingFee);
-
   const paymentDoc = {
     isDeleted: false,
     organizationId: order.organizationId,
@@ -153,6 +368,30 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
     orderId: order._id,
     actorId: systemUser._id,
     actorName: 'Xendit Payment System',
+  });
+
+  // Create order log for payment received
+  await createSystemOrderLog(ctx, {
+    orderId: order._id,
+    logType: 'PAYMENT_UPDATE',
+    reason: 'Payment received',
+    message: `Payment of ₱${paymentAmount.toFixed(2)} ${webhookEvent.currency} received via Xendit (Transaction: ${webhookEvent.id})`,
+    previousValue: 'PENDING',
+    newValue: 'PAID',
+    isPublic: true,
+    actorId: systemUser._id,
+  });
+
+  // Create order log for status change to PROCESSING
+  await createSystemOrderLog(ctx, {
+    orderId: order._id,
+    logType: 'STATUS_CHANGE',
+    reason: 'Order status updated',
+    message: `Order status changed to PROCESSING after payment confirmation`,
+    previousValue: order.status,
+    newValue: 'PROCESSING',
+    isPublic: true,
+    actorId: systemUser._id,
   });
 
   // Log the payment event

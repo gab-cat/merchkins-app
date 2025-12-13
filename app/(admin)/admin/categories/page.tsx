@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
@@ -162,6 +163,7 @@ function TreeNode({ category, children, childrenMap, depth, isExpanded, onToggle
 }
 
 export default function AdminCategoriesPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [showDeleted, setShowDeleted] = useState(false);
   const [onlyActive, setOnlyActive] = useState(true);
@@ -339,7 +341,7 @@ export default function AdminCategoriesPage() {
             description="Create your first category to organize your products."
             action={{
               label: 'Create Category',
-              onClick: () => (window.location.href = '/admin/categories/new'),
+              onClick: () => router.push('/admin/categories/new'),
             }}
           />
         ) : (

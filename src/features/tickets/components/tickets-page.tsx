@@ -8,6 +8,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
 import { cn } from '@/lib/utils';
+import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
 
 // UI components
 import { Button } from '@/components/ui/button';
@@ -276,14 +277,23 @@ export function TicketsPage() {
 
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
 
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedSearch(search, 300);
+
   const {
     items: ticketsPage,
     isLoading,
     hasMore,
     loadMore,
-  } = useCursorPagination<TicketListItem, { organizationId: Id<'organizations'> }>({
+  } = useCursorPagination<TicketListItem, { organizationId: Id<'organizations'>; search?: string }>({
     query: api.tickets.queries.index.getTicketsPage,
-    baseArgs: organization?._id ? { organizationId: organization._id } : 'skip',
+    baseArgs:
+      organization?._id
+        ? {
+            organizationId: organization._id,
+            ...(debouncedSearch.trim() ? { search: debouncedSearch.trim() } : {}),
+          }
+        : 'skip',
     limit: 25,
     selectPage: (res: unknown) => {
       const result = res as { page?: readonly TicketListItem[]; isDone?: boolean; continueCursor?: string | null };
@@ -295,15 +305,7 @@ export function TicketsPage() {
     },
   });
 
-  const [search, setSearch] = useState('');
-
-  // Filter tickets by search
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const base = (ticketsPage as TicketListItem[]) || [];
-    if (!q) return base;
-    return base.filter((t) => (t.title || '').toLowerCase().includes(q));
-  }, [ticketsPage, search]);
+  const filtered = (ticketsPage as TicketListItem[]) || [];
 
   const newTicketUrl = orgSlug ? `/o/${orgSlug}/tickets/new` : '/tickets/new';
 
@@ -357,7 +359,7 @@ export function TicketsPage() {
               ))}
             </div>
           ) : (
-            <EmptyState orgSlug={orgSlug} search={search} />
+            <EmptyState orgSlug={orgSlug} search={debouncedSearch} />
           )}
         </AnimatePresence>
 

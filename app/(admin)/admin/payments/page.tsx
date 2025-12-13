@@ -8,6 +8,8 @@ import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
 import { useOffsetPagination } from '@/src/hooks/use-pagination';
+import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
+import { DateRangeFilter, DateRange } from '@/src/components/ui/date-range-filter';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 
 // Admin Components
@@ -64,6 +66,9 @@ type PaymentQueryArgs = {
   organizationId?: Id<'organizations'>;
   paymentStatus?: PaymentStatus;
   paymentMethod?: PaymentMethod;
+  dateFrom?: number;
+  dateTo?: number;
+  search?: string;
   limit?: number;
   offset?: number;
 };
@@ -249,7 +254,9 @@ export default function AdminPaymentsPage() {
   const [status, setStatus] = useState<PaymentStatus | 'ALL'>('ALL');
   const [method, setMethod] = useState<PaymentMethod | 'ALL'>('ALL');
   const [search, setSearch] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange>({});
 
+  const debouncedSearch = useDebouncedSearch(search, 300);
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, org ? { slug: org } : 'skip');
 
   const baseArgs = useMemo(
@@ -257,8 +264,11 @@ export default function AdminPaymentsPage() {
       organizationId: org ? organization?._id : undefined,
       paymentStatus: status === 'ALL' ? undefined : status,
       paymentMethod: method === 'ALL' ? undefined : method,
+      dateFrom: dateRange.dateFrom,
+      dateTo: dateRange.dateTo,
+      search: debouncedSearch || undefined,
     }),
-    [org, organization?._id, status, method]
+    [org, organization?._id, status, method, dateRange, debouncedSearch]
   );
 
   // Skip only while resolving organization when org slug is present
@@ -285,25 +295,18 @@ export default function AdminPaymentsPage() {
 
   const updatePayment = useMutation(api.payments.mutations.index.updatePayment);
 
-  const filtered = useMemo(() => {
-    if (!search) return payments;
-    const q = search.toLowerCase();
-    return payments.filter((p: Payment) =>
-      [p.referenceNo || '', p.orderInfo?.orderNumber || '', p.userInfo?.email || '', p.userInfo?.firstName || '', p.userInfo?.lastName || '']
-        .join(' ')
-        .toLowerCase()
-        .includes(q)
-    );
-  }, [payments, search]);
-
   // Calculate summary metrics
   const metrics = useMemo(() => {
-    const total = filtered.length;
-    const pending = filtered.filter((p) => p.paymentStatus === 'PENDING' || p.paymentStatus === 'PROCESSING').length;
-    const verified = filtered.filter((p) => p.paymentStatus === 'VERIFIED').length;
-    const totalAmount = filtered.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const total = payments.length;
+    const pending = payments.filter((p) => p.paymentStatus === 'PENDING' || p.paymentStatus === 'PROCESSING').length;
+    const verified = payments.filter((p) => p.paymentStatus === 'VERIFIED').length;
+    // Exclude REFUNDED, CANCELLED, and REFUND_PENDING payments from revenue calculations
+    const excludedStatuses = new Set(['REFUNDED', 'CANCELLED', 'REFUND_PENDING']);
+    const totalAmount = payments
+      .filter((p) => !excludedStatuses.has(p.paymentStatus))
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
     return { total, pending, verified, totalAmount };
-  }, [filtered]);
+  }, [payments]);
 
   async function handleVerify(paymentId: Id<'payments'>) {
     try {
@@ -325,7 +328,7 @@ export default function AdminPaymentsPage() {
     }
   }
 
-  if (loading && filtered.length === 0) {
+  if (loading && payments.length === 0) {
     return <PaymentsSkeleton />;
   }
 
@@ -383,18 +386,19 @@ export default function AdminPaymentsPage() {
             <SelectItem value="OTHERS">Other</SelectItem>
           </SelectContent>
         </Select>
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </div>
 
       {/* Payments List */}
-      {filtered.length === 0 ? (
+      {payments.length === 0 ? (
         <EmptyState
           icon={<CreditCard className="h-12 w-12 text-muted-foreground" />}
           title="No Payments Found"
-          description={search ? 'Try adjusting your search or filters.' : 'Payments will appear here once customers submit them.'}
+          description={search || dateRange.dateFrom || dateRange.dateTo ? 'Try adjusting your search or filters.' : 'Payments will appear here once customers submit them.'}
         />
       ) : (
         <div className="space-y-2">
-          {filtered.map((payment: Payment, index: number) => (
+          {payments.map((payment: Payment, index: number) => (
             <PaymentCard
               key={payment._id}
               payment={payment}

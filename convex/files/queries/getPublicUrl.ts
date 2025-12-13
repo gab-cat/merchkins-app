@@ -17,8 +17,8 @@ export const getPublicUrl = query({
       return keyOrUrl;
     }
 
-    // If we have a public base URL configured, construct the public URL
-    const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+    // Use hardcoded public domain, fallback to environment variable
+    const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://r2.merchkins.com';
     if (baseUrl) {
       return `${baseUrl.replace(/\/+$/, '')}/${keyOrUrl.replace(/^\/+/, '')}`;
     }

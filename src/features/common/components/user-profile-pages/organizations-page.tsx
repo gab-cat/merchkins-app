@@ -209,7 +209,7 @@ export function OrganizationsPage() {
                           <div className="flex items-center gap-1.5 flex-shrink-0">
                             {org.slug && (
                               <>
-                                <Link href={`/o/${org.slug}`}>
+                                <Link href={`/o/${org.slug}`} prefetch>
                                   <Button
                                     size="sm"
                                     className="h-8 px-3 rounded-lg text-xs font-medium bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-sm hover:shadow-md transition-all"

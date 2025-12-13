@@ -23,6 +23,7 @@ export const getPaymentsArgs = {
   paymentMethod: v.optional(v.literal('XENDIT')),
   dateFrom: v.optional(v.number()),
   dateTo: v.optional(v.number()),
+  search: v.optional(v.string()),
   includeDeleted: v.optional(v.boolean()),
   limit: v.optional(v.number()),
   offset: v.optional(v.number()),
@@ -39,6 +40,7 @@ export const getPaymentsHandler = async (
     paymentMethod?: 'XENDIT';
     dateFrom?: number;
     dateTo?: number;
+    search?: string;
     includeDeleted?: boolean;
     limit?: number;
     offset?: number;
@@ -89,7 +91,28 @@ export const getPaymentsHandler = async (
     return cond.length > 0 ? q.and(...cond) : q.and();
   });
 
-  const results = await filtered.collect();
+  let results = await filtered.collect();
+
+  // Apply search filter if provided
+  if (args.search && args.search.trim().length > 0) {
+    const searchTerm = args.search.toLowerCase().trim();
+    results = results.filter((payment: any) => {
+      const referenceNo = payment.referenceNo?.toLowerCase() || '';
+      const orderNumber = payment.orderInfo?.orderNumber?.toLowerCase() || '';
+      const userEmail = payment.userInfo?.email?.toLowerCase() || '';
+      const userFirstName = payment.userInfo?.firstName?.toLowerCase() || '';
+      const userLastName = payment.userInfo?.lastName?.toLowerCase() || '';
+      const userName = `${userFirstName} ${userLastName}`.trim();
+
+      return (
+        referenceNo.includes(searchTerm) ||
+        orderNumber.includes(searchTerm) ||
+        userEmail.includes(searchTerm) ||
+        userName.includes(searchTerm)
+      );
+    });
+  }
+
   const total = results.length;
   const offset = args.offset || 0;
   const limit = args.limit || 50;

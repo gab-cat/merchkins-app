@@ -7,6 +7,7 @@ import { getOrderAnalyticsArgs, getOrderAnalyticsHandler } from './getOrderAnaly
 import { searchOrdersArgs, searchOrdersHandler } from './searchOrders';
 import { getDashboardAnalyticsArgs, getDashboardAnalyticsHandler } from './getDashboardAnalytics';
 import { getOrderLogsArgs, getOrderLogsHandler } from './getOrderLogs';
+import { getOrdersByCheckoutSessionArgs, getOrdersByCheckoutSessionHandler } from './getOrdersByCheckoutSession';
 
 export const getOrders = query({
   args: getOrdersArgs,
@@ -41,4 +42,9 @@ export const getDashboardAnalytics = query({
 export const getOrderLogs = query({
   args: getOrderLogsArgs,
   handler: getOrderLogsHandler,
+});
+
+export const getOrdersByCheckoutSession = query({
+  args: getOrdersByCheckoutSessionArgs,
+  handler: getOrdersByCheckoutSessionHandler,
 });

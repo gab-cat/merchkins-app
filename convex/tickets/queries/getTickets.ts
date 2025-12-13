@@ -12,6 +12,9 @@ export const getTicketsArgs = {
   category: v.optional(v.union(v.literal('BUG'), v.literal('FEATURE_REQUEST'), v.literal('SUPPORT'), v.literal('QUESTION'), v.literal('OTHER'))),
   escalated: v.optional(v.boolean()),
   dueBefore: v.optional(v.number()),
+  dateFrom: v.optional(v.number()),
+  dateTo: v.optional(v.number()),
+  search: v.optional(v.string()),
   limit: v.optional(v.number()),
   offset: v.optional(v.number()),
 };
@@ -27,6 +30,9 @@ export const getTicketsHandler = async (
     category?: 'BUG' | 'FEATURE_REQUEST' | 'SUPPORT' | 'QUESTION' | 'OTHER';
     escalated?: boolean;
     dueBefore?: number;
+    dateFrom?: number;
+    dateTo?: number;
+    search?: string;
     limit?: number;
     offset?: number;
   }
@@ -99,11 +105,36 @@ export const getTicketsHandler = async (
     if (args.dueBefore !== undefined) {
       predicate = q.and(predicate, q.lte(q.field('dueDate'), args.dueBefore));
     }
+    if (args.dateFrom !== undefined) {
+      predicate = q.and(predicate, q.gte(q.field('createdAt'), args.dateFrom));
+    }
+    if (args.dateTo !== undefined) {
+      predicate = q.and(predicate, q.lte(q.field('createdAt'), args.dateTo));
+    }
     return predicate;
   });
 
-  const results = await filtered.collect();
+  let results = await filtered.collect();
   results.sort((a, b) => b.updatedAt - a.updatedAt);
+
+  // Apply search filter if provided
+  if (args.search && args.search.trim().length > 0) {
+    const searchTerm = args.search.toLowerCase().trim();
+    results = results.filter((ticket: any) => {
+      const title = ticket.title?.toLowerCase() || '';
+      const description = ticket.description?.toLowerCase() || '';
+      const creatorEmail = ticket.creatorInfo?.email?.toLowerCase() || '';
+      const ticketId = ticket._id?.toLowerCase() || '';
+
+      return (
+        title.includes(searchTerm) ||
+        description.includes(searchTerm) ||
+        creatorEmail.includes(searchTerm) ||
+        ticketId.includes(searchTerm)
+      );
+    });
+  }
+
   const total = results.length;
   const offset = args.offset || 0;
   const limit = args.limit || 50;

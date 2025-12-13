@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useUploadFile } from '@convex-dev/r2/react';
 import { compressToWebP } from '@/lib/compress';
+import { buildR2PublicUrl } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -115,14 +116,10 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
   }, [name, slug]);
 
   const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
-  const logoPreview = useQuery(api.files.queries.index.getFileUrl, isKey(logo) ? { key: logo } : ('skip' as unknown as { key: string }));
-  const bannerPreview = useQuery(
-    api.files.queries.index.getFileUrl,
-    isKey(bannerImage) ? { key: bannerImage } : ('skip' as unknown as { key: string })
-  );
-
-  const logoSrc = isKey(logo) ? logoPreview || undefined : logo || undefined;
-  const bannerSrc = isKey(bannerImage) ? bannerPreview || undefined : bannerImage || undefined;
+  
+  // Use public URL builder for previews
+  const logoSrc = buildR2PublicUrl(logo || null) || undefined;
+  const bannerSrc = buildR2PublicUrl(bannerImage || null) || undefined;
 
   async function handleLogoFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

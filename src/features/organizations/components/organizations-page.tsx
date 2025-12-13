@@ -13,6 +13,7 @@ import { Doc, Id } from '@/convex/_generated/dataModel';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { BlurFade } from '@/src/components/ui/animations/effects';
 import { RoleBadge, OrgTypeBadge } from '@/src/components/ui/role-badge';
+import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
 import {
   UserPlus,
   ShoppingBag,
@@ -46,11 +47,12 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
   // Explore: search public/private organizations
   const [search, setSearch] = useState('');
   const [orgType, setOrgType] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
+  const debouncedSearch = useDebouncedSearch(search, 300);
   const searchResult = useQuery(
     api.organizations.queries.index.searchOrganizations,
-    search.trim().length >= 2
+    debouncedSearch.trim().length >= 2
       ? {
-          searchTerm: search.trim(),
+          searchTerm: debouncedSearch.trim(),
           limit: 24,
           ...(orgType !== 'ALL' ? { organizationType: orgType } : {}),
         }
@@ -179,7 +181,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                               </div>
                             </div>
                             <div className="flex flex-shrink-0 items-center gap-2">
-                              <Link href={`/o/${org.slug}`}>
+                              <Link href={`/o/${org.slug}`} prefetch>
                                 <Button className="group/btn rounded-xl h-10 px-4 font-semibold shadow-sm hover:shadow-md transition-all duration-300">
                                   <ShoppingBag className="h-4 w-4 mr-2" />
                                   Open Store

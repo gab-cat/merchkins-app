@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
-import { cn } from '@/lib/utils';
+import { cn, buildR2PublicUrl } from '@/lib/utils';
 import { R2Image } from '@/src/components/ui/r2-image';
 import {
   LayoutDashboard,
@@ -22,6 +22,8 @@ import {
   Building2,
   LucideIcon,
   DollarSign,
+  BookOpen,
+  Receipt,
 } from 'lucide-react';
 
 interface NavItemProps {
@@ -126,6 +128,7 @@ export function AdminNav() {
     { href: `/admin/payments${suffix}`, icon: CreditCard, label: 'Payments' },
     { href: `/admin/payouts${suffix}`, icon: DollarSign, label: 'Payouts' },
     { href: `/admin/vouchers${suffix}`, icon: Ticket, label: 'Vouchers' },
+    { href: `/admin/refunds${suffix}`, icon: Receipt, label: 'Refunds' },
   ];
 
   const communicationItems = [
@@ -134,7 +137,10 @@ export function AdminNav() {
     { href: `/admin/chats${suffix}`, icon: MessageSquare, label: 'Chats', badge: chatsCount },
   ];
 
-  const insightsItems = [{ href: `/admin/analytics${suffix}`, icon: BarChart3, label: 'Analytics' }];
+  const insightsItems = [
+    { href: `/admin/analytics${suffix}`, icon: BarChart3, label: 'Analytics' },
+    { href: `/admin/knowledge-base${suffix}`, icon: BookOpen, label: 'Knowledge Base' },
+  ];
 
   const orgItems = [
     { href: `/admin/org-members${suffix}`, icon: Users, label: 'Members' },
@@ -144,11 +150,9 @@ export function AdminNav() {
   // Helper to check if a value is an R2 key
   const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
 
-  // Get logo URL if it's an R2 key
+  // Get logo key
   const logoKey = organization?.logo;
-  const logoUrl = useQuery(api.files.queries.index.getFileUrl, logoKey && isKey(logoKey) ? { key: logoKey as string } : 'skip');
-  const finalLogoUrl = logoKey && isKey(logoKey) ? logoUrl : logoKey;
-  const hasLogo = !!finalLogoUrl;
+  const hasLogo = !!logoKey;
 
   return (
     <nav className="p-2 font-admin-body">

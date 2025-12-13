@@ -12,6 +12,7 @@ export const getTicketsPageArgs = {
   category: v.optional(v.union(v.literal('BUG'), v.literal('FEATURE_REQUEST'), v.literal('SUPPORT'), v.literal('QUESTION'), v.literal('OTHER'))),
   escalated: v.optional(v.boolean()),
   dueBefore: v.optional(v.number()),
+  search: v.optional(v.string()),
   limit: v.optional(v.number()),
   cursor: v.optional(v.string()),
 };
@@ -27,6 +28,7 @@ export const getTicketsPageHandler = async (
     category?: 'BUG' | 'FEATURE_REQUEST' | 'SUPPORT' | 'QUESTION' | 'OTHER';
     escalated?: boolean;
     dueBefore?: number;
+    search?: string;
     limit?: number;
     cursor?: string | null;
   }
@@ -99,6 +101,21 @@ export const getTicketsPageHandler = async (
   const limit = Math.min(Math.max(args.limit ?? 50, 1), 200);
   const cursor = args.cursor ?? null;
 
-  const results = await filtered.order('desc').paginate({ numItems: limit, cursor });
+  let results = await filtered.order('desc').paginate({ numItems: limit, cursor });
+
+  // Apply search filter if provided
+  if (args.search && args.search.trim()) {
+    const searchTerm = args.search.toLowerCase().trim();
+    const page = results.page || [];
+    const filteredPage = page.filter((ticket: any) => {
+      const title = (ticket.title || '').toLowerCase();
+      return title.includes(searchTerm);
+    });
+    results = {
+      ...results,
+      page: filteredPage,
+    };
+  }
+
   return results as any;
 };

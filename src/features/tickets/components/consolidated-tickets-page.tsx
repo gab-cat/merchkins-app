@@ -392,7 +392,7 @@ function OrgTicketsCard({ org, delay }: { org: Doc<'organizations'>; delay: numb
           </div>
           <div className="flex items-center gap-2">
             {openCount > 0 && <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{openCount} active</span>}
-            <Link href={`/o/${org.slug}/tickets`}>
+            <Link href={`/o/${org.slug}/tickets`} prefetch>
               <Button variant="ghost" size="sm" className="text-xs h-7">
                 View All
                 <ChevronRight className="h-3 w-3 ml-1" />

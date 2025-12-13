@@ -16,6 +16,7 @@ export const getProductsArgs = {
   maxPrice: v.optional(v.number()),
   hasInventory: v.optional(v.boolean()),
   includeDeleted: v.optional(v.boolean()),
+  search: v.optional(v.string()),
   sortBy: v.optional(
     v.union(
       v.literal('newest'),
@@ -47,6 +48,7 @@ export const getProductsHandler = async (
     maxPrice?: number;
     hasInventory?: boolean;
     includeDeleted?: boolean;
+    search?: string;
     sortBy?: 'newest' | 'oldest' | 'rating' | 'price_low' | 'price_high' | 'popular' | 'orders' | 'views';
     limit?: number;
     offset?: number;
@@ -188,6 +190,17 @@ export const getProductsHandler = async (
   // Apply tags filter in post-processing
   if (args.tags && args.tags.length > 0) {
     results = results.filter((product) => args.tags!.some((tag) => product.tags.includes(tag)));
+  }
+
+  // Apply search filter if provided
+  if (args.search && args.search.trim().length > 0) {
+    const searchTerm = args.search.toLowerCase().trim();
+    results = results.filter((product) => {
+      const title = product.title?.toLowerCase() || '';
+      const description = product.description?.toLowerCase() || '';
+      const tags = (product.tags || []).join(' ').toLowerCase();
+      return title.includes(searchTerm) || description.includes(searchTerm) || tags.includes(searchTerm);
+    });
   }
 
   // Apply sorting

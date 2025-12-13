@@ -1,6 +1,6 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
-import { Id } from '../../_generated/dataModel';
+import { Doc, Id } from '../../_generated/dataModel';
 import {
   requireAuthentication,
   validateUserExists,
@@ -40,6 +40,8 @@ export const createOrderArgs = {
   customerNotes: v.optional(v.string()),
   // Voucher support
   voucherCode: v.optional(v.string()),
+  // Checkout session for grouped payments
+  checkoutId: v.optional(v.string()),
 };
 
 function generateOrderNumber(now: number): string {
@@ -62,6 +64,7 @@ export const createOrderHandler = async (
     estimatedDelivery?: number;
     customerNotes?: string;
     voucherCode?: string;
+    checkoutId?: string;
   }
 ) => {
   const currentUser = await requireAuthentication(ctx);
@@ -301,9 +304,19 @@ export const createOrderHandler = async (
       }
     }
 
-    // Check organization scope
-    if (voucher.organizationId && voucher.organizationId !== args.organizationId) {
-      throw new Error('This voucher is only valid for a specific store');
+    // Special handling for REFUND vouchers
+    if (voucher.discountType === 'REFUND') {
+      // REFUND vouchers are personal - must be assigned to the user
+      if (voucher.assignedToUserId && voucher.assignedToUserId !== args.customerId) {
+        throw new Error('This voucher is not assigned to you');
+      }
+      // REFUND vouchers are platform-wide (no organization restriction)
+      // Skip organization check for REFUND type
+    } else {
+      // Check organization scope for non-REFUND vouchers
+      if (voucher.organizationId && voucher.organizationId !== args.organizationId) {
+        throw new Error('This voucher is only valid for a specific store');
+      }
     }
 
     // Check minimum order amount (before voucher discount)
@@ -329,6 +342,8 @@ export const createOrderHandler = async (
         }
         break;
       case 'FIXED_AMOUNT':
+      case 'REFUND':
+        // REFUND vouchers work like FIXED_AMOUNT
         voucherDiscount = Math.min(voucher.discountValue, totalAmount);
         break;
       case 'FREE_SHIPPING':
@@ -359,8 +374,12 @@ export const createOrderHandler = async (
   const now = Date.now();
   const orderNumber = generateOrderNumber(now);
 
+  // Determine payment status: if total is 0 and voucher was applied, mark as PAID
+  const paymentStatusToUse = totalAmount === 0 && voucherDiscount > 0 ? 'PAID' : 'PENDING';
+  const orderStatusToUse = totalAmount === 0 && voucherDiscount > 0 ? 'PROCESSING' : 'PENDING';
+
   // Prepare order document
-  const orderDoc = {
+  const orderDoc: Omit<Doc<'orders'>, '_id' | '_creationTime'> = {
     isDeleted: false,
     organizationId: args.organizationId,
     customerId: customer._id,
@@ -375,8 +394,8 @@ export const createOrderHandler = async (
     processorInfo,
     organizationInfo,
     orderDate: now,
-    status: 'PENDING' as const,
-    paymentStatus: 'PENDING' as const,
+    status: orderStatusToUse,
+    paymentStatus: paymentStatusToUse,
     cancellationReason: undefined,
     embeddedItems:
       preparedItems.length <= 20
@@ -410,6 +429,7 @@ export const createOrderHandler = async (
     customerSatisfactionSurveyId: undefined,
     customerNotes: args.customerNotes,
     paymentPreference: args.paymentPreference,
+    checkoutId: args.checkoutId,
     recentStatusHistory: [
       {
         status: 'PENDING',
@@ -452,6 +472,33 @@ export const createOrderHandler = async (
         usedCount: currentVoucher.usedCount + 1,
         updatedAt: now,
       });
+
+      // Track redemption cost for REFUND vouchers (platform absorbs cost)
+      if (currentVoucher.discountType === 'REFUND' && args.organizationId && organizationInfo) {
+        await ctx.db.insert('voucherRedemptionCosts', {
+          isDeleted: false,
+          voucherId,
+          orderId,
+          sellerOrganizationId: args.organizationId,
+          amountCovered: voucherDiscount,
+          voucherInfo: {
+            code: currentVoucher.code,
+            discountType: currentVoucher.discountType,
+            discountValue: currentVoucher.discountValue,
+            sourceRefundRequestId: currentVoucher.sourceRefundRequestId ? String(currentVoucher.sourceRefundRequestId) : undefined,
+          },
+          orderInfo: {
+            orderNumber,
+            totalAmount,
+            orderDate: now,
+          },
+          sellerOrgInfo: {
+            name: organizationInfo.name,
+            slug: organizationInfo.slug,
+          },
+          createdAt: now,
+        });
+      }
     }
   }
 
@@ -595,11 +642,12 @@ export const createOrderHandler = async (
 
   // Create order log for order creation
   const voucherMessage = voucherCode && voucherDiscount > 0 ? ` (Voucher ${voucherCode} applied: -₱${voucherDiscount.toFixed(2)})` : '';
+  const paymentStatusMessage = paymentStatusToUse === 'PAID' && voucherDiscount > 0 ? ' - Paid in full by voucher' : '';
   await createSystemOrderLog(ctx, {
     orderId,
     logType: 'ORDER_CREATED',
     reason: `Order ${orderNumber} created`,
-    message: `Order placed with ${preparedItems.length} item(s) totaling ₱${totalAmount.toFixed(2)}${voucherMessage}`,
+    message: `Order placed with ${preparedItems.length} item(s) totaling ₱${totalAmount.toFixed(2)}${voucherMessage}${paymentStatusMessage}`,
     isPublic: true,
     actorId: currentUser._id,
   });
@@ -618,5 +666,6 @@ export const createOrderHandler = async (
     totalAmount: createdOrder.totalAmount,
     voucherApplied: !!voucherCode,
     voucherDiscount: voucherDiscount > 0 ? voucherDiscount : undefined,
+    checkoutId: createdOrder.checkoutId,
   };
 };

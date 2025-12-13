@@ -25,7 +25,8 @@ export function computeEffectivePrice(
  * @returns The computed public URL or null if invalid
  */
 export function buildR2PublicUrl(fileKey: string | null | undefined): string | null {
-  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+  // Use hardcoded public domain, fallback to environment variable
+  const baseUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://r2.merchkins.com';
 
   const joinUrl = (a: string, b: string): string => `${a.replace(/\/+$/u, '')}/${String(b).replace(/^\/+/, '')}`;
 

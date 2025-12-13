@@ -3,7 +3,7 @@ import { v } from 'convex/values';
 
 import { createOrderArgs, createOrderHandler } from './createOrder';
 import { updateOrderArgs, updateOrderHandler } from './updateOrder';
-import { cancelOrderArgs, cancelOrderHandler } from './cancelOrder';
+import { cancelOrderArgs, cancelOrderHandler, cancelOrderInternalArgs, cancelOrderInternalHandler } from './cancelOrder';
 import { deleteOrderArgs, deleteOrderHandler } from './deleteOrder';
 import { restoreOrderArgs, restoreOrderHandler } from './restoreOrder';
 import { updateOrderStatsArgs, updateOrderStatsHandler } from './updateOrderStats';
@@ -12,6 +12,7 @@ import { updateOrderXenditInvoiceArgs, updateOrderXenditInvoiceHandler } from '.
 import { createXenditInvoiceForOrderArgs, createXenditInvoiceForOrderHandler } from './createXenditInvoiceForOrder';
 import { createOrderLogArgs, createOrderLogHandler } from './createOrderLog';
 import { updateOrderWithNoteArgs, updateOrderWithNoteHandler } from './updateOrderWithNote';
+import { updateOrdersInvoiceForSessionArgs, updateOrdersInvoiceForSessionHandler } from './updateOrdersInvoiceForSession';
 
 export const createOrder = mutation({
   args: createOrderArgs,
@@ -31,6 +32,11 @@ export const updateOrderWithNote = mutation({
 export const cancelOrder = mutation({
   args: cancelOrderArgs,
   handler: cancelOrderHandler,
+});
+
+export const cancelOrderInternal = internalMutation({
+  args: cancelOrderInternalArgs,
+  handler: cancelOrderInternalHandler,
 });
 
 export const deleteOrder = mutation({
@@ -67,4 +73,18 @@ export const updateOrderStats = internalMutation({
 export const createOrderLog = mutation({
   args: createOrderLogArgs,
   handler: createOrderLogHandler,
+});
+
+export const createOrderLogInternal = internalMutation({
+  args: createOrderLogArgs,
+  handler: createOrderLogHandler,
+});
+
+export const updateOrdersInvoiceForSession = internalMutation({
+  args: updateOrdersInvoiceForSessionArgs,
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await updateOrdersInvoiceForSessionHandler(ctx, args);
+    return null;
+  },
 });

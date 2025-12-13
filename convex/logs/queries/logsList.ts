@@ -26,6 +26,7 @@ export const getLogsArgs = {
   isArchived: v.optional(v.boolean()),
   dateFrom: v.optional(v.number()),
   dateTo: v.optional(v.number()),
+  search: v.optional(v.string()),
   limit: v.optional(v.number()),
   offset: v.optional(v.number()),
 };
@@ -46,6 +47,7 @@ export const getLogsHandler = async (
     isArchived?: boolean;
     dateFrom?: number;
     dateTo?: number;
+    search?: string;
     limit?: number;
     offset?: number;
   }
@@ -82,6 +84,15 @@ export const getLogsHandler = async (
     if (args.isArchived !== undefined && row.isArchived !== args.isArchived) return false;
     if (args.dateFrom && row.createdDate < args.dateFrom) return false;
     if (args.dateTo && row.createdDate > args.dateTo) return false;
+    if (args.search && args.search.trim().length > 0) {
+      const searchTerm = args.search.toLowerCase().trim();
+      const reason = row.reason?.toLowerCase() || '';
+      const resourceType = row.resourceType?.toLowerCase() || '';
+      const action = row.action?.toLowerCase() || '';
+      if (!reason.includes(searchTerm) && !resourceType.includes(searchTerm) && !action.includes(searchTerm)) {
+        return false;
+      }
+    }
     return true;
   });
 

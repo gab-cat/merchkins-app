@@ -10,6 +10,7 @@ export const getOrdersPageArgs = {
   paymentStatus: v.optional(v.union(v.literal('PENDING'), v.literal('DOWNPAYMENT'), v.literal('PAID'), v.literal('REFUNDED'))),
   dateFrom: v.optional(v.number()),
   dateTo: v.optional(v.number()),
+  search: v.optional(v.string()),
   includeDeleted: v.optional(v.boolean()),
   limit: v.optional(v.number()),
   cursor: v.optional(v.string()),
@@ -25,6 +26,7 @@ export const getOrdersPageHandler = async (
     paymentStatus?: 'PENDING' | 'DOWNPAYMENT' | 'PAID' | 'REFUNDED';
     dateFrom?: number;
     dateTo?: number;
+    search?: string;
     includeDeleted?: boolean;
     limit?: number;
     cursor?: string | null;
@@ -65,5 +67,30 @@ export const getOrdersPageHandler = async (
   const limit = Math.min(Math.max(args.limit ?? 50, 1), 200);
   const cursor = args.cursor ?? null;
   const page = await query.order('desc').paginate({ numItems: limit, cursor });
+
+  // Apply search filter if provided
+  if (args.search && args.search.trim().length > 0) {
+    const searchTerm = args.search.toLowerCase().trim();
+    const filteredPage = page.page.filter((order: any) => {
+      const orderNumber = order.orderNumber?.toLowerCase() || '';
+      const customerEmail = order.customerInfo?.email?.toLowerCase() || '';
+      const customerFirstName = order.customerInfo?.firstName?.toLowerCase() || '';
+      const customerLastName = order.customerInfo?.lastName?.toLowerCase() || '';
+      const customerName = `${customerFirstName} ${customerLastName}`.trim();
+
+      return (
+        orderNumber.includes(searchTerm) ||
+        customerEmail.includes(searchTerm) ||
+        customerName.includes(searchTerm)
+      );
+    });
+
+    return {
+      ...page,
+      page: filteredPage,
+      isDone: filteredPage.length < limit || page.isDone,
+    };
+  }
+
   return page as any;
 };
