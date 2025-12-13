@@ -6,7 +6,7 @@ export default clerkMiddleware(async (auth, req) => {
   const hostname = req.headers.get('host');
 
   // If going to merchkins.com only, then redirect to landing
-  if (hostname && hostname === 'merchkins.com') {
+  if (hostname && (hostname === 'merchkins.com' || hostname === 'www.merchkins.com')) {
     const newUrl = new URL('/landing', req.url);
     return NextResponse.rewrite(newUrl);
   }
