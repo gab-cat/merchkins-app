@@ -5,6 +5,12 @@ export default clerkMiddleware(async (auth, req) => {
   // Handle subdomain redirects before auth
   const hostname = req.headers.get('host');
 
+  // If going to merchkins.com only, then redirect to landing
+  if (hostname && hostname === 'merchkins.com') {
+    const newUrl = new URL('/landing', req.url);
+    return NextResponse.rewrite(newUrl);
+  }
+
   // Only process subdomains on production domains
   if (hostname && hostname.includes('.merchkins.com')) {
     const subdomain = hostname.split('.')[0];
