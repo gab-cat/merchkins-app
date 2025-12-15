@@ -170,7 +170,7 @@ function OrgThemeControllerInner({ organization }: { organization: any }) {
     }
 
     return () => {};
-  }, [slugToUse, organization]);
+  }, [slugToUse, organization, shouldApplyTheme]);
 
   return null;
 }
