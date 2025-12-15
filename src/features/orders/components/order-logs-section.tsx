@@ -101,96 +101,51 @@ function LogEntry({ log, index }: { log: OrderLog; index: number }) {
   const config = LOG_TYPE_CONFIG[log.logType];
   const Icon = config?.icon || AlertCircle;
 
-  const creatorName = log.isSystemLog
-    ? 'SYSTEM'
-    : log.creatorInfo
-      ? `${log.creatorInfo.firstName ?? ''} ${log.creatorInfo.lastName ?? ''}`.trim() || log.creatorInfo.email
-      : 'Unknown';
-
-  const creatorInitials = log.isSystemLog
-    ? 'SYS'
-    : log.creatorInfo
-      ? `${log.creatorInfo.firstName?.[0] ?? ''}${log.creatorInfo.lastName?.[0] ?? ''}`.toUpperCase() || 'U'
-      : 'U';
-
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="relative pl-8 pb-6 last:pb-0"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.2 }}
+      className="relative pl-6 pb-4 last:pb-0 group"
     >
-      {/* Timeline line */}
-      <div className="absolute left-[13px] top-8 bottom-0 w-px bg-border last:hidden" />
+      {/* Timeline line - thinner and subtle */}
+      <div className="absolute left-[7px] top-5 bottom-0 w-px bg-slate-200 group-last:hidden" />
 
-      {/* Timeline dot */}
-      <div className={cn('absolute left-0 top-1 h-7 w-7 rounded-full flex items-center justify-center', config?.bgColor || 'bg-muted')}>
-        <Icon className={cn('h-3.5 w-3.5', config?.color || 'text-muted-foreground')} />
+      {/* Timeline dot - smaller and cleaner */}
+      <div
+        className={cn(
+          'absolute left-0 top-1.5 h-[15px] w-[15px] rounded-full flex items-center justify-center ring-2 ring-white',
+          config?.bgColor || 'bg-slate-100'
+        )}
+      >
+        <Icon className={cn('h-2.5 w-2.5', config?.color || 'text-slate-400')} />
       </div>
 
-      {/* Content */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs font-normal">
-              {config?.label || log.logType}
-            </Badge>
-            {log.isSystemLog && (
-              <Badge variant="secondary" className="text-xs font-normal gap-1">
-                <Bot className="h-3 w-3" />
-                SYSTEM
-              </Badge>
+      {/* Content - compact single line where possible */}
+      <div className="min-w-0">
+        {/* Main row: reason + time */}
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm text-slate-700 leading-snug">
+            {log.reason}
+            {/* Inline value changes */}
+            {(log.previousValue || log.newValue) && (
+              <span className="text-slate-400 ml-1">
+                {log.previousValue && <span className="line-through text-red-400">{log.previousValue}</span>}
+                {log.previousValue && log.newValue && <span className="mx-1">→</span>}
+                {log.newValue && <span className="text-emerald-600 font-medium">{log.newValue}</span>}
+              </span>
             )}
-          </div>
-          <span className="text-xs text-muted-foreground">{formatRelativeTime(log.createdAt)}</span>
+          </p>
+          <span className="text-[11px] text-slate-400 whitespace-nowrap shrink-0">{formatRelativeTime(log.createdAt)}</span>
         </div>
 
-        {/* Reason/description */}
-        <p className="text-sm font-medium">{log.reason}</p>
+        {/* System message - subtle */}
+        {log.message && <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{log.message}</p>}
 
-        {/* System message */}
-        {log.message && <p className="text-sm text-muted-foreground">{log.message}</p>}
-
-        {/* User message/note */}
+        {/* User message/note - compact quote style */}
         {log.userMessage && (
-          <div className="mt-2 p-3 rounded-lg bg-muted/50 border">
-            <div className="flex items-start gap-2">
-              <MessageSquare className="h-4 w-4 mt-0.5 text-muted-foreground" />
-              <div className="flex-1">
-                <p className="text-sm italic">&ldquo;{log.userMessage}&rdquo;</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Value changes */}
-        {(log.previousValue || log.newValue) && (
-          <div className="flex items-center gap-2 text-xs">
-            {log.previousValue && (
-              <Badge variant="outline" className="bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900">
-                {log.previousValue}
-              </Badge>
-            )}
-            {log.previousValue && log.newValue && <ArrowRight className="h-3 w-3 text-muted-foreground" />}
-            {log.newValue && (
-              <Badge
-                variant="outline"
-                className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900"
-              >
-                {log.newValue}
-              </Badge>
-            )}
-          </div>
-        )}
-
-        {/* Creator info */}
-        {!log.isSystemLog && log.creatorInfo && (
-          <div className="flex items-center gap-2 pt-1">
-            <Avatar className="h-5 w-5">
-              {log.creatorInfo.imageUrl && <AvatarImage src={log.creatorInfo.imageUrl} />}
-              <AvatarFallback className="text-[10px] bg-primary/10 text-primary">{creatorInitials}</AvatarFallback>
-            </Avatar>
-            <span className="text-xs text-muted-foreground">{creatorName}</span>
+          <div className="mt-1.5 pl-3 border-l-2 border-slate-200">
+            <p className="text-xs text-slate-500 italic">&ldquo;{log.userMessage}&rdquo;</p>
           </div>
         )}
       </div>
@@ -201,14 +156,13 @@ function LogEntry({ log, index }: { log: OrderLog; index: number }) {
 // Loading skeleton
 function LogsSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex gap-3">
-          <Skeleton className="h-7 w-7 rounded-full shrink-0" />
-          <div className="space-y-2 flex-1">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-3 w-32" />
+        <div key={i} className="flex gap-2.5 pl-6">
+          <Skeleton className="h-[15px] w-[15px] rounded-full shrink-0 absolute left-4" />
+          <div className="space-y-1.5 flex-1">
+            <Skeleton className="h-3.5 w-3/4" />
+            <Skeleton className="h-2.5 w-16" />
           </div>
         </div>
       ))}
@@ -219,9 +173,9 @@ function LogsSkeleton() {
 // Empty state
 function EmptyLogs() {
   return (
-    <div className="text-center py-8 text-muted-foreground">
-      <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-      <p className="text-sm">No activity yet</p>
+    <div className="text-center py-6 text-slate-400">
+      <Clock className="h-5 w-5 mx-auto mb-1.5 opacity-40" />
+      <p className="text-xs">No activity yet</p>
     </div>
   );
 }
@@ -243,33 +197,29 @@ export function OrderLogsSection({ orderId, limit, publicOnly = false, className
   const isLoading = logs === undefined;
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Clock className="h-4 w-4" />
-          Activity Log
-          {logs && logs.length > 0 && <span className="text-xs bg-muted px-2 py-0.5 rounded-full font-normal">{logs.length}</span>}
-        </CardTitle>
-        <CardDescription>Order history and notes</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <LogsSkeleton />
-        ) : !logs || logs.length === 0 ? (
-          <EmptyLogs />
-        ) : (
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-0">
-              <AnimatePresence>
-                {logs.map((log, index) => (
-                  <LogEntry key={log._id} log={log} index={index} />
-                ))}
-              </AnimatePresence>
-            </div>
-          </ScrollArea>
-        )}
-      </CardContent>
-    </Card>
+    <div className={cn('p-4', className)}>
+      {/* Minimal header */}
+      <div className="flex items-center gap-2 mb-4">
+        <Clock className="h-4 w-4 text-slate-400" />
+        <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Activity</h3>
+        {logs && logs.length > 0 && <span className="text-[10px] text-slate-400 font-normal">({logs.length})</span>}
+      </div>
+
+      {/* Content */}
+      {isLoading ? (
+        <LogsSkeleton />
+      ) : !logs || logs.length === 0 ? (
+        <EmptyLogs />
+      ) : (
+        <div className="max-h-[280px] overflow-y-auto pr-2 -mr-2">
+          <AnimatePresence>
+            {logs.map((log, index) => (
+              <LogEntry key={log._id} log={log} index={index} />
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+    </div>
   );
 }
 

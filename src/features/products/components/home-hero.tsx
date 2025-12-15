@@ -2,34 +2,109 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { ShoppingBag, Plus, Sparkles, ArrowRight } from 'lucide-react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import { BlurFade } from '@/src/components/ui/animations';
+import { useCurrentUser } from '@/src/features/auth/hooks/use-current-user';
+import { R2Image } from '@/src/components/ui/r2-image';
+import { Plus } from 'lucide-react';
+
+// Joined Organizations Carousel Component
+function JoinedOrgsCarousel() {
+  const { user, isLoading: isUserLoading } = useCurrentUser();
+  const orgs = useQuery(api.organizations.queries.index.getOrganizationsByUser, user?._id ? { userId: user._id } : 'skip');
+
+  if (isUserLoading || !user || !orgs || orgs.length === 0) {
+    return null;
+  }
+
+  return (
+    <BlurFade delay={0.4}>
+      <div className="mt-12 space-y-4">
+        <p className="text-sm text-muted-foreground/70 tracking-wide uppercase font-medium">Your Organizations</p>
+        <div className="flex items-start gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          {orgs.map((org) => (
+            <Link key={org._id} href={`/o/${org.slug}`} className="group flex-shrink-0">
+              <motion.div
+                className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden ring-2 ring-border/50 hover:ring-primary/50 transition-all duration-300 shadow-md hover:shadow-lg"
+                whileHover={{ scale: 1.1, y: -4 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+              >
+                <R2Image
+                  fileKey={org.logo}
+                  alt={org.name as string}
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                  fallbackClassName="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5"
+                />
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              </motion.div>
+              {/* Org name */}
+              <div className="mt-2 text-center">
+                <span className="text-xs text-muted-foreground/60 group-hover:text-foreground/80 transition-colors truncate block max-w-[80px]">
+                  {org.name}
+                </span>
+              </div>
+            </Link>
+          ))}
+
+          {/* Explore more button */}
+          <Link href="/orgs" className="group flex-shrink-0">
+            <motion.div
+              className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden ring-2 ring-dashed ring-border/50 hover:ring-primary/50 transition-all duration-300 flex items-center justify-center bg-muted/30 hover:bg-muted/50"
+              whileHover={{ scale: 1.1, y: -4 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            >
+              <Plus className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+            </motion.div>
+            <div className="mt-2 text-center">
+              <span className="text-xs text-muted-foreground/60 group-hover:text-foreground/80 transition-colors">Explore</span>
+            </div>
+          </Link>
+        </div>
+      </div>
+    </BlurFade>
+  );
+}
 
 export function HomeHero() {
-  return (
-    <section className="relative min-h-[70vh] md:min-h-[80vh] flex items-center w-full">
-      {/* Content container - constrained width */}
-      <div className="w-full max-w-7xl mx-auto px-4 py-16 md:py-20 lg:py-24 relative z-10">
-        <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
-          {/* Content */}
-          <div className="space-y-6 lg:space-y-8">
-            {/* Badge */}
-            <BlurFade delay={0.1}>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-primary tracking-wide">Custom Merch Platform</span>
-              </div>
-            </BlurFade>
+  const { user, isLoading } = useCurrentUser();
 
-            {/* Main heading */}
-            <BlurFade delay={0.2}>
-              <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tighter">
-                Bring your brand to life with{' '}
+  // Determine greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const firstName = user?.firstName || user?.email?.split('@')[0] || 'there';
+
+  return (
+    <section className="relative min-h-[40vh] md:min-h-[60vh] flex items-center justify-center w-full">
+      <div className="w-full max-w-4xl mx-auto px-4 py-12 md:py-16 text-center">
+        {/* Minimalist Greeting */}
+        <BlurFade delay={0.1}>
+          <p className="text-muted-foreground/60 text-sm md:text-base tracking-widest uppercase mb-4">{getGreeting()}</p>
+        </BlurFade>
+
+        <BlurFade delay={0.2}>
+          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight">
+            {isLoading ? (
+              <span className="text-foreground/30">Welcome back</span>
+            ) : user ? (
+              <>
+                <span className="text-foreground/90">{firstName}</span>
+                <span className="text-muted-foreground/40">.</span>
+              </>
+            ) : (
+              <>
+                <span className="text-foreground/90">Welcome to </span>
                 <span className="relative inline-block">
-                  <span className="relative z-10 inline-block bg-primary px-3 py-1 md:px-6 md:py-2 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <span className="relative z-10 inline-flex items-center bg-primary px-3 py-1 md:px-6 md:py-2 rounded-full shadow-lg">
                     <span className="font-genty tracking-normal">
                       <span className="text-white">Merch</span>
                       <span className="text-brand-neon">kins</span>
@@ -38,115 +113,19 @@ export function HomeHero() {
                   {/* Glow effect */}
                   <div className="absolute inset-0 bg-primary/30 blur-xl rounded-xl scale-110 -z-10" />
                 </span>
-              </h1>
-            </BlurFade>
+              </>
+            )}
+          </h1>
+        </BlurFade>
 
-            {/* Description */}
-            <BlurFade delay={0.3}>
-              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-xl">
-                Design, order, and fulfill on-brand merchandise. Fast lead times, premium quality, and scalable fulfillment for your organization.
-              </p>
-            </BlurFade>
+        <BlurFade delay={0.3}>
+          <p className="mt-4 text-lg md:text-xl text-muted-foreground/70 max-w-xl mx-auto leading-relaxed">
+            {user ? 'Ready to explore your merch.' : 'Custom merchandise, made easy.'}
+          </p>
+        </BlurFade>
 
-            {/* CTA buttons */}
-            <BlurFade delay={0.4}>
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <Button
-                  size="lg"
-                  asChild
-                  className="group relative overflow-hidden bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 h-12 md:h-14 px-6 md:px-8 text-base"
-                >
-                  <Link href="/search" className="flex items-center gap-2">
-                    <ShoppingBag className="h-5 w-5" />
-                    <span>Browse Products</span>
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    {/* Shimmer effect */}
-                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  asChild
-                  className="group relative overflow-hidden border-2 border-primary/30 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 h-12 md:h-14 px-6 md:px-8 text-base"
-                >
-                  <Link href="/account" className="flex items-center gap-2">
-                    <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" />
-                    <span>Start a Project</span>
-                  </Link>
-                </Button>
-              </div>
-            </BlurFade>
-
-            {/* Trust indicators */}
-            <BlurFade delay={0.5}>
-              <div className="flex items-center gap-6 pt-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-green-500" />
-                  <span>Fast Lead Times</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <span>Premium Quality</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-brand-neon" />
-                  <span>Scalable</span>
-                </div>
-              </div>
-            </BlurFade>
-          </div>
-
-          {/* Visual element */}
-          <BlurFade delay={0.6} className="hidden lg:block">
-            <div className="relative">
-              {/* Main visual card with Unsplash image */}
-              <motion.div
-                className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl"
-                whileHover={{ scale: 1.02, y: -5 }}
-                transition={{ duration: 0.3 }}
-              >
-                {/* Unsplash stock image - Custom merchandise/apparel */}
-                <Image
-                  src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=1200&auto=format&fit=crop"
-                  alt="Custom branded merchandise and apparel"
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-
-                {/* Overlay gradient for better text contrast if needed */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-
-                {/* Corner accents */}
-                <div className="absolute top-4 left-4 w-12 h-12 border-l-2 border-t-2 border-brand-neon/50 rounded-tl-lg" />
-                <div className="absolute bottom-4 right-4 w-12 h-12 border-r-2 border-b-2 border-brand-neon/50 rounded-br-lg" />
-              </motion.div>
-
-              {/* Floating stats cards */}
-              <motion.div
-                className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl p-4 border"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.8, duration: 0.5 }}
-              >
-                <div className="text-2xl font-bold text-primary font-heading">500+</div>
-                <div className="text-sm text-muted-foreground">Happy Orgs</div>
-              </motion.div>
-
-              <motion.div
-                className="absolute -top-4 -right-4 bg-white rounded-xl shadow-xl p-4 border"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1, duration: 0.5 }}
-              >
-                <div className="text-2xl font-bold text-primary font-heading">10K+</div>
-                <div className="text-sm text-muted-foreground">Products</div>
-              </motion.div>
-            </div>
-          </BlurFade>
-        </div>
+        {/* Joined Organizations Carousel - Only shown when user is logged in */}
+        <JoinedOrgsCarousel />
       </div>
     </section>
   );

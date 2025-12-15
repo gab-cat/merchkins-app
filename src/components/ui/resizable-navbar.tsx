@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
+import Link from 'next/link';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
@@ -156,24 +157,24 @@ export function NavItems({ items, className, onItemClick, textColor, hoverColor 
   return (
     <div className={cn('hidden md:flex items-center gap-6', className)}>
       {items.map((item, index) => (
-        <motion.a
+        <Link
           key={item.link}
           href={item.link}
+          prefetch
+          onClick={onItemClick}
           className={cn('text-sm font-medium transition-colors duration-200 relative group', defaultTextColor, defaultHoverColor)}
           style={isHexColor ? { color: textColor } : undefined}
-          onClick={onItemClick}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
         >
-          {item.name}
+          <motion.span initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
+            {item.name}
+          </motion.span>
           <motion.div
             className={cn('absolute bottom-0 left-0 right-0 h-0.5 origin-left', underlineColor)}
             initial={{ scaleX: 0 }}
             whileHover={{ scaleX: 1 }}
             transition={{ duration: 0.3 }}
           />
-        </motion.a>
+        </Link>
       ))}
     </div>
   );

@@ -31,6 +31,8 @@ import {
   X,
   RotateCcw,
   AlertCircle,
+  Store,
+  ExternalLink,
 } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import { buildR2PublicUrl } from '@/lib/utils';
@@ -40,6 +42,10 @@ interface OrderItemUI {
     imageUrl?: string[];
     title: string;
     variantName?: string | null;
+  };
+  size?: {
+    id: string;
+    label: string;
   };
   quantity: number;
   price?: number;
@@ -182,8 +188,11 @@ export function OrderDetail({ orderId }: { orderId: string }) {
   const canCancel = order && order.status !== 'DELIVERED' && order.status !== 'CANCELLED';
   const isPaid = order?.paymentStatus === 'PAID';
 
+  // Check if order is within 24 hours of order date
+  const withinRefundWindow = order ? new Date(order.orderDate).getTime() > Date.now() - 24 * 60 * 60 * 1000 : false;
+
   // Check if refund request is possible (paid order within 24 hours)
-  const canRequestRefund = isPaid && canCancel && !refundRequest;
+  const canRequestRefund = isPaid && canCancel && !refundRequest && withinRefundWindow;
 
   const items = useMemo<OrderItemUI[]>(() => {
     if (!order) return [];
@@ -270,6 +279,55 @@ export function OrderDetail({ orderId }: { orderId: string }) {
             </div>
           </motion.div>
 
+          {/* Store Card - Sleek Display */}
+          {order.organizationInfo && (
+            <motion.div variants={itemVariants} className="mb-6">
+              <Link href={`/stores/${order.organizationInfo.slug}`} className="block group">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-slate-50 border border-slate-100 p-4 transition-all duration-300 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-100/50">
+                  {/* Subtle gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#1d43d8]/[0.02] to-transparent pointer-events-none" />
+
+                  <div className="relative flex items-center gap-4">
+                    {/* Store Logo */}
+                    <div className="relative">
+                      {order.organizationInfo.logoUrl || order.organizationInfo.logo ? (
+                        <div className="h-14 w-14 rounded-xl overflow-hidden ring-2 ring-white shadow-md">
+                          <Image
+                            src={buildR2PublicUrl(order.organizationInfo.logoUrl || order.organizationInfo.logo || null) || ''}
+                            alt={order.organizationInfo.name}
+                            width={56}
+                            height={56}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-[#1d43d8] to-[#1d43d8]/80 flex items-center justify-center shadow-md shadow-[#1d43d8]/20">
+                          <Store className="h-6 w-6 text-white" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Store Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Sold by</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 truncate mt-0.5 group-hover:text-[#1d43d8] transition-colors">
+                        {order.organizationInfo.name}
+                      </h3>
+                    </div>
+
+                    {/* Visit arrow */}
+                    <div className="flex items-center gap-1.5 text-slate-400 group-hover:text-[#1d43d8] transition-colors">
+                      <span className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">Visit</span>
+                      <ExternalLink className="h-4 w-4" />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          )}
+
           {/* Payment Action */}
           {order.status === 'PENDING' && order.paymentStatus !== 'PAID' && (
             <motion.div variants={itemVariants} className="mb-6">
@@ -355,7 +413,15 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                   <ProductImage imageKey={it.productInfo.imageUrl?.[0]} />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-slate-900 text-sm truncate">{it.productInfo.title}</p>
-                    {it.productInfo.variantName && <p className="text-xs text-slate-500 mt-0.5">{it.productInfo.variantName}</p>}
+                    {/* Variant and Size info */}
+                    {(it.productInfo.variantName || it.size) && (
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {it.productInfo.variantName && <span className="text-xs text-slate-500">{it.productInfo.variantName}</span>}
+                        {it.size && (
+                          <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{it.size.label}</span>
+                        )}
+                      </div>
+                    )}
                     <p className="text-xs text-slate-400 mt-1">Qty: {it.quantity}</p>
                   </div>
                   <div className="text-right">
