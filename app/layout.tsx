@@ -32,11 +32,38 @@ const inter = Inter({
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: 'Merchkins Storefront',
   description: 'Custom merch made easy — shop, manage, and fulfill with Merchkins',
   icons: {
     icon: '/favicon.ico',
+  },
+  openGraph: {
+    title: 'Merchkins — Custom Merch Made Easy',
+    description: 'Create, manage, and fulfill custom merchandise for your organization. Join thousands of teams building their brand with Merchkins.',
+    url: `${baseUrl}/landing`,
+    type: 'website',
+    siteName: 'Merchkins',
+    locale: 'en_US',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Merchkins — Custom Merch Made Easy',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Merchkins — Custom Merch Made Easy',
+    description: 'Create, manage, and fulfill custom merchandise for your organization. Join thousands of teams building their brand with Merchkins.',
+    site: '@merchkins',
+    creator: '@merchkins',
+    images: ['/og-image.png'],
   },
 };
 

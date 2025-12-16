@@ -128,11 +128,11 @@ export function AdminNav() {
     { href: `/admin/products${suffix}`, icon: Package, label: 'Products' },
     { href: `/admin/categories${suffix}`, icon: Shapes, label: 'Categories' },
     { href: `/admin/orders${suffix}`, icon: ShoppingBag, label: 'Orders' },
-    { href: `/admin/payments${suffix}`, icon: CreditCard, label: 'Payments' },
-    { href: `/admin/payouts${suffix}`, icon: DollarSign, label: 'Payouts' },
-    { href: `/admin/vouchers${suffix}`, icon: Ticket, label: 'Vouchers' },
-    { href: `/admin/refunds${suffix}`, icon: Receipt, label: 'Refunds' },
     { href: `/admin/batches${suffix}`, icon: ListOrdered, label: 'Batches' },
+    { href: `/admin/payments${suffix}`, icon: CreditCard, label: 'Payments' },
+    { href: `/admin/refunds${suffix}`, icon: Receipt, label: 'Refunds' },
+    { href: `/admin/vouchers${suffix}`, icon: Ticket, label: 'Vouchers' },
+    { href: `/admin/payouts${suffix}`, icon: DollarSign, label: 'Payouts' },
   ];
 
   const communicationItems = [

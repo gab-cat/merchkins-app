@@ -33,6 +33,9 @@ interface PayoutInvoice {
   netAmount: number;
   orderCount: number;
   itemCount: number;
+  // Adjustment fields
+  totalAdjustmentAmount?: number;
+  adjustmentCount?: number;
   status: PayoutStatus;
   paidAt?: number;
   paymentReference?: string;
@@ -279,6 +282,17 @@ export function InvoiceDetailDialog({ invoice, isOpen, onClose, onViewInvoice }:
                       <span className="text-sm text-muted-foreground">Platform Fee ({invoice.platformFeePercentage}%)</span>
                       <span className="font-mono font-semibold text-sm text-red-500">-{formatCurrency(invoice.platformFeeAmount)}</span>
                     </div>
+                    {invoice.totalAdjustmentAmount && invoice.totalAdjustmentAmount < 0 && (
+                      <div className="flex justify-between items-center py-1.5 border-b border-border/50">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Adjustments</span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] font-medium rounded-full">
+                            {invoice.adjustmentCount} {invoice.adjustmentCount === 1 ? 'item' : 'items'}
+                          </span>
+                        </div>
+                        <span className="font-mono font-semibold text-sm text-red-500">{formatCurrency(invoice.totalAdjustmentAmount)}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex justify-between items-center pt-2 border-t-2 border-primary">

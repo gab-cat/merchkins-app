@@ -83,6 +83,8 @@ export default function InvoicePage({ params }: InvoicePageProps) {
     platformFeeAmount: invoice.platformFeeAmount,
     netAmount: invoice.netAmount,
     totalVoucherDiscount: invoice.totalVoucherDiscount,
+    totalAdjustmentAmount: invoice.totalAdjustmentAmount,
+    adjustmentCount: invoice.adjustmentCount,
     orderCount: invoice.orderCount,
     itemCount: invoice.itemCount,
     status: invoice.status,
