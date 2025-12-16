@@ -156,6 +156,7 @@ function PaymentMethodBadge({ method, metadata }: { method: PaymentMethod | 'XEN
     // Fallback to config if no metadata
     const config = PAYMENT_METHOD_CONFIG[method as PaymentMethod];
     if (config) {
+      // @ts-expect-error - Icon is a React component
       Icon = config.icon;
       displayLabel = config.label;
     }
