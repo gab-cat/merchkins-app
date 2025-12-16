@@ -90,19 +90,8 @@ export default async function Page({ params }: PageParams) {
   const { orgSlug } = await params;
   const client = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL as string);
   const organization = await client.query(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug });
-  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
-  let bannerUrl = organization?.bannerImage as string | undefined;
-  if (bannerUrl && isKey(bannerUrl)) {
-    try {
-      bannerUrl = await client.query(api.files.queries.index.getFileUrl, { key: bannerUrl });
-    } catch {}
-  }
-  let logoUrl = organization?.logo as string | undefined;
-  if (logoUrl && isKey(logoUrl)) {
-    try {
-      logoUrl = await client.query(api.files.queries.index.getFileUrl, { key: logoUrl });
-    } catch {}
-  }
+  const bannerUrl = buildR2PublicUrl(organization?.bannerImage as string | undefined);
+  const logoUrl = buildR2PublicUrl(organization?.logo as string | undefined);
 
   if (!organization || organization.isDeleted) return notFound();
 
@@ -127,7 +116,7 @@ export default async function Page({ params }: PageParams) {
   return (
     <div className="min-h-dvh flex flex-col bg-white">
       {/* Compact banner with integrated organization info */}
-      <AnimatedBanner bannerUrl={bannerUrl} logoUrl={logoUrl} organization={organization} orgSlug={orgSlug} />
+      <AnimatedBanner bannerUrl={bannerUrl!} logoUrl={logoUrl!} organization={organization} orgSlug={orgSlug} />
 
       {/* Pinned announcements */}
       <AnimatedAnnouncements announcements={orgPinned} />
