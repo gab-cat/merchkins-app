@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/convex/_generated/api';
+import { buildR2PublicUrl } from '@/lib/utils';
 
 export const runtime = 'edge';
 export const alt = 'Storefront Preview';
@@ -85,23 +86,8 @@ export default async function Image({ params }: { params: Promise<{ orgSlug: str
   // Resolve image URLs
   const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
 
-  let bannerUrl = organization.bannerImage as string | undefined;
-  if (bannerUrl && isKey(bannerUrl)) {
-    try {
-      bannerUrl = await client.query(api.files.queries.index.getFileUrl, { key: bannerUrl });
-    } catch {
-      bannerUrl = undefined;
-    }
-  }
-
-  let logoUrl = organization.logo as string | undefined;
-  if (logoUrl && isKey(logoUrl)) {
-    try {
-      logoUrl = await client.query(api.files.queries.index.getFileUrl, { key: logoUrl });
-    } catch {
-      logoUrl = undefined;
-    }
-  }
+  let bannerUrl = buildR2PublicUrl(organization.bannerImage as string);
+  let logoUrl = buildR2PublicUrl(organization.logo as string);
 
   return new ImageResponse(
     (
