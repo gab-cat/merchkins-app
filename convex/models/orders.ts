@@ -120,6 +120,21 @@ export const orders = defineTable({
     })
   ),
 
+  // Batch assignment - orders can belong to multiple batches
+  batchIds: v.optional(v.array(v.id('orderBatches'))),
+  batchInfo: v.optional(
+    v.array(
+      v.object({
+        id: v.id('orderBatches'),
+        name: v.string(),
+      })
+    )
+  ),
+
+  // Payout tracking
+  paidAt: v.optional(v.number()), // Timestamp when payment was confirmed
+  payoutInvoiceId: v.optional(v.id('payoutInvoices')), // Links order to payout invoice
+
   createdAt: v.number(),
   updatedAt: v.number(),
 })
@@ -133,7 +148,10 @@ export const orders = defineTable({
   .index('by_organization_status', ['organizationId', 'status'])
   .index('by_order_date', ['orderDate'])
   .index('by_estimated_delivery', ['estimatedDelivery'])
-  .index('by_checkout_id', ['checkoutId']);
+  .index('by_checkout_id', ['checkoutId'])
+  .index('by_batch', ['batchIds'])
+  .index('by_organization_paidAt', ['organizationId', 'paidAt'])
+  .index('by_payout_invoice', ['payoutInvoiceId']);
 
 // Separate order items table for large orders (>20 items)
 export const orderItems = defineTable({

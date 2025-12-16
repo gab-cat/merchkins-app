@@ -420,6 +420,8 @@ export const createOrderHandler = async (
   // Determine payment status: if total is 0 and voucher was applied, mark as PAID
   const paymentStatusToUse = totalAmount === 0 && voucherDiscount > 0 ? 'PAID' : 'PENDING';
   const orderStatusToUse = totalAmount === 0 && voucherDiscount > 0 ? 'PROCESSING' : 'PENDING';
+  // Set paidAt if order is paid via voucher
+  const paidAtToUse = paymentStatusToUse === 'PAID' ? now : undefined;
 
   // Prepare order document
   const orderDoc: Omit<Doc<'orders'>, '_id' | '_creationTime'> = {
@@ -483,6 +485,7 @@ export const createOrderHandler = async (
         changedAt: now,
       },
     ],
+    paidAt: paidAtToUse, // Set payment timestamp if paid via voucher
     createdAt: now,
     updatedAt: now,
     orderNumber,
@@ -754,6 +757,40 @@ export const createOrderHandler = async (
     isPublic: true,
     actorId: currentUser._id,
   });
+
+  // Auto-assign to batches based on order date
+  if (args.organizationId) {
+    try {
+      // Find all active batches for this organization where orderDate falls within range
+      const batches = await ctx.db
+        .query('orderBatches')
+        .withIndex('by_organization_active', (q) => q.eq('organizationId', args.organizationId!).eq('isActive', true))
+        .filter((q) => q.and(q.eq(q.field('isDeleted'), false), q.lte(q.field('startDate'), now), q.gte(q.field('endDate'), now)))
+        .collect();
+
+      if (batches.length > 0) {
+        const batchIds: Id<'orderBatches'>[] = [];
+        const batchInfo: Array<{ id: Id<'orderBatches'>; name: string }> = [];
+
+        for (const batch of batches) {
+          batchIds.push(batch._id);
+          batchInfo.push({
+            id: batch._id,
+            name: batch.name,
+          });
+        }
+
+        await ctx.db.patch(orderId, {
+          batchIds,
+          batchInfo,
+          updatedAt: Date.now(),
+        });
+      }
+    } catch (error) {
+      // Best-effort; do not fail order creation if batch assignment fails
+      console.error('Failed to auto-assign order to batches:', error);
+    }
+  }
 
   // Return order details including Xendit invoice info
   const createdOrder = await ctx.db.get(orderId);

@@ -3,7 +3,7 @@ title: Refund System & Scenarios
 description: Complete guide to refund workflows, voucher issuance, and payout attribution for refunded orders.
 category: finance
 icon: DollarSign
-lastUpdated: 2025-12-12
+lastUpdated: 2025-12-16
 ---
 
 # Refund System Scenarios & Payout Flows
@@ -16,14 +16,14 @@ This document outlines all scenarios, flows, and payout attribution for the refu
 
 ## Quick Reference
 
-| Aspect                | Details                                      |
-| --------------------- | -------------------------------------------- |
-| **Refund Window**     | 24 hours from payment                        |
-| **Refund Type**       | Platform-wide voucher only (no cash refunds) |
-| **Approval Required** | Yes, admin approval needed                   |
-| **Voucher Validity**  | Indefinite (no expiration)                   |
-| **Voucher Scope**     | Platform-wide (usable at any store)          |
-| **Payout Impact**     | Seller receives ₱0 for refunded orders       |
+| Aspect                | Details                                                                                            |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
+| **Refund Window**     | 24 hours from payment                                                                              |
+| **Refund Type**       | Platform-wide voucher only (no cash refunds)                                                       |
+| **Approval Required** | Yes, admin approval needed                                                                         |
+| **Voucher Validity**  | Indefinite (no expiration)                                                                         |
+| **Voucher Scope**     | Platform-wide (usable at any store)                                                                |
+| **Payout Impact**     | Seller receives ₱0 for refunded orders. If refunded after payout, amount deducted from next payout |
 
 ---
 
@@ -109,10 +109,20 @@ This document outlines all scenarios, flows, and payout attribution for the refu
 
 ### Payout Attribution
 
-- **Store A receives**: ₱0 (order refunded, no payout)
+**If refunded BEFORE invoice generation:**
+
+- **Store A receives**: ₱0 (order refunded, excluded from payout)
 - **Platform receives**: ₱0 (no revenue from this order)
 - **Platform cost**: ₱1,000 (voucher liability)
 - **Customer**: Receives ₱1,000 REFUND voucher
+
+**If refunded AFTER invoice generation:**
+
+- **Store A received**: ₱850 (already paid in previous payout)
+- **Adjustment created**: -₱1,000 (deducted from next payout)
+- **Platform cost**: ₱1,000 (voucher liability)
+- **Customer**: Receives ₱1,000 REFUND voucher
+- **Next payout**: Store A's payout reduced by ₱1,000
 
 ### Voucher Details
 
@@ -474,6 +484,24 @@ Net Platform Impact = ₱150 - ₱800 = -₱650
 2. **Sellers Always Get Paid**: Sellers receive normal payout even when order is paid with REFUND voucher
 3. **Independent Calculations**: Payout calculations are independent of payment method
 4. **Normal Payout Formula**: Seller payout = Order Total × (1 - Platform Fee %)
+5. **Post-Payout Refunds**: If an order is refunded after being included in a payout invoice, an adjustment is created that deducts the refunded amount from the next payout period
+
+### Post-Payout Refund Adjustments
+
+When an order is refunded **after** it has already been included in a payout invoice:
+
+1. **Adjustment Created**: System automatically creates a payout adjustment record
+2. **Amount**: Negative amount equal to the refunded order total
+3. **Applied To**: Next payout invoice for that organization
+4. **Status**: Adjustment marked as "APPLIED" once included in invoice
+5. **Prevents Overpayment**: Ensures sellers don't receive payout for refunded orders
+
+**Example:**
+
+- Week 1: Order #123 (₱1,000) included in payout, seller receives ₱850
+- Week 2: Order #123 refunded
+- Week 2 Invoice: Adjustment -₱1,000 deducted from payout
+- Result: Seller effectively receives ₱0 for refunded order
 
 ---
 
@@ -502,6 +530,10 @@ Net Platform Impact = ₱150 - ₱800 = -₱650
 ### Q: What happens if a refund request is submitted after 24 hours?
 
 **A**: The request is automatically rejected with an error message. The order continues normally with standard payout.
+
+### Q: What happens if an order is refunded after it was already included in a payout?
+
+**A**: An adjustment is automatically created that deducts the refunded amount from the next payout period. This ensures accurate accounting - sellers don't receive payout for orders that were later refunded. The adjustment is included in the next invoice generation and marked as "APPLIED" once processed.
 
 ---
 

@@ -24,6 +24,7 @@ import {
   DollarSign,
   BookOpen,
   Receipt,
+  ListOrdered,
 } from 'lucide-react';
 import { useQuery } from 'convex-helpers/react/cache';
 
@@ -131,6 +132,7 @@ export function AdminNav() {
     { href: `/admin/payouts${suffix}`, icon: DollarSign, label: 'Payouts' },
     { href: `/admin/vouchers${suffix}`, icon: Ticket, label: 'Vouchers' },
     { href: `/admin/refunds${suffix}`, icon: Receipt, label: 'Refunds' },
+    { href: `/admin/batches${suffix}`, icon: ListOrdered, label: 'Batches' },
   ];
 
   const communicationItems = [

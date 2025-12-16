@@ -4,10 +4,10 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import { useQuery, usePreloadedQuery, type Preloaded } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useThemeExclusionAuto } from '../../../stores/theme-exclusion';
+import { useThemeExclusionAuto, getOrgSlugFromSubdomain } from '../../../stores/theme-exclusion';
 
 /**
- * Applies organization theme variables globally when on /o/[orgSlug].
+ * Applies organization theme variables globally when on /o/[orgSlug] or org subdomain.
  * This ensures common components like the global header/footer adopt
  * the organization's colors, mode, and font.
  */
@@ -36,27 +36,37 @@ export function OrgThemeController({ preloadedOrganization }: OrgThemeController
     return undefined;
   }, [pathname]);
 
+  // Also check for subdomain-based org detection
+  const [subdomainSlug, setSubdomainSlug] = React.useState<string | undefined>(undefined);
+  React.useEffect(() => {
+    const slug = getOrgSlugFromSubdomain();
+    setSubdomainSlug(slug);
+  }, []);
+
+  // Prefer subdomain slug over path-based slug for subdomain access
+  const detectedSlug = subdomainSlug || orgSlugFromPath;
+
   const [persistedSlug, setPersistedSlug] = React.useState<string | undefined>(undefined);
 
   // Load persisted slug for non-org pages
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (orgSlugFromPath) {
-      localStorage.setItem('lastOrgSlug', orgSlugFromPath);
-      setPersistedSlug(orgSlugFromPath);
+    if (detectedSlug) {
+      localStorage.setItem('lastOrgSlug', detectedSlug);
+      setPersistedSlug(detectedSlug);
       return;
     }
-    // Reset when visiting the main homepage only
-    if (pathname === '/') {
+    // Reset when visiting the main homepage only (and not on subdomain)
+    if (pathname === '/' && !subdomainSlug) {
       localStorage.removeItem('lastOrgSlug');
       setPersistedSlug(undefined);
       return;
     }
     const last = localStorage.getItem('lastOrgSlug') || undefined;
     setPersistedSlug(last || undefined);
-  }, [orgSlugFromPath, pathname]);
+  }, [detectedSlug, pathname, subdomainSlug]);
 
-  const slugToUse = orgSlugFromPath || persistedSlug;
+  const slugToUse = detectedSlug || persistedSlug;
 
   // Always call useQuery
   const organization = useQuery(
@@ -84,27 +94,37 @@ function OrgThemeControllerInner({ organization }: { organization: any }) {
     return undefined;
   }, [pathname]);
 
+  // Also check for subdomain-based org detection
+  const [subdomainSlug, setSubdomainSlug] = React.useState<string | undefined>(undefined);
+  React.useEffect(() => {
+    const slug = getOrgSlugFromSubdomain();
+    setSubdomainSlug(slug);
+  }, []);
+
+  // Prefer subdomain slug over path-based slug for subdomain access
+  const detectedSlug = subdomainSlug || orgSlugFromPath;
+
   const [persistedSlug, setPersistedSlug] = React.useState<string | undefined>(undefined);
 
   // Load persisted slug for non-org pages
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (orgSlugFromPath) {
-      localStorage.setItem('lastOrgSlug', orgSlugFromPath);
-      setPersistedSlug(orgSlugFromPath);
+    if (detectedSlug) {
+      localStorage.setItem('lastOrgSlug', detectedSlug);
+      setPersistedSlug(detectedSlug);
       return;
     }
-    // Reset when visiting the main homepage only
-    if (pathname === '/') {
+    // Reset when visiting the main homepage only (and not on subdomain)
+    if (pathname === '/' && !subdomainSlug) {
       localStorage.removeItem('lastOrgSlug');
       setPersistedSlug(undefined);
       return;
     }
     const last = localStorage.getItem('lastOrgSlug') || undefined;
     setPersistedSlug(last || undefined);
-  }, [orgSlugFromPath, pathname]);
+  }, [detectedSlug, pathname, subdomainSlug]);
 
-  const slugToUse = orgSlugFromPath || persistedSlug;
+  const slugToUse = detectedSlug || persistedSlug;
 
   const darkSetByThis = React.useRef(false);
 

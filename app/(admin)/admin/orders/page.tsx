@@ -8,7 +8,7 @@ import { api } from '@/convex/_generated/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ShoppingBag, Plus, Search, Filter, Calendar, User, Package, Clock, ExternalLink, MoreHorizontal, RefreshCw } from 'lucide-react';
+import { ShoppingBag, Plus, Search, Filter, Calendar, User, Package, Clock, ExternalLink, MoreHorizontal, RefreshCw, Tag } from 'lucide-react';
 import { PageHeader, OrderStatusBadge, PaymentStatusBadge, OrdersEmptyState } from '@/src/components/admin';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -16,6 +16,10 @@ import { DateRangeFilter, DateRange } from '@/src/components/ui/date-range-filte
 import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
 import { useCursorPagination } from '@/src/hooks/use-pagination';
 import { cn } from '@/lib/utils';
+import { BatchBadge } from '@/src/features/admin/components/batches/batch-badge';
+import { BatchAssignModal } from '@/src/features/admin/components/batches/batch-assign-modal';
+import { useSearchParams } from 'next/navigation';
+import type { Id } from '@/convex/_generated/dataModel';
 
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 type PaymentStatus = 'PENDING' | 'DOWNPAYMENT' | 'PAID' | 'REFUNDED';
@@ -53,6 +57,8 @@ type Order = {
   itemCount: number;
   totalAmount?: number;
   customerInfo?: { email?: string; firstName?: string; lastName?: string };
+  batchInfo?: Array<{ id: Id<'orderBatches'>; name: string }>;
+  batchIds?: Id<'orderBatches'>[];
 };
 
 type OrderQueryArgs = {
@@ -67,11 +73,24 @@ type OrderQueryArgs = {
 };
 
 export default function AdminOrdersPage() {
+  const searchParams = useSearchParams();
+  const orgSlug = searchParams.get('org') || null;
+
+  const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
+
+  const batches = useQuery(
+    api.orderBatches.index.getBatches,
+    organization?._id ? { organizationId: organization._id, includeDeleted: false } : 'skip'
+  );
+
   const [status, setStatus] = useState<OrderStatus | 'ALL'>('ALL');
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | 'ALL'>('ALL');
+  const [batchFilter, setBatchFilter] = useState<string>('ALL');
   const [search, setSearch] = useState('');
   const [dateRange, setDateRange] = useState<DateRange>({});
   const [refreshing, setRefreshing] = useState(false);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedOrderForAssign, setSelectedOrderForAssign] = useState<Id<'orders'> | null>(null);
 
   const debouncedSearch = useDebouncedSearch(search, 300);
 
@@ -88,7 +107,7 @@ export default function AdminOrdersPage() {
   );
 
   const {
-    items: orders,
+    items: allOrders,
     isLoading: loading,
     hasMore,
     loadMore,
@@ -105,6 +124,14 @@ export default function AdminOrdersPage() {
       };
     },
   });
+
+  // Filter orders by batch if batch filter is set
+  const orders = useMemo(() => {
+    if (batchFilter === 'ALL' || !batches) {
+      return allOrders;
+    }
+    return allOrders.filter((order) => order.batchIds?.includes(batchFilter as Id<'orderBatches'>));
+  }, [allOrders, batchFilter, batches]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -191,6 +218,21 @@ export default function AdminOrdersPage() {
               <SelectItem value="REFUNDED">Refunded</SelectItem>
             </SelectContent>
           </Select>
+          {batches && batches.length > 0 && (
+            <Select value={batchFilter} onValueChange={setBatchFilter}>
+              <SelectTrigger className="w-[160px] h-9">
+                <SelectValue placeholder="Batch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Batches</SelectItem>
+                {batches.map((batch) => (
+                  <SelectItem key={batch._id} value={batch._id}>
+                    {batch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <DateRangeFilter value={dateRange} onChange={setDateRange} />
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
@@ -214,6 +256,7 @@ export default function AdminOrdersPage() {
               <TableHead className="text-xs font-semibold uppercase tracking-wide">Order #</TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide">Payment</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide">Batch</TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide">Date</TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide">Items</TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide">Customer</TableHead>
@@ -236,6 +279,9 @@ export default function AdminOrdersPage() {
                       <div className="h-6 w-20 rounded bg-muted animate-pulse" />
                     </TableCell>
                     <TableCell>
+                      <div className="h-6 w-16 rounded bg-muted animate-pulse" />
+                    </TableCell>
+                    <TableCell>
                       <div className="h-4 w-24 rounded bg-muted animate-pulse" />
                     </TableCell>
                     <TableCell>
@@ -252,7 +298,7 @@ export default function AdminOrdersPage() {
                 ))
               ) : orders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-40">
+                  <TableCell colSpan={9} className="h-40">
                     <OrdersEmptyState />
                   </TableCell>
                 </TableRow>
@@ -277,6 +323,19 @@ export default function AdminOrdersPage() {
                     </TableCell>
                     <TableCell>
                       <PaymentStatusBadge status={(order.paymentStatus || 'PENDING') as PaymentStatus} />
+                    </TableCell>
+                    <TableCell>
+                      {order.batchInfo && order.batchInfo.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {order.batchInfo.map((batch) => {
+                            // Check if batch is archived by looking it up
+                            const batchData = batches?.find((b) => b._id === batch.id);
+                            return <BatchBadge key={batch.id} name={batch.name} isArchived={batchData?.isDeleted || false} size="sm" />;
+                          })}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
@@ -318,6 +377,20 @@ export default function AdminOrdersPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem>Update Status</DropdownMenuItem>
                           <DropdownMenuItem>Send Notification</DropdownMenuItem>
+                          {organization && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedOrderForAssign(order._id as Id<'orders'>);
+                                  setAssignModalOpen(true);
+                                }}
+                              >
+                                <Tag className="h-4 w-4 mr-2" />
+                                Assign to Batch
+                              </DropdownMenuItem>
+                            </>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem>Print Invoice</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
@@ -339,6 +412,19 @@ export default function AdminOrdersPage() {
             Load More Orders
           </Button>
         </div>
+      )}
+
+      {/* Batch Assign Modal */}
+      {organization && selectedOrderForAssign && (
+        <BatchAssignModal
+          open={assignModalOpen}
+          onOpenChange={setAssignModalOpen}
+          organizationId={organization._id}
+          orderIds={[selectedOrderForAssign]}
+          onSuccess={() => {
+            setSelectedOrderForAssign(null);
+          }}
+        />
       )}
     </div>
   );

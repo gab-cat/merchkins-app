@@ -14,6 +14,7 @@ import { orders, orderItems, orderLogs } from './models/orders';
 import { payments } from './models/payments';
 import { checkoutSessions } from './models/checkoutSessions';
 import { payoutInvoices, payoutSettings } from './models/payouts';
+import { payoutAdjustments } from './models/payoutAdjustments';
 import { carts, cartItems } from './models/carts';
 import { categories } from './models/categories';
 import { permissions, userPermissions } from './models/permissions';
@@ -27,6 +28,7 @@ import { chatRooms, chatParticipants, chatMessages, messageReactions, chatRoomSt
 import { vouchers, voucherUsages } from './models/vouchers';
 import { refundRequests } from './models/refundRequests';
 import { voucherRedemptionCosts } from './models/voucherRedemptionCosts';
+import { orderBatches } from './models/orderBatches';
 
 export default defineSchema({
   // User management
@@ -48,6 +50,7 @@ export default defineSchema({
   orders,
   orderItems,
   orderLogs,
+  orderBatches,
 
   // Payment management
   payments,
@@ -56,6 +59,7 @@ export default defineSchema({
   // Payout management
   payoutInvoices,
   payoutSettings,
+  payoutAdjustments,
 
   // Cart management
   carts,

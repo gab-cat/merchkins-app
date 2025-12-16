@@ -5,6 +5,7 @@ import { getPayoutInvoiceByIdArgs, getPayoutInvoiceByIdHandler } from './getPayo
 import { getAuthorizedPayoutInvoiceArgs, getAuthorizedPayoutInvoiceHandler } from './getAuthorizedPayoutInvoice';
 import { getPayoutSummaryArgs, getPayoutSummaryHandler } from './getPayoutSummary';
 import { getPayoutSettingsArgs, getPayoutSettingsHandler } from './getPayoutSettings';
+import { getPayoutAdjustmentsArgs, getPayoutAdjustmentsHandler } from './getPayoutAdjustments';
 
 export const getPayoutInvoices = query({
   args: getPayoutInvoicesArgs,
@@ -29,4 +30,9 @@ export const getPayoutSummary = query({
 export const getPayoutSettings = query({
   args: getPayoutSettingsArgs,
   handler: getPayoutSettingsHandler,
+});
+
+export const getPayoutAdjustments = query({
+  args: getPayoutAdjustmentsArgs,
+  handler: getPayoutAdjustmentsHandler,
 });

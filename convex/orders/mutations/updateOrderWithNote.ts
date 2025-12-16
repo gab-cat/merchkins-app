@@ -116,6 +116,10 @@ export const updateOrderWithNoteHandler = async (
     newPaymentStatus = args.paymentStatus;
     paymentStatusChanged = true;
     updates.paymentStatus = args.paymentStatus;
+    // Set paidAt when payment status changes to PAID (if not already set)
+    if (args.paymentStatus === 'PAID' && !order.paidAt) {
+      updates.paidAt = now;
+    }
   }
 
   if (args.cancellationReason) {

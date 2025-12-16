@@ -12,6 +12,7 @@ import { CancelOrderModal } from './cancel-order-modal';
 import { RefundRequestModal } from './refund-request-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { BatchBadge } from '@/src/features/admin/components/batches/batch-badge';
 import {
   ArrowLeft,
   Package,
@@ -259,7 +260,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                   </div>
                   <h1 className="text-2xl font-bold font-heading tracking-tight text-slate-900">Order {orderNumber}</h1>
                 </div>
-                <div className="flex items-center gap-3 text-sm text-slate-500">
+                <div className="flex items-center gap-3 text-sm text-slate-500 flex-wrap">
                   <span className="flex items-center gap-1.5">
                     <Calendar className="h-3.5 w-3.5" />
                     {new Date(order.orderDate).toLocaleDateString('en-US', {
@@ -270,6 +271,16 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                       minute: '2-digit',
                     })}
                   </span>
+                  {order.batchInfo && order.batchInfo.length > 0 && (
+                    <>
+                      <span className="text-slate-300">•</span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {order.batchInfo.map((batch) => (
+                          <BatchBadge key={batch.id} name={batch.name} size="sm" />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">

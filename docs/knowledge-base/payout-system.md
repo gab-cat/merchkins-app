@@ -3,7 +3,7 @@ title: Payout System
 description: Weekly payout schedules, platform fee calculations, invoice generation, and bank details management.
 category: finance
 icon: DollarSign
-lastUpdated: 2025-12-12
+lastUpdated: 2025-12-16
 ---
 
 # Payout System Guide
@@ -41,7 +41,7 @@ The payout system automatically generates weekly invoices for organization store
 
 - When: Every Wednesday at 00:05 UTC
 - Process: Automatic via cron job
-- Includes: All PAID orders from previous week
+- Includes: All PAID orders from previous week based on **payment date** (when payment was received), not order date
 
 **Payment Processing:**
 
@@ -97,12 +97,16 @@ Every Wednesday at 00:05 UTC:
 1. System calculates previous week's period (Wed-Tue)
 2. Queries all active organizations
 3. For each organization:
-   - Aggregates all PAID orders in period
+   - Aggregates all PAID orders **paid during the period** (based on payment date, not order date)
+   - Includes any pending adjustments from previous payouts (refunds/cancellations)
    - Calculates gross amount
    - Applies platform fee
-   - Calculates net amount
+   - Calculates net amount (after adjustments)
    - Creates payout invoice record
+   - Links orders to invoice (prevents double-counting)
 4. Optionally sends email notifications
+
+**Important:** Orders are assigned to payout periods based on **when payment was received** (`paidAt`), not when the order was placed. This ensures accurate accounting - if a customer places an order on Tuesday but pays on Wednesday, the order is included in Wednesday's payout period.
 
 ### Invoice Contents
 
@@ -113,7 +117,8 @@ Each invoice includes:
 - **Period** - Start and end dates
 - **Gross Amount** - Total sales
 - **Platform Fee** - Fee percentage and amount
-- **Net Amount** - Amount to be paid
+- **Adjustments** - Post-payout refunds/cancellations (if any) - shown as negative amount
+- **Net Amount** - Final amount to be paid (after adjustments)
 - **Order Count** - Number of orders included
 - **Status** - PENDING, PAID, etc.
 - **Generated Date** - When invoice was created
@@ -225,10 +230,13 @@ Each invoice shows:
 - Payout period (start/end dates)
 - Gross sales amount
 - Platform fee breakdown
-- Net payout amount
+- Adjustments (if any) - post-payout refunds/cancellations displayed as negative amounts
+- Net payout amount (final amount after adjustments)
 - Order count and list
 - Payment status
 - Bank details (masked for security)
+
+**Adjustments Display:** When an invoice includes adjustments from previous payouts, they appear in the Financial Summary section of both the PDF invoice and web preview. Adjustments are shown as negative amounts and reduce the final net payout amount.
 
 ### Downloading PDF
 
@@ -236,6 +244,56 @@ Each invoice shows:
 2. Click "Download PDF"
 3. PDF includes all invoice information
 4. Suitable for accounting records
+
+---
+
+## Viewing Adjustments
+
+### Adjustments Tab
+
+The Payouts page includes an **Adjustments** tab that provides a comprehensive view of all payout adjustments for your organization.
+
+**Accessing Adjustments:**
+
+1. Navigate to Admin → Payouts
+2. Select your organization
+3. Click on the **Adjustments** tab
+
+### Adjustment Information
+
+The Adjustments tab displays:
+
+- **Pending Adjustments** - Adjustments waiting to be applied to the next invoice
+- **Applied Adjustments** - Adjustments that have been included in an invoice
+- **Summary Metrics** - Count and total amount of pending/applied adjustments
+
+### Adjustment Details
+
+Each adjustment shows:
+
+- **Order Number** - The order that was refunded/cancelled
+- **Customer Name** - Customer associated with the order
+- **Type** - REFUND or CANCELLATION
+- **Amount** - Negative amount (e.g., -₱1,000.00)
+- **Reason** - Explanation for the adjustment
+- **Status** - PENDING (waiting to be applied) or APPLIED (included in invoice)
+- **Original Invoice** - Invoice number where the order was originally included
+- **Applied Invoice** - Invoice number where the adjustment was applied (if status is APPLIED)
+- **Date** - When the adjustment was created
+
+### Understanding Adjustment Status
+
+**PENDING:**
+
+- Adjustment created but not yet applied
+- Will be included in the next invoice generation
+- Shows in Financial Summary of next invoice
+
+**APPLIED:**
+
+- Adjustment has been included in an invoice
+- Shows which invoice it was applied to
+- Final net payout already reflects this adjustment
 
 ---
 
@@ -318,19 +376,78 @@ Generate reports for:
 
 ### Scenario 4: Refunded Orders
 
-**Impact:**
+**Before Invoice Generation:**
 
 - Refunded orders are excluded from payouts
 - Only PAID orders are included
 - REFUNDED payment status = excluded
 
-**Example:**
+**After Invoice Generation (Post-Payout Refunds):**
+
+- If an order is refunded **after** being included in a payout invoice, an adjustment is created
+- The refunded amount is deducted from the **next** payout period
+- This ensures accurate accounting and prevents overpayment
+
+**Example - Refund Before Invoice:**
 
 - Week sales: ₱10,000
 - Refunded orders: ₱1,000
 - Gross for payout: ₱9,000
 - Platform fee: ₱1,350
 - Net payout: ₱7,650
+
+**Example - Refund After Invoice:**
+
+- Week 1: Invoice generated with ₱10,000 gross, ₱8,500 net payout
+- Week 2: Order refunded (₱1,000)
+- Week 2 Invoice: Adjustment created (-₱1,000)
+- Week 2 Gross: ₱5,000
+- Week 2 Net: ₱4,250 - ₱1,000 adjustment = ₱3,250
+
+---
+
+## Payout Adjustments
+
+### What Are Adjustments?
+
+Adjustments are deductions from future payouts that occur when:
+
+- An order is refunded after being included in a payout invoice
+- An order is cancelled after being included in a payout invoice
+
+### How Adjustments Work
+
+1. **Order Included in Invoice** - Order is paid and included in Week 1's payout
+2. **Refund/Cancellation** - Order is refunded or cancelled after invoice generation
+3. **Adjustment Created** - System automatically creates an adjustment record
+4. **Next Payout** - Adjustment is deducted from Week 2's payout
+
+### Adjustment Details
+
+- Adjustments are **negative amounts** that reduce the net payout
+- Each adjustment is linked to the original invoice and the order
+- Adjustments are automatically included in the next invoice generation
+- Once applied, adjustments are marked as "APPLIED" and cannot be modified
+
+### Example
+
+**Week 1 Invoice:**
+
+- Gross: ₱10,000
+- Net: ₱8,500
+- Includes Order #123 (₱1,000)
+
+**Week 2:**
+
+- Order #123 refunded
+- Adjustment created: -₱1,000
+
+**Week 2 Invoice:**
+
+- Gross: ₱5,000
+- Net before adjustment: ₱4,250
+- Adjustment: -₱1,000
+- **Final Net: ₱3,250**
 
 ---
 
@@ -339,10 +456,11 @@ Generate reports for:
 ### For Organization Admins
 
 1. **Configure Bank Details Early** - Set up bank details before first payout
-2. **Review Invoices** - Check invoices for accuracy
-3. **Track Payments** - Monitor payment status
+2. **Review Invoices** - Check invoices for accuracy, including any adjustments
+3. **Track Payments** - Monitor payment status and understand adjustment impact
 4. **Download PDFs** - Keep invoice records for accounting
 5. **Verify Amounts** - Confirm payout amounts match expectations
+6. **Understand Payment Timing** - Orders are assigned to payouts based on payment date, not order date
 
 ### For Super-Admins
 
@@ -356,9 +474,11 @@ Generate reports for:
 
 1. **Reconcile Regularly** - Match invoices with bank transfers
 2. **Track Platform Fees** - Monitor total fees collected
-3. **Review Refunds** - Understand refund impact on payouts
-4. **Document Changes** - Keep records of fee changes
-5. **Audit Trail** - Maintain complete payment history
+3. **Review Refunds** - Understand refund impact on payouts and adjustments
+4. **Monitor Adjustments** - Track post-payout refunds and cancellations
+5. **Document Changes** - Keep records of fee changes
+6. **Audit Trail** - Maintain complete payment history including adjustments
+7. **Verify Payment Dates** - Ensure orders are assigned to correct periods based on payment date
 
 ---
 
@@ -370,7 +490,7 @@ Generate reports for:
 
 ### Q: What orders are included in payouts?
 
-**A:** Only orders with `PAID` payment status during the payout period. Refunded orders are excluded.
+**A:** Only orders with `PAID` payment status that were **paid during the payout period** (based on payment date, not order date). Refunded orders are excluded. If an order is refunded after being included in a payout, the amount is deducted from the next payout period.
 
 ### Q: Can I change the platform fee for an organization?
 
@@ -386,11 +506,38 @@ Generate reports for:
 
 ### Q: How are refunded orders handled?
 
-**A:** Refunded orders are excluded from payout calculations. The organization receives ₱0 for refunded orders.
+**A:**
+
+- **Before invoice generation:** Refunded orders are excluded from payout calculations. The organization receives ₱0 for refunded orders.
+- **After invoice generation:** If an order is refunded after being included in a payout invoice, an adjustment is created that deducts the refunded amount from the next payout period. This ensures accurate accounting and prevents overpayment.
+
+### Q: How do adjustments appear in invoices?
+
+**A:** When an invoice includes adjustments from previous payouts, they appear in the Financial Summary section:
+
+- Adjustments are shown as a separate line item with a negative amount (e.g., -₱1,000.00)
+- The adjustment count is displayed (e.g., "Adjustments (2 refunds/cancellations)")
+- The final Net Payout amount already reflects the adjustment deduction
+- Adjustments appear in both the PDF invoice and web preview
+- You can view all adjustments (pending and applied) in the Adjustments tab on the Payouts page
 
 ### Q: What if an invoice is incorrect?
 
 **A:** Contact super-admin support. Invoices can be regenerated manually if needed.
+
+### Q: What happens if an order is placed in one period but paid in another?
+
+**A:** Orders are assigned to payout periods based on **when payment was received**, not when the order was placed. For example:
+
+- Order placed: Tuesday 11:59 PM (Period A)
+- Payment received: Wednesday 12:01 AM (Period B)
+- **Result:** Order is included in Period B's payout invoice
+
+This ensures accurate accounting - you only receive payout for money that was actually received during that period.
+
+### Q: Can the same order be included in multiple invoices?
+
+**A:** No. Once an order is included in an invoice, it is marked with `payoutInvoiceId` and cannot be included in another invoice. This prevents double-counting and ensures accurate payouts.
 
 ---
 
@@ -398,4 +545,3 @@ Generate reports for:
 
 - [Refund System](./refund-system.md)
 - [Order Management](./order-management.md)
-

@@ -61,41 +61,66 @@ export const generatePayoutInvoicesHandler = async (
     }
 
     // Get all PAID orders for this organization in the period
-    // Note: We filter by orderDate (when order was placed), not createdAt (when record was created)
-    const orders = await ctx.db
+    // CRITICAL: Filter by paidAt (when payment was received), not orderDate (when order was placed)
+    // This ensures orders are assigned to the correct payout period based on when money was actually received
+
+    // Get all PAID orders for this organization (we'll filter by paidAt/orderDate in JS)
+    // Note: We can't use compound index with range queries directly, so we fetch all and filter
+    const allPaidOrders = await ctx.db
       .query('orders')
       .withIndex('by_organization', (q) => q.eq('organizationId', org._id))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field('isDeleted'), false),
-          q.eq(q.field('paymentStatus'), 'PAID'),
-          q.gte(q.field('orderDate'), args.periodStart),
-          q.lte(q.field('orderDate'), args.periodEnd)
-        )
-      )
+      .filter((q) => q.and(q.eq(q.field('isDeleted'), false), q.eq(q.field('paymentStatus'), 'PAID')))
       .collect();
 
-    console.log(`[generatePayoutInvoices] ${org.name}: Found ${orders.length} PAID orders in period`);
+    // Filter orders by paidAt if set (preferred), otherwise fallback to orderDate (legacy)
+    // Also exclude orders already included in an invoice
+    const orders = allPaidOrders.filter((order) => {
+      // Skip if already in an invoice
+      if (order.payoutInvoiceId) {
+        return false;
+      }
 
-    if (orders.length === 0) {
+      // Use paidAt if available (new orders)
+      if (order.paidAt) {
+        return order.paidAt >= args.periodStart && order.paidAt <= args.periodEnd;
+      }
+
+      // Fallback to orderDate for legacy orders (before paidAt was added)
+      return order.orderDate >= args.periodStart && order.orderDate <= args.periodEnd;
+    });
+
+    const allOrders = orders;
+
+    console.log(`[generatePayoutInvoices] ${org.name}: Found ${allOrders.length} PAID orders in period`);
+
+    if (allOrders.length === 0) {
       // No paid orders in this period - skip
       continue;
     }
 
+    // Get pending adjustments for this organization (refunds/cancellations from previous payouts)
+    const pendingAdjustments = await ctx.db
+      .query('payoutAdjustments')
+      .withIndex('by_organization_status', (q) => q.eq('organizationId', org._id).eq('status', 'PENDING'))
+      .collect();
+
+    const adjustmentTotal = pendingAdjustments.reduce((sum, adj) => sum + adj.amount, 0);
+    console.log(`[generatePayoutInvoices] ${org.name}: Found ${pendingAdjustments.length} pending adjustments totaling ${adjustmentTotal}`);
+
     // Calculate totals
     // For REFUND vouchers: seller gets full original value (platform absorbs voucher cost)
     // For regular vouchers: seller gets discounted value (seller provides discount)
-    const grossAmount = orders.reduce((sum, order) => {
+    const grossAmount = allOrders.reduce((sum, order) => {
       // For REFUND voucher orders, seller gets full original value
       if (order.voucherSnapshot?.discountType === 'REFUND' && order.voucherDiscount) {
         return sum + order.totalAmount + order.voucherDiscount;
       }
       return sum + order.totalAmount;
     }, 0);
-    const itemCount = orders.reduce((sum, order) => sum + order.itemCount, 0);
+    const itemCount = allOrders.reduce((sum, order) => sum + order.itemCount, 0);
 
     // Calculate total voucher discounts from non-refund vouchers (seller absorbs these)
-    const totalVoucherDiscount = orders.reduce((sum, order) => {
+    const totalVoucherDiscount = allOrders.reduce((sum, order) => {
       // Only count non-refund voucher discounts
       if (order.voucherDiscount && order.voucherSnapshot?.discountType !== 'REFUND') {
         return sum + order.voucherDiscount;
@@ -112,17 +137,26 @@ export const generatePayoutInvoicesHandler = async (
     // Get platform fee percentage (org custom or default)
     const feePercentage = org.platformFeePercentage ?? defaultFeePercentage;
     const platformFeeAmount = Math.round(((grossAmount * feePercentage) / 100) * 100) / 100;
-    const netAmount = grossAmount - platformFeeAmount;
+    const netAmountBeforeAdjustments = grossAmount - platformFeeAmount;
+
+    // Apply adjustments (adjustmentTotal is negative, so this deducts from net amount)
+    const adjustedNetAmount = netAmountBeforeAdjustments + adjustmentTotal;
+
+    // Ensure net amount doesn't go negative (adjustments can't exceed payout)
+    const netAmount = Math.max(0, adjustedNetAmount);
 
     console.log(`[generatePayoutInvoices] ${org.name}: Creating invoice`, {
       grossAmount,
       platformFeeAmount,
+      netAmountBeforeAdjustments,
+      adjustmentTotal,
       netAmount,
-      orderCount: orders.length,
+      orderCount: allOrders.length,
+      adjustmentCount: pendingAdjustments.length,
     });
 
     // Build order summary with voucher info
-    const orderSummary = orders.map((order) => {
+    const orderSummary = allOrders.map((order) => {
       const hasRefundVoucher = order.voucherSnapshot?.discountType === 'REFUND';
       // For display: show original amount before voucher for REFUND vouchers
       const displayAmount = hasRefundVoucher && order.voucherDiscount ? order.totalAmount + order.voucherDiscount : order.totalAmount;
@@ -147,7 +181,7 @@ export const generatePayoutInvoicesHandler = async (
     type ProductData = { productTitle: string; variants: Map<string, VariantData>; totalQuantity: number; totalAmount: number };
     const productMap = new Map<string, ProductData>();
 
-    for (const order of orders) {
+    for (const order of allOrders) {
       // Get items from embeddedItems
       const embeddedItems = order.embeddedItems || [];
 
@@ -242,6 +276,20 @@ export const generatePayoutInvoicesHandler = async (
       .filter((p) => p.totalQuantity > 0) // Filter out 0 quantity products
       .sort((a, b) => b.totalQuantity - a.totalQuantity); // Sort by quantity descending
 
+    // Build adjustment summary
+    const adjustmentSummary = [];
+    for (const adjustment of pendingAdjustments) {
+      const order = await ctx.db.get(adjustment.orderId);
+      adjustmentSummary.push({
+        adjustmentId: adjustment._id,
+        orderId: adjustment.orderId,
+        orderNumber: order?.orderNumber || `ORD-${adjustment.orderId.slice(-8)}`,
+        type: adjustment.type,
+        amount: adjustment.amount,
+        reason: adjustment.reason,
+      });
+    }
+
     // Generate invoice number: PI-{YYYYMMDD}-{slug}-{seq}
     const dateStr = new Date(args.periodEnd).toISOString().slice(0, 10).replace(/-/g, '');
 
@@ -270,8 +318,11 @@ export const generatePayoutInvoicesHandler = async (
       platformFeePercentage: feePercentage,
       platformFeeAmount,
       netAmount,
+      totalAdjustmentAmount: adjustmentTotal !== 0 ? adjustmentTotal : undefined,
+      adjustmentCount: pendingAdjustments.length > 0 ? pendingAdjustments.length : undefined,
+      adjustmentSummary: adjustmentSummary.length > 0 ? adjustmentSummary : undefined,
       totalVoucherDiscount: totalVoucherDiscount > 0 ? totalVoucherDiscount : undefined,
-      orderCount: orders.length,
+      orderCount: allOrders.length,
       itemCount,
       orderSummary,
       productSummary,
@@ -288,6 +339,23 @@ export const generatePayoutInvoicesHandler = async (
     });
 
     invoicesCreated.push(invoiceId);
+
+    // Mark all orders as included in this invoice (prevents double-counting)
+    for (const order of allOrders) {
+      await ctx.db.patch(order._id, {
+        payoutInvoiceId: invoiceId,
+        updatedAt: now,
+      });
+    }
+
+    // Mark all adjustments as applied
+    for (const adjustment of pendingAdjustments) {
+      await ctx.db.patch(adjustment._id, {
+        adjustmentInvoiceId: invoiceId,
+        status: 'APPLIED',
+        appliedAt: now,
+      });
+    }
   }
 
   // Update payout settings with last cron run info

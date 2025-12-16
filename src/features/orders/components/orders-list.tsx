@@ -12,6 +12,7 @@ import { OrderPaymentLink } from './order-payment-link';
 import { BlurFade } from '@/src/components/ui/animations/effects';
 import { Package, Clock, CheckCircle2, XCircle, Truck, ArrowRight, ShoppingBag, ChevronRight, Receipt, AlertCircle } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
+import { BatchBadge } from '@/src/features/admin/components/batches/batch-badge';
 
 function formatCurrency(amount: number | undefined) {
   if (amount === undefined) return '';
@@ -67,6 +68,7 @@ type Order = {
   customerInfo?: {
     email: string;
   };
+  batchInfo?: Array<{ id: Id<'orderBatches'>; name: string }>;
 };
 
 function formatRelativeDate(ts: number) {
@@ -291,8 +293,15 @@ export function OrdersList() {
                         <div className="p-4">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <span className="font-semibold text-slate-900 text-sm">{o.orderNumber ? `#${o.orderNumber}` : 'Order'}</span>
+                                {o.batchInfo && o.batchInfo.length > 0 && (
+                                  <div className="flex items-center gap-1 flex-wrap">
+                                    {o.batchInfo.map((batch) => (
+                                      <BatchBadge key={batch.id} name={batch.name} size="sm" />
+                                    ))}
+                                  </div>
+                                )}
                                 <ChevronRight className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                               </div>
                               <div className="flex items-center gap-2 text-xs text-slate-500">

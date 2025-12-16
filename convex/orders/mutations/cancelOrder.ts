@@ -91,6 +91,24 @@ export const cancelOrderHandler = async (
     updatedAt: now,
   });
 
+  // If this order was already included in a payout invoice and was paid, create an adjustment
+  // to deduct the amount from the next payout period
+  if (order.paymentStatus === 'PAID' && order.payoutInvoiceId && order.organizationId) {
+    await ctx.db.insert('payoutAdjustments', {
+      organizationId: order.organizationId,
+      orderId: order._id,
+      originalInvoiceId: order.payoutInvoiceId,
+      type: 'CANCELLATION',
+      amount: -order.totalAmount, // Negative amount to deduct
+      reason: `Order cancellation: ${args.reason} - Order ${order.orderNumber || order._id}`,
+      status: 'PENDING',
+      createdAt: now,
+    });
+    console.log(
+      `[cancelOrder] Created payout adjustment for cancelled order ${order.orderNumber || order._id} that was already in payout ${order.payoutInvoiceId}`
+    );
+  }
+
   // Update associated payment statuses
   try {
     const payments = await ctx.db
@@ -310,6 +328,24 @@ export async function cancelOrderInternal(
     recentStatusHistory: history,
     updatedAt: now,
   });
+
+  // If this order was already included in a payout invoice and was paid, create an adjustment
+  // to deduct the amount from the next payout period
+  if (order.paymentStatus === 'PAID' && order.payoutInvoiceId && order.organizationId) {
+    await ctx.db.insert('payoutAdjustments', {
+      organizationId: order.organizationId,
+      orderId: order._id,
+      originalInvoiceId: order.payoutInvoiceId,
+      type: 'CANCELLATION',
+      amount: -order.totalAmount, // Negative amount to deduct
+      reason: `Order cancellation: ${args.reason} - Order ${order.orderNumber || order._id}`,
+      status: 'PENDING',
+      createdAt: now,
+    });
+    console.log(
+      `[cancelOrderInternal] Created payout adjustment for cancelled order ${order.orderNumber || order._id} that was already in payout ${order.payoutInvoiceId}`
+    );
+  }
 
   // Update associated payment statuses
   try {

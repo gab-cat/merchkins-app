@@ -89,6 +89,10 @@ export const updateOrderHandler = async (
       throw new Error('Invalid payment status transition');
     }
     updates.paymentStatus = args.paymentStatus;
+    // Set paidAt when payment status changes to PAID (if not already set)
+    if (args.paymentStatus === 'PAID' && !order.paidAt) {
+      updates.paidAt = Date.now();
+    }
   }
 
   if (args.cancellationReason) {

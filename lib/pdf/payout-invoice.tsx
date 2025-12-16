@@ -973,6 +973,16 @@ export interface InvoiceData {
   platformFeePercentage: number;
   platformFeeAmount: number;
   netAmount: number;
+  totalAdjustmentAmount?: number;
+  adjustmentCount?: number;
+  adjustmentSummary?: Array<{
+    adjustmentId: string;
+    orderId: string;
+    orderNumber: string;
+    type: 'REFUND' | 'CANCELLATION';
+    amount: number;
+    reason: string;
+  }>;
   totalVoucherDiscount?: number; // Non-refund voucher discounts (seller absorbs)
   orderCount: number;
   itemCount: number;
@@ -1119,6 +1129,16 @@ export const PayoutInvoiceDocument: React.FC<{ invoice: InvoiceData }> = ({ invo
                 <Text style={currentStyles.financialLabel}>Platform Fee ({invoice.platformFeePercentage}%)</Text>
                 <Text style={[currentStyles.financialValue, currentStyles.financialValueNegative]}>-{formatCurrency(invoice.platformFeeAmount)}</Text>
               </View>
+              {invoice.totalAdjustmentAmount && invoice.totalAdjustmentAmount < 0 && (
+                <View style={currentStyles.financialRow}>
+                  <Text style={currentStyles.financialLabel}>
+                    Adjustments ({invoice.adjustmentCount} {invoice.adjustmentCount === 1 ? 'refund/cancellation' : 'refunds/cancellations'})
+                  </Text>
+                  <Text style={[currentStyles.financialValue, currentStyles.financialValueNegative]}>
+                    {formatCurrency(invoice.totalAdjustmentAmount)}
+                  </Text>
+                </View>
+              )}
             </View>
             <View style={currentStyles.netAmountSection}>
               <Text style={currentStyles.netLabel}>Net Payout</Text>
@@ -1216,9 +1236,7 @@ export const PayoutInvoiceDocument: React.FC<{ invoice: InvoiceData }> = ({ invo
                   <Text style={[currentStyles.tableCell, currentStyles.colCustomer]}>{order.customerName.slice(0, 22)}</Text>
                   <Text style={[currentStyles.tableCell, currentStyles.colItems]}>{order.itemCount}</Text>
                   <View style={[currentStyles.colAmount, currentStyles.amountCell]}>
-                    <Text style={[currentStyles.tableCell, currentStyles.tableCellBold]}>
-                      {formatCurrency(order.totalAmount)}
-                    </Text>
+                    <Text style={[currentStyles.tableCell, currentStyles.tableCellBold]}>{formatCurrency(order.totalAmount)}</Text>
                     {order.hasRefundVoucher && (
                       <View style={currentStyles.voucherBadge}>
                         <Text style={currentStyles.voucherBadgeText}>V</Text>
@@ -1297,17 +1315,19 @@ export const PayoutInvoiceDocument: React.FC<{ invoice: InvoiceData }> = ({ invo
                         </View>
 
                         {/* Sizes */}
-                        {variant.sizes && variant.sizes.length > 0 && variant.sizes.map((size) => (
-                          <View key={size.size} style={currentStyles.sizeRow}>
-                            <View style={currentStyles.sizeName}>
-                              <Text style={currentStyles.sizeText}>{size.size}</Text>
+                        {variant.sizes &&
+                          variant.sizes.length > 0 &&
+                          variant.sizes.map((size) => (
+                            <View key={size.size} style={currentStyles.sizeRow}>
+                              <View style={currentStyles.sizeName}>
+                                <Text style={currentStyles.sizeText}>{size.size}</Text>
+                              </View>
+                              <View style={currentStyles.sizeStats}>
+                                <Text style={currentStyles.sizeQty}>{size.quantity}</Text>
+                                <Text style={currentStyles.sizeAmount}>{formatCurrency(size.amount)}</Text>
+                              </View>
                             </View>
-                            <View style={currentStyles.sizeStats}>
-                              <Text style={currentStyles.sizeQty}>{size.quantity}</Text>
-                              <Text style={currentStyles.sizeAmount}>{formatCurrency(size.amount)}</Text>
-                            </View>
-                          </View>
-                        ))}
+                          ))}
                       </View>
                     ))}
                   </View>

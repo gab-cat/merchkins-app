@@ -39,6 +39,22 @@ export const payoutInvoices = defineTable({
   platformFeeAmount: v.number(), // Platform fee deducted
   netAmount: v.number(), // Amount to be paid out to org
 
+  // Adjustment summary (from post-payout refunds/cancellations)
+  totalAdjustmentAmount: v.optional(v.number()), // Negative value (e.g., -1000)
+  adjustmentCount: v.optional(v.number()),
+  adjustmentSummary: v.optional(
+    v.array(
+      v.object({
+        adjustmentId: v.id('payoutAdjustments'),
+        orderId: v.id('orders'),
+        orderNumber: v.string(),
+        type: v.union(v.literal('REFUND'), v.literal('CANCELLATION')),
+        amount: v.number(), // Negative
+        reason: v.string(),
+      })
+    )
+  ),
+
   // Voucher discount summary (non-refund vouchers only - seller absorbs cost)
   totalVoucherDiscount: v.optional(v.number()), // Total discount from non-refund vouchers
 

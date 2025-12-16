@@ -179,6 +179,7 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
       await ctx.db.patch(order._id, {
         status: 'PROCESSING',
         paymentStatus: 'PAID',
+        paidAt: now, // Set payment timestamp for accurate payout period assignment
         recentStatusHistory: updatedHistory as Doc<'orders'>['recentStatusHistory'],
         updatedAt: now,
       });
@@ -342,6 +343,7 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
   await ctx.db.patch(order._id, {
     status: 'PROCESSING', // Move to processing as payment is confirmed
     paymentStatus: 'PAID',
+    paidAt: now, // Set payment timestamp for accurate payout period assignment
     updatedAt: now,
   });
 

@@ -199,6 +199,11 @@ You can update:
 - **Customer Notes** - Internal notes visible to customer
 - **Processor** - Staff member handling the order
 - **Cancellation Reason** - If order is cancelled
+- **Batch Assignment** - Add/remove order from batches (see [Order Batches](./order-batches.md))
+
+**Batch Assignment:**
+
+Orders can be assigned to batches directly from the order detail page using the **Batch Assignment** card. All batch changes are logged in the order's activity log.
 
 ---
 
@@ -392,4 +397,3 @@ Filter orders by:
 - [Refund System](./refund-system.md)
 - [Product Management](./product-management.md)
 - [Payout System](./payout-system.md)
-

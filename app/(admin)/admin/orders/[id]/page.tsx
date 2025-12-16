@@ -24,6 +24,8 @@ import { ReceivePaymentDialog } from '@/src/features/orders/components/receive-p
 import { OrderLogsSection } from '@/src/features/orders/components/order-logs-section';
 import { AddOrderNoteDialog } from '@/src/features/orders/components/add-order-note-dialog';
 import { OrderStatusChangeDialog } from '@/src/features/orders/components/order-status-change-dialog';
+import { OrderBatchManager } from '@/src/features/admin/components/orders/order-batch-manager';
+import { XenditMetadataDisplay } from '@/src/features/admin/components/payments/xendit-metadata-display';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -244,6 +246,18 @@ export default function AdminOrderDetailPage() {
       : 'skip'
   );
 
+  // Fetch payments for this order to display Xendit metadata
+  const paymentsData = useQuery(
+    api.payments.queries.index.getPayments,
+    orderId && order?.organizationId
+      ? {
+          orderId,
+          organizationId: order.organizationId,
+          limit: 10,
+        }
+      : 'skip'
+  );
+
   // Mutations
   const updateOrder = useMutation(api.orders.mutations.index.updateOrder);
   const cancelOrder = useMutation(api.orders.mutations.index.cancelOrder);
@@ -437,7 +451,19 @@ export default function AdminOrderDetailPage() {
             </Card>
           </motion.div>
 
+          {/* Xendit Payment Metadata */}
+          {paymentsData?.payments && paymentsData.payments.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+              <div className="space-y-3">
+                {paymentsData.payments.map((payment) => (
+                  <XenditMetadataDisplay key={payment._id} metadata={payment.metadata as Record<string, unknown>} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+
           {/* Order Items */}
+
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Card>
               <CardHeader>
@@ -474,22 +500,25 @@ export default function AdminOrderDetailPage() {
               </CardHeader>
               <CardContent className="space-y-1">
                 <SummaryRow label="Items" value={String(order.itemCount || items.length)} />
-                <SummaryRow label="Subtotal" value={formatCurrency((order.totalAmount || 0) + (order.voucherDiscount || order.discountAmount || 0))} />
+                <SummaryRow
+                  label="Subtotal"
+                  value={formatCurrency((order.totalAmount || 0) + (order.voucherDiscount || order.discountAmount || 0))}
+                />
                 {/* Voucher discount display */}
                 {order.voucherCode && (order.voucherDiscount || 0) > 0 && (
                   <div className="flex items-center justify-between py-2">
                     <span className="text-emerald-600 flex items-center gap-1.5 text-sm">
                       <Ticket className="h-3.5 w-3.5" />
                       Voucher
-                      <code className="text-xs bg-emerald-100 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded font-mono">
-                        {order.voucherCode}
-                      </code>
+                      <code className="text-xs bg-emerald-100 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded font-mono">{order.voucherCode}</code>
                     </span>
                     <span className="text-emerald-600">-{formatCurrency(order.voucherDiscount || 0)}</span>
                   </div>
                 )}
                 {/* Legacy discount (non-voucher) */}
-                {!order.voucherCode && (order.discountAmount || 0) > 0 && <SummaryRow label="Discount" value={formatCurrency(order.discountAmount || 0)} negative />}
+                {!order.voucherCode && (order.discountAmount || 0) > 0 && (
+                  <SummaryRow label="Discount" value={formatCurrency(order.discountAmount || 0)} negative />
+                )}
                 <Separator className="my-3" />
                 <SummaryRow label="Total" value={formatCurrency(order.totalAmount || 0)} highlight />
 
@@ -585,6 +614,13 @@ export default function AdminOrderDetailPage() {
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* Batch Assignment */}
+          {order.organizationId && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+              <OrderBatchManager orderId={order._id} organizationId={order.organizationId} currentBatches={order.batchInfo} />
+            </motion.div>
+          )}
         </div>
       </div>
 

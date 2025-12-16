@@ -130,7 +130,9 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
               <>
                 <div className="flex justify-between items-center py-3 border-b border-border/50">
                   <span className="text-muted-foreground">Original Sales Total</span>
-                  <span className="font-mono font-semibold text-foreground">{formatCurrency(invoice.grossAmount + invoice.totalVoucherDiscount)}</span>
+                  <span className="font-mono font-semibold text-foreground">
+                    {formatCurrency(invoice.grossAmount + invoice.totalVoucherDiscount)}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center py-3 border-b border-border/50">
                   <div className="flex items-center gap-2">
@@ -157,6 +159,17 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
               <span className="text-muted-foreground">Platform Fee ({invoice.platformFeePercentage}%)</span>
               <span className="font-mono font-semibold text-red-500">-{formatCurrency(invoice.platformFeeAmount)}</span>
             </div>
+            {invoice.totalAdjustmentAmount && invoice.totalAdjustmentAmount < 0 && (
+              <div className="flex justify-between items-center py-3 border-b border-border/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Adjustments</span>
+                  <Badge variant="secondary" className="text-[10px]">
+                    {invoice.adjustmentCount} {invoice.adjustmentCount === 1 ? 'item' : 'items'}
+                  </Badge>
+                </div>
+                <span className="font-mono font-semibold text-red-500">{formatCurrency(invoice.totalAdjustmentAmount)}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-between items-center pt-4 border-t-2 border-primary">
@@ -210,7 +223,10 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
                     <div className="flex items-center justify-end gap-1.5">
                       <span className="font-mono font-bold text-foreground">{formatCurrency(order.totalAmount)}</span>
                       {order.hasRefundVoucher && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-medium rounded-full" title={`Voucher: ${order.voucherCode}`}>
+                        <span
+                          className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-medium rounded-full"
+                          title={`Voucher: ${order.voucherCode}`}
+                        >
                           <Ticket className="w-3 h-3" />
                         </span>
                       )}
@@ -254,7 +270,7 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
                       <span className="font-mono font-bold text-foreground">{formatCurrency(product.totalAmount)}</span>
                     </div>
                   </div>
-                  
+
                   {/* Variants */}
                   <div className="divide-y divide-border/50">
                     {product.variants.map((variant) => (
@@ -272,7 +288,7 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
                             <span className="font-mono font-semibold text-sm text-foreground">{formatCurrency(variant.totalAmount)}</span>
                           </div>
                         </div>
-                        
+
                         {/* Sizes */}
                         {variant.sizes && variant.sizes.length > 0 && (
                           <div className="bg-background">

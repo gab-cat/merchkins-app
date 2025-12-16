@@ -22,6 +22,8 @@ import {
   Pencil,
   ExternalLink,
   Loader2,
+  AlertTriangle,
+  ArrowRight,
 } from 'lucide-react';
 import { MetricCard, MetricGrid, PageHeader, DataTable, StatusBadge, DropdownMenuItem, EmptyState } from '@/src/components/admin';
 import { Button } from '@/components/ui/button';
@@ -34,6 +36,7 @@ import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { InvoiceDetailDialog, BankCombobox, BankChannel } from '@/src/features/admin/payouts/components';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Types
 type PayoutStatus = 'PENDING' | 'PROCESSING' | 'PAID' | 'CANCELLED';
@@ -108,6 +111,7 @@ export default function AdminPayoutsPage() {
   const [notificationEmail, setNotificationEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [activeTab, setActiveTab] = useState('invoices');
 
   // Get organization
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
@@ -118,20 +122,32 @@ export default function AdminPayoutsPage() {
     organization?._id ? { organizationId: organization._id, limit: 100 } : 'skip'
   );
 
+  // Get organization's payout adjustments
+  const adjustmentsQuery = useQuery(
+    api.payouts.queries.index.getPayoutAdjustments,
+    organization?._id ? { organizationId: organization._id } : 'skip'
+  );
+
   // Actions
   const generatePdf = useAction(api.payouts.actions.index.generateInvoicePdf);
 
   // Mutations
   const updateBankDetails = useMutation(api.payouts.mutations.index.updateOrgBankDetails);
 
-  const loading = organization === undefined || invoicesQuery === undefined;
+  const loading = organization === undefined || invoicesQuery === undefined || adjustmentsQuery === undefined;
   const invoices = invoicesQuery?.invoices ?? [];
+  const adjustments = adjustmentsQuery?.adjustments ?? [];
 
   // Calculate totals
   const totalPending = invoices.filter((inv) => inv.status === 'PENDING' || inv.status === 'PROCESSING').reduce((sum, inv) => sum + inv.netAmount, 0);
   const totalPaid = invoices.filter((inv) => inv.status === 'PAID').reduce((sum, inv) => sum + inv.netAmount, 0);
   const pendingCount = invoices.filter((inv) => inv.status === 'PENDING' || inv.status === 'PROCESSING').length;
   const paidCount = invoices.filter((inv) => inv.status === 'PAID').length;
+
+  // Calculate adjustment metrics
+  const pendingAdjustments = adjustments.filter((adj) => adj.status === 'PENDING');
+  const appliedAdjustments = adjustments.filter((adj) => adj.status === 'APPLIED');
+  const totalPendingAdjustmentAmount = pendingAdjustments.reduce((sum, adj) => sum + adj.amount, 0);
 
   // Handle row click - open detail dialog
   const handleRowClick = (row: PayoutInvoice) => {
@@ -347,177 +363,308 @@ export default function AdminPayoutsPage() {
         </Alert>
       )}
 
-      {/* Summary Metrics */}
-      <MetricGrid columns={4}>
-        <MetricCard
-          title="Pending Payouts"
-          value={totalPending}
-          prefix="₱"
-          icon={Clock}
-          loading={loading}
-          variant="gradient"
-          description={`${pendingCount} invoice${pendingCount !== 1 ? 's' : ''}`}
-        />
-        <MetricCard
-          title="Total Received"
-          value={totalPaid}
-          prefix="₱"
-          icon={CheckCircle2}
-          loading={loading}
-          variant="gradient"
-          description={`${paidCount} payment${paidCount !== 1 ? 's' : ''}`}
-        />
-        <MetricCard
-          title="Platform Fee"
-          value={organization?.platformFeePercentage ?? 15}
-          suffix="%"
-          icon={Percent}
-          loading={loading}
-          variant="bordered"
-          description="Of gross sales"
-        />
-        <MetricCard title="Total Invoices" value={invoices.length} icon={FileText} loading={loading} variant="bordered" description="All time" />
-      </MetricGrid>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsTrigger value="adjustments">Adjustments</TabsTrigger>
+        </TabsList>
 
-      {/* Schedule Info */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border bg-card p-4">
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Cut-off Period:</span>
-            <span className="font-medium">Wednesday to Tuesday</span>
-          </div>
-          <div className="h-4 w-px bg-border" />
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Invoices Generated:</span>
-            <span className="font-medium">Every Wednesday</span>
-          </div>
-          <div className="h-4 w-px bg-border" />
-          <div className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Payout Day:</span>
-            <span className="font-medium">Friday</span>
-          </div>
-        </div>
-      </motion.div>
+        {/* Invoices Tab */}
+        <TabsContent value="invoices" className="space-y-6 mt-6">
+          {/* Summary Metrics */}
+          <MetricGrid columns={4}>
+            <MetricCard
+              title="Pending Payouts"
+              value={totalPending}
+              prefix="₱"
+              icon={Clock}
+              loading={loading}
+              variant="gradient"
+              description={`${pendingCount} invoice${pendingCount !== 1 ? 's' : ''}`}
+            />
+            <MetricCard
+              title="Total Received"
+              value={totalPaid}
+              prefix="₱"
+              icon={CheckCircle2}
+              loading={loading}
+              variant="gradient"
+              description={`${paidCount} payment${paidCount !== 1 ? 's' : ''}`}
+            />
+            <MetricCard
+              title="Platform Fee"
+              value={organization?.platformFeePercentage ?? 15}
+              suffix="%"
+              icon={Percent}
+              loading={loading}
+              variant="bordered"
+              description="Of gross sales"
+            />
+            <MetricCard title="Total Invoices" value={invoices.length} icon={FileText} loading={loading} variant="bordered" description="All time" />
+          </MetricGrid>
 
-      {/* Bank Details Card - Enhanced */}
-      {organization?.payoutBankDetails && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative rounded-xl border border-border/50 bg-gradient-to-br from-card via-card to-muted/20 overflow-hidden"
-        >
-          {/* Decorative accent */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary to-brand-neon" />
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-
-          <div className="relative p-5">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-base font-admin-heading">Payout Account</h3>
-                  <p className="text-xs text-muted-foreground">Bank details for receiving payments</p>
-                </div>
+          {/* Schedule Info */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border bg-card p-4">
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Cut-off Period:</span>
+                <span className="font-medium">Wednesday to Tuesday</span>
               </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleOpenBankDetailsDialog}
-                className="border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-colors"
-              >
-                <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                Edit
-              </Button>
+              <div className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Invoices Generated:</span>
+                <span className="font-medium">Every Wednesday</span>
+              </div>
+              <div className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Payout Day:</span>
+                <span className="font-medium">Friday</span>
+              </div>
             </div>
+          </motion.div>
 
-            {/* Bank Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Bank / E-Wallet</span>
-                <p className="font-semibold text-sm">{organization.payoutBankDetails.bankName}</p>
-                {organization.payoutBankDetails.bankCode && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-mono">
-                    {organization.payoutBankDetails.bankCode}
-                  </Badge>
+          {/* Bank Details Card - Enhanced */}
+          {organization?.payoutBankDetails && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative rounded-xl border border-border/50 bg-gradient-to-br from-card via-card to-muted/20 overflow-hidden"
+            >
+              {/* Decorative accent */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary to-brand-neon" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+
+              <div className="relative p-5">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Building2 className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-base font-admin-heading">Payout Account</h3>
+                      <p className="text-xs text-muted-foreground">Bank details for receiving payments</p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleOpenBankDetailsDialog}
+                    className="border-primary/30 hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-colors"
+                  >
+                    <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                    Edit
+                  </Button>
+                </div>
+
+                {/* Bank Info Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Bank / E-Wallet</span>
+                    <p className="font-semibold text-sm">{organization.payoutBankDetails.bankName}</p>
+                    {organization.payoutBankDetails.bankCode && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-mono">
+                        {organization.payoutBankDetails.bankCode}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Account Name</span>
+                    <p className="font-semibold text-sm">{organization.payoutBankDetails.accountName}</p>
+                  </div>
+                  <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Account Number</span>
+                    <p className="font-semibold text-sm font-mono tracking-wide">{organization.payoutBankDetails.accountNumber}</p>
+                  </div>
+                </div>
+
+                {/* Notification Email */}
+                {organization.payoutBankDetails.notificationEmail && (
+                  <div className="mt-4 pt-4 border-t border-border/50">
+                    <div className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-md bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                        <Info className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Notification Email</span>
+                        <p className="font-medium text-sm">{organization.payoutBankDetails.notificationEmail}</p>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
-              <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Account Name</span>
-                <p className="font-semibold text-sm">{organization.payoutBankDetails.accountName}</p>
-              </div>
-              <div className="space-y-1 p-3 rounded-lg bg-muted/30 border border-border/50">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Account Number</span>
-                <p className="font-semibold text-sm font-mono tracking-wide">{organization.payoutBankDetails.accountNumber}</p>
-              </div>
-            </div>
-
-            {/* Notification Email */}
-            {organization.payoutBankDetails.notificationEmail && (
-              <div className="mt-4 pt-4 border-t border-border/50">
-                <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-md bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                    <Info className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Notification Email</span>
-                    <p className="font-medium text-sm">{organization.payoutBankDetails.notificationEmail}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Invoices Table */}
-      {invoices.length > 0 ? (
-        <DataTable
-          data={invoices as unknown as Record<string, unknown>[]}
-          columns={columns as any}
-          rowKey="_id"
-          loading={loading}
-          searchable
-          searchPlaceholder="Search invoices..."
-          emptyMessage="No payout invoices yet"
-          hoverable
-          onRowClick={(row: any) => handleRowClick(row)}
-          actions={(row: any) => (
-            <>
-              <DropdownMenuItem onClick={() => setSelectedInvoice(row)}>
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDownloadPdf(row)}>
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleViewInvoice(row)}>
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View Invoice Page
-              </DropdownMenuItem>
-            </>
+            </motion.div>
           )}
-        />
-      ) : (
-        <Card className="py-12">
-          <div className="text-center">
-            <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-              <FileText className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <h3 className="font-semibold mb-1">No Payout Invoices Yet</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-              Payout invoices are generated weekly on Wednesday for all paid orders from the previous week. Once you start receiving orders, your
-              invoices will appear here.
-            </p>
-          </div>
-        </Card>
-      )}
+
+          {/* Invoices Table */}
+          {invoices.length > 0 ? (
+            <DataTable
+              data={invoices as unknown as Record<string, unknown>[]}
+              columns={columns as any}
+              rowKey="_id"
+              loading={loading}
+              searchable
+              searchPlaceholder="Search invoices..."
+              emptyMessage="No payout invoices yet"
+              hoverable
+              onRowClick={(row: any) => handleRowClick(row)}
+              actions={(row: any) => (
+                <>
+                  <DropdownMenuItem onClick={() => setSelectedInvoice(row)}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDownloadPdf(row)}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleViewInvoice(row)}>
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View Invoice Page
+                  </DropdownMenuItem>
+                </>
+              )}
+            />
+          ) : (
+            <Card className="py-12">
+              <div className="text-center">
+                <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <FileText className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold mb-1">No Payout Invoices Yet</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                  Payout invoices are generated weekly on Wednesday for all paid orders from the previous week. Once you start receiving orders, your
+                  invoices will appear here.
+                </p>
+              </div>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Adjustments Tab */}
+        <TabsContent value="adjustments" className="space-y-6 mt-6">
+          {/* Adjustment Summary Metrics */}
+          <MetricGrid columns={3}>
+            <MetricCard
+              title="Pending Adjustments"
+              value={pendingAdjustments.length}
+              icon={Clock}
+              loading={loading}
+              variant="gradient"
+              description={totalPendingAdjustmentAmount < 0 ? formatCurrency(Math.abs(totalPendingAdjustmentAmount)) : '₱0.00'}
+            />
+            <MetricCard
+              title="Applied Adjustments"
+              value={appliedAdjustments.length}
+              icon={CheckCircle2}
+              loading={loading}
+              variant="gradient"
+              description={`Total: ${appliedAdjustments.length}`}
+            />
+            <MetricCard
+              title="Total Adjustments"
+              value={adjustments.length}
+              icon={AlertTriangle}
+              loading={loading}
+              variant="bordered"
+              description="All time"
+            />
+          </MetricGrid>
+
+          {/* Adjustments Table */}
+          {adjustments.length > 0 ? (
+            <DataTable
+              data={adjustments as unknown as Record<string, unknown>[]}
+              columns={
+                [
+                  {
+                    key: 'orderNumber',
+                    title: 'Order #',
+                    render: (_: unknown, row: any) => (
+                      <div>
+                        <p className="font-medium text-sm font-mono">{row.order?.orderNumber || '—'}</p>
+                        <p className="text-xs text-muted-foreground">{row.order?.customerName || '—'}</p>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: 'type',
+                    title: 'Type',
+                    render: (_: unknown, row: any) => (
+                      <Badge
+                        variant={row.type === 'REFUND' ? 'destructive' : 'secondary'}
+                        className={row.type === 'REFUND' ? 'bg-red-100 text-red-700 hover:bg-red-100' : ''}
+                      >
+                        {row.type}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    key: 'amount',
+                    title: 'Amount',
+                    align: 'right' as const,
+                    render: (_: unknown, row: any) => (
+                      <span className="font-mono font-semibold text-red-600 dark:text-red-400">{formatCurrency(row.amount)}</span>
+                    ),
+                  },
+                  {
+                    key: 'reason',
+                    title: 'Reason',
+                    render: (_: unknown, row: any) => <span className="text-sm text-muted-foreground">{row.reason}</span>,
+                  },
+                  {
+                    key: 'status',
+                    title: 'Status',
+                    render: (_: unknown, row: any) => <StatusBadge status={row.status} type={row.status === 'PENDING' ? 'pending' : 'success'} />,
+                  },
+                  {
+                    key: 'originalInvoice',
+                    title: 'Original Invoice',
+                    render: (_: unknown, row: any) => (
+                      <span className="text-sm font-mono text-muted-foreground">{row.originalInvoice?.invoiceNumber || '—'}</span>
+                    ),
+                  },
+                  {
+                    key: 'appliedInvoice',
+                    title: 'Applied Invoice',
+                    render: (_: unknown, row: any) => (
+                      <span className="text-sm font-mono text-muted-foreground">{row.appliedInvoice?.invoiceNumber || '—'}</span>
+                    ),
+                  },
+                  {
+                    key: 'createdAt',
+                    title: 'Date',
+                    render: (_: unknown, row: any) => <span className="text-sm text-muted-foreground">{formatDate(row.createdAt)}</span>,
+                  },
+                ] as any
+              }
+              rowKey="_id"
+              loading={loading}
+              searchable
+              searchPlaceholder="Search adjustments..."
+              emptyMessage="No adjustments found"
+              hoverable
+            />
+          ) : (
+            <Card className="py-12">
+              <div className="text-center">
+                <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <AlertTriangle className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold mb-1">No Adjustments Yet</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                  Adjustments are created when orders are refunded or cancelled after being included in a payout invoice. They will appear here once
+                  created.
+                </p>
+              </div>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Invoice Detail Dialog */}
       <InvoiceDetailDialog

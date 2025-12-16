@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Home, Search as SearchIcon, RotateCcw, HelpCircle, Globe, Mail, MessageSquare, Ticket, FileText, Shield, ArrowRight } from 'lucide-react';
 import { showToast } from '@/lib/toast';
-import { useThemeExclusionAuto } from '../../../stores/theme-exclusion';
+import { useThemeExclusionAuto, getOrgSlugFromSubdomain } from '../../../stores/theme-exclusion';
 
 export function SiteFooter() {
   const pathname = usePathname();
@@ -26,24 +26,34 @@ export function SiteFooter() {
     return undefined;
   }, [pathname]);
 
+  // Also check for subdomain-based org detection
+  const [subdomainSlug, setSubdomainSlug] = React.useState<string | undefined>(undefined);
+  React.useEffect(() => {
+    const slug = getOrgSlugFromSubdomain();
+    setSubdomainSlug(slug);
+  }, []);
+
+  // Prefer subdomain slug over path-based slug for subdomain access
+  const detectedSlug = subdomainSlug || orgSlugFromPath;
+
   const [persistedSlug, setPersistedSlug] = React.useState<string | undefined>(undefined);
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (orgSlugFromPath) {
-      localStorage.setItem('lastOrgSlug', orgSlugFromPath);
-      setPersistedSlug(orgSlugFromPath);
+    if (detectedSlug) {
+      localStorage.setItem('lastOrgSlug', detectedSlug);
+      setPersistedSlug(detectedSlug);
       return;
     }
-    if (pathname === '/') {
+    if (pathname === '/' && !subdomainSlug) {
       localStorage.removeItem('lastOrgSlug');
       setPersistedSlug(undefined);
       return;
     }
     const last = localStorage.getItem('lastOrgSlug') || undefined;
     setPersistedSlug(last || undefined);
-  }, [orgSlugFromPath, pathname]);
+  }, [detectedSlug, pathname, subdomainSlug]);
 
-  const orgSlug = persistedSlug || orgSlugFromPath;
+  const orgSlug = persistedSlug || detectedSlug;
 
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationBySlug,

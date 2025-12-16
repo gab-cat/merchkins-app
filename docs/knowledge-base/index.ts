@@ -20,7 +20,7 @@ export const documents: DocumentMetadata[] = [
     description: 'Complete guide to refund workflows, voucher issuance, and payout attribution for refunded orders.',
     category: 'finance',
     icon: 'DollarSign',
-    lastUpdated: '2025-12-12',
+    lastUpdated: '2025-12-16',
     readingTime: 15,
     relatedSlugs: ['voucher-system', 'payout-system', 'order-management'],
   },
@@ -50,8 +50,8 @@ export const documents: DocumentMetadata[] = [
     description: 'Weekly payout schedules, platform fee calculations, invoice generation, and bank details management.',
     category: 'finance',
     icon: 'DollarSign',
-    lastUpdated: '2025-12-12',
-    readingTime: 10,
+    lastUpdated: '2025-12-16',
+    readingTime: 12,
     relatedSlugs: ['refund-system'],
   },
   {
@@ -93,6 +93,16 @@ export const documents: DocumentMetadata[] = [
     lastUpdated: '2025-12-12',
     readingTime: 6,
     relatedSlugs: [],
+  },
+  {
+    slug: 'order-batches',
+    title: 'Order Batches Management',
+    description: 'Creating and managing order batches, automatic assignment, bulk status updates, and batch organization workflows.',
+    category: 'operations',
+    icon: 'Package',
+    lastUpdated: '2025-12-16',
+    readingTime: 15,
+    relatedSlugs: ['order-management', 'product-management'],
   },
 ];
 
@@ -136,4 +146,3 @@ export function searchDocuments(query: string): DocumentMetadata[] {
       doc.slug.toLowerCase().includes(lowerQuery)
   );
 }
-

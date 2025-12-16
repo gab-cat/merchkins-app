@@ -36,7 +36,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-// Icons
 import {
   CreditCard,
   Search,
@@ -56,6 +55,8 @@ import {
   User,
   Mail,
 } from 'lucide-react';
+
+import { XenditMetadataDisplay } from '@/src/features/admin/components/payments/xendit-metadata-display';
 
 type PaymentMethod = 'CASH' | 'BANK_TRANSFER' | 'GCASH' | 'MAYA' | 'OTHERS';
 type PaymentStatus = 'VERIFIED' | 'PENDING' | 'DECLINED' | 'PROCESSING' | 'FAILED' | 'REFUND_PENDING' | 'REFUNDED' | 'CANCELLED';
@@ -122,99 +123,193 @@ function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
   );
 }
 
-// Method badge component
-function PaymentMethodBadge({ method }: { method: PaymentMethod }) {
-  const config = PAYMENT_METHOD_CONFIG[method];
-  if (!config) return <span className="text-xs">{method}</span>;
-  const Icon = config.icon;
+// Method badge component - extracts actual method from metadata if available
+function PaymentMethodBadge({ method, metadata }: { method: PaymentMethod | 'XENDIT'; metadata?: Record<string, unknown> | null }) {
+  // Try to get the actual payment method from metadata
+  let displayLabel: string = method;
+  let Icon = CreditCard;
+
+  if (metadata) {
+    const ewalletType = metadata.ewallet_type as string | undefined;
+    const paymentChannel = metadata.payment_channel as string | undefined;
+    const bankCode = metadata.bank_code as string | undefined;
+    const paymentMethod = metadata.payment_method as string | undefined;
+
+    // Determine the best label to show
+    if (ewalletType) {
+      displayLabel = ewalletType;
+      Icon = Smartphone;
+    } else if (bankCode) {
+      displayLabel = bankCode;
+      Icon = Building;
+    } else if (paymentChannel) {
+      displayLabel = paymentChannel;
+      Icon = paymentChannel.includes('GCASH') || paymentChannel.includes('OVO') ? Smartphone : Building;
+    } else if (paymentMethod === 'BANK_TRANSFER') {
+      displayLabel = 'Bank Transfer';
+      Icon = Building;
+    } else if (paymentMethod === 'EWALLET') {
+      displayLabel = 'E-Wallet';
+      Icon = Wallet;
+    }
+  } else {
+    // Fallback to config if no metadata
+    const config = PAYMENT_METHOD_CONFIG[method as PaymentMethod];
+    if (config) {
+      Icon = config.icon;
+      displayLabel = config.label;
+    }
+  }
+
+  // Format display label nicely (capitalize properly)
+  const formattedLabel = displayLabel
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
       <Icon className="h-3.5 w-3.5" />
-      {config.label}
+      {formattedLabel}
     </span>
   );
 }
 
 // Payment card component
 function PaymentCard({ payment, onVerify, onDecline, index }: { payment: Payment; onVerify: () => void; onDecline: () => void; index: number }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const isPending = payment.paymentStatus === 'PENDING' || payment.paymentStatus === 'PROCESSING';
   const initials = [payment.userInfo?.firstName?.[0], payment.userInfo?.lastName?.[0]].filter(Boolean).join('').toUpperCase() || 'U';
+  const hasMetadata = !!payment.metadata;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className="group p-4 rounded-xl border bg-card hover:shadow-sm transition-all"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3 min-w-0">
-          <Avatar className="h-10 w-10 shrink-0">
-            <AvatarFallback className="bg-primary/10 text-primary text-sm">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-medium text-sm">
-                {payment.userInfo?.firstName} {payment.userInfo?.lastName}
-              </span>
-              <PaymentStatusBadge status={payment.paymentStatus as PaymentStatus} />
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.03 }}
+        className={cn('group p-4 rounded-xl border bg-card hover:shadow-sm transition-all', hasMetadata && 'cursor-pointer hover:border-primary/30')}
+        onClick={() => hasMetadata && setDetailsOpen(true)}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3 min-w-0">
+            <Avatar className="h-10 w-10 shrink-0">
+              <AvatarFallback className="bg-primary/10 text-primary text-sm">{initials}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-medium text-sm">
+                  {payment.userInfo?.firstName} {payment.userInfo?.lastName}
+                </span>
+                <PaymentStatusBadge status={payment.paymentStatus as PaymentStatus} />
+              </div>
+              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                <Mail className="h-3 w-3" />
+                <span className="truncate">{payment.userInfo?.email || 'No email'}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-              <Mail className="h-3 w-3" />
-              <span className="truncate">{payment.userInfo?.email || 'No email'}</span>
-            </div>
+          </div>
+
+          <div className="text-right shrink-0">
+            <div className="font-semibold text-lg text-primary">{formatCurrency(payment.amount, payment.currency)}</div>
+            <PaymentMethodBadge method={payment.paymentMethod as PaymentMethod} metadata={payment.metadata as Record<string, unknown>} />
           </div>
         </div>
 
-        <div className="text-right shrink-0">
-          <div className="font-semibold text-lg text-primary">{formatCurrency(payment.amount, payment.currency)}</div>
-          <PaymentMethodBadge method={payment.paymentMethod as PaymentMethod} />
-        </div>
-      </div>
+        <div className="mt-3 pt-3 border-t flex items-center justify-between">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Hash className="h-3 w-3" />
+              Ref: {payment.referenceNo || 'N/A'}
+            </span>
+            <span className="flex items-center gap-1">
+              <Receipt className="h-3 w-3" />
+              Order: {payment.orderInfo?.orderNumber ? `#${payment.orderInfo.orderNumber}` : 'N/A'}
+            </span>
+            {hasMetadata && <span className="text-primary text-xs opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</span>}
+          </div>
 
-      <div className="mt-3 pt-3 border-t flex items-center justify-between">
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Hash className="h-3 w-3" />
-            Ref: {payment.referenceNo || 'N/A'}
-          </span>
-          <span className="flex items-center gap-1">
-            <Receipt className="h-3 w-3" />
-            Order: {payment.orderInfo?.orderNumber ? `#${payment.orderInfo.orderNumber}` : 'N/A'}
-          </span>
-        </div>
-
-        {isPending && (
-          <div className="flex items-center gap-2">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size="sm" variant="outline" className="h-8">
-                  <XCircle className="h-3.5 w-3.5 mr-1.5 text-red-500" />
-                  Decline
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Decline Payment?</AlertDialogTitle>
-                  <AlertDialogDescription>This will mark the payment as declined. The customer will be notified.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={onDecline} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+          {isPending && (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-8">
+                    <XCircle className="h-3.5 w-3.5 mr-1.5 text-red-500" />
                     Decline
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Decline Payment?</AlertDialogTitle>
+                    <AlertDialogDescription>This will mark the payment as declined. The customer will be notified.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={onDecline} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Decline
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
 
-            <Button size="sm" onClick={onVerify} className="h-8">
-              <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-              Verify
-            </Button>
+              <Button size="sm" onClick={onVerify} className="h-8">
+                <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                Verify
+              </Button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Payment Details Dialog */}
+      <AlertDialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <AlertDialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Payment Details
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {payment.userInfo?.firstName} {payment.userInfo?.lastName} • {formatCurrency(payment.amount, payment.currency)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Basic Payment Info */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Status</span>
+                <div className="mt-1">
+                  <PaymentStatusBadge status={payment.paymentStatus as PaymentStatus} />
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Method</span>
+                <div className="mt-1">
+                  <PaymentMethodBadge method={payment.paymentMethod as PaymentMethod} metadata={payment.metadata as Record<string, unknown>} />
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Reference #</span>
+                <p className="font-medium">{payment.referenceNo || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Order #</span>
+                <p className="font-medium">{payment.orderInfo?.orderNumber ? `#${payment.orderInfo.orderNumber}` : 'N/A'}</p>
+              </div>
+            </div>
+
+            {/* Xendit Metadata */}
+            {payment.metadata && <XenditMetadataDisplay metadata={payment.metadata as Record<string, unknown>} className="border-0 shadow-none" />}
           </div>
-        )}
-      </div>
-    </motion.div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -302,9 +397,7 @@ export default function AdminPaymentsPage() {
     const verified = payments.filter((p) => p.paymentStatus === 'VERIFIED').length;
     // Exclude REFUNDED, CANCELLED, and REFUND_PENDING payments from revenue calculations
     const excludedStatuses = new Set(['REFUNDED', 'CANCELLED', 'REFUND_PENDING']);
-    const totalAmount = payments
-      .filter((p) => !excludedStatuses.has(p.paymentStatus))
-      .reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalAmount = payments.filter((p) => !excludedStatuses.has(p.paymentStatus)).reduce((sum, p) => sum + (p.amount || 0), 0);
     return { total, pending, verified, totalAmount };
   }, [payments]);
 
@@ -394,7 +487,11 @@ export default function AdminPaymentsPage() {
         <EmptyState
           icon={<CreditCard className="h-12 w-12 text-muted-foreground" />}
           title="No Payments Found"
-          description={search || dateRange.dateFrom || dateRange.dateTo ? 'Try adjusting your search or filters.' : 'Payments will appear here once customers submit them.'}
+          description={
+            search || dateRange.dateFrom || dateRange.dateTo
+              ? 'Try adjusting your search or filters.'
+              : 'Payments will appear here once customers submit them.'
+          }
         />
       ) : (
         <div className="space-y-2">
