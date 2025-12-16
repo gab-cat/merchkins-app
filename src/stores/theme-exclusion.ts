@@ -30,7 +30,7 @@ export const isOrgSubdomain = (): boolean => {
   if (typeof window === 'undefined') return false;
 
   const hostname = window.location.hostname;
-  if (!hostname || !hostname.includes('.merchkins.com')) return false;
+  if (!hostname || !hostname.endsWith('.merchkins.com')) return false;
 
   const subdomain = hostname.split('.')[0];
   // Skip reserved subdomains
@@ -48,7 +48,7 @@ export const getOrgSlugFromSubdomain = (): string | undefined => {
   if (typeof window === 'undefined') return undefined;
 
   const hostname = window.location.hostname;
-  if (!hostname || !hostname.includes('.merchkins.com')) return undefined;
+  if (!hostname || !hostname.endsWith('.merchkins.com')) return undefined;
 
   const subdomain = hostname.split('.')[0];
   // Skip reserved subdomains

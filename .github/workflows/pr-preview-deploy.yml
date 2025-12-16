@@ -72,6 +72,8 @@ jobs:
 
   build:
     runs-on: 'ubuntu-latest'
+    permissions:
+      contents: read
     environment: Staging
     outputs:
       pr_number: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}

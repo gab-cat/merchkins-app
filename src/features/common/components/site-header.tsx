@@ -61,7 +61,7 @@ export function SiteHeader() {
       const hostname = window.location.hostname;
       if (
         hostname &&
-        hostname.includes('.merchkins.com') &&
+        hostname.endsWith('.merchkins.com') &&
         !hostname.startsWith('app.') &&
         !hostname.startsWith('staging.') &&
         !hostname.startsWith('preview.')
