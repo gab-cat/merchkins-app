@@ -245,12 +245,18 @@ function CheckoutItem({ item }: CheckoutItemProps) {
   return (
     <motion.div
       variants={itemVariants}
-      className="flex items-center gap-4 p-4 rounded-xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all duration-200 group"
+      className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all duration-200 group"
     >
       {/* Product image */}
-      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50 border border-slate-100">
+      <div className="h-14 w-14 sm:h-16 sm:w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50 border border-slate-100">
         {item.productInfo.imageUrl?.[0] ? (
-          <R2Image fileKey={item.productInfo.imageUrl[0]} alt={item.productInfo.title} fill sizes="64px" className="object-cover" />
+          <R2Image
+            fileKey={item.productInfo.imageUrl[0]}
+            alt={item.productInfo.title}
+            fill
+            sizes="(max-width: 640px) 56px, 64px"
+            className="object-cover"
+          />
         ) : (
           <div className="h-full w-full flex items-center justify-center">
             <Package className="h-6 w-6 text-slate-300" />
@@ -678,7 +684,7 @@ export function CheckoutPage() {
             <motion.div variants={itemVariants}>
               <div className="rounded-2xl border border-slate-100 overflow-hidden">
                 {/* Section header */}
-                <div className="px-5 py-4 bg-slate-50/80 border-b border-slate-100">
+                <div className="px-4 py-3 sm:px-5 sm:py-4 bg-slate-50/80 border-b border-slate-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
@@ -693,7 +699,7 @@ export function CheckoutPage() {
                 </div>
 
                 {/* Items by organization */}
-                <div className="p-5 space-y-6">
+                <div className="p-4 sm:p-5 space-y-6">
                   {Object.entries(selectedByOrg).map(([orgId, group]) => (
                     <motion.div key={orgId} variants={itemVariants} className="space-y-3">
                       {/* Store header */}
@@ -732,7 +738,7 @@ export function CheckoutPage() {
             {/* Voucher code */}
             <motion.div variants={itemVariants}>
               <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                <div className="px-5 py-4 bg-slate-50/80 border-b border-slate-100">
+                <div className="px-4 py-3 sm:px-5 sm:py-4 bg-slate-50/80 border-b border-slate-100">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
                       <Ticket className="h-4 w-4 text-[#1d43d8]" />
@@ -743,7 +749,7 @@ export function CheckoutPage() {
                     </div>
                   </div>
                 </div>
-                <div className="p-5 space-y-4">
+                <div className="p-4 sm:p-5 space-y-4">
                   {/* Applied voucher display */}
                   <AnimatePresence mode="wait">
                     {appliedVoucher ? (
@@ -861,7 +867,7 @@ export function CheckoutPage() {
             {/* Order notes */}
             <motion.div variants={itemVariants}>
               <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                <div className="px-5 py-4 bg-slate-50/80 border-b border-slate-100">
+                <div className="px-4 py-3 sm:px-5 sm:py-4 bg-slate-50/80 border-b border-slate-100">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
                       <StickyNote className="h-4 w-4 text-[#1d43d8]" />
@@ -872,7 +878,7 @@ export function CheckoutPage() {
                     </div>
                   </div>
                 </div>
-                <div className="p-5">
+                <div className="p-4 sm:p-5">
                   <Textarea
                     placeholder="Any special requests or delivery instructions..."
                     value={notes}
@@ -890,24 +896,24 @@ export function CheckoutPage() {
             <motion.div variants={itemVariants}>
               <Card className="sticky top-24 rounded-2xl pt-0 border border-slate-100 overflow-hidden shadow-sm">
                 {/* Header */}
-                <div className="px-5 py-4 bg-gradient-to-br from-[#1d43d8]/5 to-[#adfc04]/5 border-b border-slate-100">
+                <div className="px-4 py-3 sm:px-5 sm:py-4 bg-gradient-to-br from-[#1d43d8]/5 to-[#adfc04]/5 border-b border-slate-100">
                   <div className="flex items-center gap-2 text-[#1d43d8]">
                     <Sparkles className="h-5 w-5" />
                     <h2 className="font-bold">Order Summary</h2>
                   </div>
                 </div>
 
-                <CardContent className="p-5">
+                <CardContent className="p-4 sm:p-5">
                   <div className="space-y-4">
                     {/* Shop subtotals */}
                     {shopSubtotals.map((shop) => (
-                      <div key={shop.orgId} className="flex items-center justify-between text-sm">
-                        <span className="flex items-center gap-2 text-slate-600">
-                          <Store className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="truncate max-w-32">{shop.name}</span>
-                          <span className="text-slate-400">({shop.quantity})</span>
+                      <div key={shop.orgId} className="flex items-center justify-between text-sm gap-3">
+                        <span className="flex items-center gap-2 text-slate-600 min-w-0 flex-1">
+                          <Store className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                          <span className="truncate">{shop.name}</span>
+                          <span className="text-slate-400 shrink-0">({shop.quantity})</span>
                         </span>
-                        <span className="font-medium text-slate-900">{formatCurrency(shop.amount)}</span>
+                        <span className="font-medium text-slate-900 shrink-0">{formatCurrency(shop.amount)}</span>
                       </div>
                     ))}
 
@@ -926,12 +932,12 @@ export function CheckoutPage() {
                     <AnimatePresence>
                       {appliedVoucher && appliedVoucher.discountAmount > 0 && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-2 text-emerald-600">
-                              <Ticket className="h-3.5 w-3.5" />
+                          <div className="flex items-center justify-between text-sm gap-3">
+                            <span className="flex items-center gap-2 text-emerald-600 min-w-0 flex-1">
+                              <Ticket className="h-3.5 w-3.5 shrink-0" />
                               <span className="truncate">Voucher ({appliedVoucher.code})</span>
                             </span>
-                            <span className="font-medium text-emerald-600">-{formatCurrency(appliedVoucher.discountAmount)}</span>
+                            <span className="font-medium text-emerald-600 shrink-0">-{formatCurrency(appliedVoucher.discountAmount)}</span>
                           </div>
                         </motion.div>
                       )}
@@ -1037,7 +1043,7 @@ export function CheckoutPage() {
             {/* Trust badges */}
             <motion.div variants={itemVariants}>
               <Card className="rounded-2xl border border-slate-100 overflow-hidden">
-                <CardContent className="p-5">
+                <CardContent className="p-4 sm:p-5">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-lg bg-emerald-50">
                       <Shield className="h-5 w-5 text-emerald-600" />

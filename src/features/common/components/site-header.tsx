@@ -287,7 +287,7 @@ function SiteHeaderContent({
 
               <span
                 className={cn(
-                  'text-2xl md:text-4xl font-bold! tracking-tighter relative z-10 transition-all duration-300',
+                  'text-2xl md:text-4xl font-bold! tracking-tighter relative z-10 transition-all duration-300 whitespace-nowrap',
                   isScrolled ? 'text-white' : shouldApplyTheme && organization?.name ? 'text-primary' : 'font-genty',
                   !shouldApplyTheme && !isScrolled && 'group-hover:drop-shadow-[0_0_8px_rgba(173,252,4,0.5)]',
                   organization && 'font-outfit'

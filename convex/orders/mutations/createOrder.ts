@@ -120,7 +120,10 @@ export const createOrderHandler = async (
       slug: organization.slug,
       logo: organization.logo,
     };
-    await requireOrganizationPermission(ctx, args.organizationId, 'MANAGE_ORDERS', 'create');
+    // Only require permission if creating an order for someone else (admin action)
+    if (currentUser._id !== args.customerId) {
+      await requireOrganizationPermission(ctx, args.organizationId, 'MANAGE_ORDERS', 'create');
+    }
   } else {
     // If no organization scope, allow placing orders for self; staff/admin can place for others
     if (currentUser._id !== args.customerId && !currentUser.isStaff && !currentUser.isAdmin) {
