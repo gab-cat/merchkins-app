@@ -415,6 +415,15 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
   );
 
   console.log(`Successfully processed Xendit payment for order ${orderNumber}`);
+
+  // Schedule payment confirmation email (non-blocking)
+  await ctx.scheduler.runAfter(0, internal.payments.actions.sendPaymentConfirmationEmail.sendPaymentConfirmationEmail, {
+    orderId: order._id,
+    paymentAmount,
+    transactionId: webhookEvent.id,
+  });
+  console.log('Payment confirmation email scheduled for order:', orderNumber);
+
   return {
     processed: true,
     paymentId,

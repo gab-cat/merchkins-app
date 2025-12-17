@@ -1,6 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
+import { requireAdmin, validateUserExists, logAction } from '../../helpers';
 
 // Update user permissions
 export const updateUserPermissionsArgs = {
@@ -31,17 +32,29 @@ export const updateUserPermissionsHandler = async (
 ) => {
   const { userId, permissions } = args;
 
-  // Get current user
-  const user = await ctx.db.get(userId);
-  if (!user || user.isDeleted) {
-    throw new Error('User not found');
-  }
+  // Require admin privileges for permission changes
+  const currentUser = await requireAdmin(ctx);
+
+  // Validate target user exists
+  const user = await validateUserExists(ctx, userId);
 
   // Update user permissions
   await ctx.db.patch(userId, {
     permissions,
     updatedAt: Date.now(),
   });
+
+  // Log the security event
+  await logAction(
+    ctx,
+    'update_user_permissions',
+    'SECURITY_EVENT',
+    'HIGH',
+    `Updated permissions for ${user.firstName} ${user.lastName}`,
+    currentUser._id,
+    undefined,
+    { targetUserId: userId, permissionsCount: permissions.length }
+  );
 
   return { success: true };
 };

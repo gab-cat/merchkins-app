@@ -170,6 +170,8 @@ import type * as orderBatches_queries_getBatchById from "../orderBatches/queries
 import type * as orderBatches_queries_getBatchOrders from "../orderBatches/queries/getBatchOrders.js";
 import type * as orderBatches_queries_getBatches from "../orderBatches/queries/getBatches.js";
 import type * as orderBatches_queries_index from "../orderBatches/queries/index.js";
+import type * as orders_actions_sendOrderConfirmationEmail from "../orders/actions/sendOrderConfirmationEmail.js";
+import type * as orders_actions_sendOrderStatusEmail from "../orders/actions/sendOrderStatusEmail.js";
 import type * as orders_mutations_cancelOrder from "../orders/mutations/cancelOrder.js";
 import type * as orders_mutations_createOrder from "../orders/mutations/createOrder.js";
 import type * as orders_mutations_createOrderLog from "../orders/mutations/createOrderLog.js";
@@ -209,6 +211,7 @@ import type * as organizations_mutations_updateOrganization from "../organizatio
 import type * as organizations_mutations_updateOrganizationStats from "../organizations/mutations/updateOrganizationStats.js";
 import type * as organizations_queries_checkOrganizationPermission from "../organizations/queries/checkOrganizationPermission.js";
 import type * as organizations_queries_getInviteLinkByCode from "../organizations/queries/getInviteLinkByCode.js";
+import type * as organizations_queries_getMyJoinRequestStatus from "../organizations/queries/getMyJoinRequestStatus.js";
 import type * as organizations_queries_getOrganizationAnalytics from "../organizations/queries/getOrganizationAnalytics.js";
 import type * as organizations_queries_getOrganizationById from "../organizations/queries/getOrganizationById.js";
 import type * as organizations_queries_getOrganizationBySlug from "../organizations/queries/getOrganizationBySlug.js";
@@ -223,6 +226,7 @@ import type * as organizations_queries_searchOrganizations from "../organization
 import type * as payments_actions_createGroupedXenditInvoice from "../payments/actions/createGroupedXenditInvoice.js";
 import type * as payments_actions_createXenditInvoice from "../payments/actions/createXenditInvoice.js";
 import type * as payments_actions_index from "../payments/actions/index.js";
+import type * as payments_actions_sendPaymentConfirmationEmail from "../payments/actions/sendPaymentConfirmationEmail.js";
 import type * as payments_actions_xenditService from "../payments/actions/xenditService.js";
 import type * as payments_index from "../payments/index.js";
 import type * as payments_mutations_createPayment from "../payments/mutations/createPayment.js";
@@ -258,6 +262,7 @@ import type * as payouts_queries_getPayoutInvoiceById from "../payouts/queries/g
 import type * as payouts_queries_getPayoutInvoices from "../payouts/queries/getPayoutInvoices.js";
 import type * as payouts_queries_getPayoutSettings from "../payouts/queries/getPayoutSettings.js";
 import type * as payouts_queries_getPayoutSummary from "../payouts/queries/getPayoutSummary.js";
+import type * as payouts_queries_getPendingCount from "../payouts/queries/getPendingCount.js";
 import type * as payouts_queries_index from "../payouts/queries/index.js";
 import type * as permissions_mutations_assignOrganizationPermission from "../permissions/mutations/assignOrganizationPermission.js";
 import type * as permissions_mutations_assignUserPermission from "../permissions/mutations/assignUserPermission.js";
@@ -305,6 +310,7 @@ import type * as refundRequests_mutations_createRefundRequest from "../refundReq
 import type * as refundRequests_mutations_createRefundVoucher from "../refundRequests/mutations/createRefundVoucher.js";
 import type * as refundRequests_mutations_index from "../refundRequests/mutations/index.js";
 import type * as refundRequests_mutations_rejectRefundRequest from "../refundRequests/mutations/rejectRefundRequest.js";
+import type * as refundRequests_queries_getPendingCount from "../refundRequests/queries/getPendingCount.js";
 import type * as refundRequests_queries_getRefundRequestById from "../refundRequests/queries/getRefundRequestById.js";
 import type * as refundRequests_queries_getRefundRequestByOrder from "../refundRequests/queries/getRefundRequestByOrder.js";
 import type * as refundRequests_queries_getRefundRequests from "../refundRequests/queries/getRefundRequests.js";
@@ -348,6 +354,7 @@ import type * as tickets_queries_getTicketsPage from "../tickets/queries/getTick
 import type * as tickets_queries_getUnreadCount from "../tickets/queries/getUnreadCount.js";
 import type * as tickets_queries_index from "../tickets/queries/index.js";
 import type * as tickets_queries_searchTickets from "../tickets/queries/searchTickets.js";
+import type * as users_actions_sendWelcomeEmail from "../users/actions/sendWelcomeEmail.js";
 import type * as users_mutations_addOrganizationMembership from "../users/mutations/addOrganizationMembership.js";
 import type * as users_mutations_clerkWebhook from "../users/mutations/clerkWebhook.js";
 import type * as users_mutations_completeOnboarding from "../users/mutations/completeOnboarding.js";
@@ -555,6 +562,8 @@ declare const fullApi: ApiFromModules<{
   "orderBatches/queries/getBatchOrders": typeof orderBatches_queries_getBatchOrders;
   "orderBatches/queries/getBatches": typeof orderBatches_queries_getBatches;
   "orderBatches/queries/index": typeof orderBatches_queries_index;
+  "orders/actions/sendOrderConfirmationEmail": typeof orders_actions_sendOrderConfirmationEmail;
+  "orders/actions/sendOrderStatusEmail": typeof orders_actions_sendOrderStatusEmail;
   "orders/mutations/cancelOrder": typeof orders_mutations_cancelOrder;
   "orders/mutations/createOrder": typeof orders_mutations_createOrder;
   "orders/mutations/createOrderLog": typeof orders_mutations_createOrderLog;
@@ -594,6 +603,7 @@ declare const fullApi: ApiFromModules<{
   "organizations/mutations/updateOrganizationStats": typeof organizations_mutations_updateOrganizationStats;
   "organizations/queries/checkOrganizationPermission": typeof organizations_queries_checkOrganizationPermission;
   "organizations/queries/getInviteLinkByCode": typeof organizations_queries_getInviteLinkByCode;
+  "organizations/queries/getMyJoinRequestStatus": typeof organizations_queries_getMyJoinRequestStatus;
   "organizations/queries/getOrganizationAnalytics": typeof organizations_queries_getOrganizationAnalytics;
   "organizations/queries/getOrganizationById": typeof organizations_queries_getOrganizationById;
   "organizations/queries/getOrganizationBySlug": typeof organizations_queries_getOrganizationBySlug;
@@ -608,6 +618,7 @@ declare const fullApi: ApiFromModules<{
   "payments/actions/createGroupedXenditInvoice": typeof payments_actions_createGroupedXenditInvoice;
   "payments/actions/createXenditInvoice": typeof payments_actions_createXenditInvoice;
   "payments/actions/index": typeof payments_actions_index;
+  "payments/actions/sendPaymentConfirmationEmail": typeof payments_actions_sendPaymentConfirmationEmail;
   "payments/actions/xenditService": typeof payments_actions_xenditService;
   "payments/index": typeof payments_index;
   "payments/mutations/createPayment": typeof payments_mutations_createPayment;
@@ -643,6 +654,7 @@ declare const fullApi: ApiFromModules<{
   "payouts/queries/getPayoutInvoices": typeof payouts_queries_getPayoutInvoices;
   "payouts/queries/getPayoutSettings": typeof payouts_queries_getPayoutSettings;
   "payouts/queries/getPayoutSummary": typeof payouts_queries_getPayoutSummary;
+  "payouts/queries/getPendingCount": typeof payouts_queries_getPendingCount;
   "payouts/queries/index": typeof payouts_queries_index;
   "permissions/mutations/assignOrganizationPermission": typeof permissions_mutations_assignOrganizationPermission;
   "permissions/mutations/assignUserPermission": typeof permissions_mutations_assignUserPermission;
@@ -690,6 +702,7 @@ declare const fullApi: ApiFromModules<{
   "refundRequests/mutations/createRefundVoucher": typeof refundRequests_mutations_createRefundVoucher;
   "refundRequests/mutations/index": typeof refundRequests_mutations_index;
   "refundRequests/mutations/rejectRefundRequest": typeof refundRequests_mutations_rejectRefundRequest;
+  "refundRequests/queries/getPendingCount": typeof refundRequests_queries_getPendingCount;
   "refundRequests/queries/getRefundRequestById": typeof refundRequests_queries_getRefundRequestById;
   "refundRequests/queries/getRefundRequestByOrder": typeof refundRequests_queries_getRefundRequestByOrder;
   "refundRequests/queries/getRefundRequests": typeof refundRequests_queries_getRefundRequests;
@@ -733,6 +746,7 @@ declare const fullApi: ApiFromModules<{
   "tickets/queries/getUnreadCount": typeof tickets_queries_getUnreadCount;
   "tickets/queries/index": typeof tickets_queries_index;
   "tickets/queries/searchTickets": typeof tickets_queries_searchTickets;
+  "users/actions/sendWelcomeEmail": typeof users_actions_sendWelcomeEmail;
   "users/mutations/addOrganizationMembership": typeof users_mutations_addOrganizationMembership;
   "users/mutations/clerkWebhook": typeof users_mutations_clerkWebhook;
   "users/mutations/completeOnboarding": typeof users_mutations_completeOnboarding;

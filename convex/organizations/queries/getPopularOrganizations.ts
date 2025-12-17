@@ -2,7 +2,7 @@ import { QueryCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 import { getOptionalCurrentUser } from '../../helpers/auth';
-import { api } from '../../_generated/api';
+import { buildPublicUrl } from '../../helpers/utils';
 
 type PopularOrganization = {
   id: Id<'organizations'>;
@@ -84,26 +84,18 @@ export const getPopularOrganizationsHandler = async (
         isMember = !!membership;
       }
 
-      // Resolve R2-signed URLs for banner/logo when keys are provided
+      // Resolve R2 public URLs for banner/logo using direct URL construction (no query needed)
       const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
 
       let bannerImageUrl: string | undefined;
-      try {
-        if (isKey(org.bannerImage as unknown as string)) {
-          bannerImageUrl = await ctx.runQuery(api.files.queries.index.getFileUrl, {
-            key: org.bannerImage as unknown as string,
-          });
-        }
-      } catch {}
+      if (isKey(org.bannerImage as unknown as string)) {
+        bannerImageUrl = buildPublicUrl(org.bannerImage as unknown as string) || undefined;
+      }
 
       let logoUrl: string | undefined;
-      try {
-        if (isKey(org.logo as unknown as string)) {
-          logoUrl = await ctx.runQuery(api.files.queries.index.getFileUrl, {
-            key: org.logo as unknown as string,
-          });
-        }
-      } catch {}
+      if (isKey(org.logo as unknown as string)) {
+        logoUrl = buildPublicUrl(org.logo as unknown as string) || undefined;
+      }
 
       return {
         id: org._id,

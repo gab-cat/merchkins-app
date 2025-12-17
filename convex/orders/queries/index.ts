@@ -1,4 +1,4 @@
-import { query } from '../../_generated/server';
+import { query, internalQuery } from '../../_generated/server';
 
 import { getOrdersArgs, getOrdersHandler } from './getOrders';
 import { getOrdersPageArgs, getOrdersPageHandler } from './getOrdersPage';
@@ -20,6 +20,12 @@ export const getOrdersPage = query({
 });
 
 export const getOrderById = query({
+  args: getOrderByIdArgs,
+  handler: getOrderByIdHandler,
+});
+
+// Internal version for use by actions (no auth required)
+export const getOrderByIdInternal = internalQuery({
   args: getOrderByIdArgs,
   handler: getOrderByIdHandler,
 });

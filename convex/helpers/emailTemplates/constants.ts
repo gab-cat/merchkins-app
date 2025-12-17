@@ -1,114 +1,114 @@
 /**
  * Email Template Constants
- * PREMIUM DARK MODE DESIGN SYSTEM - Merchkins
- * Features: Dark backgrounds, neon accents, glassmorphism, premium typography
+ * CLEAN LIGHT MODE DESIGN SYSTEM - Merchkins
+ * Features: White backgrounds, clean typography, professional styling (Apple-inspired)
  */
 
 // =============================================================================
-// BRAND COLORS - Dark Mode Premium Aesthetic
+// BRAND COLORS - Light Mode Professional Aesthetic
 // =============================================================================
 
 export const EMAIL_COLORS = {
-  // Primary brand color - Electric Blue
+  // Primary brand color - Merchkins Blue
   primary: '#3b82f6',
-  primaryHover: '#60a5fa',
-  primaryLight: 'rgba(59, 130, 246, 0.15)',
-  primaryLighter: 'rgba(59, 130, 246, 0.08)',
-  primaryDark: '#2563eb',
-  primaryDeep: '#1d4ed8',
+  primaryHover: '#2563eb',
+  primaryLight: 'rgba(59, 130, 246, 0.08)',
+  primaryLighter: 'rgba(59, 130, 246, 0.04)',
+  primaryDark: '#1d4ed8',
+  primaryDeep: '#1e40af',
 
-  // Accent color - Signature Neon Lime (the Merchkins signature!)
-  accent: '#adfc04',
-  accentHover: '#c4ff3d',
-  accentDark: '#8bd000',
-  accentDeep: '#6ba300',
-  accentGlow: 'rgba(173, 252, 4, 0.25)',
-  accentSubtle: 'rgba(173, 252, 4, 0.12)',
+  // Accent color - Merchkins Blue (clean, professional)
+  accent: '#3b82f6',
+  accentHover: '#2563eb',
+  accentDark: '#1d4ed8',
+  accentDeep: '#1e40af',
+  accentGlow: 'rgba(59, 130, 246, 0.15)',
+  accentSubtle: 'rgba(59, 130, 246, 0.06)',
 
-  // Status colors - Vibrant neons that pop on dark
+  // Status colors - Clean, professional tones
   success: '#22c55e',
-  successLight: 'rgba(34, 197, 94, 0.15)',
+  successLight: 'rgba(34, 197, 94, 0.08)',
   successDark: '#16a34a',
-  successGlow: 'rgba(34, 197, 94, 0.25)',
+  successGlow: 'rgba(34, 197, 94, 0.12)',
 
-  warning: '#fbbf24',
-  warningLight: 'rgba(251, 191, 36, 0.15)',
-  warningDark: '#f59e0b',
-  warningGlow: 'rgba(251, 191, 36, 0.25)',
+  warning: '#f59e0b',
+  warningLight: 'rgba(245, 158, 11, 0.08)',
+  warningDark: '#d97706',
+  warningGlow: 'rgba(245, 158, 11, 0.12)',
 
-  error: '#f43f5e',
-  errorLight: 'rgba(244, 63, 94, 0.15)',
-  errorDark: '#e11d48',
-  errorGlow: 'rgba(244, 63, 94, 0.25)',
+  error: '#ef4444',
+  errorLight: 'rgba(239, 68, 68, 0.08)',
+  errorDark: '#dc2626',
+  errorGlow: 'rgba(239, 68, 68, 0.12)',
 
-  info: '#06b6d4',
-  infoLight: 'rgba(6, 182, 212, 0.15)',
-  infoDark: '#0891b2',
+  info: '#0ea5e9',
+  infoLight: 'rgba(14, 165, 233, 0.08)',
+  infoDark: '#0284c7',
 
-  // Dark mode base (primary palette)
+  // Light mode base (Apple-inspired)
   white: '#ffffff',
-  offWhite: '#f8fafc',
-  background: '#0a0a0b',
-  backgroundAlt: '#111113',
-  backgroundWarm: '#0d0d0f',
-  surface: '#18181b',
-  surfaceElevated: '#1f1f23',
-  surfaceGlass: 'rgba(255, 255, 255, 0.03)',
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderLight: 'rgba(255, 255, 255, 0.05)',
-  borderSubtle: 'rgba(255, 255, 255, 0.03)',
-  borderAccent: 'rgba(173, 252, 4, 0.3)',
+  offWhite: '#fafafa',
+  background: '#ffffff',
+  backgroundAlt: '#f8fafc',
+  backgroundWarm: '#fefefe',
+  surface: '#ffffff',
+  surfaceElevated: '#f8fafc',
+  surfaceGlass: 'rgba(0, 0, 0, 0.02)',
+  border: '#e5e7eb',
+  borderLight: '#f3f4f6',
+  borderSubtle: '#f9fafb',
+  borderAccent: 'rgba(59, 130, 246, 0.2)',
 
-  // Dark mode colors
+  // Light mode colors
   dark: {
-    background: '#0a0a0b',
-    backgroundAlt: '#111113',
-    surface: '#18181b',
-    surfaceElevated: '#1f1f23',
-    border: 'rgba(255, 255, 255, 0.08)',
-    borderLight: 'rgba(255, 255, 255, 0.05)',
-    text: '#fafafa',
-    textSecondary: '#a1a1aa',
-    textMuted: '#71717a',
+    background: '#ffffff',
+    backgroundAlt: '#f8fafc',
+    surface: '#ffffff',
+    surfaceElevated: '#f8fafc',
+    border: '#e5e7eb',
+    borderLight: '#f3f4f6',
+    text: '#111827',
+    textSecondary: '#4b5563',
+    textMuted: '#9ca3af',
   },
 
-  // Text colors - Optimized for dark backgrounds
-  textPrimary: '#fafafa',
-  textSecondary: '#a1a1aa',
-  textMuted: '#71717a',
-  textLight: '#52525b',
-  textOnDark: '#fafafa',
-  textOnAccent: '#0a1d66',
+  // Text colors - Optimized for light backgrounds
+  textPrimary: '#111827',
+  textSecondary: '#4b5563',
+  textMuted: '#9ca3af',
+  textLight: '#d1d5db',
+  textOnDark: '#ffffff',
+  textOnAccent: '#ffffff',
 } as const;
 
 // =============================================================================
-// GRADIENTS - Premium Dark Mode Effects
+// GRADIENTS - Clean Light Mode Effects
 // =============================================================================
 
 export const EMAIL_GRADIENTS = {
-  // Hero gradients - Dark & dramatic
-  heroDark: 'linear-gradient(180deg, #0a0a0b 0%, #18181b 100%)',
-  heroGlow: 'linear-gradient(135deg, #0a0a0b 0%, #1a1a2e 50%, #0a0a0b 100%)',
-  heroAccent: 'linear-gradient(135deg, rgba(173, 252, 4, 0.1) 0%, transparent 50%, rgba(59, 130, 246, 0.1) 100%)',
+  // Hero gradients - Clean and subtle
+  heroDark: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+  heroGlow: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%)',
+  heroAccent: 'linear-gradient(135deg, rgba(59, 130, 246, 0.04) 0%, transparent 50%, rgba(59, 130, 246, 0.02) 100%)',
 
   // Card backgrounds with subtle depth
-  cardDark: 'linear-gradient(180deg, #18181b 0%, #111113 100%)',
-  cardGlow: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%)',
-  cardAccent: 'linear-gradient(135deg, rgba(173, 252, 4, 0.05) 0%, transparent 50%)',
+  cardDark: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+  cardGlow: 'linear-gradient(135deg, rgba(0, 0, 0, 0.01) 0%, transparent 100%)',
+  cardAccent: 'linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, transparent 50%)',
 
-  // Status gradients - Subtle glow effects
-  successGradient: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%)',
-  warningGradient: 'linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%)',
-  errorGradient: 'linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(244, 63, 94, 0.05) 100%)',
-  primaryGradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%)',
+  // Status gradients - Subtle tints
+  successGradient: 'linear-gradient(135deg, rgba(34, 197, 94, 0.06) 0%, rgba(34, 197, 94, 0.02) 100%)',
+  warningGradient: 'linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(245, 158, 11, 0.02) 100%)',
+  errorGradient: 'linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(239, 68, 68, 0.02) 100%)',
+  primaryGradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(59, 130, 246, 0.02) 100%)',
 
-  // Neon accent glow
-  accentGlow: 'radial-gradient(ellipse at top, rgba(173, 252, 4, 0.15) 0%, transparent 60%)',
-  primaryGlow: 'radial-gradient(ellipse at top, rgba(59, 130, 246, 0.15) 0%, transparent 60%)',
+  // Accent glow - Softer for light mode
+  accentGlow: 'radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 60%)',
+  primaryGlow: 'radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 60%)',
 
-  // Mesh background
+  // Mesh background - Very subtle
   meshDark:
-    'radial-gradient(at 40% 20%, rgba(173, 252, 4, 0.08) 0px, transparent 50%), radial-gradient(at 80% 80%, rgba(59, 130, 246, 0.08) 0px, transparent 50%)',
+    'radial-gradient(at 40% 20%, rgba(59, 130, 246, 0.03) 0px, transparent 50%), radial-gradient(at 80% 80%, rgba(59, 130, 246, 0.02) 0px, transparent 50%)',
 } as const;
 
 // =============================================================================
@@ -179,19 +179,19 @@ export const EMAIL_RADIUS = {
 } as const;
 
 // =============================================================================
-// SHADOWS - Subtle Depth for Dark Mode
+// SHADOWS - Subtle Depth for Light Mode
 // =============================================================================
 
 export const EMAIL_SHADOWS = {
-  sm: '0 1px 2px rgba(0, 0, 0, 0.3)',
-  md: '0 4px 8px rgba(0, 0, 0, 0.4)',
-  lg: '0 8px 24px rgba(0, 0, 0, 0.5)',
-  xl: '0 16px 48px rgba(0, 0, 0, 0.6)',
-  glow: '0 0 40px rgba(59, 130, 246, 0.3)',
-  accentGlow: '0 0 30px rgba(173, 252, 4, 0.4)',
-  successGlow: '0 0 20px rgba(34, 197, 94, 0.3)',
-  inner: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-  card: '0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+  sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+  md: '0 4px 8px rgba(0, 0, 0, 0.08)',
+  lg: '0 8px 24px rgba(0, 0, 0, 0.1)',
+  xl: '0 16px 48px rgba(0, 0, 0, 0.12)',
+  glow: '0 0 20px rgba(59, 130, 246, 0.15)',
+  accentGlow: '0 0 15px rgba(59, 130, 246, 0.2)',
+  successGlow: '0 0 15px rgba(34, 197, 94, 0.15)',
+  inner: 'inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+  card: '0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
 } as const;
 
 // =============================================================================
@@ -270,7 +270,7 @@ export const LUCIDE_ICONS = {
 // =============================================================================
 
 export const EMAIL_ASSETS = {
-  logoUrl: 'https://app.merchkins.com/images/logo.png',
+  logoUrl: 'https://app.merchkins.com/images/logo.jpg',
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com',
   supportEmail: 'support@merchkins.com',
   companyName: 'Merchkins',

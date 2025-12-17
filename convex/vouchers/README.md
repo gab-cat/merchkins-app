@@ -32,3 +32,12 @@ This module provides a comprehensive voucher/coupon system for the Merchkins pla
 - `getVoucherById`: Get voucher details with stats
 - `getVoucherByCode`: Find voucher by code
 - `validateVoucher`: Validate voucher for an order
+
+## Multi-Store Refund Vouchers
+
+When a customer uses a REFUND voucher to purchase items from multiple organizations in a single checkout:
+
+1. Two separate orders are created (one per organization).
+2. The voucher discount is split **proportionally** between the orders based on each organization's subtotal.
+3. Each store receives its full item value (platform absorbs the cost of the refund voucher).
+4. If the voucher amount exceeds a store's subtotal, that store gets a full discount (amount = subtotal), and the remainder is effectively applied to the other store(s).

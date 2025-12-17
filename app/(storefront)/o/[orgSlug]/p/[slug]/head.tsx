@@ -2,6 +2,7 @@ import React from 'react';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/convex/_generated/api';
 import { Doc } from '@/convex/_generated/dataModel';
+import { buildR2PublicUrl } from '@/lib/utils';
 
 export default async function Head({ params }: { params: Promise<{ orgSlug: string; slug: string }> }) {
   const { orgSlug, slug } = await params;
@@ -19,13 +20,9 @@ export default async function Head({ params }: { params: Promise<{ orgSlug: stri
 
   if (!product) return null;
 
-  let imageUrl: string | undefined;
+  // Resolve product image URL using R2 public URL
   const imageKey = Array.isArray(product.imageUrl) ? product.imageUrl[0] : undefined;
-  if (imageKey) {
-    try {
-      imageUrl = await client.query(api.files.queries.index.getFileUrl, { key: imageKey });
-    } catch {}
-  }
+  const imageUrl = buildR2PublicUrl(imageKey);
 
   const offerPrice: number | undefined = product.minPrice ?? product.supposedPrice ?? product.maxPrice;
   const jsonLd = {

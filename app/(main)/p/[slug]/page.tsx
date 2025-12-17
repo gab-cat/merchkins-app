@@ -27,7 +27,7 @@ export default async function Page({ params }: PageProps) {
     : undefined;
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto w-full">
       <ProductDetailBoundary slug={slug} preloadedProduct={preloadedProduct} preloadedRecommendations={preloadedRecommendations} />
       {/* Structured Data */}
       {product && (
@@ -94,12 +94,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       product.description ||
       `Discover and purchase ${product.title}. ${product.categoryInfo?.name ? `Browse ${product.categoryInfo.name} products` : ''} on Merchkins.`;
 
-    // Resolve product image URL for Open Graph
+    // Resolve product image URL for Open Graph using R2 public URL
     let ogImage = product.imageUrl?.[0] || '/favicon.ico';
     if (product.imageUrl?.[0] && !product.imageUrl[0].startsWith('http')) {
-      try {
-        ogImage = await client.query(api.files.queries.index.getFileUrl, { key: product.imageUrl[0] });
-      } catch {}
+      ogImage = buildR2PublicUrl(product.imageUrl[0]) || '/favicon.ico';
     }
 
     return {

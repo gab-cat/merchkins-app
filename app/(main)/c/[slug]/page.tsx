@@ -4,6 +4,7 @@ import { CategoryProducts } from '@/src/features/categories/components/category-
 import { preloadQuery } from 'convex/nextjs';
 import { api } from '@/convex/_generated/api';
 import { ConvexHttpClient } from 'convex/browser';
+import { buildR2PublicUrl } from '@/lib/utils';
 
 interface Params {
   params: Promise<{ slug: string }>;
@@ -96,12 +97,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       category.description ||
       `Browse ${category.activeProductCount || category.productCount} products in the ${category.name} category on Merchkins.`;
 
-    // Resolve category image URL for Open Graph
+    // Resolve category image URL for Open Graph using R2 public URL
     let ogImage = category.imageUrl || '/favicon.ico';
     if (category.imageUrl && !category.imageUrl.startsWith('http')) {
-      try {
-        ogImage = await client.query(api.files.queries.index.getFileUrl, { key: category.imageUrl });
-      } catch {}
+      ogImage = buildR2PublicUrl(category.imageUrl) || '/favicon.ico';
     }
 
     return {

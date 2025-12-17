@@ -10,6 +10,7 @@ export const updateItemQuantityArgs = {
   cartId: v.id('carts'),
   productId: v.id('products'),
   variantId: v.optional(v.string()),
+  sizeId: v.optional(v.string()),
   quantity: v.number(),
 };
 
@@ -19,6 +20,7 @@ export const updateItemQuantityHandler = async (
     cartId: Id<'carts'>;
     productId: Id<'products'>;
     variantId?: string;
+    sizeId?: string;
     quantity: number;
   }
 ): Promise<Id<'carts'>> => {
@@ -64,7 +66,11 @@ export const updateItemQuantityHandler = async (
   const index = items.findIndex((i) => {
     if (i.productInfo.productId !== product._id) return false;
     if (args.variantId != null) {
-      return (i.variantId ?? null) === args.variantId;
+      if ((i.variantId ?? null) !== args.variantId) return false;
+      // Also match by sizeId if provided
+      const itemSizeId = i.size?.id ?? null;
+      const argsSizeId = args.sizeId ?? null;
+      return itemSizeId === argsSizeId;
     }
     return (i.variantId ?? null) === null;
   });
@@ -78,6 +84,7 @@ export const updateItemQuantityHandler = async (
       cartId: args.cartId,
       productId: args.productId,
       variantId: args.variantId,
+      sizeId: args.sizeId,
     });
   }
 

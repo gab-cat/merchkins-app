@@ -4,6 +4,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/convex/_generated/api';
 import { CategoryProducts } from '@/src/features/categories/components/category-products';
 import { preloadQuery } from 'convex/nextjs';
+import { buildR2PublicUrl } from '@/lib/utils';
 
 interface Params {
   params: Promise<{ orgSlug: string; slug: string }>;
@@ -15,14 +16,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const organization = await client.query(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug });
   if (!organization) return {};
 
-  // Resolve favicon URL if key
-  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
+  // Resolve favicon URL using R2 public URL
   let faviconUrl = (organization.logo as string | undefined) || '/favicon.ico';
-  if (isKey(faviconUrl)) {
-    try {
-      faviconUrl = await client.query(api.files.queries.index.getFileUrl, { key: faviconUrl as string });
-    } catch {}
-  }
+  faviconUrl = buildR2PublicUrl(faviconUrl) || '/favicon.ico';
 
   let category = null;
   try {

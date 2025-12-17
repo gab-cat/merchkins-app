@@ -1,6 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
+import { internal } from '../../_generated/api';
 import { requireAuthentication, logAction, requireOrganizationPermission } from '../../helpers';
 import { createSystemOrderLog } from '../../orders/mutations/createOrderLog';
 
@@ -124,14 +125,51 @@ export const bulkUpdateBatchOrdersHandler = async (
       const logMessage =
         args.userMessage ||
         `Batch update: ${args.updates.status ? `Status → ${args.updates.status}` : ''} ${args.updates.paymentStatus ? `Payment → ${args.updates.paymentStatus}` : ''}`.trim();
-      await createSystemOrderLog(ctx, {
+      // Create order log manually to set isSystemLog: false (so it appears as a user action)
+      const customerName =
+        `${order.customerInfo?.firstName ?? ''} ${order.customerInfo?.lastName ?? ''}`.trim() || order.customerInfo?.email || 'Unknown';
+
+      await ctx.db.insert('orderLogs', {
         orderId: order._id,
+        createdById: currentUser._id,
+        isSystemLog: false,
+        creatorInfo: {
+          firstName: currentUser.firstName,
+          lastName: currentUser.lastName,
+          email: currentUser.email,
+          imageUrl: currentUser.imageUrl,
+        },
+        orderInfo: {
+          orderNumber: order.orderNumber,
+          customerName,
+          status: (args.updates.status as string) ?? order.status,
+          totalAmount: order.totalAmount,
+        },
         logType: args.updates.status ? 'STATUS_CHANGE' : 'PAYMENT_UPDATE',
         reason: logMessage,
         message: logMessage,
         isPublic: true,
-        actorId: currentUser._id,
+        createdAt: now,
+        updatedAt: now,
       });
+
+      // Schedule email notifications
+      // 1. Status update email (READY or DELIVERED)
+      if (args.updates.status && (args.updates.status === 'READY' || args.updates.status === 'DELIVERED')) {
+        await ctx.scheduler.runAfter(0, internal.orders.actions.sendOrderStatusEmail.sendOrderStatusEmail, {
+          orderId: order._id,
+          newStatus: args.updates.status,
+        });
+      }
+
+      // 2. Payment confirmation email (PAID)
+      if (args.updates.paymentStatus === 'PAID') {
+        await ctx.scheduler.runAfter(0, internal.payments.actions.sendPaymentConfirmationEmail.sendPaymentConfirmationEmail, {
+          orderId: order._id,
+          paymentAmount: order.totalAmount,
+          transactionId: 'Manual Update', // Placeholder for manual batch updates
+        });
+      }
     }
   }
 

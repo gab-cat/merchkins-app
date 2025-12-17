@@ -115,8 +115,12 @@ export function AdminNav() {
   );
   const chatUnread = useQuery(api.chats.queries.index.getUnreadCount, organization?._id ? { organizationId: organization._id } : {});
   const ticketUnread = useQuery(api.tickets.queries.index.getUnreadCount, organization?._id ? { organizationId: organization._id } : {});
+  const refundPending = useQuery(api.refundRequests.queries.index.getPendingCount, organization?._id ? { organizationId: organization._id } : {});
+  const payoutPending = useQuery(api.payouts.queries.index.getPendingCount, organization?._id ? { organizationId: organization._id } : {});
   const chatsCount = chatUnread?.count || 0;
   const ticketsCount = ticketUnread?.count || 0;
+  const refundsCount = refundPending?.count || 0;
+  const payoutsCount = payoutPending?.count || 0;
 
   const isActive = (path: string) => {
     const basePath = pathname.split('?')[0];
@@ -130,9 +134,9 @@ export function AdminNav() {
     { href: `/admin/orders${suffix}`, icon: ShoppingBag, label: 'Orders' },
     { href: `/admin/batches${suffix}`, icon: ListOrdered, label: 'Batches' },
     { href: `/admin/payments${suffix}`, icon: CreditCard, label: 'Payments' },
-    { href: `/admin/refunds${suffix}`, icon: Receipt, label: 'Refunds' },
+    { href: `/admin/refunds${suffix}`, icon: Receipt, label: 'Refunds', badge: refundsCount },
     { href: `/admin/vouchers${suffix}`, icon: Ticket, label: 'Vouchers' },
-    { href: `/admin/payouts${suffix}`, icon: DollarSign, label: 'Payouts' },
+    { href: `/admin/payouts${suffix}`, icon: DollarSign, label: 'Payouts', badge: payoutsCount },
   ];
 
   const communicationItems = [

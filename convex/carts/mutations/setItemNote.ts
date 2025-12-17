@@ -7,12 +7,13 @@ export const setItemNoteArgs = {
   cartId: v.id('carts'),
   productId: v.id('products'),
   variantId: v.optional(v.string()),
+  sizeId: v.optional(v.string()),
   note: v.optional(v.string()),
 };
 
 export const setItemNoteHandler = async (
   ctx: MutationCtx,
-  args: { cartId: Id<'carts'>; productId: Id<'products'>; variantId?: string; note?: string }
+  args: { cartId: Id<'carts'>; productId: Id<'products'>; variantId?: string; sizeId?: string; note?: string }
 ) => {
   const currentUser = await requireAuthentication(ctx);
   const cart = await validateCartExists(ctx, args.cartId);
@@ -32,7 +33,11 @@ export const setItemNoteHandler = async (
   const index = items.findIndex((i) => {
     if (i.productInfo.productId !== product._id) return false;
     if (args.variantId != null) {
-      return (i.variantId ?? null) === args.variantId;
+      if ((i.variantId ?? null) !== args.variantId) return false;
+      // Also match by sizeId
+      const itemSizeId = i.size?.id ?? null;
+      const argsSizeId = args.sizeId ?? null;
+      return itemSizeId === argsSizeId;
     }
     return (i.variantId ?? null) === null;
   });

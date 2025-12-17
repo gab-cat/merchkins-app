@@ -16,8 +16,12 @@ export const requestToJoinOrganizationHandler = async (ctx: MutationCtx, args: {
     throw new Error('Organization not found');
   }
 
-  if (organization.organizationType !== 'PRIVATE') {
-    throw new Error('Join requests are only for private organizations');
+  if (organization.organizationType === 'PUBLIC') {
+    throw new Error('Public organizations can be joined directly without a request');
+  }
+
+  if (organization.organizationType === 'SECRET') {
+    throw new Error('Secret organizations require an invite link to join');
   }
 
   // If already a member, short-circuit

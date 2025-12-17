@@ -13,16 +13,23 @@ export const getPayoutSummaryHandler = async (
     periodEnd?: number;
   }
 ) => {
-  // Get all invoices within the period (or all if no period specified)
-  let invoices = await ctx.db.query('payoutInvoices').collect();
+  // Build query with database-level filtering when period is specified
+  let query = ctx.db.query('payoutInvoices');
 
-  // Filter by period if specified
-  if (args.periodStart !== undefined) {
-    invoices = invoices.filter((inv) => inv.periodStart >= args.periodStart!);
+  // Apply database-level filtering for better performance
+  if (args.periodStart !== undefined || args.periodEnd !== undefined) {
+    query = query.filter((q) => {
+      if (args.periodStart !== undefined && args.periodEnd !== undefined) {
+        return q.and(q.gte(q.field('periodStart'), args.periodStart), q.lte(q.field('periodEnd'), args.periodEnd));
+      } else if (args.periodStart !== undefined) {
+        return q.gte(q.field('periodStart'), args.periodStart);
+      } else {
+        return q.lte(q.field('periodEnd'), args.periodEnd!);
+      }
+    });
   }
-  if (args.periodEnd !== undefined) {
-    invoices = invoices.filter((inv) => inv.periodEnd <= args.periodEnd!);
-  }
+
+  const invoices = await query.collect();
 
   // Calculate summary statistics
   const totalInvoices = invoices.length;

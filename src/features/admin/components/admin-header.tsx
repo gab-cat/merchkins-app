@@ -59,12 +59,7 @@ export function AdminHeader() {
         <div className="flex items-center gap-4">
           <Sheet>
             <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Open navigation"
-                className="h-9 w-9 rounded-lg hover:bg-muted transition-colors"
-              >
+              <Button variant="ghost" size="icon" aria-label="Open navigation" className="h-9 w-9 rounded-lg hover:bg-muted transition-colors">
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
@@ -117,22 +112,13 @@ export function AdminHeader() {
           </Button>
         </div>
 
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Notifications"
-            className="h-9 w-9 rounded-lg hover:bg-muted transition-colors"
-          >
+        <div className="ml-auto flex items-center gap-2" suppressHydrationWarning>
+          <Button variant="ghost" size="icon" aria-label="Notifications" className="h-9 w-9 rounded-lg hover:bg-muted transition-colors">
             <Bell className="h-4 w-4" />
           </Button>
           <SignedOut>
             <Link href="/sign-in">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-9 px-4 text-sm font-medium rounded-lg hover:bg-muted transition-colors"
-              >
+              <Button variant="ghost" size="sm" className="h-9 px-4 text-sm font-medium rounded-lg hover:bg-muted transition-colors">
                 Sign in
               </Button>
             </Link>

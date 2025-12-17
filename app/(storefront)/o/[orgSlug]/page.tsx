@@ -30,9 +30,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   let ogImage = (organization.bannerImage as string | undefined) || (organization.logo as string | undefined) || '/favicon.ico';
   let faviconUrl = (organization.logo as string | '') || '/favicon.ico';
   if (isKey(ogImage)) {
-    try {
-      ogImage = await client.query(api.files.queries.index.getFileUrl, { key: ogImage as string });
-    } catch {}
+    ogImage = buildR2PublicUrl(ogImage) || '/favicon.ico';
   }
   if (isKey(faviconUrl) && faviconUrl) {
     faviconUrl = buildR2PublicUrl(faviconUrl) || '/favicon.ico';

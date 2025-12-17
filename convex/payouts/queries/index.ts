@@ -6,6 +6,7 @@ import { getAuthorizedPayoutInvoiceArgs, getAuthorizedPayoutInvoiceHandler } fro
 import { getPayoutSummaryArgs, getPayoutSummaryHandler } from './getPayoutSummary';
 import { getPayoutSettingsArgs, getPayoutSettingsHandler } from './getPayoutSettings';
 import { getPayoutAdjustmentsArgs, getPayoutAdjustmentsHandler } from './getPayoutAdjustments';
+import { getPendingCountArgs, getPendingCountReturns, getPendingCountHandler } from './getPendingCount';
 
 export const getPayoutInvoices = query({
   args: getPayoutInvoicesArgs,
@@ -35,4 +36,10 @@ export const getPayoutSettings = query({
 export const getPayoutAdjustments = query({
   args: getPayoutAdjustmentsArgs,
   handler: getPayoutAdjustmentsHandler,
+});
+
+export const getPendingCount = query({
+  args: getPendingCountArgs,
+  returns: getPendingCountReturns,
+  handler: getPendingCountHandler,
 });

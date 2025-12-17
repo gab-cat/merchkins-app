@@ -85,23 +85,9 @@ export const approveRefundRequestHandler = async (ctx: MutationCtx, args: { refu
     updatedAt: now,
   });
 
-  // If this order was already included in a payout invoice, create an adjustment
-  // to deduct the refunded amount from the next payout period
-  if (order.payoutInvoiceId) {
-    await ctx.db.insert('payoutAdjustments', {
-      organizationId: order.organizationId!,
-      orderId: order._id,
-      originalInvoiceId: order.payoutInvoiceId,
-      type: 'REFUND',
-      amount: -order.totalAmount, // Negative amount to deduct
-      reason: `Refund for order ${order.orderNumber || order._id}`,
-      status: 'PENDING',
-      createdAt: now,
-    });
-    console.log(
-      `[approveRefundRequest] Created payout adjustment for order ${order.orderNumber || order._id} that was already in payout ${order.payoutInvoiceId}`
-    );
-  }
+  // NOTE: We do NOT create a payout adjustment here anymore because cancelOrderInternal
+  // handles it if the order was paid and has a payoutInvoiceId.
+  // This prevents duplicate adjustments.
 
   // Mark all associated payments as REFUNDED
   try {

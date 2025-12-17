@@ -50,6 +50,7 @@ export const createOrderArgs = {
   customerNotes: v.optional(v.string()),
   // Voucher support
   voucherCode: v.optional(v.string()),
+  voucherProportionalShare: v.optional(v.number()),
   // Checkout session for grouped payments
   checkoutId: v.optional(v.string()),
 };
@@ -74,6 +75,7 @@ export const createOrderHandler = async (
     estimatedDelivery?: number;
     customerNotes?: string;
     voucherCode?: string;
+    voucherProportionalShare?: number;
     checkoutId?: string;
   }
 ) => {
@@ -377,26 +379,34 @@ export const createOrderHandler = async (
     }
 
     // Calculate voucher discount
-    switch (voucher.discountType) {
-      case 'PERCENTAGE':
-        voucherDiscount = (totalAmount * voucher.discountValue) / 100;
-        if (voucher.maxDiscountAmount && voucherDiscount > voucher.maxDiscountAmount) {
-          voucherDiscount = voucher.maxDiscountAmount;
-        }
-        break;
-      case 'FIXED_AMOUNT':
-      case 'REFUND':
-        // REFUND vouchers work like FIXED_AMOUNT
-        voucherDiscount = Math.min(voucher.discountValue, totalAmount);
-        break;
-      case 'FREE_SHIPPING':
-        // Free shipping handled separately if applicable
-        voucherDiscount = 0;
-        break;
-      case 'FREE_ITEM':
-        // For free item, the discount value represents the item value
-        voucherDiscount = Math.min(voucher.discountValue, totalAmount);
-        break;
+    // Calculate voucher discount
+    if (args.voucherProportionalShare !== undefined) {
+      // Use pre-calculated proportional share
+      // Ensure we don't exceed the total amount of this order
+      voucherDiscount = Math.min(args.voucherProportionalShare, totalAmount);
+    } else {
+      // Standard calculation (single order or legacy)
+      switch (voucher.discountType) {
+        case 'PERCENTAGE':
+          voucherDiscount = (totalAmount * voucher.discountValue) / 100;
+          if (voucher.maxDiscountAmount && voucherDiscount > voucher.maxDiscountAmount) {
+            voucherDiscount = voucher.maxDiscountAmount;
+          }
+          break;
+        case 'FIXED_AMOUNT':
+        case 'REFUND':
+          // REFUND vouchers work like FIXED_AMOUNT
+          voucherDiscount = Math.min(voucher.discountValue, totalAmount);
+          break;
+        case 'FREE_SHIPPING':
+          // Free shipping handled separately if applicable
+          voucherDiscount = 0;
+          break;
+        case 'FREE_ITEM':
+          // For free item, the discount value represents the item value
+          voucherDiscount = Math.min(voucher.discountValue, totalAmount);
+          break;
+      }
     }
 
     voucherDiscount = Math.round(voucherDiscount * 100) / 100;
@@ -796,6 +806,14 @@ export const createOrderHandler = async (
   const createdOrder = await ctx.db.get(orderId);
   if (!createdOrder) {
     throw new Error('Order creation failed');
+  }
+
+  // Schedule order confirmation email (non-blocking)
+  if (customer.email) {
+    await ctx.scheduler.runAfter(0, internal.orders.actions.sendOrderConfirmationEmail.sendOrderConfirmationEmail, {
+      orderId,
+    });
+    console.log('Order confirmation email scheduled for:', customer.email);
   }
 
   return {

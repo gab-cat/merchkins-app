@@ -15,6 +15,7 @@ import { R2Image } from '@/src/components/ui/r2-image';
 import { BlurFade } from '@/src/components/ui/animations/effects';
 import { RoleBadge, OrgTypeBadge } from '@/src/components/ui/role-badge';
 import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
+import { showToast } from '@/lib/toast';
 import {
   UserPlus,
   ShoppingBag,
@@ -339,7 +340,12 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                                 size="sm"
                                 className="group/btn rounded-xl h-9 px-4 font-semibold shadow-sm hover:shadow-md transition-all duration-300"
                                 onClick={async () => {
-                                  await joinPublic({ organizationId: org._id });
+                                  try {
+                                    await joinPublic({ organizationId: org._id });
+                                    showToast({ type: 'success', title: `Joined ${org.name}!`, description: 'You can now browse their products.' });
+                                  } catch (err: any) {
+                                    showToast({ type: 'error', title: 'Failed to join', description: err.message || 'Something went wrong.' });
+                                  }
                                 }}
                               >
                                 <UserPlus className="h-3.5 w-3.5 mr-1.5" />
@@ -349,11 +355,21 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="rounded-xl h-9 px-4 font-semibold border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                                className="rounded-xl h-9 px-4 font-semibold border-2 hover:border-amber-500/50 hover:bg-amber-50 transition-all duration-300"
                                 onClick={async () => {
-                                  await requestJoin({ organizationId: org._id });
+                                  try {
+                                    await requestJoin({ organizationId: org._id });
+                                    showToast({
+                                      type: 'success',
+                                      title: 'Request Sent!',
+                                      description: `Your request to join ${org.name} is pending approval.`,
+                                    });
+                                  } catch (err: any) {
+                                    showToast({ type: 'error', title: 'Request Failed', description: err.message || 'Something went wrong.' });
+                                  }
                                 }}
                               >
+                                <Lock className="h-3.5 w-3.5 mr-1.5" />
                                 Request
                               </Button>
                             )}

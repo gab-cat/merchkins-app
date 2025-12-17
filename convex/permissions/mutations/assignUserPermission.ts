@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireSelfOrAdmin, validateUserExists, logAction } from '../../helpers';
+import { requireAdmin, validateUserExists, logAction } from '../../helpers';
 
 // Assign permission to a user (embedded in user record)
 export const assignUserPermissionArgs = {
@@ -26,8 +26,8 @@ export const assignUserPermissionHandler = async (
 ) => {
   const { userId, permissionCode, canCreate, canRead, canUpdate, canDelete } = args;
 
-  // Check authorization - user can update their own permissions or admin can update any
-  const currentUser = await requireSelfOrAdmin(ctx, userId);
+  // Only admins can assign permissions (prevents privilege escalation)
+  const currentUser = await requireAdmin(ctx);
 
   // Validate target user exists
   const targetUser = await validateUserExists(ctx, userId);

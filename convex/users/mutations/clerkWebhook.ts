@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { MutationCtx, internalMutation } from '../../_generated/server';
 import { v } from 'convex/values';
+import { internal } from '../../_generated/api';
 
 // Handle user creation from Clerk webhook
 export const handleUserCreatedArgs = {
@@ -62,6 +63,17 @@ export const handleUserCreatedHandler = async (ctx: MutationCtx, args: { clerkUs
     });
 
     console.log('User created successfully:', userId);
+
+    // Schedule welcome email (non-blocking)
+    if (email) {
+      await ctx.scheduler.runAfter(0, internal.users.actions.sendWelcomeEmail.sendWelcomeEmail, {
+        userId,
+        firstName: firstName || 'there',
+        email,
+      });
+      console.log('Welcome email scheduled for:', email);
+    }
+
     return userId;
   } catch (error) {
     console.error('Error creating user:', error);

@@ -1,6 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
+import { internal } from '../../_generated/api';
 import {
   requireAuthentication,
   validateOrderExists,
@@ -119,6 +120,15 @@ export const updateOrderHandler = async (
   }
 
   await ctx.db.patch(args.orderId, updates);
+
+  // Schedule status notification email for READY and DELIVERED statuses (non-blocking)
+  if (args.status && (args.status === 'READY' || args.status === 'DELIVERED')) {
+    await ctx.scheduler.runAfter(0, internal.orders.actions.sendOrderStatusEmail.sendOrderStatusEmail, {
+      orderId: args.orderId,
+      newStatus: args.status,
+    });
+    console.log(`Order status email (${args.status}) scheduled for order:`, args.orderId);
+  }
 
   // If delivered, set deliveredAt-like info in history only (kept in status history)
 

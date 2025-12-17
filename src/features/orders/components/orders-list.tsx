@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,9 +11,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { OrderPaymentLink } from './order-payment-link';
 import { BlurFade } from '@/src/components/ui/animations/effects';
-import { Package, Clock, CheckCircle2, XCircle, Truck, ArrowRight, ShoppingBag, ChevronRight, Receipt, AlertCircle } from 'lucide-react';
+import { Package, Clock, CheckCircle2, XCircle, Truck, ArrowRight, ShoppingBag, ChevronRight, Receipt, AlertCircle, Store } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import { BatchBadge } from '@/src/features/admin/components/batches/batch-badge';
+import { buildR2PublicUrl } from '@/lib/utils';
 
 function formatCurrency(amount: number | undefined) {
   if (amount === undefined) return '';
@@ -69,6 +71,24 @@ type Order = {
     email: string;
   };
   batchInfo?: Array<{ id: Id<'orderBatches'>; name: string }>;
+  organizationInfo?: {
+    name: string;
+    slug: string;
+    logo?: string;
+    logoUrl?: string;
+  };
+  embeddedItems?: Array<{
+    productInfo: {
+      productId: string;
+      title: string;
+      slug: string;
+      imageUrl: string[];
+      variantName?: string;
+      categoryName?: string;
+    };
+    quantity: number;
+    price: number;
+  }>;
 };
 
 function formatRelativeDate(ts: number) {
@@ -284,82 +304,133 @@ export function OrdersList() {
 
                 {/* Order cards */}
                 <div className="space-y-2">
-                  {list.map((o, orderIndex) => (
-                    <motion.div key={o._id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.03 * orderIndex }}>
-                      <Link
-                        href={`/orders/${o._id}`}
-                        className="block rounded-xl border border-slate-100 bg-white hover:border-slate-200 hover:shadow-md transition-all duration-200 group"
+                  {list.map((o, orderIndex) => {
+                    // Get first product image from embedded items
+                    const firstProductImage = o.embeddedItems?.[0]?.productInfo?.imageUrl?.[0];
+                    const productImageUrl = buildR2PublicUrl(firstProductImage);
+
+                    // Get store info
+                    const storeLogo = buildR2PublicUrl(o.organizationInfo?.logo || o.organizationInfo?.logoUrl);
+                    const storeName = o.organizationInfo?.name;
+
+                    return (
+                      <motion.div
+                        key={o._id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.03 * orderIndex }}
                       >
-                        <div className="p-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <span className="font-semibold text-slate-900 text-sm">{o.orderNumber ? `#${o.orderNumber}` : 'Order'}</span>
-                                {o.batchInfo && o.batchInfo.length > 0 && (
-                                  <div className="flex items-center gap-1 flex-wrap">
-                                    {o.batchInfo.map((batch) => (
-                                      <BatchBadge key={batch.id} name={batch.name} size="sm" />
-                                    ))}
+                        <Link
+                          href={`/orders/${o._id}`}
+                          className="block rounded-xl border border-slate-100 bg-white hover:border-slate-200 hover:shadow-md transition-all duration-200 group"
+                        >
+                          <div className="p-4">
+                            <div className="flex items-start gap-3">
+                              {/* Product Image Thumbnail */}
+                              <div className="relative flex-shrink-0 h-16 w-16 rounded-lg overflow-hidden bg-slate-100">
+                                {productImageUrl ? (
+                                  <Image src={productImageUrl} alt="Product" fill className="object-cover" sizes="64px" />
+                                ) : (
+                                  <div className="h-full w-full flex items-center justify-center">
+                                    <Package className="h-6 w-6 text-slate-300" />
                                   </div>
                                 )}
-                                <ChevronRight className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-slate-500">
-                                <span>{formatTime(o.orderDate)}</span>
-                                <span className="text-slate-300">•</span>
-                                <span>
-                                  {o.itemCount} {o.itemCount === 1 ? 'item' : 'items'}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-1.5">
-                              <span className="font-bold text-[#1d43d8] text-sm">{formatCurrency(o.totalAmount)}</span>
-                              {o.status === 'PENDING' && o.paymentStatus !== 'PAID' ? (
-                                <>
-                                  {/* Short button for desktop - replaces badge */}
-                                  <div onClick={(e) => e.stopPropagation()} className="hidden md:block">
-                                    <OrderPaymentLink
-                                      orderId={o._id as Id<'orders'>}
-                                      orderStatus={o.status}
-                                      paymentStatus={o.paymentStatus}
-                                      xenditInvoiceUrl={o.xenditInvoiceUrl}
-                                      xenditInvoiceCreatedAt={o.xenditInvoiceCreatedAt}
-                                      xenditInvoiceExpiryDate={o.xenditInvoiceExpiryDate}
-                                      totalAmount={o.totalAmount}
-                                      customerEmail={o.customerInfo?.email}
-                                      orderNumber={o.orderNumber}
-                                      short
-                                    />
+                                {/* Item count badge overlay */}
+                                {o.itemCount > 1 && (
+                                  <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full">
+                                    +{o.itemCount - 1}
                                   </div>
-                                  {/* Badge for mobile - shown when short button is hidden */}
-                                  <div className="md:hidden">
-                                    <StatusBadge value={o.status} />
+                                )}
+                              </div>
+
+                              {/* Order Details */}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center justify-between gap-2 mb-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-semibold text-slate-900 text-sm">{o.orderNumber ? `#${o.orderNumber}` : 'Order'}</span>
+                                    {o.batchInfo && o.batchInfo.length > 0 && (
+                                      <div className="flex items-center gap-1 flex-wrap">
+                                        {o.batchInfo.map((batch) => (
+                                          <BatchBadge key={batch.id} name={batch.name} size="sm" />
+                                        ))}
+                                      </div>
+                                    )}
+                                    <ChevronRight className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                                   </div>
-                                </>
-                              ) : (
-                                <StatusBadge value={o.status} />
-                              )}
+                                  <span className="font-bold text-[#1d43d8] text-sm flex-shrink-0">{formatCurrency(o.totalAmount)}</span>
+                                </div>
+
+                                {/* Store Info Row */}
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                  {storeLogo ? (
+                                    <div className="relative h-4 w-4 rounded-full overflow-hidden bg-slate-100 flex-shrink-0">
+                                      <Image src={storeLogo} alt={storeName || 'Store'} fill className="object-cover" sizes="16px" />
+                                    </div>
+                                  ) : (
+                                    <Store className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                                  )}
+                                  <span className="text-xs text-slate-600 font-medium truncate">{storeName || 'Unknown Store'}</span>
+                                </div>
+
+                                {/* Time and Status Row */}
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                                    <span>{formatTime(o.orderDate)}</span>
+                                    <span className="text-slate-300">•</span>
+                                    <span>
+                                      {o.itemCount} {o.itemCount === 1 ? 'item' : 'items'}
+                                    </span>
+                                  </div>
+                                  <div className="flex-shrink-0">
+                                    {o.status === 'PENDING' && o.paymentStatus !== 'PAID' ? (
+                                      <>
+                                        {/* Short button for desktop - replaces badge */}
+                                        <div onClick={(e) => e.stopPropagation()} className="hidden md:block">
+                                          <OrderPaymentLink
+                                            orderId={o._id as Id<'orders'>}
+                                            orderStatus={o.status}
+                                            paymentStatus={o.paymentStatus}
+                                            xenditInvoiceUrl={o.xenditInvoiceUrl}
+                                            xenditInvoiceCreatedAt={o.xenditInvoiceCreatedAt}
+                                            xenditInvoiceExpiryDate={o.xenditInvoiceExpiryDate}
+                                            totalAmount={o.totalAmount}
+                                            customerEmail={o.customerInfo?.email}
+                                            orderNumber={o.orderNumber}
+                                            short
+                                          />
+                                        </div>
+                                        {/* Badge for mobile - shown when short button is hidden */}
+                                        <div className="md:hidden">
+                                          <StatusBadge value={o.status} />
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <StatusBadge value={o.status} />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        {/* Payment link section - inline */}
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <OrderPaymentLink
-                            orderId={o._id as Id<'orders'>}
-                            orderStatus={o.status}
-                            paymentStatus={o.paymentStatus}
-                            xenditInvoiceUrl={o.xenditInvoiceUrl}
-                            xenditInvoiceCreatedAt={o.xenditInvoiceCreatedAt}
-                            xenditInvoiceExpiryDate={o.xenditInvoiceExpiryDate}
-                            totalAmount={o.totalAmount}
-                            customerEmail={o.customerInfo?.email}
-                            orderNumber={o.orderNumber}
-                            compact
-                          />
-                        </div>
-                      </Link>
-                    </motion.div>
-                  ))}
+                          {/* Payment link section - inline */}
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <OrderPaymentLink
+                              orderId={o._id as Id<'orders'>}
+                              orderStatus={o.status}
+                              paymentStatus={o.paymentStatus}
+                              xenditInvoiceUrl={o.xenditInvoiceUrl}
+                              xenditInvoiceCreatedAt={o.xenditInvoiceCreatedAt}
+                              xenditInvoiceExpiryDate={o.xenditInvoiceExpiryDate}
+                              totalAmount={o.totalAmount}
+                              customerEmail={o.customerInfo?.email}
+                              orderNumber={o.orderNumber}
+                              compact
+                            />
+                          </div>
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </motion.div>
             ))}

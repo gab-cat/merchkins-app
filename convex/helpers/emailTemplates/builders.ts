@@ -1,7 +1,7 @@
 /**
  * Email Template Builders
- * PREMIUM DARK MODE DESIGN - Sleek, modern, distinctive
- * Features: Dark backgrounds, neon accents, glassmorphism effects
+ * CLEAN LIGHT MODE DESIGN - Sleek, professional, Apple-inspired
+ * Features: White backgrounds, clean typography, subtle shadows
  */
 
 import {
@@ -147,8 +147,8 @@ export const createEmailWrapper = (content: string, title: string): string => {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="color-scheme" content="dark">
-  <meta name="supported-color-schemes" content="dark">
+  <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
   <title>${title}</title>
   <!--[if mso]>
   <noscript>
@@ -163,8 +163,8 @@ export const createEmailWrapper = (content: string, title: string): string => {
     /* Load Geist font */
     @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
     
-    /* Dark mode preference */
-    :root { color-scheme: dark; }
+    /* Light mode preference */
+    :root { color-scheme: light; }
     
     /* Reset styles */
     body, table, td, p, a, li { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }

@@ -3,6 +3,7 @@ import { getRefundRequestsHandler, getRefundRequestsArgs } from './getRefundRequ
 import { getRefundRequestByIdHandler, getRefundRequestByIdInternalHandler, getRefundRequestByIdArgs } from './getRefundRequestById';
 import { getRefundRequestsByUserHandler, getRefundRequestsByUserArgs } from './getRefundRequestsByUser';
 import { getRefundRequestByOrderHandler, getRefundRequestByOrderArgs } from './getRefundRequestByOrder';
+import { getPendingCountArgs, getPendingCountReturns, getPendingCountHandler } from './getPendingCount';
 
 export const getRefundRequests = query({
   args: getRefundRequestsArgs,
@@ -27,4 +28,10 @@ export const getRefundRequestsByUser = query({
 export const getRefundRequestByOrder = query({
   args: getRefundRequestByOrderArgs,
   handler: getRefundRequestByOrderHandler,
+});
+
+export const getPendingCount = query({
+  args: getPendingCountArgs,
+  returns: getPendingCountReturns,
+  handler: getPendingCountHandler,
 });

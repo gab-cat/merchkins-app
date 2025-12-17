@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { SearchResults } from '@/src/features/products/components/search-results';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '@/convex/_generated/api';
+import { buildR2PublicUrl } from '@/lib/utils';
 
 export async function generateMetadata({ params }: { params: Promise<{ orgSlug: string }> }): Promise<Metadata> {
   const { orgSlug } = await params;
@@ -10,14 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ orgSlug: 
   const organization = await client.query(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug });
   if (!organization) return {};
 
-  // Resolve favicon URL if key
-  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
-  let faviconUrl = (organization.logo as string | undefined) || '/favicon.ico';
-  if (isKey(faviconUrl)) {
-    try {
-      faviconUrl = await client.query(api.files.queries.index.getFileUrl, { key: faviconUrl as string });
-    } catch {}
-  }
+  // Resolve favicon URL using R2 public URL
+  let faviconUrl = buildR2PublicUrl(organization.logo as string | undefined) || '/favicon.ico';
 
   const title = `Search — ${organization.name}`;
   return {

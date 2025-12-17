@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation } from 'convex/react';
@@ -250,25 +250,59 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
   const updateItemVariant = useMutation(api.carts.mutations.index.updateItemVariant);
   const product = useQuery(api.products.queries.index.getProductById, { productId: item.productInfo.productId });
 
+  // Optimistic quantity state
+  const [optimisticQty, setOptimisticQty] = useState(item.quantity);
+  const [isEditing, setIsEditing] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastServerQty = useRef(item.quantity);
+
+  // Sync with server when item.quantity changes
+  useEffect(() => {
+    if (!isEditing) {
+      setOptimisticQty(item.quantity);
+    }
+    lastServerQty.current = item.quantity;
+  }, [item.quantity, isEditing]);
+
+  const sizeId = item.size?.id;
+
+  const updateQuantityOptimistic = useCallback(
+    async (newQty: number) => {
+      const clampedQty = Math.max(0, Math.min(newQty, item.productInfo.inventory || 9999));
+      const previousQty = lastServerQty.current;
+
+      // Optimistic update
+      setOptimisticQty(clampedQty);
+
+      // Debounce the actual mutation
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(async () => {
+        try {
+          await updateQty({
+            cartId: cartId,
+            productId: item.productInfo.productId,
+            variantId: item.variantId,
+            sizeId: sizeId,
+            quantity: clampedQty,
+          });
+          lastServerQty.current = clampedQty;
+        } catch {
+          // Rollback on failure
+          setOptimisticQty(previousQty);
+          showToast({ type: 'error', title: 'Failed to update quantity' });
+        }
+      }, 300);
+    },
+    [cartId, item.productInfo.productId, item.productInfo.inventory, item.variantId, sizeId, updateQty]
+  );
+
   async function handleDec() {
-    await updateQty({
-      cartId: cartId,
-      productId: item.productInfo.productId,
-      variantId: item.variantId,
-      quantity: Math.max(0, item.quantity - 1),
-    });
+    await updateQuantityOptimistic(optimisticQty - 1);
   }
 
   async function handleInc() {
-    await updateQty({
-      cartId: cartId,
-      productId: item.productInfo.productId,
-      variantId: item.variantId,
-      quantity: Math.min(item.quantity + 1, item.productInfo.inventory),
-    });
+    await updateQuantityOptimistic(optimisticQty + 1);
   }
-
-  // selection toggled inline via Checkbox onCheckedChange
 
   async function handleRemove() {
     try {
@@ -277,6 +311,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
           cartId: cartId,
           productId: item.productInfo.productId,
           variantId: item.variantId,
+          sizeId: sizeId,
           quantity: 0,
         }),
         { loading: 'Removing item…', success: 'Item removed', error: () => 'Failed to remove item' }
@@ -292,6 +327,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
         cartId: cartId,
         productId: item.productInfo.productId,
         variantId: item.variantId,
+        sizeId: sizeId,
         note: note.trim() || undefined,
       });
       showToast({ type: 'success', title: 'Note saved' });
@@ -302,7 +338,6 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
 
   async function handleVariantChange(newVariantId?: string) {
     if ((newVariantId ?? null) === (item.variantId ?? null)) return;
-    // update variant directly without removing/adding
     try {
       await promiseToast(
         updateItemVariant({
@@ -311,7 +346,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
           oldVariantId: item.variantId,
           newVariantId: newVariantId,
           oldSize: item.size,
-          newSize: undefined, // Reset size when changing variant
+          newSize: undefined,
         }),
         { loading: 'Updating variant…', success: 'Variant updated', error: () => 'Failed to update variant' }
       );
@@ -321,7 +356,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
   }
 
   async function handleSizeChange(newSize?: { id: string; label: string; price?: number }) {
-    if (!item.variantId) return; // Size can only be changed if variant is selected
+    if (!item.variantId) return;
     const currentSizeId = item.size?.id ?? null;
     const newSizeId = newSize?.id ?? null;
     if (currentSizeId === newSizeId) return;
@@ -332,7 +367,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
           cartId: cartId,
           productId: item.productInfo.productId,
           oldVariantId: item.variantId,
-          newVariantId: item.variantId, // Keep same variant
+          newVariantId: item.variantId,
           oldSize: item.size,
           newSize: newSize,
         }),
@@ -342,6 +377,21 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
       // no-op
     }
   }
+
+  const handleQuantityInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value)) {
+      updateQuantityOptimistic(value);
+    }
+  };
+
+  const handleQuantityBlur = () => {
+    setIsEditing(false);
+    if (optimisticQty <= 0) {
+      setOptimisticQty(1);
+      updateQuantityOptimistic(1);
+    }
+  };
 
   return (
     <motion.div
@@ -362,6 +412,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
                 cartId: cartId,
                 productId: item.productInfo.productId,
                 variantId: item.variantId,
+                sizeId: sizeId,
                 selected: Boolean(checked),
               });
             }}
@@ -372,13 +423,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
 
         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl shadow-sm">
           {item.productInfo.imageUrl?.[0] ? (
-            <R2Image
-              fileKey={item.productInfo.imageUrl[0]}
-              alt={item.productInfo.title}
-              width={64}
-              height={64}
-              className="h-full w-full object-cover bg-secondary"
-            />
+            <R2Image fileKey={item.productInfo.imageUrl[0]} alt={item.productInfo.title} fill sizes="64px" className="object-cover" />
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-secondary to-secondary/60 rounded-xl flex items-center justify-center">
               <Package className="h-6 w-6 text-muted-foreground/50" />
@@ -477,7 +522,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
             </div>
             <div className="text-right">
               <div className="text-sm font-bold text-primary">
-                {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price * item.quantity)}
+                {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price * optimisticQty)}
               </div>
             </div>
           </div>
@@ -494,7 +539,17 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
               >
                 <Minus className="h-3.5 w-3.5" />
               </Button>
-              <span className="min-w-8 text-center text-sm font-semibold">{item.quantity}</span>
+              <input
+                type="number"
+                min={1}
+                max={item.productInfo.inventory || 9999}
+                value={optimisticQty}
+                onChange={handleQuantityInputChange}
+                onFocus={() => setIsEditing(true)}
+                onBlur={handleQuantityBlur}
+                className="min-w-10 w-12 text-center text-sm font-semibold border-none bg-transparent focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                aria-label="Quantity"
+              />
               <Button
                 variant="ghost"
                 size="sm"

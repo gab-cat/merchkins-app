@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { api } from '@/convex/_generated/api';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from 'convex-helpers/react/cache';
 
 export function AdminGuard() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const orgSlug = searchParams.get('org') || null;
   const { userId } = useAuth();
@@ -27,6 +28,26 @@ export function AdminGuard() {
     if (user === null) {
       router.replace('/sign-in');
       return;
+    }
+
+    const LAST_ORG_KEY = 'merchkins_last_org_admin';
+
+    // If org is in params, save it to local storage
+    if (orgSlug) {
+      localStorage.setItem(LAST_ORG_KEY, orgSlug);
+    } else {
+      // If no org param, check local storage
+      const lastOrg = localStorage.getItem(LAST_ORG_KEY);
+      if (lastOrg) {
+        // Construct new URL with the org param
+        const current = new URLSearchParams(Array.from(searchParams.entries()));
+        current.set('org', lastOrg);
+        const search = current.toString();
+        const query = search ? `?${search}` : '';
+
+        router.replace(`${pathname}${query}`);
+        return;
+      }
     }
 
     // When an org is provided, require system admin or admin role in that org
@@ -54,7 +75,7 @@ export function AdminGuard() {
     if (!user.isAdmin && !user.isStaff) {
       router.replace('/');
     }
-  }, [user, router, orgSlug, organization, organizationsByUser]);
+  }, [user, router, orgSlug, organization, organizationsByUser, pathname, searchParams]);
 
   return null;
 }

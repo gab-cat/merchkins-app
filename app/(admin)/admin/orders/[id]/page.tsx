@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id, Doc } from '@/convex/_generated/dataModel';
-import { cn } from '@/lib/utils';
+import { cn, buildR2PublicUrl } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
 
 // Admin components
@@ -148,9 +148,9 @@ function formatCurrency(amount: number | undefined) {
   }
 }
 
-// Line item image component
+// Line item image component - uses direct R2 URL construction
 function LineItemImage({ imageKey }: { imageKey?: string }) {
-  const url = useQuery(api.files.queries.index.getFileUrl, imageKey ? { key: imageKey } : 'skip');
+  const url = imageKey ? buildR2PublicUrl(imageKey) : null;
   if (!url) {
     return (
       <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">

@@ -8,6 +8,7 @@ export const removeItemArgs = {
   cartId: v.id('carts'),
   productId: v.id('products'),
   variantId: v.optional(v.string()),
+  sizeId: v.optional(v.string()),
 };
 
 export const removeItemHandler = async (
@@ -16,6 +17,7 @@ export const removeItemHandler = async (
     cartId: Id<'carts'>;
     productId: Id<'products'>;
     variantId?: string;
+    sizeId?: string;
   }
 ) => {
   const currentUser = await requireAuthentication(ctx);
@@ -43,7 +45,12 @@ export const removeItemHandler = async (
     let match = false;
     if (sameProduct) {
       if (args.variantId != null) {
-        match = (i.variantId ?? null) === args.variantId;
+        if ((i.variantId ?? null) === args.variantId) {
+          // Also match by sizeId
+          const itemSizeId = i.size?.id ?? null;
+          const argsSizeId = args.sizeId ?? null;
+          match = itemSizeId === argsSizeId;
+        }
       } else {
         match = (i.variantId ?? null) === null;
       }

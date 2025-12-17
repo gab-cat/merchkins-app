@@ -1,379 +1,90 @@
 ---
-title: Permissions & Roles
-description: Role hierarchy, permission codes, assigning permissions, and access control management.
+title: Team Roles & Permissions
+description: How to add staff members and control what they can access in your store.
 category: administration
 icon: Shield
-lastUpdated: 2025-12-12
+lastUpdated: 2025-12-17
 ---
 
-# Permissions & Roles Guide
+# Team Roles & Permissions
 
 ## Overview
 
-The permissions system provides fine-grained access control for organization members. Learn how roles work, how to assign permissions, and how to manage access levels.
+You don't have to run your store alone. You can invite staff members to help you manage orders, products, or chats. The **Permissions System** lets you control exactly what each team member can see and do.
 
 ---
 
-## Quick Reference
+## The 4 Main Roles
 
-| Aspect                 | Details                        |
-| ---------------------- | ------------------------------ |
-| **Role Types**         | Owner, Admin, Staff, Member    |
-| **Permission Actions** | create, read, update, delete   |
-| **Permission Scope**   | Organization-level permissions |
-| **Access Control**     | Fine-grained per feature       |
-| **Hierarchy**          | Owner > Admin > Staff > Member |
+### 1. Owner
 
----
+- **Who is this?** The person who created the organization.
+- **Access:** Everything.
+- **Special Power:** Cannot be removed by anyone.
 
-## Role Hierarchy
+### 2. Admin
 
-### Role Levels
+- **Best for:** Co-founders or Store Managers.
+- **Access:** Almost everything the Owner can do. They can invite other members, manage settings, and view financials.
 
-**Owner:**
+### 3. Staff
 
-- Organization creator
-- Full access to all features
-- Cannot be removed
-- Can transfer ownership
+- **Best for:** Employees with specific jobs (e.g., Order Packer, Customer Support).
+- **Access:** Limited. They can only do what you specifically allow them to do.
 
-**Admin:**
+### 4. Member
 
-- Full administrative access
-- Can manage members and permissions
-- Can access all organization features
-- Can be assigned by Owner/Admin
-
-**Staff:**
-
-- Limited administrative access
-- Can perform assigned tasks
-- Permissions assigned per feature
-- Can be assigned by Admin
-
-**Member:**
-
-- Basic access
-- Limited permissions
-- Usually read-only access
-- Can be assigned by Admin
+- **Best for:** Interns or observers.
+- **Access:** Read-only. They can view things but usually cannot make changes.
 
 ---
 
-## Permission System
+## Common Staff Roles (Examples)
 
-### Permission Structure
+Instead of confusing codes, think of permissions by "Job Title". Here is how you might set up common roles:
 
-Permissions are organized by:
+### The "Order Packer"
 
-- **Permission Code** - Feature identifier (e.g., `PRODUCT_MANAGEMENT`)
-- **Action** - Operation type (`create`, `read`, `update`, `delete`)
+- **Goal:** Needs to see orders and mark them as packed/shipped.
+- **Permissions to Give:** `Order Management` (Read & Update)
+- **What they CAN'T do:** They cannot delete products or see your payout earnings.
 
-### Common Permission Codes
+### The "Product Manager"
 
-**Product Management:**
+- **Goal:** Needs to upload new items and update stock.
+- **Permissions to Give:** `Product Management` (Create, Read, Update)
+- **What they CAN'T do:** They cannot refund orders or change store settings.
 
-- `PRODUCT_MANAGEMENT` - Manage products
-- Actions: create, read, update, delete
+### The "Support Agent"
 
-**Order Management:**
-
-- `ORDER_MANAGEMENT` - Manage orders
-- Actions: create, read, update, delete
-
-**User Management:**
-
-- `USER_MANAGEMENT` - Manage users
-- Actions: create, read, update, delete
-
-**Organization Management:**
-
-- `ORG_MANAGEMENT` - Manage organization
-- Actions: create, read, update, delete
-
-**Financial Management:**
-
-- `PAYOUT_MANAGEMENT` - Manage payouts
-- `VOUCHER_MANAGEMENT` - Manage vouchers
-- `REFUND_MANAGEMENT` - Manage refunds
-
-**Communication:**
-
-- `ANNOUNCEMENT_MANAGEMENT` - Manage announcements
-- `TICKET_MANAGEMENT` - Manage tickets
-- `CHAT_MANAGEMENT` - Manage chats
-
-### Permission Actions
-
-**create:**
-
-- Create new resources
-- Example: Create products, orders
-
-**read:**
-
-- View resources
-- Example: View product list, order details
-
-**update:**
-
-- Modify existing resources
-- Example: Update product info, order status
-
-**delete:**
-
-- Remove resources
-- Example: Delete products, cancel orders
+- **Goal:** Needs to reply to customer questions.
+- **Permissions to Give:** `Chat Management` or `Ticket Management`.
 
 ---
 
-## Assigning Permissions
-
-### To Organization Members
-
-**For Admins:**
-
-1. Navigate to Admin → Organization Members
-2. Select member
-3. Click "Edit Permissions"
-4. Select permission codes and actions
-5. Save changes
-
-**Permission Assignment:**
-
-- Select permission code
-- Select allowed actions
-- Can assign multiple permissions
-- Changes apply immediately
-
-### Permission Examples
-
-**Product Manager:**
-
-- `PRODUCT_MANAGEMENT`: create, read, update
-- Cannot delete products
-
-**Order Processor:**
-
-- `ORDER_MANAGEMENT`: read, update
-- Can view and update orders
-- Cannot create or delete orders
-
-**Viewer:**
-
-- `PRODUCT_MANAGEMENT`: read
-- `ORDER_MANAGEMENT`: read
-- Can view but not modify
-
----
-
-## Access Control
-
-### Permission Checking
-
-The system checks permissions for:
-
-- **Feature Access** - Can user access feature?
-- **Action Permission** - Can user perform action?
-- **Resource Access** - Can user access specific resource?
-
-### Permission Enforcement
-
-**Automatic Checks:**
-
-- All mutations check permissions
-- Queries may check read permissions
-- UI shows/hides based on permissions
-
-**Permission Errors:**
-
-- "You don't have permission to perform this action"
-- "Access denied"
-- "Insufficient permissions"
-
----
-
-## Organization Permissions
-
-### Organization-Level Permissions
-
-Permissions are scoped to organizations:
-
-- Member has permissions within organization
-- Permissions don't transfer between organizations
-- Each organization manages its own permissions
-
-### Permission Inheritance
-
-**Role-Based Defaults:**
-
-- Owner: All permissions
-- Admin: Most permissions (configurable)
-- Staff: Assigned permissions
-- Member: Minimal permissions
-
-**Custom Permissions:**
-
-- Override role defaults
-- Assign specific permissions
-- Fine-tune access levels
-
----
-
-## Managing Members
-
-### Adding Members
-
-1. Navigate to Organization Members
-2. Click "Add Member"
-3. Enter user email or invite code
-4. Select role
-5. Assign permissions
-6. Send invitation
-
-### Updating Permissions
-
-1. Go to member details
-2. Click "Edit Permissions"
-3. Update permission assignments
-4. Save changes
-
-### Removing Members
-
-1. Go to member details
-2. Click "Remove Member"
-3. Confirm removal
-4. Member loses access immediately
-
----
-
-## Common Scenarios
-
-### Scenario 1: Assign Product Manager Role
-
-**Requirements:**
-
-- Create and edit products
-- View products
-- Cannot delete products
-
-**Permission Assignment:**
-
-- `PRODUCT_MANAGEMENT`: create, read, update
-- Role: Staff
-
-**Result:** Member can manage products but cannot delete them
-
----
-
-### Scenario 2: Assign Order Processor Role
-
-**Requirements:**
-
-- View orders
-- Update order status
-- Cannot create or delete orders
-
-**Permission Assignment:**
-
-- `ORDER_MANAGEMENT`: read, update
-- Role: Staff
-
-**Result:** Member can process orders but cannot create/delete
-
----
-
-### Scenario 3: Assign Viewer Role
-
-**Requirements:**
-
-- View products and orders
-- No modification access
-
-**Permission Assignment:**
-
-- `PRODUCT_MANAGEMENT`: read
-- `ORDER_MANAGEMENT`: read
-- Role: Member
-
-**Result:** Member can view but not modify anything
-
----
-
-### Scenario 4: Promote Staff to Admin
-
-**Flow:**
-
-1. Go to member details
-2. Change role from Staff to Admin
-3. Admin role grants most permissions automatically
-4. Save changes
-
-**Result:** Member promoted to Admin with expanded access
-
----
-
-## Best Practices
-
-### Permission Management
-
-1. **Principle of Least Privilege** - Grant minimum necessary permissions
-2. **Role-Based Assignment** - Use roles for common permission sets
-3. **Regular Audits** - Review permissions periodically
-4. **Document Permissions** - Keep records of permission assignments
-5. **Remove Unused Access** - Revoke permissions when no longer needed
-
-### Security
-
-1. **Owner Protection** - Owner cannot be removed
-2. **Admin Caution** - Limit admin assignments
-3. **Permission Reviews** - Audit permissions regularly
-4. **Access Logs** - Monitor access patterns
-5. **Remove Departing Members** - Remove access promptly
-
-### Organization Management
-
-1. **Clear Roles** - Define role responsibilities clearly
-2. **Permission Documentation** - Document permission requirements
-3. **Training** - Train members on permission system
-4. **Support** - Provide support for permission issues
-5. **Updates** - Keep permissions updated as needs change
+## How to Add a Team Member
+
+1.  Go to **Admin > Organization Members**.
+2.  Click **Add Member**.
+3.  Enter their **Email Address**.
+4.  Choose a **Role** (e.g., Staff).
+5.  Check the boxes for the **Permissions** they need.
+6.  Click **Send Invite**.
+
+They will receive an email to join your team!
 
 ---
 
 ## Frequently Asked Questions
 
-### Q: Can I remove the organization owner?
+### Can I change a member's permissions later?
 
-**A:** No, the owner cannot be removed. Ownership can be transferred to another member.
+Yes! Just go to the member list, click "Edit Permissions" next to their name, and check/uncheck the boxes.
 
-### Q: What's the difference between Admin and Staff roles?
+### Can staff members delete my store?
 
-**A:** Admin has broad administrative access by default. Staff has limited access based on assigned permissions.
+No. Only the **Owner** has the power to perform critical actions like deleting the organization.
 
-### Q: Can permissions be assigned per feature?
+### What if an employee leaves?
 
-**A:** Yes, permissions are assigned per permission code (feature) and action (create, read, update, delete).
-
-### Q: Do permissions apply across organizations?
-
-**A:** No, permissions are organization-specific. A member's permissions in one organization don't affect another.
-
-### Q: Can I create custom permission codes?
-
-**A:** Permission codes are defined by the system. Contact support if you need new permission types.
-
-### Q: What happens if I remove a member's permissions?
-
-**A:** The member immediately loses access to those features. They can still access features they have permissions for.
-
----
-
-## Related Articles
-
-- [Organization Management](../convex/organizations/README.md)
-- [Helper Functions](../convex/helpers/README.md)
-
-
-
-
+You should remove them immediately. Go to the member list and click **Remove**. They will lose access instantly.

@@ -17,14 +17,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const organization = await client.query(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug });
   if (!organization) return {};
 
-  // Resolve favicon URL if key
-  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
-  let faviconUrl = (organization.logo as string | undefined) || '/favicon.ico';
-  if (isKey(faviconUrl)) {
-    try {
-      faviconUrl = await client.query(api.files.queries.index.getFileUrl, { key: faviconUrl as string });
-    } catch {}
-  }
+  // Resolve favicon URL using R2 public URL
+  const faviconUrl = buildR2PublicUrl(organization.logo as string | undefined) || '/favicon.ico';
 
   let product = null;
   try {
@@ -37,13 +31,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = product?.title ? `${product.title} — ${organization.name}` : `Product — ${organization.name}`;
   const description = product?.description || `View product details and purchase options from ${organization.name}.`;
 
-  // Resolve product image URL for Open Graph
-  let ogImage = product?.imageUrl?.[0] || organization.logo || '/favicon.ico';
-  if (isKey(ogImage)) {
-    try {
-      ogImage = await client.query(api.files.queries.index.getFileUrl, { key: ogImage as string });
-    } catch {}
-  }
+  // Resolve product image URL for Open Graph using R2 public URL
+  const ogImage = buildR2PublicUrl(product?.imageUrl?.[0] || (organization.logo as string | undefined)) || '/favicon.ico';
 
   return {
     title,

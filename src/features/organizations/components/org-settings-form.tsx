@@ -92,6 +92,7 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
   const [mode, setMode] = useState<'light' | 'dark' | 'auto'>(organization.themeSettings?.mode || 'auto');
   const [fontFamily, setFontFamily] = useState(organization.themeSettings?.fontFamily || '');
   const [borderRadius, setBorderRadius] = useState<'none' | 'small' | 'medium' | 'large'>(organization.themeSettings?.borderRadius || 'medium');
+  const [organizationType, setOrganizationType] = useState<'PUBLIC' | 'PRIVATE' | 'SECRET'>(organization.organizationType);
   const [saving, setSaving] = useState(false);
   const uploadFile = useUploadFile(api.files.r2);
   const deleteFile = useMutation(api.files.mutations.index.deleteFile);
@@ -116,7 +117,7 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
   }, [name, slug]);
 
   const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
-  
+
   // Use public URL builder for previews
   const logoSrc = buildR2PublicUrl(logo || null) || undefined;
   const bannerSrc = buildR2PublicUrl(bannerImage || null) || undefined;
@@ -181,6 +182,7 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
           fontFamily: fontFamily.trim() || undefined,
           borderRadius,
         },
+        organizationType,
       });
       if (normalizedSlug && normalizedSlug !== organization.slug) {
         try {
@@ -273,6 +275,80 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+      </div>
+
+      {/* Visibility Settings */}
+      <div className="rounded-lg border p-4 space-y-3">
+        <div>
+          <label className="mb-1 block text-sm font-medium">Organization Visibility</label>
+          <p className="text-xs text-muted-foreground mb-3">Control how users can discover and join your organization</p>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <label
+            className={`flex cursor-pointer flex-col rounded-lg border-2 p-3 transition-all ${
+              organizationType === 'PUBLIC' ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/50'
+            }`}
+          >
+            <input
+              type="radio"
+              name="orgType"
+              value="PUBLIC"
+              checked={organizationType === 'PUBLIC'}
+              onChange={() => setOrganizationType('PUBLIC')}
+              className="sr-only"
+            />
+            <div className="flex items-center gap-2">
+              <div className={`h-3 w-3 rounded-full ${organizationType === 'PUBLIC' ? 'bg-green-500' : 'bg-muted-foreground/30'}`} />
+              <span className="font-medium text-sm">Public</span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Anyone can find and join directly</p>
+          </label>
+          <label
+            className={`flex cursor-pointer flex-col rounded-lg border-2 p-3 transition-all ${
+              organizationType === 'PRIVATE' ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/50'
+            }`}
+          >
+            <input
+              type="radio"
+              name="orgType"
+              value="PRIVATE"
+              checked={organizationType === 'PRIVATE'}
+              onChange={() => setOrganizationType('PRIVATE')}
+              className="sr-only"
+            />
+            <div className="flex items-center gap-2">
+              <div className={`h-3 w-3 rounded-full ${organizationType === 'PRIVATE' ? 'bg-amber-500' : 'bg-muted-foreground/30'}`} />
+              <span className="font-medium text-sm">Private</span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Searchable, but joining requires approval</p>
+          </label>
+          <label
+            className={`flex cursor-pointer flex-col rounded-lg border-2 p-3 transition-all ${
+              organizationType === 'SECRET' ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/50'
+            }`}
+          >
+            <input
+              type="radio"
+              name="orgType"
+              value="SECRET"
+              checked={organizationType === 'SECRET'}
+              onChange={() => setOrganizationType('SECRET')}
+              className="sr-only"
+            />
+            <div className="flex items-center gap-2">
+              <div className={`h-3 w-3 rounded-full ${organizationType === 'SECRET' ? 'bg-red-500' : 'bg-muted-foreground/30'}`} />
+              <span className="font-medium text-sm">Secret</span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Hidden from search, invite links only</p>
+          </label>
+        </div>
+        {organizationType === 'SECRET' && (
+          <div className="mt-2 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
+            <p className="text-xs text-amber-800 dark:text-amber-200">
+              <strong>Note:</strong> Secret organizations cannot be found via search. Users can only join through invite links.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

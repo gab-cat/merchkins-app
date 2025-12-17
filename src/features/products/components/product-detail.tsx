@@ -365,6 +365,9 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                       </div>
                     </motion.div>
                     {!selectedVariant && <span className="text-xs text-red-500 font-medium">Please select a variant to continue</span>}
+                    {selectedVariant && selectedVariant.sizes && selectedVariant.sizes.length > 1 && !selectedSizeId && (
+                      <span className="text-xs text-red-500 font-medium">Please select a size to continue</span>
+                    )}
                   </div>
                 </BlurFade>
               )}
@@ -443,10 +446,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
               {/* Organization Info Card */}
               {organization && (
                 <BlurFade delay={0.55}>
-                  <motion.div
-                    className="rounded-2xl border bg-card p-5 space-y-4 shadow-sm hover:shadow-md transition-all duration-300"
-                    whileHover={{ y: -2 }}
-                  >
+                  <motion.div className="rounded-2xl border bg-card p-5 space-y-4 transition-all duration-300" whileHover={{ y: -2 }}>
                     <div className="flex items-start gap-4">
                       {organization.logo ? (
                         <R2Image

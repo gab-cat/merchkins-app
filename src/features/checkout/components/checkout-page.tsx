@@ -250,13 +250,7 @@ function CheckoutItem({ item }: CheckoutItemProps) {
       {/* Product image */}
       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50 border border-slate-100">
         {item.productInfo.imageUrl?.[0] ? (
-          <R2Image
-            fileKey={item.productInfo.imageUrl[0]}
-            alt={item.productInfo.title}
-            width={64}
-            height={64}
-            className="h-full w-full object-cover"
-          />
+          <R2Image fileKey={item.productInfo.imageUrl[0]} alt={item.productInfo.title} fill sizes="64px" className="object-cover" />
         ) : (
           <div className="h-full w-full flex items-center justify-center">
             <Package className="h-6 w-6 text-slate-300" />
@@ -477,6 +471,51 @@ export function CheckoutPage() {
       const checkoutId = generateCheckoutId();
 
       // Create one order per organization group
+      // Calculate proportional voucher shares if a voucher is applied
+      let voucherShares: Record<string, number> = {};
+
+      if (appliedVoucher && appliedVoucher.discountAmount > 0) {
+        const totalCartAmount = totals.amount;
+        let remainingVoucher = appliedVoucher.discountAmount;
+
+        // First pass: Calculate raw proportional shares
+        const orgs = Object.keys(selectedByOrg);
+        const rawShares: Record<string, number> = {};
+
+        // Calculate shares relative to store subtotal
+        for (const [orgId, group] of Object.entries(selectedByOrg)) {
+          const storeSubtotal = group.items.reduce((s, i) => s + i.quantity * i.productInfo.price, 0);
+          const proportion = totalCartAmount > 0 ? storeSubtotal / totalCartAmount : 0;
+          let share = Math.round(appliedVoucher.discountAmount * proportion * 100) / 100;
+
+          // Cap at store subtotal (cannot discount more than the order value)
+          share = Math.min(share, storeSubtotal);
+
+          rawShares[orgId] = share;
+        }
+
+        // Adjust for rounding errors to match total discount exactly
+        // (If strictly proportional split results in total != discount, adjust largest share)
+        const currentTotalShare = Object.values(rawShares).reduce((a, b) => a + b, 0);
+        const diff = appliedVoucher.discountAmount - currentTotalShare;
+
+        // If there's a difference and we haven't exceeded total cart amount (which shouldn't happen with valid vouchers)
+        if (Math.abs(diff) > 0.01 && currentTotalShare < totalCartAmount) {
+          // Find org with largest share to absorb the difference
+          const largestOrgId = Object.keys(rawShares).reduce((a, b) => (rawShares[a] > rawShares[b] ? a : b));
+
+          // Ensure adding diff doesn't exceed that org's subtotal
+          const group = selectedByOrg[largestOrgId];
+          const storeSubtotal = group.items.reduce((s, i) => s + i.quantity * i.productInfo.price, 0);
+
+          if (rawShares[largestOrgId] + diff <= storeSubtotal) {
+            rawShares[largestOrgId] += diff;
+          }
+        }
+
+        voucherShares = rawShares;
+      }
+
       const promises: Array<
         Promise<{
           orderId: Id<'orders'>;
@@ -501,12 +540,20 @@ export function CheckoutPage() {
         }));
         const orgIdArg = orgId !== 'global' ? (orgId as unknown as Id<'organizations'>) : undefined;
 
-        // Only apply voucher to the first order if multiple orgs, or if voucher is for specific org
-        const shouldApplyVoucher =
+        // Determine voucher arguments for this order
+        const voucherCodeArg = appliedVoucher?.code;
+        const voucherShareArg = voucherShares[orgId];
+
+        // Only pass voucher args if this org has a calculated share
+        // OR if it's a zero-discount voucher (like free shipping tracked globally) and it's the first org
+        // For proportional split (REFUND/FIXED), we use voucherShareArg
+
+        const shouldUseVoucher =
           appliedVoucher &&
-          (!appliedVoucher.discountAmount || // No discount = always apply
-            organizationIds.length === 1 || // Single org = apply
-            Object.keys(selectedByOrg).indexOf(orgId) === 0); // First org in multi-org order
+          // Case 1: We have a specific calculated share for this org
+          (voucherShareArg !== undefined ||
+            // Case 2: No specific share (e.g. Free Shipping), only apply to first org to avoid double counting
+            (!appliedVoucher.discountAmount && Object.keys(selectedByOrg).indexOf(orgId) === 0));
 
         promises.push(
           createOrder({
@@ -514,7 +561,8 @@ export function CheckoutPage() {
             organizationId: orgIdArg,
             items,
             customerNotes: notes || undefined,
-            voucherCode: shouldApplyVoucher ? appliedVoucher?.code : undefined,
+            voucherCode: shouldUseVoucher ? voucherCodeArg : undefined,
+            voucherProportionalShare: voucherShareArg,
             checkoutId,
           })
         );
