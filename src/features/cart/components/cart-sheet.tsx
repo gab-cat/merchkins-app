@@ -445,7 +445,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white rounded-lg"
+                        className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white rounded-full"
                         aria-label="Select variant"
                       >
                         <span className="truncate">{item.productInfo.variantName ?? 'Select variant'}</span>
@@ -484,7 +484,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white rounded-lg"
+                            className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white rounded-full"
                             aria-label="Select size"
                           >
                             <span className="truncate">Size: {item.size?.label ?? 'Select'}</span>

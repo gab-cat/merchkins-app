@@ -4,12 +4,14 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from 'convex-helpers/react/cache/hooks';
+import { useMutation } from 'convex/react';
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { OrderPaymentLink } from './order-payment-link';
 import { OrderLogsSection } from './order-logs-section';
 import { CancelOrderModal } from './cancel-order-modal';
 import { RefundRequestModal } from './refund-request-modal';
+import { ConfirmOrderReceivedModal } from './confirm-order-received-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BatchBadge } from '@/src/features/admin/components/batches/batch-badge';
@@ -184,10 +186,12 @@ export function OrderDetail({ orderId }: { orderId: string }) {
   const loading = order === undefined;
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [confirmReceivedModalOpen, setConfirmReceivedModalOpen] = useState(false);
 
   // Check if order can be cancelled
   const canCancel = order && order.status !== 'DELIVERED' && order.status !== 'CANCELLED';
   const isPaid = order?.paymentStatus === 'PAID';
+  const isReady = order?.status === 'READY';
 
   // Check if order is within 24 hours of order date
   const withinRefundWindow = order ? new Date(order.orderDate).getTime() > Date.now() - 24 * 60 * 60 * 1000 : false;
@@ -399,7 +403,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                         </p>
                         <Button
                           onClick={() => setRefundModalOpen(true)}
-                          className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg h-9 px-4 text-sm font-semibold shadow-sm"
+                          className="bg-amber-600 hover:bg-amber-700 text-white rounded-full h-9 px-4 text-sm font-semibold shadow-sm"
                         >
                           <RotateCcw className="h-4 w-4 mr-2" />
                           Request Refund
@@ -556,9 +560,24 @@ export function OrderDetail({ orderId }: { orderId: string }) {
 
           {/* Actions */}
           <motion.div variants={itemVariants} className="mt-4 space-y-3">
+            {/* Confirm Order Received Button - shown when order is READY */}
+            {isReady && (
+              <Button
+                className="w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                onClick={() => setConfirmReceivedModalOpen(true)}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Confirm Order Received
+              </Button>
+            )}
+
             {/* Cancel Order Button */}
             {canCancel && !isPaid && (
-              <Button variant="outline" className="w-full border-red-200 text-red-700 hover:bg-red-50" onClick={() => setCancelModalOpen(true)}>
+              <Button
+                variant="outline"
+                className="w-full rounded-full border-red-200 text-red-700 hover:bg-red-50"
+                onClick={() => setCancelModalOpen(true)}
+              >
                 <X className="h-4 w-4 mr-2" />
                 Cancel Order
               </Button>
@@ -583,6 +602,15 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                 orderNumber={order.orderNumber}
                 open={refundModalOpen}
                 onOpenChange={setRefundModalOpen}
+                onSuccess={() => {
+                  // Convex queries automatically refetch when data changes
+                }}
+              />
+              <ConfirmOrderReceivedModal
+                orderId={order._id}
+                orderNumber={order.orderNumber}
+                open={confirmReceivedModalOpen}
+                onOpenChange={setConfirmReceivedModalOpen}
                 onSuccess={() => {
                   // Convex queries automatically refetch when data changes
                 }}

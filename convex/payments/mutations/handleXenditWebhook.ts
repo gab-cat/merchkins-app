@@ -233,6 +233,14 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
           checkoutId,
         }
       );
+
+      // Schedule payment received email for this order
+      await ctx.scheduler.runAfter(0, internal.payments.actions.sendPaymentConfirmationEmail.sendPaymentConfirmationEmail, {
+        orderId: order._id,
+        paymentAmount: orderPaymentAmount,
+        transactionId: webhookEvent.id,
+      });
+      console.log('Payment received email scheduled for order:', order.orderNumber);
     }
 
     // Update checkout session status to PAID

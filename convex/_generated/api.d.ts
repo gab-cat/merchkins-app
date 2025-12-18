@@ -95,6 +95,7 @@ import type * as helpers_emailTemplates_index from "../helpers/emailTemplates/in
 import type * as helpers_emailTemplates_mailgunClient from "../helpers/emailTemplates/mailgunClient.js";
 import type * as helpers_emailTemplates_orderConfirmation from "../helpers/emailTemplates/orderConfirmation.js";
 import type * as helpers_emailTemplates_paymentConfirmation from "../helpers/emailTemplates/paymentConfirmation.js";
+import type * as helpers_emailTemplates_paymentReceived from "../helpers/emailTemplates/paymentReceived.js";
 import type * as helpers_emailTemplates_payoutInvoiceReady from "../helpers/emailTemplates/payoutInvoiceReady.js";
 import type * as helpers_emailTemplates_preview from "../helpers/emailTemplates/preview.js";
 import type * as helpers_emailTemplates_refundApproved from "../helpers/emailTemplates/refundApproved.js";
@@ -173,6 +174,7 @@ import type * as orderBatches_queries_index from "../orderBatches/queries/index.
 import type * as orders_actions_sendOrderConfirmationEmail from "../orders/actions/sendOrderConfirmationEmail.js";
 import type * as orders_actions_sendOrderStatusEmail from "../orders/actions/sendOrderStatusEmail.js";
 import type * as orders_mutations_cancelOrder from "../orders/mutations/cancelOrder.js";
+import type * as orders_mutations_confirmOrderReceived from "../orders/mutations/confirmOrderReceived.js";
 import type * as orders_mutations_createOrder from "../orders/mutations/createOrder.js";
 import type * as orders_mutations_createOrderLog from "../orders/mutations/createOrderLog.js";
 import type * as orders_mutations_createXenditInvoiceForOrder from "../orders/mutations/createXenditInvoiceForOrder.js";
@@ -487,6 +489,7 @@ declare const fullApi: ApiFromModules<{
   "helpers/emailTemplates/mailgunClient": typeof helpers_emailTemplates_mailgunClient;
   "helpers/emailTemplates/orderConfirmation": typeof helpers_emailTemplates_orderConfirmation;
   "helpers/emailTemplates/paymentConfirmation": typeof helpers_emailTemplates_paymentConfirmation;
+  "helpers/emailTemplates/paymentReceived": typeof helpers_emailTemplates_paymentReceived;
   "helpers/emailTemplates/payoutInvoiceReady": typeof helpers_emailTemplates_payoutInvoiceReady;
   "helpers/emailTemplates/preview": typeof helpers_emailTemplates_preview;
   "helpers/emailTemplates/refundApproved": typeof helpers_emailTemplates_refundApproved;
@@ -565,6 +568,7 @@ declare const fullApi: ApiFromModules<{
   "orders/actions/sendOrderConfirmationEmail": typeof orders_actions_sendOrderConfirmationEmail;
   "orders/actions/sendOrderStatusEmail": typeof orders_actions_sendOrderStatusEmail;
   "orders/mutations/cancelOrder": typeof orders_mutations_cancelOrder;
+  "orders/mutations/confirmOrderReceived": typeof orders_mutations_confirmOrderReceived;
   "orders/mutations/createOrder": typeof orders_mutations_createOrder;
   "orders/mutations/createOrderLog": typeof orders_mutations_createOrderLog;
   "orders/mutations/createXenditInvoiceForOrder": typeof orders_mutations_createXenditInvoiceForOrder;

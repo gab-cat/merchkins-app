@@ -25,6 +25,7 @@ import {
   Sparkles,
   TrendingUp,
   ArrowRight,
+  Clock,
 } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 import { useCartSheetStore } from '@/src/stores/cart-sheet';
@@ -330,45 +331,58 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
               {/* Variant Selection - Only show if there are multiple variants OR multiple sizes */}
               {activeVariants.length > 0 && (activeVariants.length > 1 || (selectedVariant?.sizes && selectedVariant.sizes.length > 1)) && (
                 <BlurFade delay={0.4}>
-                  <div className="space-y-3">
-                    <span className="text-sm font-semibold text-foreground">Select Variant & Size</span>
-                    <motion.div
-                      className="flex items-stretch gap-3 p-4 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/[0.02] hover:border-primary/40 hover:bg-primary/[0.04] transition-all duration-300 cursor-pointer"
-                      onClick={() => setVariantDialogOpen(true)}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                    >
-                      <div className="flex-1 flex items-center">
-                        {selectedVariant ? (
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                                <Check className="h-5 w-5 text-primary" />
+                  {(() => {
+                    // Determine if there's an error state
+                    const hasVariantError = !selectedVariant;
+                    const hasSizeError = selectedVariant && selectedVariant.sizes && selectedVariant.sizes.length > 1 && !selectedSizeId;
+                    const hasError = hasVariantError || hasSizeError;
+
+                    return (
+                      <div className="space-y-3">
+                        <span className="text-sm font-semibold text-foreground">Select Variant & Size</span>
+                        <motion.div
+                          className={`flex items-stretch gap-3 p-4 rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer ${
+                            hasError
+                              ? 'border-red-400 bg-red-50/50 hover:border-red-500 hover:bg-red-50'
+                              : 'border-primary/20 bg-primary/[0.02] hover:border-primary/40 hover:bg-primary/[0.04]'
+                          }`}
+                          onClick={() => setVariantDialogOpen(true)}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                        >
+                          <div className="flex-1 flex items-center">
+                            {selectedVariant ? (
+                              <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                    <Check className="h-5 w-5 text-primary" />
+                                  </div>
+                                  <div>
+                                    <div className="font-semibold text-foreground">{selectedVariant.variantName}</div>
+                                    {selectedSize && <div className="text-sm text-muted-foreground">Size: {selectedSize.label}</div>}
+                                  </div>
+                                </div>
+                                <span className="text-lg font-bold text-primary">
+                                  {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(price)}
+                                </span>
                               </div>
-                              <div>
-                                <div className="font-semibold text-foreground">{selectedVariant.variantName}</div>
-                                {selectedSize && <div className="text-sm text-muted-foreground">Size: {selectedSize.label}</div>}
+                            ) : (
+                              <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
+                                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                                <span className="text-muted-foreground">Tap to select variant</span>
                               </div>
-                            </div>
-                            <span className="text-lg font-bold text-primary">
-                              {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(price)}
-                            </span>
+                            )}
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                            </div>
-                            <span className="text-muted-foreground">Tap to select variant</span>
-                          </div>
+                        </motion.div>
+                        {!selectedVariant && <span className="text-xs text-red-500 font-medium">Please select a variant to continue</span>}
+                        {selectedVariant && selectedVariant.sizes && selectedVariant.sizes.length > 1 && !selectedSizeId && (
+                          <span className="text-xs text-red-500 font-medium">Please select a size to continue</span>
                         )}
                       </div>
-                    </motion.div>
-                    {!selectedVariant && <span className="text-xs text-red-500 font-medium">Please select a variant to continue</span>}
-                    {selectedVariant && selectedVariant.sizes && selectedVariant.sizes.length > 1 && !selectedSizeId && (
-                      <span className="text-xs text-red-500 font-medium">Please select a size to continue</span>
-                    )}
-                  </div>
+                    );
+                  })()}
                 </BlurFade>
               )}
 
@@ -401,6 +415,12 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                       Best price
                     </Badge>
                   )}
+                  {product.fulfillmentDays !== undefined && product.fulfillmentDays > 0 && (
+                    <Badge variant="outline" className="text-xs px-3 py-1.5 font-medium rounded-full border-blue-200 bg-blue-50 text-blue-700">
+                      <Clock className="h-3 w-3 mr-1.5" />
+                      Ready in {product.fulfillmentDays} day{product.fulfillmentDays > 1 ? 's' : ''}
+                    </Badge>
+                  )}
                 </div>
               </BlurFade>
 
@@ -417,7 +437,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                         (selectedVariantId && selectedVariant?.sizes && selectedVariant.sizes.length > 0 && !selectedSizeId)
                     )}
                     aria-label="Add to cart"
-                    className="group relative overflow-hidden flex-1 h-14 text-base font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="group relative overflow-hidden flex-1 h-14 text-base font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     {product.inventoryType === 'PREORDER' || inStock ? (
                       <>
@@ -436,7 +456,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                     variant="outline"
                     onClick={handleShare}
                     aria-label="Share product"
-                    className="group flex-1 h-14 text-base font-semibold rounded-2xl border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                    className="group flex-1 h-14 text-base font-semibold rounded-full border-2 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
                   >
                     <Share2 className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" /> Share
                   </Button>

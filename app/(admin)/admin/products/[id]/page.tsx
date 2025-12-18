@@ -67,6 +67,7 @@ const productSchema = z.object({
   categoryId: z.string().optional(),
   inventory: z.coerce.number().min(0, 'Inventory must be 0 or more'),
   inventoryType: z.enum(['PREORDER', 'STOCK']),
+  fulfillmentDays: z.coerce.number().min(0, 'Must be 0 or more').optional(),
   isBestPrice: z.boolean().default(false),
   isActive: z.boolean().default(true),
 });
@@ -128,6 +129,7 @@ export default function AdminEditProductPage() {
       categoryId: '',
       inventory: 0,
       inventoryType: 'STOCK',
+      fulfillmentDays: undefined,
       isBestPrice: false,
       isActive: true,
     },
@@ -146,6 +148,7 @@ export default function AdminEditProductPage() {
         categoryId: product.categoryId || '',
         inventory: product.inventory,
         inventoryType: product.inventoryType || 'STOCK',
+        fulfillmentDays: product.fulfillmentDays,
         isBestPrice: product.isBestPrice || false,
         isActive: product.isActive !== false,
       });
@@ -422,6 +425,7 @@ export default function AdminEditProductPage() {
         categoryId: values.categoryId ? (values.categoryId as any) : undefined,
         inventory: values.inventory,
         inventoryType: values.inventoryType,
+        fulfillmentDays: values.fulfillmentDays,
         isBestPrice: values.isBestPrice,
         isActive: values.isActive,
         tags: tags,
@@ -1065,6 +1069,17 @@ export default function AdminEditProductPage() {
 
                 <FormField label="Total Inventory" name="inventory" error={errors.inventory?.message}>
                   <Input id="inventory" type="number" min={0} className="h-10" {...register('inventory', { valueAsNumber: true })} />
+                </FormField>
+
+                <FormField label="Fulfillment Days" name="fulfillmentDays" hint="Days until ready/delivered (leave empty if not applicable)">
+                  <Input
+                    id="fulfillmentDays"
+                    type="number"
+                    min={0}
+                    placeholder="e.g. 3"
+                    className="h-10"
+                    {...register('fulfillmentDays', { valueAsNumber: true })}
+                  />
                 </FormField>
               </div>
             </FormCard>

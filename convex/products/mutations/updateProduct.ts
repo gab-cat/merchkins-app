@@ -32,6 +32,7 @@ export const updateProductArgs = {
   isActive: v.optional(v.boolean()),
   inventory: v.optional(v.number()),
   inventoryType: v.optional(v.union(v.literal('PREORDER'), v.literal('STOCK'))),
+  fulfillmentDays: v.optional(v.number()),
   variants: v.optional(
     v.array(
       v.object({
@@ -62,6 +63,7 @@ export const updateProductHandler = async (
     isActive?: boolean;
     inventory?: number;
     inventoryType?: 'PREORDER' | 'STOCK';
+    fulfillmentDays?: number;
     variants?: Array<{
       variantId?: string;
       variantName: string;
@@ -197,6 +199,10 @@ export const updateProductHandler = async (
 
   if (args.inventoryType) {
     updates.inventoryType = args.inventoryType;
+  }
+
+  if (args.fulfillmentDays !== undefined) {
+    updates.fulfillmentDays = args.fulfillmentDays || undefined;
   }
 
   // Handle category update

@@ -113,62 +113,98 @@ function CartSkeleton() {
     <div className="min-h-screen bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Header skeleton */}
-        <div className="mb-8 space-y-3">
+        <div className="mb-6 space-y-3">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-slate-100 animate-pulse" />
-            <div className="h-8 w-32 rounded-lg bg-slate-100 animate-pulse" />
+            <div className="h-8 w-48 rounded-lg bg-slate-100 animate-pulse" />
           </div>
-          <div className="h-4 w-48 rounded-lg bg-slate-100 animate-pulse" />
+          <div className="h-4 w-64 rounded-lg bg-slate-100 animate-pulse" />
         </div>
 
         {/* Progress skeleton */}
         <div className="flex items-center justify-center gap-4 mb-8">
           {[1, 2, 3].map((i) => (
             <React.Fragment key={i}>
-              <div className="h-8 w-8 rounded-full bg-slate-100 animate-pulse" />
-              {i < 3 && <div className="w-12 h-0.5 bg-slate-100" />}
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-slate-100 animate-pulse" />
+                <div className="h-3 w-12 rounded-lg bg-slate-100 animate-pulse hidden sm:block" />
+              </div>
+              {i < 3 && <div className="w-8 sm:w-12 h-0.5 bg-slate-100" />}
             </React.Fragment>
           ))}
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Left column skeleton */}
-          <div className="lg:col-span-2 space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="rounded-2xl border border-slate-100 p-5">
-                <div className="flex items-start gap-4">
-                  <div className="h-5 w-5 rounded-md bg-slate-100 animate-pulse" />
-                  <div className="h-20 w-20 rounded-xl bg-slate-100 animate-pulse" />
-                  <div className="flex-1 space-y-3">
-                    <div className="h-5 w-3/4 rounded-lg bg-slate-100 animate-pulse" />
-                    <div className="h-4 w-1/2 rounded-lg bg-slate-100 animate-pulse" />
-                    <div className="flex gap-2">
-                      <div className="h-8 w-24 rounded-xl bg-slate-100 animate-pulse" />
-                      <div className="h-8 w-20 rounded-xl bg-slate-100 animate-pulse" />
+          <div className="lg:col-span-2 space-y-6">
+            {[1, 2].map((store) => (
+              <div key={store} className="space-y-3">
+                {/* Store header skeleton */}
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 rounded bg-slate-100 animate-pulse" />
+                  <div className="h-4 w-32 rounded bg-slate-100 animate-pulse" />
+                  <div className="h-px flex-1 bg-slate-100" />
+                  <div className="h-3 w-12 rounded bg-slate-100 animate-pulse" />
+                </div>
+
+                {/* Items skeleton */}
+                {[1, 2].map((i) => (
+                  <div key={i} className="rounded-2xl border border-slate-100 p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="pt-1">
+                        <div className="h-5 w-5 rounded-md bg-slate-100 animate-pulse" />
+                      </div>
+                      <div className="h-20 w-20 shrink-0 rounded-xl bg-slate-100 animate-pulse" />
+                      <div className="flex-1 space-y-3 min-w-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 space-y-2">
+                            <div className="h-5 w-3/4 rounded-lg bg-slate-100 animate-pulse" />
+                            <div className="h-4 w-1/4 rounded-lg bg-slate-100 animate-pulse" />
+                          </div>
+                          <div className="h-6 w-20 rounded-lg bg-slate-100 animate-pulse shrink-0" />
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="h-8 w-28 rounded-full bg-slate-100 animate-pulse" />
+                          <div className="h-8 w-20 rounded-full bg-slate-100 animate-pulse" />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="h-6 w-20 rounded-lg bg-slate-100 animate-pulse" />
-                </div>
+                ))}
               </div>
             ))}
           </div>
 
           {/* Right column skeleton */}
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-100 p-6 space-y-4">
-              <div className="h-6 w-32 rounded-lg bg-slate-100 animate-pulse" />
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <div className="h-4 w-24 rounded-lg bg-slate-100 animate-pulse" />
-                  <div className="h-4 w-16 rounded-lg bg-slate-100 animate-pulse" />
-                </div>
-                <div className="h-px bg-slate-100" />
-                <div className="flex justify-between">
-                  <div className="h-5 w-20 rounded-lg bg-slate-100 animate-pulse" />
-                  <div className="h-7 w-28 rounded-lg bg-slate-100 animate-pulse" />
-                </div>
+            <div className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+              <div className="px-5 py-4 bg-slate-50 border-b border-slate-100">
+                <div className="h-6 w-32 rounded-lg bg-slate-100 animate-pulse" />
               </div>
-              <div className="h-12 w-full rounded-xl bg-slate-100 animate-pulse" />
+              <div className="p-5 space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <div className="h-4 w-28 rounded-lg bg-slate-100 animate-pulse" />
+                    <div className="h-4 w-16 rounded-lg bg-slate-100 animate-pulse" />
+                  </div>
+                  <div className="h-px bg-slate-100" />
+                  <div className="flex justify-between items-center pt-1">
+                    <div className="h-5 w-24 rounded-lg bg-slate-100 animate-pulse" />
+                    <div className="h-8 w-32 rounded-lg bg-slate-100 animate-pulse" />
+                  </div>
+                </div>
+                <div className="h-12 w-full rounded-xl bg-slate-100 animate-pulse" />
+                <div className="h-12 w-full rounded-full bg-slate-100 animate-pulse" />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 p-5 space-y-4">
+              <div className="h-5 w-32 rounded bg-slate-100 animate-pulse" />
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-10 w-full rounded-lg bg-slate-50 animate-pulse" />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -386,7 +422,7 @@ export function CartPage() {
                     <Link href="/checkout" className="block pt-2">
                       <Button
                         className={cn(
-                          'group relative w-full h-12 rounded-xl text-base font-semibold transition-all duration-300 overflow-hidden',
+                          'group relative w-full h-12 rounded-full text-base font-semibold transition-all duration-300 overflow-hidden',
                           totals.selectedItems > 0
                             ? 'bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-lg shadow-[#1d43d8]/25 hover:shadow-xl hover:shadow-[#1d43d8]/30'
                             : 'bg-slate-200 text-slate-500 cursor-not-allowed'
@@ -670,7 +706,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-8 text-xs justify-between border-slate-200 hover:border-[#1d43d8]/30 bg-white rounded-lg"
+                            className="h-8 text-xs justify-between border-slate-200 hover:border-[#1d43d8]/30 bg-white rounded-full"
                             aria-label="Select variant"
                           >
                             <span className="truncate">{item.productInfo.variantName ?? 'Select variant'}</span>
@@ -707,7 +743,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-8 text-xs justify-between border-slate-200 hover:border-[#1d43d8]/30 bg-white rounded-lg"
+                                className="h-8 text-xs justify-between border-slate-200 hover:border-[#1d43d8]/30 bg-white rounded-full"
                                 aria-label="Select size"
                               >
                                 <span className="truncate">Size: {item.size?.label ?? 'Select'}</span>

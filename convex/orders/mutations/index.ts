@@ -13,6 +13,7 @@ import { createXenditInvoiceForOrderArgs, createXenditInvoiceForOrderHandler } f
 import { createOrderLogArgs, createOrderLogHandler } from './createOrderLog';
 import { updateOrderWithNoteArgs, updateOrderWithNoteHandler } from './updateOrderWithNote';
 import { updateOrdersInvoiceForSessionArgs, updateOrdersInvoiceForSessionHandler } from './updateOrdersInvoiceForSession';
+import { confirmOrderReceivedArgs, confirmOrderReceivedHandler } from './confirmOrderReceived';
 
 export const createOrder = mutation({
   args: createOrderArgs,
@@ -47,6 +48,11 @@ export const deleteOrder = mutation({
 export const restoreOrder = mutation({
   args: restoreOrderArgs,
   handler: restoreOrderHandler,
+});
+
+export const confirmOrderReceived = mutation({
+  args: confirmOrderReceivedArgs,
+  handler: confirmOrderReceivedHandler,
 });
 
 export const refreshXenditInvoice = action({

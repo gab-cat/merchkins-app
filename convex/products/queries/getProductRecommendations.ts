@@ -28,41 +28,60 @@ export const getProductRecommendationsHandler = async (
   const limit = args.limit || 10;
   const strategy = args.strategy || 'similar_category';
 
+  const organizationId = product.organizationId;
+
   let candidates: Doc<'products'>[] = [];
 
   switch (strategy) {
     case 'similar_category':
       if (product.categoryId) {
-        candidates = await ctx.db
-          .query('products')
-          .withIndex('by_category', (q) => q.eq('categoryId', product.categoryId!))
-          .filter((q) => q.and(q.eq(q.field('isDeleted'), false), q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0)))
-          .collect();
+        if (organizationId) {
+          candidates = await ctx.db
+            .query('products')
+            .withIndex('by_organization_category', (q) => q.eq('organizationId', organizationId).eq('categoryId', product.categoryId!))
+            .filter((q) => q.and(q.eq(q.field('isDeleted'), false), q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0)))
+            .collect();
+        } else {
+          candidates = await ctx.db
+            .query('products')
+            .withIndex('by_category', (q) => q.eq('categoryId', product.categoryId!))
+            .filter((q) => q.and(q.eq(q.field('isDeleted'), false), q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0)))
+            .collect();
+        }
       }
       break;
 
     case 'same_organization':
-      if (product.organizationId) {
+      if (organizationId) {
         candidates = await ctx.db
           .query('products')
-          .withIndex('by_organization', (q) => q.eq('organizationId', product.organizationId!))
+          .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
           .filter((q) => q.and(q.eq(q.field('isDeleted'), false), q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0)))
           .collect();
       }
       break;
 
     case 'popular':
-      candidates = await ctx.db
-        .query('products')
-        .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
-        .filter((q) =>
-          q.and(
-            q.neq(q.field('_id'), args.productId),
-            q.gt(q.field('inventory'), 0),
-            q.gt(q.field('totalOrders'), 10) // Popular products have >10 orders
+      if (organizationId) {
+        candidates = await ctx.db
+          .query('products')
+          .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+          .filter((q) =>
+            q.and(
+              q.eq(q.field('isDeleted'), false),
+              q.neq(q.field('_id'), args.productId),
+              q.gt(q.field('inventory'), 0),
+              q.gt(q.field('totalOrders'), 5) // Lower threshold for org-specific popularity
+            )
           )
-        )
-        .collect();
+          .collect();
+      } else {
+        candidates = await ctx.db
+          .query('products')
+          .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
+          .filter((q) => q.and(q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0), q.gt(q.field('totalOrders'), 10)))
+          .collect();
+      }
       break;
 
     case 'price_range':
@@ -70,27 +89,51 @@ export const getProductRecommendationsHandler = async (
       const productMaxPrice = product.maxPrice || Number.MAX_VALUE;
       const priceBuffer = (productMaxPrice - productMinPrice) * 0.3; // 30% price range
 
-      candidates = await ctx.db
-        .query('products')
-        .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
-        .filter((q) =>
-          q.and(
-            q.neq(q.field('_id'), args.productId),
-            q.gt(q.field('inventory'), 0),
-            q.gte(q.field('minPrice'), Math.max(0, productMinPrice - priceBuffer)),
-            q.lte(q.field('maxPrice'), productMaxPrice + priceBuffer)
+      if (organizationId) {
+        candidates = await ctx.db
+          .query('products')
+          .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+          .filter((q) =>
+            q.and(
+              q.eq(q.field('isDeleted'), false),
+              q.neq(q.field('_id'), args.productId),
+              q.gt(q.field('inventory'), 0),
+              q.gte(q.field('minPrice'), Math.max(0, productMinPrice - priceBuffer)),
+              q.lte(q.field('maxPrice'), productMaxPrice + priceBuffer)
+            )
           )
-        )
-        .collect();
+          .collect();
+      } else {
+        candidates = await ctx.db
+          .query('products')
+          .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
+          .filter((q) =>
+            q.and(
+              q.neq(q.field('_id'), args.productId),
+              q.gt(q.field('inventory'), 0),
+              q.gte(q.field('minPrice'), Math.max(0, productMinPrice - priceBuffer)),
+              q.lte(q.field('maxPrice'), productMaxPrice + priceBuffer)
+            )
+          )
+          .collect();
+      }
       break;
 
     case 'tags':
       if (product.tags.length > 0) {
-        candidates = await ctx.db
-          .query('products')
-          .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
-          .filter((q) => q.and(q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0)))
-          .collect();
+        if (organizationId) {
+          candidates = await ctx.db
+            .query('products')
+            .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+            .filter((q) => q.and(q.eq(q.field('isDeleted'), false), q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0)))
+            .collect();
+        } else {
+          candidates = await ctx.db
+            .query('products')
+            .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
+            .filter((q) => q.and(q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0)))
+            .collect();
+        }
 
         // Filter by shared tags in post-processing
         candidates = candidates.filter((candidate) => candidate.tags.some((tag) => product.tags.includes(tag)));
@@ -98,13 +141,22 @@ export const getProductRecommendationsHandler = async (
       break;
   }
 
-  // If we don't have enough candidates, fall back to popular products
+  // If we don't have enough candidates, fall back to other products IN THE SAME ORG
   if (candidates.length < limit) {
-    const fallbackCandidates = await ctx.db
-      .query('products')
-      .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
-      .filter((q) => q.and(q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0)))
-      .collect();
+    let fallbackCandidates: Doc<'products'>[] = [];
+    if (organizationId) {
+      fallbackCandidates = await ctx.db
+        .query('products')
+        .withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+        .filter((q) => q.and(q.eq(q.field('isDeleted'), false), q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0)))
+        .collect();
+    } else {
+      fallbackCandidates = await ctx.db
+        .query('products')
+        .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
+        .filter((q) => q.and(q.neq(q.field('_id'), args.productId), q.gt(q.field('inventory'), 0)))
+        .collect();
+    }
 
     // Add unique fallback candidates
     const existingIds = new Set(candidates.map((c) => c._id));

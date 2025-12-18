@@ -31,6 +31,7 @@ export const createProductArgs = {
   isBestPrice: v.optional(v.boolean()),
   inventory: v.number(),
   inventoryType: v.union(v.literal('PREORDER'), v.literal('STOCK')),
+  fulfillmentDays: v.optional(v.number()),
   variants: v.array(
     v.object({
       variantName: v.string(),
@@ -66,6 +67,7 @@ export const createProductHandler = async (
     isBestPrice?: boolean;
     inventory: number;
     inventoryType: 'PREORDER' | 'STOCK';
+    fulfillmentDays?: number;
     variants: Array<{
       variantName: string;
       price: number;
@@ -196,13 +198,14 @@ export const createProductHandler = async (
     inventory: variant.inventory,
     imageUrl: variant.imageUrl,
     isActive: variant.isActive !== undefined ? variant.isActive : true,
-    sizes: variant.sizes && variant.sizes.length > 0
-      ? variant.sizes.map((size) => ({
-          id: size.id,
-          label: sanitizeString(size.label),
-          price: size.price,
-        }))
-      : undefined,
+    sizes:
+      variant.sizes && variant.sizes.length > 0
+        ? variant.sizes.map((size) => ({
+            id: size.id,
+            label: sanitizeString(size.label),
+            price: size.price,
+          }))
+        : undefined,
     orderCount: 0,
     inCartCount: 0,
     isPopular: false,
@@ -232,6 +235,7 @@ export const createProductHandler = async (
     isBestPrice: productData.isBestPrice,
     inventory: productData.inventory,
     inventoryType: productData.inventoryType,
+    fulfillmentDays: args.fulfillmentDays,
     variants: processedVariants,
     recentReviews: [],
     totalVariants: processedVariants.length,

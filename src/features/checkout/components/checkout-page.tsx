@@ -122,11 +122,14 @@ function CheckoutSkeleton() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+        {/* Back link skeleton */}
+        <div className="h-4 w-24 rounded bg-slate-100 animate-pulse mb-6" />
+
         {/* Header skeleton */}
-        <div className="mb-8 space-y-3">
+        <div className="mb-6 space-y-3">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-slate-100 animate-pulse" />
-            <div className="h-8 w-32 rounded-lg bg-slate-100 animate-pulse" />
+            <div className="h-8 w-48 rounded-lg bg-slate-100 animate-pulse" />
           </div>
           <div className="h-4 w-64 rounded-lg bg-slate-100 animate-pulse" />
         </div>
@@ -135,8 +138,11 @@ function CheckoutSkeleton() {
         <div className="flex items-center justify-center gap-4 mb-8">
           {[1, 2, 3].map((i) => (
             <React.Fragment key={i}>
-              <div className="h-8 w-8 rounded-full bg-slate-100 animate-pulse" />
-              {i < 3 && <div className="w-12 h-0.5 bg-slate-100" />}
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-slate-100 animate-pulse" />
+                <div className="h-3 w-12 rounded-lg bg-slate-100 animate-pulse hidden sm:block" />
+              </div>
+              {i < 3 && <div className="w-8 sm:w-12 h-0.5 bg-slate-100" />}
             </React.Fragment>
           ))}
         </div>
@@ -144,37 +150,86 @@ function CheckoutSkeleton() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Left column skeleton */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl border border-slate-100 p-6 space-y-4">
-              <div className="h-6 w-32 rounded-lg bg-slate-100 animate-pulse" />
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100">
-                  <div className="h-16 w-16 rounded-xl bg-slate-100 animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded-lg bg-slate-100 animate-pulse" />
-                    <div className="h-3 w-1/2 rounded-lg bg-slate-100 animate-pulse" />
+            {/* Review items skeleton */}
+            <div className="rounded-2xl border border-slate-100 overflow-hidden">
+              <div className="px-5 py-4 bg-slate-50 border-b border-slate-100">
+                <div className="h-6 w-32 rounded bg-slate-100 animate-pulse" />
+              </div>
+              <div className="p-5 space-y-6">
+                {[1, 2].map((store) => (
+                  <div key={store} className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 rounded bg-slate-100 animate-pulse" />
+                      <div className="h-4 w-32 rounded bg-slate-100 animate-pulse" />
+                      <div className="h-px flex-1 bg-slate-100" />
+                    </div>
+                    {[1, 2].map((i) => (
+                      <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100">
+                        <div className="h-16 w-16 rounded-xl bg-slate-100 animate-pulse" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 w-3/4 rounded bg-slate-100 animate-pulse" />
+                          <div className="h-3 w-1/2 rounded bg-slate-100 animate-pulse" />
+                        </div>
+                        <div className="h-5 w-16 rounded bg-slate-100 animate-pulse" />
+                      </div>
+                    ))}
                   </div>
-                  <div className="h-5 w-16 rounded-lg bg-slate-100 animate-pulse" />
+                ))}
+              </div>
+            </div>
+
+            {/* Voucher skeleton */}
+            <div className="rounded-2xl border border-slate-100 overflow-hidden">
+              <div className="px-5 py-4 bg-slate-50 border-b border-slate-100">
+                <div className="h-6 w-32 rounded bg-slate-100 animate-pulse" />
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="flex gap-2">
+                  <div className="h-10 flex-1 rounded-xl bg-slate-100 animate-pulse" />
+                  <div className="h-10 w-24 rounded-xl bg-slate-100 animate-pulse" />
                 </div>
-              ))}
+              </div>
             </div>
           </div>
 
           {/* Right column skeleton */}
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-100 p-6 space-y-4">
-              <div className="h-6 w-32 rounded-lg bg-slate-100 animate-pulse" />
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <div className="h-4 w-24 rounded-lg bg-slate-100 animate-pulse" />
-                  <div className="h-4 w-16 rounded-lg bg-slate-100 animate-pulse" />
+            <div className="rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+              <div className="px-5 py-4 bg-slate-50 border-b border-slate-100">
+                <div className="h-6 w-32 rounded-lg bg-slate-100 animate-pulse" />
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex justify-between">
+                      <div className="h-4 w-24 rounded bg-slate-100 animate-pulse" />
+                      <div className="h-4 w-16 rounded bg-slate-100 animate-pulse" />
+                    </div>
+                  ))}
+                  <div className="h-px bg-slate-100" />
+                  <div className="flex justify-between items-center pt-1">
+                    <div className="h-5 w-16 rounded bg-slate-100 animate-pulse" />
+                    <div className="h-8 w-32 rounded bg-slate-100 animate-pulse" />
+                  </div>
                 </div>
-                <div className="h-px bg-slate-100" />
-                <div className="flex justify-between">
-                  <div className="h-5 w-16 rounded-lg bg-slate-100 animate-pulse" />
-                  <div className="h-6 w-24 rounded-lg bg-slate-100 animate-pulse" />
+                <div className="h-12 w-full rounded-full bg-slate-100 animate-pulse" />
+              </div>
+            </div>
+
+            {/* Trust badges skeleton */}
+            <div className="rounded-2xl border border-slate-100 p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-slate-100 animate-pulse" />
+                <div className="space-y-2">
+                  <div className="h-4 w-24 rounded bg-slate-100 animate-pulse" />
+                  <div className="h-3 w-32 rounded bg-slate-100 animate-pulse" />
                 </div>
               </div>
-              <div className="h-12 w-full rounded-xl bg-slate-100 animate-pulse" />
+              <div className="grid grid-cols-2 gap-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-10 rounded-lg bg-slate-50 animate-pulse" />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -837,7 +892,7 @@ export function CheckoutPage() {
                           <Button
                             onClick={handleApplyVoucher}
                             disabled={!voucherInput.trim() || isValidatingVoucher}
-                            className="rounded-xl bg-[#1d43d8] hover:bg-[#1d43d8]/90 px-5 disabled:bg-slate-200 disabled:text-slate-500"
+                            className="rounded-full bg-[#1d43d8] hover:bg-[#1d43d8]/90 px-5 disabled:bg-slate-200 disabled:text-slate-500"
                           >
                             {isValidatingVoucher ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
                           </Button>
@@ -997,7 +1052,7 @@ export function CheckoutPage() {
                     {/* Place order button */}
                     <Button
                       className={cn(
-                        'group relative w-full h-12 rounded-xl text-base font-semibold transition-all duration-300 overflow-hidden mt-2',
+                        'group relative w-full h-12 rounded-full text-base font-semibold transition-all duration-300 overflow-hidden mt-2',
                         agreeToTerms
                           ? 'bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-lg shadow-[#1d43d8]/25 hover:shadow-xl hover:shadow-[#1d43d8]/30'
                           : 'bg-slate-200 text-slate-500 cursor-not-allowed'

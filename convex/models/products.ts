@@ -47,6 +47,7 @@ export const products = defineTable({
   isBestPrice: v.boolean(),
   inventory: v.number(),
   inventoryType: v.union(v.literal('PREORDER'), v.literal('STOCK')),
+  fulfillmentDays: v.optional(v.number()), // Number of days to fulfill/deliver
 
   // Embedded variants
   variants: v.array(
