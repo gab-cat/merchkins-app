@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Outfit, DM_Sans, Geist, Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import ConvexClientProvider from '@/components/ConvexClientProvider';
 import { ClerkProvider } from '@clerk/nextjs';
@@ -30,6 +31,13 @@ const inter = Inter({
   variable: '--font-inter',
   subsets: ['latin'],
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+});
+
+const genty = localFont({
+  src: './fonts/genty.woff',
+  variable: '--font-genty',
+  display: 'swap',
+  weight: '400',
 });
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com';
@@ -74,7 +82,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${outfit.variable} ${dmSans.variable} ${geist.variable} ${inter.variable} antialiased font-body`}>
+      <body className={`${outfit.variable} ${dmSans.variable} ${geist.variable} ${inter.variable} ${genty.variable} antialiased font-body`}>
         <ClerkProvider
           dynamic
           signInUrl="/sign-in"

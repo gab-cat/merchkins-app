@@ -1,16 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@font-face {
-  font-family: 'Genty';
-  src: url('/fonts/genty.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 .font-genty {
-  font-family: 'Genty', sans-serif;
+  font-family: var(--font-genty), sans-serif;
   color: #adfc04;
 }
 
