@@ -33,6 +33,19 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: '/_next/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
     ];
   },
   images: {
