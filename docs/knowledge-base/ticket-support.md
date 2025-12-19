@@ -63,3 +63,4 @@ If you have a team, you can assign specific tickets to them.
 2.  Look for the **Assignee** field.
 3.  Select a staff member from the list.
 4.  They will receive a notification that they have a new task.
+

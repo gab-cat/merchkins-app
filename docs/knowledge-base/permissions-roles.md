@@ -88,3 +88,4 @@ No. Only the **Owner** has the power to perform critical actions like deleting t
 ### What if an employee leaves?
 
 You should remove them immediately. Go to the member list and click **Remove**. They will lose access instantly.
+
