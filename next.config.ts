@@ -36,7 +36,8 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    formats: ['image/avif'],
+    minimumCacheTTL: 31536000,
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         hostname: 'merchkins.9aeabbfdeac1c51a434e5c4653daa252.r2.cloudflarestorage.com',
