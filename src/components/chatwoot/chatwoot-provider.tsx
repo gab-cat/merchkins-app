@@ -12,6 +12,7 @@ interface ChatwootProviderProps {
   baseUrl?: string;
   organizationId?: Id<'organizations'>;
   primaryColor?: string; // Hex color for the widget theme
+  inbox?: 'admin' | 'platform' | 'org'; // Which inbox type for HMAC validation
 }
 
 declare global {
@@ -57,6 +58,7 @@ export function ChatwootProvider({
   baseUrl = 'https://chat.merchkins.com',
   organizationId,
   primaryColor = '#1d43d8',
+  inbox,
 }: ChatwootProviderProps) {
   const { userId: clerkId, isLoaded: authLoaded } = useAuth();
   const { user } = useCurrentUser();
@@ -247,6 +249,7 @@ export function ChatwootProvider({
         const identifierHash = await generateHmac({
           identifier,
           organizationId,
+          inbox,
         });
 
         // Set user information in Chatwoot
@@ -279,7 +282,7 @@ export function ChatwootProvider({
     };
 
     initializeUser();
-  }, [sdkReady, authLoaded, user, clerkId, organizationId, generateHmac]);
+  }, [sdkReady, authLoaded, user, clerkId, organizationId, inbox, generateHmac]);
 
   // Reset session when user logs out
   useEffect(() => {
