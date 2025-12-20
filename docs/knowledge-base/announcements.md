@@ -61,3 +61,5 @@ A pop-up window that appears when a user opens your store.
 - **Use Buttons:** If you have a sale, add a link button so customers can go directly to the products.
 - **Pin Important Stuff:** You can "Pin" an announcement to keep it at the top of the list, ensuring everyone sees it.
 
+
+

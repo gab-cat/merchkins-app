@@ -12,6 +12,7 @@ import { searchOrganizationsArgs, searchOrganizationsHandler } from './searchOrg
 import { listJoinRequestsArgs, listJoinRequestsHandler } from './listJoinRequests';
 import { getPopularOrganizationsArgs, getPopularOrganizationsHandler } from './getPopularOrganizations';
 import { getMyJoinRequestStatusArgs, getMyJoinRequestStatusHandler, getMyJoinRequestStatusReturns } from './getMyJoinRequestStatus';
+import { getChatwootConfigArgs, getChatwootConfigHandler } from './getChatwootConfig';
 
 export const getOrganizationById = query({
   args: getOrganizationByIdArgs,
@@ -70,4 +71,8 @@ export const getMyJoinRequestStatus = query({
   args: getMyJoinRequestStatusArgs,
   returns: getMyJoinRequestStatusReturns,
   handler: getMyJoinRequestStatusHandler,
+});
+export const getChatwootConfig = query({
+  args: getChatwootConfigArgs,
+  handler: getChatwootConfigHandler,
 });

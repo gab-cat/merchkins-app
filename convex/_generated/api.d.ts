@@ -207,11 +207,13 @@ import type * as organizations_mutations_joinPublicOrganization from "../organiz
 import type * as organizations_mutations_removeMember from "../organizations/mutations/removeMember.js";
 import type * as organizations_mutations_requestToJoinOrganization from "../organizations/mutations/requestToJoinOrganization.js";
 import type * as organizations_mutations_reviewJoinRequest from "../organizations/mutations/reviewJoinRequest.js";
+import type * as organizations_mutations_updateChatwootConfig from "../organizations/mutations/updateChatwootConfig.js";
 import type * as organizations_mutations_updateMemberActivity from "../organizations/mutations/updateMemberActivity.js";
 import type * as organizations_mutations_updateMemberRole from "../organizations/mutations/updateMemberRole.js";
 import type * as organizations_mutations_updateOrganization from "../organizations/mutations/updateOrganization.js";
 import type * as organizations_mutations_updateOrganizationStats from "../organizations/mutations/updateOrganizationStats.js";
 import type * as organizations_queries_checkOrganizationPermission from "../organizations/queries/checkOrganizationPermission.js";
+import type * as organizations_queries_getChatwootConfig from "../organizations/queries/getChatwootConfig.js";
 import type * as organizations_queries_getInviteLinkByCode from "../organizations/queries/getInviteLinkByCode.js";
 import type * as organizations_queries_getMyJoinRequestStatus from "../organizations/queries/getMyJoinRequestStatus.js";
 import type * as organizations_queries_getOrganizationAnalytics from "../organizations/queries/getOrganizationAnalytics.js";
@@ -356,6 +358,8 @@ import type * as tickets_queries_getTicketsPage from "../tickets/queries/getTick
 import type * as tickets_queries_getUnreadCount from "../tickets/queries/getUnreadCount.js";
 import type * as tickets_queries_index from "../tickets/queries/index.js";
 import type * as tickets_queries_searchTickets from "../tickets/queries/searchTickets.js";
+import type * as users_actions_generateChatwootHmac from "../users/actions/generateChatwootHmac.js";
+import type * as users_actions_index from "../users/actions/index.js";
 import type * as users_actions_sendWelcomeEmail from "../users/actions/sendWelcomeEmail.js";
 import type * as users_mutations_addOrganizationMembership from "../users/mutations/addOrganizationMembership.js";
 import type * as users_mutations_clerkWebhook from "../users/mutations/clerkWebhook.js";
@@ -601,11 +605,13 @@ declare const fullApi: ApiFromModules<{
   "organizations/mutations/removeMember": typeof organizations_mutations_removeMember;
   "organizations/mutations/requestToJoinOrganization": typeof organizations_mutations_requestToJoinOrganization;
   "organizations/mutations/reviewJoinRequest": typeof organizations_mutations_reviewJoinRequest;
+  "organizations/mutations/updateChatwootConfig": typeof organizations_mutations_updateChatwootConfig;
   "organizations/mutations/updateMemberActivity": typeof organizations_mutations_updateMemberActivity;
   "organizations/mutations/updateMemberRole": typeof organizations_mutations_updateMemberRole;
   "organizations/mutations/updateOrganization": typeof organizations_mutations_updateOrganization;
   "organizations/mutations/updateOrganizationStats": typeof organizations_mutations_updateOrganizationStats;
   "organizations/queries/checkOrganizationPermission": typeof organizations_queries_checkOrganizationPermission;
+  "organizations/queries/getChatwootConfig": typeof organizations_queries_getChatwootConfig;
   "organizations/queries/getInviteLinkByCode": typeof organizations_queries_getInviteLinkByCode;
   "organizations/queries/getMyJoinRequestStatus": typeof organizations_queries_getMyJoinRequestStatus;
   "organizations/queries/getOrganizationAnalytics": typeof organizations_queries_getOrganizationAnalytics;
@@ -750,6 +756,8 @@ declare const fullApi: ApiFromModules<{
   "tickets/queries/getUnreadCount": typeof tickets_queries_getUnreadCount;
   "tickets/queries/index": typeof tickets_queries_index;
   "tickets/queries/searchTickets": typeof tickets_queries_searchTickets;
+  "users/actions/generateChatwootHmac": typeof users_actions_generateChatwootHmac;
+  "users/actions/index": typeof users_actions_index;
   "users/actions/sendWelcomeEmail": typeof users_actions_sendWelcomeEmail;
   "users/mutations/addOrganizationMembership": typeof users_mutations_addOrganizationMembership;
   "users/mutations/clerkWebhook": typeof users_mutations_clerkWebhook;

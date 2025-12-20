@@ -15,6 +15,7 @@ import { updateMemberActivityArgs, updateMemberActivityHandler } from './updateM
 import { updateMemberRoleArgs, updateMemberRoleHandler } from './updateMemberRole';
 import { updateOrganizationArgs, updateOrganizationHandler } from './updateOrganization';
 import { updateOrganizationStatsArgs, updateOrganizationStatsHandler } from './updateOrganizationStats';
+import { updateChatwootConfigArgs, updateChatwootConfigReturns, updateChatwootConfigHandler } from './updateChatwootConfig';
 
 // Export mutation functions
 export const createOrganization = mutation({
@@ -84,4 +85,10 @@ export const updateOrganization = mutation({
 export const updateOrganizationStats = internalMutation({
   args: updateOrganizationStatsArgs,
   handler: updateOrganizationStatsHandler,
+});
+
+export const updateChatwootConfig = mutation({
+  args: updateChatwootConfigArgs,
+  returns: updateChatwootConfigReturns,
+  handler: updateChatwootConfigHandler,
 });

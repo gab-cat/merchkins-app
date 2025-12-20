@@ -75,3 +75,5 @@ Set the **Status** to "Inactive". The product will disappear from your store but
 
 No. Updating a product's price only affects _new_ orders. Old orders will keep the price the customer originally paid.
 
+
+

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { FloatingActionBar } from './storefront-floating-action-bar';
+import { OrgChatwoot } from './chatwoot/org-chatwoot';
 
 interface StorefrontClientWrapperProps {
   orgSlug: string;
@@ -13,6 +14,7 @@ export function StorefrontClientWrapper({ orgSlug, children }: StorefrontClientW
     <>
       {children}
       <FloatingActionBar orgSlug={orgSlug} />
+      <OrgChatwoot orgSlug={orgSlug} />
     </>
   );
 }

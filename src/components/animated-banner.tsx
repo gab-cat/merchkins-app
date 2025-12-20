@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, MessageSquare, ShoppingBag, Users, Globe, ArrowRight, Sparkles, Store } from 'lucide-react';
 import { useOrganizationMembership } from '@/src/hooks/use-organization-membership';
+import { useChatwoot } from '@/src/components/chatwoot/use-chatwoot';
 import { cn } from '@/lib/utils';
 
 interface AnimatedBannerProps {
@@ -79,6 +80,7 @@ const buttonVariants = {
 
 export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: AnimatedBannerProps) {
   const { isAuthenticated, isMember, isLoading } = useOrganizationMembership(organization._id);
+  const { open: openChatwoot, isReady: isChatwootReady } = useChatwoot();
 
   return (
     <motion.section
@@ -259,15 +261,14 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
 
               <motion.div custom={isAuthenticated && !isMember && !isLoading ? 2 : 1} variants={buttonVariants}>
                 <Button
-                  asChild
                   variant="ghost"
                   size="sm"
-                  className="text-white/70 hover:text-white hover:bg-white/10 font-medium h-9 rounded-full transition-all duration-200"
+                  onClick={openChatwoot}
+                  disabled={!isChatwootReady}
+                  className="text-white/70 hover:text-white hover:bg-white/10 font-medium h-9 rounded-full transition-all duration-200 disabled:opacity-50"
                 >
-                  <Link href={`/o/${orgSlug}/chats`} className="flex items-center gap-2">
-                    <MessageSquare className="h-3.5 w-3.5" />
-                    <span>Chat</span>
-                  </Link>
+                  <MessageSquare className="h-3.5 w-3.5 mr-2" />
+                  <span>Chat</span>
                 </Button>
               </motion.div>
             </div>

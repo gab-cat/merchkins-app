@@ -68,3 +68,5 @@ When you cancel an order (e.g., if you ran out of stock), the system will automa
 
 Refunds are only available for **PAID** orders within the 24-hour window. If you need to issue a manual refund or credit later, you might need to use the Voucher system to give them store credit.
 
+
+

@@ -26,6 +26,9 @@ import {
   ChevronUp,
   Copy,
   Check,
+  MessageSquare,
+  Eye,
+  EyeOffIcon,
 } from 'lucide-react';
 import { PageHeader, StatusBadge, EmptyState } from '@/src/components/admin';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -61,6 +64,15 @@ export default function SuperAdminOrganizationsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
+  // Chatwoot config dialog state
+  const [chatwootDialogOpen, setChatwootDialogOpen] = useState(false);
+  const [chatwootOrgId, setChatwootOrgId] = useState<string | null>(null);
+  const [chatwootWebsiteToken, setChatwootWebsiteToken] = useState('');
+  const [chatwootIdentityToken, setChatwootIdentityToken] = useState('');
+  const [showWebsiteToken, setShowWebsiteToken] = useState(false);
+  const [showIdentityToken, setShowIdentityToken] = useState(false);
+  const [savingChatwoot, setSavingChatwoot] = useState(false);
+
   const organizations = useQuery(api.organizations.queries.index.getOrganizations, {
     search: search || undefined,
     organizationType: orgType,
@@ -74,6 +86,7 @@ export default function SuperAdminOrganizationsPage() {
   const assignOrganizationPermission = useMutation(api.permissions.mutations.index.assignOrganizationPermission);
   const revokeOrganizationPermission = useMutation(api.permissions.mutations.index.revokeOrganizationPermission);
   const addMember = useMutation(api.organizations.mutations.index.addMember);
+  const updateChatwootConfig = useMutation(api.organizations.mutations.index.updateChatwootConfig);
 
   const [inviteCodes, setInviteCodes] = useState<Record<string, string>>({});
   const [openPermsForOrg, setOpenPermsForOrg] = useState<string | null>(null);
@@ -132,6 +145,31 @@ export default function SuperAdminOrganizationsPage() {
     const newName = prompt('New organization name?');
     if (!newName) return;
     await updateOrganization({ organizationId: organizationId as unknown as Id<'organizations'>, name: newName });
+  }
+
+  function handleOpenChatwootDialog(orgId: string) {
+    setChatwootOrgId(orgId);
+    // Reset form - tokens would be fetched if we had a query, but for simplicity we start empty
+    setChatwootWebsiteToken('');
+    setChatwootIdentityToken('');
+    setShowWebsiteToken(false);
+    setShowIdentityToken(false);
+    setChatwootDialogOpen(true);
+  }
+
+  async function handleSaveChatwootConfig() {
+    if (!chatwootOrgId) return;
+    setSavingChatwoot(true);
+    try {
+      await updateChatwootConfig({
+        organizationId: chatwootOrgId as unknown as Id<'organizations'>,
+        chatwootWebsiteToken: chatwootWebsiteToken.trim() || undefined,
+        chatwootIdentityToken: chatwootIdentityToken.trim() || undefined,
+      });
+      setChatwootDialogOpen(false);
+    } finally {
+      setSavingChatwoot(false);
+    }
   }
 
   const loading = organizations === undefined;
@@ -377,6 +415,10 @@ export default function SuperAdminOrganizationsPage() {
                             <Edit className="h-4 w-4 mr-2" />
                             Rename
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleOpenChatwootDialog(org._id)}>
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Chatwoot Settings
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleDelete(org._id)} className="text-destructive">
                             <Trash2 className="h-4 w-4 mr-2" />
@@ -482,6 +524,75 @@ export default function SuperAdminOrganizationsPage() {
           </div>
         )}
       </div>
+
+      {/* Chatwoot Config Dialog */}
+      <Dialog open={chatwootDialogOpen} onOpenChange={setChatwootDialogOpen}>
+        <DialogContent className="">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Chatwoot Settings
+            </DialogTitle>
+            <DialogDescription>Configure Chatwoot integration tokens for this organization.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="website-token">Website Token</Label>
+              <div className="relative">
+                <Input
+                  id="website-token"
+                  type={showWebsiteToken ? 'text' : 'password'}
+                  value={chatwootWebsiteToken}
+                  onChange={(e) => setChatwootWebsiteToken(e.target.value)}
+                  placeholder="Enter website token..."
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowWebsiteToken(!showWebsiteToken)}
+                >
+                  {showWebsiteToken ? <EyeOffIcon className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">The website token for Chatwoot widget integration.</p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="identity-token">Identity Validation Token</Label>
+              <div className="relative">
+                <Input
+                  id="identity-token"
+                  type={showIdentityToken ? 'text' : 'password'}
+                  value={chatwootIdentityToken}
+                  onChange={(e) => setChatwootIdentityToken(e.target.value)}
+                  placeholder="Enter identity token..."
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowIdentityToken(!showIdentityToken)}
+                >
+                  {showIdentityToken ? <EyeOffIcon className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Used for HMAC identity verification (optional).</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setChatwootDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveChatwootConfig} disabled={savingChatwoot}>
+              {savingChatwoot ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

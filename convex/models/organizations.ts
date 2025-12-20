@@ -55,6 +55,10 @@ export const organizations = defineTable({
     })
   ),
 
+  // Chatwoot integration settings
+  chatwootWebsiteToken: v.optional(v.string()),
+  chatwootIdentityToken: v.optional(v.string()),
+
   createdAt: v.number(),
   updatedAt: v.number(),
 })
