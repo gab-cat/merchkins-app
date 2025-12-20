@@ -62,8 +62,8 @@ export function ChatwootProvider({
   const { user } = useCurrentUser();
   const generateHmac = useAction(api.users.actions.generateChatwootHmac.generateChatwootHmac);
   const [sdkReady, setSdkReady] = useState(false);
-  const scriptLoadedRef = useRef(false);
   const initializedRef = useRef(false);
+  const lastTokenRef = useRef<string | null>(null);
   const lastOrgIdRef = useRef<string | undefined>(organizationId);
 
   // Debug log for provider mount
@@ -75,6 +75,55 @@ export function ChatwootProvider({
       primaryColor,
     });
   }, [websiteToken, baseUrl, organizationId, primaryColor]);
+
+  /**
+   * Destroy existing Chatwoot widget completely
+   * This removes the iframe, bubble, script, and resets SDK state
+   */
+  const destroyChatwootWidget = (removeScript = false) => {
+    console.log('[Chatwoot] Destroying widget', { removeScript });
+
+    // Reset the $chatwoot session
+    if (window.$chatwoot) {
+      try {
+        window.$chatwoot.reset();
+      } catch (e) {
+        // Ignore errors during reset
+      }
+    }
+
+    // Remove the widget holder iframe
+    const widgetHolder = document.querySelector('.woot-widget-holder');
+    if (widgetHolder) {
+      widgetHolder.remove();
+    }
+
+    // Remove the bubble element
+    const bubble = document.querySelector('.woot-widget-bubble');
+    if (bubble) {
+      bubble.remove();
+    }
+
+    // Remove any woot elements
+    const wootElements = document.querySelectorAll('[class^="woot"]');
+    wootElements.forEach((el) => el.remove());
+
+    // Remove the SDK script if requested (needed when token changes)
+    if (removeScript) {
+      const existingScript = document.querySelector('script[data-chatwoot-sdk]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+      // Clear SDK references completely
+      delete window.chatwootSDK;
+    }
+
+    // Clear widget reference
+    delete window.$chatwoot;
+
+    initializedRef.current = false;
+    setSdkReady(false);
+  };
 
   // Reset user initialization when organization changes
   useEffect(() => {
@@ -89,9 +138,27 @@ export function ChatwootProvider({
     }
   }, [organizationId]);
 
-  // Load Chatwoot SDK script
+  // Handle websiteToken changes - destroy and reinitialize widget
   useEffect(() => {
-    if (scriptLoadedRef.current) return;
+    // If token changed, we need to destroy completely and reinitialize
+    if (lastTokenRef.current && lastTokenRef.current !== websiteToken) {
+      console.log('[Chatwoot] Token changed from', lastTokenRef.current.substring(0, 8), 'to', websiteToken.substring(0, 8));
+      // Remove script too so SDK reloads with new token
+      destroyChatwootWidget(true);
+    }
+
+    lastTokenRef.current = websiteToken;
+  }, [websiteToken]);
+
+  // Load Chatwoot SDK script and initialize widget
+  useEffect(() => {
+    console.log('[Chatwoot] SDK loading effect running', {
+      websiteToken: websiteToken.substring(0, 8) + '...',
+      baseUrl,
+      existingScript: !!document.querySelector('script[data-chatwoot-sdk]'),
+      hasChatwootSDK: !!window.chatwootSDK,
+      has$chatwoot: !!window.$chatwoot,
+    });
 
     // Configure Chatwoot widget settings before SDK loads
     window.chatwootSettings = {
@@ -101,63 +168,82 @@ export function ChatwootProvider({
       darkMode: 'light',
     };
 
-    // Check if script already exists
-    const existingScript = document.querySelector('script[data-chatwoot-sdk]');
-    if (existingScript) {
-      scriptLoadedRef.current = true;
-      // Wait for SDK to be ready
-      const checkReady = () => {
-        if (window.chatwootSDK) {
-          setSdkReady(true);
-        } else {
-          setTimeout(checkReady, 100);
-        }
-      };
-      checkReady();
-      return;
-    }
-
-    scriptLoadedRef.current = true;
-
-    // Create and load script
-    const script = document.createElement('script');
-    script.src = `${baseUrl}/packs/js/sdk.js`;
-    script.defer = true;
-    script.async = true;
-    script.setAttribute('data-chatwoot-sdk', 'true');
-
-    script.onload = () => {
-      // Initialize Chatwoot SDK
+    const initializeWidget = () => {
+      console.log('[Chatwoot] initializeWidget called, chatwootSDK exists:', !!window.chatwootSDK);
       if (window.chatwootSDK) {
+        console.log('[Chatwoot] Initializing widget with token', websiteToken.substring(0, 8) + '...');
         window.chatwootSDK.run({
           websiteToken,
           baseUrl,
         });
+        // Reset user initialization flag so user info is resent for the new widget
+        initializedRef.current = false;
       }
     };
 
-    document.head.appendChild(script);
+    // Check if script already exists (shouldn't happen after cleanup, but safety check)
+    const existingScript = document.querySelector('script[data-chatwoot-sdk]');
+    if (existingScript && window.chatwootSDK) {
+      // This shouldn't happen after proper cleanup, but handle it
+      console.log('[Chatwoot] Script already exists, reinitializing widget');
+      initializeWidget();
+    } else if (existingScript) {
+      // Script exists but SDK not ready yet, wait for it
+      console.log('[Chatwoot] Script exists but SDK not ready, waiting...');
+    } else {
+      console.log('[Chatwoot] Loading SDK script from', `${baseUrl}/packs/js/sdk.js`);
+      // Create and load script
+      const script = document.createElement('script');
+      script.src = `${baseUrl}/packs/js/sdk.js`;
+      script.defer = true;
+      script.async = true;
+      script.setAttribute('data-chatwoot-sdk', 'true');
 
-    // Listen for SDK ready event
+      script.onload = () => {
+        console.log('[Chatwoot] Script loaded successfully');
+        initializeWidget();
+      };
+
+      script.onerror = (e) => {
+        console.error('[Chatwoot] Script failed to load', e);
+      };
+
+      document.head.appendChild(script);
+      console.log('[Chatwoot] Script appended to head');
+    }
+
+    // Listen for SDK ready event - this is the reliable way to know when widget is ready
     const handleReady = () => {
+      console.log('[Chatwoot] Widget ready event received');
       setSdkReady(true);
     };
 
     window.addEventListener('chatwoot:ready', handleReady);
 
+    // Cleanup: destroy widget on unmount
     return () => {
       window.removeEventListener('chatwoot:ready', handleReady);
+      console.log('[Chatwoot] Provider unmounting, destroying widget');
+      destroyChatwootWidget(true);
     };
   }, [websiteToken, baseUrl]);
 
   // Initialize user when SDK is ready and user is authenticated
   useEffect(() => {
-    if (!sdkReady || !authLoaded || !user || !clerkId || initializedRef.current) return;
+    if (!sdkReady || !authLoaded || !user || !clerkId) return;
+
+    // Skip if already initialized for this user
+    if (initializedRef.current) {
+      console.log('[Chatwoot] User already initialized, skipping');
+      return;
+    }
 
     const initializeUser = async () => {
       try {
         // Generate HMAC for identity validation
         const identifier = user._id;
+        console.log('[Chatwoot] Generating HMAC for user', identifier, 'org:', organizationId);
+
         const identifierHash = await generateHmac({
           identifier,
           organizationId,
@@ -166,6 +252,13 @@ export function ChatwootProvider({
         // Set user information in Chatwoot
         if (window.$chatwoot) {
           const userName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+
+          console.log('[Chatwoot] Setting user info', {
+            identifier,
+            email: user.email,
+            name: userName,
+            hasHash: !!identifierHash,
+          });
 
           window.$chatwoot.setUser(identifier, {
             email: user.email,
@@ -176,9 +269,12 @@ export function ChatwootProvider({
           });
 
           initializedRef.current = true;
+          console.log('[Chatwoot] User info set successfully');
+        } else {
+          console.warn('[Chatwoot] $chatwoot not available when trying to set user');
         }
       } catch (error) {
-        console.error('Failed to initialize Chatwoot user:', error);
+        console.error('[Chatwoot] Failed to initialize user:', error);
       }
     };
 

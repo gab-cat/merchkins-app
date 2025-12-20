@@ -15,8 +15,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.38.1",
-    "@clerk/nextjs": "^6.12.6",
+    "@clerk/nextjs": "^6.36.5",
     "@convex-dev/aggregate": "^0.2.0",
     "@convex-dev/eslint-plugin": "^1.1.0",
     "@convex-dev/r2": "^0.7.0",

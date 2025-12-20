@@ -81,36 +81,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${outfit.variable} ${dmSans.variable} ${geist.variable} ${inter.variable} ${genty.variable} antialiased font-body`}>
-        <ClerkProvider
-          dynamic
-          signInUrl="/sign-in"
-          signUpUrl="/sign-up"
-          afterSignOutUrl="https://merchkins.com"
-          supportEmail="support@merchkins.com"
-          signUpForceRedirectUrl="https://app.merchkins.com"
-          signInFallbackRedirectUrl="https://app.merchkins.com"
-          signUpFallbackRedirectUrl="https://app.merchkins.com"
-          appearance={{
-            variables: {
-              colorPrimary: '#1d43d8',
-              colorBackground: '#FFF',
-              borderRadius: '5px',
-              fontFamily: 'var(--font-dm-sans)',
-            },
-            elements: {
-              card: '!bg-white !shadow-none !border-0',
-              cardBox: '!bg-white !shadow-none !border-0',
-              headerTitle: '!text-primary font-bold !font-genty !text-2xl !font-heading',
-              formButtonPrimary: '!bg-primary !text-white !rounded-sm !border-0 !shadow-0 relative transition-all text-sm',
-              formButtonSecondary: 'bg-white relative border-0 text-sm',
-              footerActionText: ' text-md',
-              footerActionLink: '!text-primary hover:text-primary hover:brightness-95 font-semibold text-md',
-              buttonPrimary: 'bg-primary relative border-0 shadow-0 relative hover:bg-primary/90 transition-all text-sm',
-            },
-          }}
-        >
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignOutUrl="https://merchkins.com"
+      supportEmail="support@merchkins.com"
+      signUpForceRedirectUrl="https://app.merchkins.com"
+      signInFallbackRedirectUrl="https://app.merchkins.com"
+      signUpFallbackRedirectUrl="https://app.merchkins.com"
+      appearance={{
+        variables: {
+          colorPrimary: '#1d43d8',
+          colorBackground: '#FFF',
+          borderRadius: '5px',
+          fontFamily: 'var(--font-dm-sans)',
+        },
+        elements: {
+          card: '!bg-white !shadow-none !border-0',
+          cardBox: '!bg-white !shadow-none !border-0',
+          headerTitle: '!text-primary font-bold !font-genty !text-2xl !font-heading',
+          formButtonPrimary: '!bg-primary !text-white !rounded-sm !border-0 !shadow-0 relative transition-all text-sm',
+          formButtonSecondary: 'bg-white relative border-0 text-sm',
+          footerActionText: ' text-md',
+          footerActionLink: '!text-primary hover:text-primary hover:brightness-95 font-semibold text-md',
+          buttonPrimary: 'bg-primary relative border-0 shadow-0 relative hover:bg-primary/90 transition-all text-sm',
+        },
+      }}
+    >
+      <html lang="en">
+        <body className={`${outfit.variable} ${dmSans.variable} ${geist.variable} ${inter.variable} ${genty.variable} antialiased font-body`}>
           <ConvexClientProvider>
             <ConvexQueryCacheProvider>
               <LoadingProvider>
@@ -122,8 +121,8 @@ export default function RootLayout({
               </LoadingProvider>
             </ConvexQueryCacheProvider>
           </ConvexClientProvider>
-        </ClerkProvider>
-      </body>
-    </html>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

@@ -89,7 +89,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
         <p className="font-medium text-foreground mb-1">{label}</p>
         {payload.map((entry, index) => (
           <p key={index} className="text-muted-foreground" style={{ color: entry.color }}>
-            {entry.name}: <span className="font-semibold">{entry.value.toLocaleString()}</span>
+            {entry.name}: <span className="font-semibold">{entry.value?.toLocaleString() ?? '0'}</span>
           </p>
         ))}
       </div>
@@ -130,7 +130,7 @@ export function AreaChartComponent({ data, dataKeys, height = 300, showGrid = tr
           tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(value) => value.toLocaleString()}
+          tickFormatter={(value) => value?.toLocaleString() ?? '0'}
         />
         <Tooltip content={<CustomTooltip />} />
         {showLegend && <Legend />}
@@ -292,7 +292,7 @@ export function PieChartComponent({ data, height = 300, innerRadius = 60, showLe
           ))}
         </Pie>
         <Tooltip
-          formatter={(value: number) => [value.toLocaleString(), '']}
+          formatter={(value: any) => [value?.toLocaleString() ?? '', '']}
           contentStyle={{
             backgroundColor: 'hsl(var(--card))',
             border: '1px solid hsl(var(--border))',

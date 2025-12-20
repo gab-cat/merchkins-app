@@ -73,9 +73,10 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ['@clerk/nextjs', 'lucide-react'],
+    optimizePackageImports: ['lucide-react'],
     useLightningcss: true,
   },
+  transpilePackages: ['@clerk/nextjs'],
 };
 
 export default withSentryConfig(nextConfig, {
