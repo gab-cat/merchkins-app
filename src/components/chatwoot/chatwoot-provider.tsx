@@ -13,6 +13,7 @@ interface ChatwootProviderProps {
   organizationId?: Id<'organizations'>;
   primaryColor?: string; // Hex color for the widget theme
   inbox?: 'admin' | 'platform' | 'org'; // Which inbox type for HMAC validation
+  launcherTitle?: string; // Custom title for the chat bubble
 }
 
 declare global {
@@ -59,6 +60,7 @@ export function ChatwootProvider({
   organizationId,
   primaryColor = '#1d43d8',
   inbox,
+  launcherTitle = 'Chat with us',
 }: ChatwootProviderProps) {
   const { userId: clerkId, isLoaded: authLoaded } = useAuth();
   const { user } = useCurrentUser();
@@ -165,7 +167,7 @@ export function ChatwootProvider({
     // Configure Chatwoot widget settings before SDK loads
     window.chatwootSettings = {
       type: 'expanded_bubble',
-      launcherTitle: 'Chat with us',
+      launcherTitle,
       position: 'right',
       darkMode: 'light',
     };
