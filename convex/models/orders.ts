@@ -135,6 +135,9 @@ export const orders = defineTable({
   paidAt: v.optional(v.number()), // Timestamp when payment was confirmed
   payoutInvoiceId: v.optional(v.id('payoutInvoices')), // Links order to payout invoice
 
+  // Order source tracking
+  orderSource: v.optional(v.union(v.literal('WEB'), v.literal('MESSENGER'))),
+
   createdAt: v.number(),
   updatedAt: v.number(),
 })

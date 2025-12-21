@@ -13,6 +13,10 @@ export const updateChatwootConfigArgs = {
   organizationId: v.id('organizations'),
   chatwootWebsiteToken: v.optional(v.string()),
   chatwootIdentityToken: v.optional(v.string()),
+  // Agent Bot settings
+  chatwootAgentBotId: v.optional(v.number()),
+  chatwootAgentBotToken: v.optional(v.string()),
+  chatwootAccountId: v.optional(v.number()),
 };
 
 export const updateChatwootConfigReturns = v.object({
@@ -25,9 +29,12 @@ export const updateChatwootConfigHandler = async (
     organizationId: Id<'organizations'>;
     chatwootWebsiteToken?: string;
     chatwootIdentityToken?: string;
+    chatwootAgentBotId?: number;
+    chatwootAgentBotToken?: string;
+    chatwootAccountId?: number;
   }
 ) => {
-  const { organizationId, chatwootWebsiteToken, chatwootIdentityToken } = args;
+  const { organizationId, chatwootWebsiteToken, chatwootIdentityToken, chatwootAgentBotId, chatwootAgentBotToken, chatwootAccountId } = args;
 
   // Get current organization
   const organization = await ctx.db.get(organizationId);
@@ -39,6 +46,9 @@ export const updateChatwootConfigHandler = async (
   const updates: {
     chatwootWebsiteToken?: string;
     chatwootIdentityToken?: string;
+    chatwootAgentBotId?: number;
+    chatwootAgentBotToken?: string;
+    chatwootAccountId?: number;
     updatedAt: number;
   } = {
     updatedAt: Date.now(),
@@ -50,6 +60,16 @@ export const updateChatwootConfigHandler = async (
   }
   if (chatwootIdentityToken !== undefined) {
     updates.chatwootIdentityToken = chatwootIdentityToken.trim() || undefined;
+  }
+  // Set agent bot fields
+  if (chatwootAgentBotId !== undefined) {
+    updates.chatwootAgentBotId = chatwootAgentBotId;
+  }
+  if (chatwootAgentBotToken !== undefined) {
+    updates.chatwootAgentBotToken = chatwootAgentBotToken;
+  }
+  if (chatwootAccountId !== undefined) {
+    updates.chatwootAccountId = chatwootAccountId;
   }
 
   // Update organization
@@ -64,7 +84,11 @@ export const updateChatwootConfigHandler = async (
     `Updated Chatwoot configuration for ${organization.name}`,
     undefined,
     organizationId,
-    { hasWebsiteToken: !!updates.chatwootWebsiteToken, hasIdentityToken: !!updates.chatwootIdentityToken },
+    {
+      hasWebsiteToken: !!updates.chatwootWebsiteToken,
+      hasIdentityToken: !!updates.chatwootIdentityToken,
+      hasAgentBot: !!updates.chatwootAgentBotId,
+    },
     {
       resourceType: 'organization',
       resourceId: organizationId as unknown as string,

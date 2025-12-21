@@ -58,11 +58,16 @@ export const organizations = defineTable({
   // Chatwoot integration settings
   chatwootWebsiteToken: v.optional(v.string()),
   chatwootIdentityToken: v.optional(v.string()),
+  // Agent Bot settings for automated responses
+  chatwootAgentBotId: v.optional(v.number()),
+  chatwootAgentBotToken: v.optional(v.string()),
+  chatwootAccountId: v.optional(v.number()),
 
   createdAt: v.number(),
   updatedAt: v.number(),
 })
   .index('by_slug', ['slug'])
+  .index('by_name', ['name'])
   .index('by_isDeleted', ['isDeleted'])
   .index('by_organizationType', ['organizationType'])
   .index('by_member_count', ['memberCount']);

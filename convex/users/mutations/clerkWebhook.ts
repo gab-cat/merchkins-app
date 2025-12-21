@@ -21,15 +21,38 @@ export const handleUserCreatedHandler = async (ctx: MutationCtx, args: { clerkUs
     const imageUrl = clerkUser.image_url || '';
     const phone = clerkUser.phone_numbers?.[0]?.phone_number || '';
 
-    // Check if user already exists
-    const existingUser = await ctx.db
+    // Check if user already exists by clerkId
+    const existingByClerkId = await ctx.db
       .query('users')
       .withIndex('by_clerkId', (q) => q.eq('clerkId', clerkUser.id))
       .first();
 
-    if (existingUser) {
-      console.log('User already exists, skipping creation');
-      return existingUser._id;
+    if (existingByClerkId) {
+      console.log('User already exists by clerkId, skipping creation');
+      return existingByClerkId._id;
+    }
+
+    // Check if user exists by email (may have been created via Messenger without clerkId)
+    if (email) {
+      const existingByEmail = await ctx.db
+        .query('users')
+        .withIndex('by_email', (q) => q.eq('email', email))
+        .filter((q) => q.eq(q.field('isDeleted'), false))
+        .first();
+
+      if (existingByEmail) {
+        // User exists by email - merge by updating with Clerk data
+        console.log('User exists by email, merging with Clerk data:', existingByEmail._id);
+        await ctx.db.patch(existingByEmail._id, {
+          clerkId: clerkUser.id,
+          firstName: firstName || existingByEmail.firstName,
+          lastName: lastName || existingByEmail.lastName,
+          imageUrl: imageUrl || existingByEmail.imageUrl,
+          phone: phone || existingByEmail.phone,
+          updatedAt: Date.now(),
+        });
+        return existingByEmail._id;
+      }
     }
 
     // Create new user with default values

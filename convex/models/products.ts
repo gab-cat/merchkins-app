@@ -35,6 +35,7 @@ export const products = defineTable({
   ),
 
   slug: v.string(),
+  code: v.optional(v.string()), // Unique product code for bot lookup
   title: v.string(),
   isActive: v.boolean(),
   description: v.optional(v.string()),
@@ -114,7 +115,8 @@ export const products = defineTable({
   .index('by_tags', ['tags'])
   .index('by_inventory_type', ['inventoryType'])
   .index('by_best_price', ['isBestPrice'])
-  .index('by_view_count', ['viewCount']);
+  .index('by_view_count', ['viewCount'])
+  .index('by_code', ['code']);
 
 // Enhanced reviews with embedded user and product info
 export const reviews = defineTable({

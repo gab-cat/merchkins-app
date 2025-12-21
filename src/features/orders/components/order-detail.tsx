@@ -36,6 +36,7 @@ import {
   AlertCircle,
   Store,
   ExternalLink,
+  MessageCircle,
 } from 'lucide-react';
 import type { Id } from '@/convex/_generated/dataModel';
 import { buildR2PublicUrl } from '@/lib/utils';
@@ -289,7 +290,15 @@ export function OrderDetail({ orderId }: { orderId: string }) {
               </div>
               <div className="flex flex-col items-end gap-2">
                 <StatusBadge value={order.status} large />
-                <PaymentStatusBadge value={order.paymentStatus} />
+                <div className="flex items-center gap-2">
+                  <PaymentStatusBadge value={order.paymentStatus} />
+                  {order.orderSource === 'MESSENGER' && (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                      <MessageCircle className="h-3 w-3" />
+                      Messenger
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>

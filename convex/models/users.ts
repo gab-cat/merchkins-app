@@ -90,6 +90,9 @@ export const users = defineTable({
     })
   ),
 
+  // Messenger/Chatwoot integration
+  chatwootContactId: v.optional(v.number()),
+
   createdAt: v.number(),
   updatedAt: v.number(),
 })
@@ -101,4 +104,5 @@ export const users = defineTable({
   .index('by_manager', ['managerId'])
   .index('by_last_login', ['lastLoginAt'])
   .index('by_total_orders', ['totalOrders'])
-  .index('by_total_spent', ['totalSpent']);
+  .index('by_total_spent', ['totalSpent'])
+  .index('by_chatwoot_contact', ['chatwootContactId']);

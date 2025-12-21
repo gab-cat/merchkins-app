@@ -8,6 +8,7 @@ import { searchProductsArgs, searchProductsHandler } from './searchProducts';
 import { getPopularProductsArgs, getPopularProductsHandler } from './getPopularProducts';
 import { getProductAnalyticsArgs, getProductAnalyticsHandler } from './getProductAnalytics';
 import { getProductRecommendationsArgs, getProductRecommendationsHandler } from './getProductRecommendations';
+import { getProductByCodeArgs, getProductByCodeHandler } from './getProductByCode';
 
 // Export query functions
 export const getProducts = query({
@@ -43,4 +44,9 @@ export const getProductAnalytics = query({
 export const getProductRecommendations = query({
   args: getProductRecommendationsArgs,
   handler: getProductRecommendationsHandler,
+});
+
+export const getProductByCode = query({
+  args: getProductByCodeArgs,
+  handler: getProductByCodeHandler,
 });

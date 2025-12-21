@@ -432,6 +432,16 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
   });
   console.log('Payment confirmation email scheduled for order:', orderNumber);
 
+  // Schedule Chatwoot notification for Messenger orders
+  if (order.orderSource === 'MESSENGER') {
+    await ctx.scheduler.runAfter(0, internal.chatwoot.orderFlow.sendPaymentConfirmation.sendPaymentConfirmationChatwoot, {
+      orderId: order._id,
+      orderNumber: orderNumber,
+      paymentAmount,
+    });
+    console.log('Chatwoot payment confirmation scheduled for Messenger order:', orderNumber);
+  }
+
   return {
     processed: true,
     paymentId,

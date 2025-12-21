@@ -13,6 +13,7 @@ import { listJoinRequestsArgs, listJoinRequestsHandler } from './listJoinRequest
 import { getPopularOrganizationsArgs, getPopularOrganizationsHandler } from './getPopularOrganizations';
 import { getMyJoinRequestStatusArgs, getMyJoinRequestStatusHandler, getMyJoinRequestStatusReturns } from './getMyJoinRequestStatus';
 import { getChatwootConfigArgs, getChatwootConfigHandler } from './getChatwootConfig';
+import { getOrganizationByNameArgs, getOrganizationByNameHandler, getOrganizationByNameReturns } from './getOrganizationByName';
 
 export const getOrganizationById = query({
   args: getOrganizationByIdArgs,
@@ -75,4 +76,9 @@ export const getMyJoinRequestStatus = query({
 export const getChatwootConfig = query({
   args: getChatwootConfigArgs,
   handler: getChatwootConfigHandler,
+});
+export const getOrganizationByName = query({
+  args: getOrganizationByNameArgs,
+  returns: getOrganizationByNameReturns,
+  handler: getOrganizationByNameHandler,
 });
