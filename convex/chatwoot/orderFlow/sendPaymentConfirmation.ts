@@ -4,10 +4,11 @@
 // Sends Chatwoot message when payment is confirmed for Messenger orders
 
 import { v } from 'convex/values';
-import { internalAction } from '../../_generated/server';
-import { internal } from '../../_generated/api';
-import { sendChatwootMessage, buildOrderConfirmationMessage, buildTextMessage } from './messageBuilder';
+import { internalAction, ActionCtx } from '../../_generated/server';
+import { api, internal } from '../../_generated/api';
+import { sendChatwootMessage, buildTextMessage } from './messageBuilder';
 import { toBoldFont } from '../fonts';
+import { Id } from '../../_generated/dataModel';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com';
 
@@ -16,6 +17,40 @@ export const sendPaymentConfirmationChatwootArgs = {
   orderNumber: v.string(),
   paymentAmount: v.number(),
 };
+
+/**
+ * Get bot token for the organization or fallback to env
+ */
+async function getBotToken(ctx: ActionCtx, organizationId: Id<'organizations'> | undefined, accountId: number): Promise<string | undefined> {
+  let botToken: string | undefined;
+
+  if (organizationId) {
+    const org = await ctx.runQuery(api.organizations.queries.index.getOrganizationById, {
+      organizationId,
+    });
+
+    if (org?.chatwootAgentBotToken) {
+      botToken = org.chatwootAgentBotToken;
+    } else if (org) {
+      // Create agent bot dynamically
+      const botResult = await ctx.runAction(api.chatwoot.actions.agentBot.getOrCreateAgentBot, {
+        organizationId: org._id,
+        accountId: accountId,
+      });
+
+      if (botResult.success && botResult.botToken) {
+        botToken = botResult.botToken;
+      }
+    }
+  }
+
+  // Fallback to env bot token
+  if (!botToken) {
+    botToken = process.env.CHATWOOT_BOT_TOKEN;
+  }
+
+  return botToken;
+}
 
 /**
  * Send payment confirmation message via Chatwoot for Messenger orders
@@ -35,6 +70,10 @@ export const sendPaymentConfirmationChatwoot = internalAction({
         orderId,
       });
 
+      const order = await ctx.runQuery(internal.orders.queries.index.getOrderByIdInternal, {
+        orderId,
+      });
+
       if (!session) {
         console.log('[PaymentConfirmation] No messenger session found for order:', orderId);
         return { success: false, reason: 'No messenger session found' };
@@ -42,8 +81,16 @@ export const sendPaymentConfirmationChatwoot = internalAction({
 
       const { chatwootConversationId, chatwootAccountId } = session;
 
-      // Get bot token (fallback to env)
-      const botToken = process.env.CHATWOOT_BOT_TOKEN;
+      if (!order) {
+        console.log('[PaymentConfirmation] Order not found:', orderId);
+        return { success: false, reason: 'Order not found' };
+      }
+
+      // Get organizationId from order
+      const organizationId = order.organizationId;
+
+      // Get bot token from organization
+      const botToken = await getBotToken(ctx, organizationId, chatwootAccountId);
       if (!botToken) {
         console.error('[PaymentConfirmation] No bot token available');
         return { success: false, reason: 'No bot token configured' };
