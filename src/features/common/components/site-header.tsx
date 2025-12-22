@@ -41,6 +41,7 @@ import {
   MobileNavToggle,
   useNavbarScroll,
 } from '@/src/components/ui/resizable-navbar';
+import { useOrgLink } from '@/src/hooks/use-org-link';
 
 export function SiteHeader() {
   const router = useRouter();
@@ -142,13 +143,16 @@ export function SiteHeader() {
     return !!orgSlugFromPath || (!!persistedSlug && !orgSlugFromPath);
   }, [orgSlugFromPath, persistedSlug]);
 
+  // Subdomain-aware link builder
+  const { buildOrgLink } = useOrgLink(orgSlug);
+
   function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const q = search.trim();
     if (q.length > 0) {
-      router.push(orgSlug ? `/o/${orgSlug}/search?q=${encodeURIComponent(q)}` : `/search?q=${encodeURIComponent(q)}`);
+      router.push(buildOrgLink(`/search?q=${encodeURIComponent(q)}`));
     } else {
-      router.push(orgSlug ? `/o/${orgSlug}/search` : '/search');
+      router.push(buildOrgLink('/search'));
     }
   }
 
@@ -159,11 +163,11 @@ export function SiteHeader() {
   // Navigation items for the resizable navbar
   const navItems = useMemo(() => {
     const baseItems = [
-      { name: 'Home', link: orgSlug ? `/o/${orgSlug}` : '/' },
-      { name: 'Search', link: orgSlug ? `/o/${orgSlug}/search` : '/search' },
+      { name: 'Home', link: buildOrgLink('/') },
+      { name: 'Search', link: buildOrgLink('/search') },
     ];
     return baseItems;
-  }, [orgSlug]);
+  }, [buildOrgLink]);
 
   const headerClassName = cn('transition-all duration-300', 'supports-[backdrop-filter]:backdrop-blur-md');
 
@@ -234,6 +238,7 @@ function SiteHeaderContent({
   router: any;
 }) {
   const { isScrolled } = useNavbarScroll();
+  const { buildOrgLink } = useOrgLink(orgSlug);
 
   return (
     <>
@@ -262,7 +267,7 @@ function SiteHeaderContent({
         <div className="flex items-center gap-4">
           <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
             <Link
-              href={orgSlug ? `/o/${orgSlug}` : '/'}
+              href={buildOrgLink('/')}
               className="flex items-center gap-2 font-bold tracking-tight transition-all duration-300 group relative"
               style={{ color: isScrolled ? 'white' : shouldApplyTheme ? 'var(--foreground)' : 'var(--foreground)' }}
             >
@@ -484,7 +489,7 @@ function SiteHeaderContent({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 animate-in fade-in-0 zoom-in-95">
                 <DropdownMenuItem asChild data-testid="support-chats">
-                  <Link href={orgSlug ? `/o/${orgSlug}/chats` : '/chats'} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
+                  <Link href={buildOrgLink('/chats')} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
                     <MessageSquare className="h-4 w-4" />
                     <span>Chats</span>
                     {totalChatUnread > 0 && (
@@ -495,10 +500,7 @@ function SiteHeaderContent({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild data-testid="support-tickets">
-                  <Link
-                    href={orgSlug ? `/o/${orgSlug}/tickets` : '/tickets'}
-                    className="flex items-center gap-2 hover:bg-accent/50 transition-colors"
-                  >
+                  <Link href={buildOrgLink('/tickets')} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
                     <Ticket className="h-4 w-4" />
                     <span>Tickets</span>
                     {totalTicketUnread > 0 && (
@@ -509,10 +511,7 @@ function SiteHeaderContent({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild data-testid="support-new-ticket">
-                  <Link
-                    href={orgSlug ? `/o/${orgSlug}/tickets/new` : '/tickets/new'}
-                    className="flex items-center gap-2 hover:bg-accent/50 transition-colors"
-                  >
+                  <Link href={buildOrgLink('/tickets/new')} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
                     <Ticket className="h-4 w-4" />
                     <span>Create ticket</span>
                   </Link>

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { api } from '@/convex/_generated/api';
 import { useAuth } from '@clerk/nextjs';
+import { useOrgLink } from '@/src/hooks/use-org-link';
 
 interface FloatingActionBarProps {
   orgSlug: string;
@@ -17,6 +18,7 @@ export function FloatingActionBar({ orgSlug }: FloatingActionBarProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const { userId } = useAuth();
+  const { buildOrgLink } = useOrgLink(orgSlug);
 
   // Get cart count
   const currentUser = useQuery(api.users.queries.index.getCurrentUser, userId ? { clerkId: userId } : 'skip');
@@ -44,13 +46,13 @@ export function FloatingActionBar({ orgSlug }: FloatingActionBarProps) {
     {
       icon: Search,
       label: 'Search',
-      href: `/o/${orgSlug}/search`,
+      href: buildOrgLink('/search'),
       color: 'text-slate-600',
     },
     {
       icon: MessageSquare,
       label: 'Chat',
-      href: `/o/${orgSlug}/chats`,
+      href: buildOrgLink('/chats'),
       color: 'text-[#1d43d8]',
     },
     {

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Star, ShoppingBag } from 'lucide-react';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { cn } from '@/lib/utils';
+import { useOrgLink } from '@/src/hooks/use-org-link';
 
 export interface ProductCardProps {
   _id: string;
@@ -40,7 +41,8 @@ export function ProductCard({
   index = 0,
   className = '',
 }: ProductCardProps) {
-  const href = orgSlug ? `/o/${orgSlug}/p/${slug}` : `/p/${slug}`;
+  const { buildOrgLink } = useOrgLink(orgSlug);
+  const href = buildOrgLink(`/p/${slug}`);
   const formattedPrice = minPrice !== undefined ? new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(minPrice) : '';
 
   return (

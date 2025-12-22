@@ -9,9 +9,24 @@ import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Home, Search as SearchIcon, RotateCcw, HelpCircle, Globe, Mail, MessageSquare, Ticket, FileText, Shield, ArrowRight } from 'lucide-react';
+import {
+  Home,
+  Search as SearchIcon,
+  RotateCcw,
+  HelpCircle,
+  Globe,
+  Mail,
+  MessageSquare,
+  Ticket,
+  FileText,
+  Shield,
+  ArrowRight,
+  Phone,
+  MapPin,
+} from 'lucide-react';
 import { showToast } from '@/lib/toast';
 import { useThemeExclusionAuto, getOrgSlugFromSubdomain } from '../../../stores/theme-exclusion';
+import { useOrgLink } from '@/src/hooks/use-org-link';
 
 export function SiteFooter() {
   const pathname = usePathname();
@@ -117,22 +132,18 @@ export function SiteFooter() {
     };
   }, [organization?.name]);
 
+  // Subdomain-aware link builder
+  const { buildOrgLink } = useOrgLink(orgSlug);
+
   const footerLinks = {
-    shop: [
-      { href: orgSlug ? `/o/${orgSlug}` : '/', label: 'Home' },
-      { href: orgSlug ? `/o/${orgSlug}/search` : '/search', label: 'Search' },
-      { href: orgSlug ? `/o/${orgSlug}/c/apparel` : '/c/apparel', label: 'Apparel' },
-      { href: orgSlug ? `/o/${orgSlug}/c/accessories` : '/c/accessories', label: 'Accessories' },
-    ],
     support: [
-      { href: orgSlug ? `/o/${orgSlug}/chats` : '/chats', label: 'Chat' },
-      { href: orgSlug ? `/o/${orgSlug}/tickets` : '/tickets', label: 'Support' },
-      { href: '#returns', label: 'Returns' },
-      { href: '#help', label: 'Help' },
+      { href: buildOrgLink('/tickets'), label: 'Support' },
+      { href: '/returns', label: 'Returns' },
+      { href: '/help', label: 'Help' },
     ],
     legal: [
-      { href: '#terms', label: 'Terms' },
-      { href: '#privacy', label: 'Privacy' },
+      { href: '/terms', label: 'Terms' },
+      { href: '/privacy', label: 'Privacy' },
     ],
   };
 
@@ -153,22 +164,12 @@ export function SiteFooter() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
         >
-          {/* Shop */}
+          {/* Merchkins */}
           <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Shop</h4>
-            <ul className="space-y-1.5">
-              {footerLinks.shop.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="group inline-flex items-center gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <span>{link.label}</span>
-                    <ArrowRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Merchkins</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Your one-stop platform for custom merchandise. We help organizations create, manage, and sell branded products with ease.
+            </p>
           </div>
 
           {/* Support */}
@@ -219,28 +220,30 @@ export function SiteFooter() {
             </form>
           </div>
 
-          {/* Social */}
+          {/* Contact */}
           <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Connect</h4>
-            <div className="flex flex-col gap-1.5">
-              {organization?.website && (
-                <Link
-                  href={organization.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
-                >
-                  <span>Website</span>
-                  <ArrowRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
-                </Link>
-              )}
+            <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Contact</h4>
+            <div className="flex flex-col gap-2.5">
               <Link
                 href="mailto:business@merchkins.com"
-                className="group inline-flex items-center gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
+                className="group inline-flex items-start gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
               >
-                <span>Email</span>
-                <ArrowRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                <Mail className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>business@merchkins.com</span>
               </Link>
+              <Link
+                href="tel:+639999667583"
+                className="group inline-flex items-start gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <Phone className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>+63 (999) 966-7583</span>
+              </Link>
+              <div className="inline-flex items-start gap-2 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+                <span className="leading-relaxed">
+                  Magis TBI Richie Hall, Ateneo de Naga University, Ateneo Avenue, Bagumbayan Sur, Naga City, Camarines Sur, 4400, PH
+                </span>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -252,7 +255,7 @@ export function SiteFooter() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-12 md:mt-16 w-full overflow-hidden"
+          className="mt-12 md:mt-24 w-full overflow-hidden"
         >
           <h2
             ref={brandTextRef}

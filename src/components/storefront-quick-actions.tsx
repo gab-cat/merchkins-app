@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion, type Variants } from 'framer-motion';
 import { MessageSquare, Ticket, Search, ShoppingBag, Zap, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useOrgLink } from '@/src/hooks/use-org-link';
 
 interface QuickActionsProps {
   orgSlug: string;
@@ -57,12 +58,14 @@ interface ActionItem {
 }
 
 export function QuickActions({ orgSlug }: QuickActionsProps) {
+  const { buildOrgLink } = useOrgLink(orgSlug);
+
   const actions: ActionItem[] = [
     {
       icon: MessageSquare,
       label: 'Chat with us',
       description: 'Get instant support',
-      href: `/o/${orgSlug}/chats`,
+      href: buildOrgLink('/chats'),
       color: 'text-[#1d43d8]',
       bgColor: 'bg-[#1d43d8]/10',
       hoverBg: 'group-hover:bg-[#1d43d8]',
@@ -71,7 +74,7 @@ export function QuickActions({ orgSlug }: QuickActionsProps) {
       icon: Ticket,
       label: 'Create a ticket',
       description: 'Submit a request',
-      href: `/o/${orgSlug}/tickets/new`,
+      href: buildOrgLink('/tickets/new'),
       color: 'text-violet-600',
       bgColor: 'bg-violet-100',
       hoverBg: 'group-hover:bg-violet-600',
@@ -80,7 +83,7 @@ export function QuickActions({ orgSlug }: QuickActionsProps) {
       icon: Search,
       label: 'Browse products',
       description: 'Explore our catalog',
-      href: `/o/${orgSlug}/search`,
+      href: buildOrgLink('/search'),
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100',
       hoverBg: 'group-hover:bg-emerald-600',
