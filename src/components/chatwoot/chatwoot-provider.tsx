@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { useAction } from 'convex/react';
+import { useAction, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useCurrentUser } from '@/src/features/auth/hooks/use-current-user';
 import { Id } from '@/convex/_generated/dataModel';
@@ -65,6 +65,25 @@ export function ChatwootProvider({
   const { userId: clerkId, isLoaded: authLoaded } = useAuth();
   const { user } = useCurrentUser();
   const generateHmac = useAction(api.users.actions.generateChatwootHmac.generateChatwootHmac);
+  
+  // Query for cached HMAC token
+  const cachedToken = useQuery(
+    api.users.queries.index.getChatwootHmacToken,
+    user?._id && authLoaded
+      ? {
+          userId: user._id,
+          organizationId,
+          inbox,
+        }
+      : 'skip'
+  );
+
+  // Query for organization to get slug if organizationId is provided
+  const organization = useQuery(
+    api.organizations.queries.index.getOrganizationById,
+    organizationId ? { organizationId } : 'skip'
+  );
+
   const [sdkReady, setSdkReady] = useState(false);
   const initializedRef = useRef(false);
   const lastTokenRef = useRef<string | null>(null);
@@ -244,28 +263,40 @@ export function ChatwootProvider({
 
     const initializeUser = async () => {
       try {
-        // Generate HMAC for identity validation
-        const identifier = user._id;
-        console.log('[Chatwoot] Generating HMAC for user', identifier, 'org:', organizationId);
+        // Check if we have a cached token first
+        let identifierHash: string | null = null;
 
-        const identifierHash = await generateHmac({
-          identifier,
-          organizationId,
-          inbox,
-        });
+        if (cachedToken?.hmacToken) {
+          console.log('[Chatwoot] Using cached HMAC token');
+          identifierHash = cachedToken.hmacToken;
+        } else {
+          // Generate HMAC for identity validation (action will check cache again)
+          const identifier = user._id;
+          console.log('[Chatwoot] Generating HMAC for user', identifier, 'org:', organizationId);
+
+          // Get organization slug if available
+          const organizationSlug = organization?.slug || (inbox === 'platform' ? 'platform' : inbox === 'admin' ? 'admin' : undefined);
+
+          identifierHash = await generateHmac({
+            identifier,
+            organizationId,
+            inbox,
+            organizationSlug,
+          });
+        }
 
         // Set user information in Chatwoot
-        if (window.$chatwoot) {
+        if (window.$chatwoot && identifierHash) {
           const userName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
 
           console.log('[Chatwoot] Setting user info', {
-            identifier,
+            identifier: user._id,
             email: user.email,
             name: userName,
             hasHash: !!identifierHash,
           });
 
-          window.$chatwoot.setUser(identifier, {
+          window.$chatwoot.setUser(user._id, {
             email: user.email,
             name: userName,
             avatar_url: user.imageUrl || undefined,
@@ -284,7 +315,7 @@ export function ChatwootProvider({
     };
 
     initializeUser();
-  }, [sdkReady, authLoaded, user, clerkId, organizationId, inbox, generateHmac]);
+  }, [sdkReady, authLoaded, user, clerkId, organizationId, inbox, generateHmac, cachedToken, organization]);
 
   // Reset session when user logs out
   useEffect(() => {

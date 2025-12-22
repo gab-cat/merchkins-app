@@ -11,6 +11,7 @@ import { getUsersArgs, getUsersHandler } from './getUsers';
 import { getUsersByManagerArgs, getUsersByManagerHandler } from './getUsersByManager';
 import { getUsersByOrganizationArgs, getUsersByOrganizationHandler } from './getUsersByOrganization';
 import { searchUsersArgs, searchUsersHandler } from './searchUsers';
+import { getChatwootHmacTokenArgs, getChatwootHmacTokenHandler } from './getChatwootHmacToken';
 
 // Export query functions
 export const checkUserPermission = query({
@@ -61,4 +62,9 @@ export const getUsersByOrganization = query({
 export const searchUsers = query({
   args: searchUsersArgs,
   handler: searchUsersHandler,
+});
+
+export const getChatwootHmacToken = query({
+  args: getChatwootHmacTokenArgs,
+  handler: getChatwootHmacTokenHandler,
 });

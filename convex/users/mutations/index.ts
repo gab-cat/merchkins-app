@@ -12,6 +12,7 @@ import { updatePreferencesArgs, updatePreferencesHandler } from './updatePrefere
 import { updateProfileArgs, updateProfileHandler } from './updateProfile';
 import { updateUserPermissionsArgs, updateUserPermissionsHandler } from './updateUserPermissions';
 import { updateUserRoleArgs, updateUserRoleHandler } from './updateUserRole';
+import { createChatwootHmacTokenArgs, createChatwootHmacTokenHandler } from './createChatwootHmacToken';
 
 // Import webhook handlers (these are already exported as internal mutations in the clerkWebhook file)
 export { handleUserCreated, handleUserUpdated, handleUserDeleted } from './clerkWebhook';
@@ -71,4 +72,9 @@ export const updateUserRole = mutation({
 export const updateOrderStats = internalMutation({
   args: updateOrderStatsArgs,
   handler: updateOrderStatsHandler,
+});
+
+export const createChatwootHmacToken = mutation({
+  args: createChatwootHmacTokenArgs,
+  handler: createChatwootHmacTokenHandler,
 });

@@ -159,6 +159,7 @@ import type * as models_announcements from "../models/announcements.js";
 import type * as models_carts from "../models/carts.js";
 import type * as models_categories from "../models/categories.js";
 import type * as models_chats from "../models/chats.js";
+import type * as models_chatwoot from "../models/chatwoot.js";
 import type * as models_checkoutSessions from "../models/checkoutSessions.js";
 import type * as models_files from "../models/files.js";
 import type * as models_logs from "../models/logs.js";
@@ -394,6 +395,7 @@ import type * as users_actions_sendWelcomeEmail from "../users/actions/sendWelco
 import type * as users_mutations_addOrganizationMembership from "../users/mutations/addOrganizationMembership.js";
 import type * as users_mutations_clerkWebhook from "../users/mutations/clerkWebhook.js";
 import type * as users_mutations_completeOnboarding from "../users/mutations/completeOnboarding.js";
+import type * as users_mutations_createChatwootHmacToken from "../users/mutations/createChatwootHmacToken.js";
 import type * as users_mutations_deleteUser from "../users/mutations/deleteUser.js";
 import type * as users_mutations_index from "../users/mutations/index.js";
 import type * as users_mutations_removeOrganizationMembership from "../users/mutations/removeOrganizationMembership.js";
@@ -407,6 +409,7 @@ import type * as users_mutations_updateUserPermissions from "../users/mutations/
 import type * as users_mutations_updateUserRole from "../users/mutations/updateUserRole.js";
 import type * as users_queries_checkUserPermission from "../users/queries/checkUserPermission.js";
 import type * as users_queries_getAccountSettings from "../users/queries/getAccountSettings.js";
+import type * as users_queries_getChatwootHmacToken from "../users/queries/getChatwootHmacToken.js";
 import type * as users_queries_getCurrentUser from "../users/queries/getCurrentUser.js";
 import type * as users_queries_getRecentlyActiveUsers from "../users/queries/getRecentlyActiveUsers.js";
 import type * as users_queries_getUserAnalytics from "../users/queries/getUserAnalytics.js";
@@ -587,6 +590,7 @@ declare const fullApi: ApiFromModules<{
   "models/carts": typeof models_carts;
   "models/categories": typeof models_categories;
   "models/chats": typeof models_chats;
+  "models/chatwoot": typeof models_chatwoot;
   "models/checkoutSessions": typeof models_checkoutSessions;
   "models/files": typeof models_files;
   "models/logs": typeof models_logs;
@@ -822,6 +826,7 @@ declare const fullApi: ApiFromModules<{
   "users/mutations/addOrganizationMembership": typeof users_mutations_addOrganizationMembership;
   "users/mutations/clerkWebhook": typeof users_mutations_clerkWebhook;
   "users/mutations/completeOnboarding": typeof users_mutations_completeOnboarding;
+  "users/mutations/createChatwootHmacToken": typeof users_mutations_createChatwootHmacToken;
   "users/mutations/deleteUser": typeof users_mutations_deleteUser;
   "users/mutations/index": typeof users_mutations_index;
   "users/mutations/removeOrganizationMembership": typeof users_mutations_removeOrganizationMembership;
@@ -835,6 +840,7 @@ declare const fullApi: ApiFromModules<{
   "users/mutations/updateUserRole": typeof users_mutations_updateUserRole;
   "users/queries/checkUserPermission": typeof users_queries_checkUserPermission;
   "users/queries/getAccountSettings": typeof users_queries_getAccountSettings;
+  "users/queries/getChatwootHmacToken": typeof users_queries_getChatwootHmacToken;
   "users/queries/getCurrentUser": typeof users_queries_getCurrentUser;
   "users/queries/getRecentlyActiveUsers": typeof users_queries_getRecentlyActiveUsers;
   "users/queries/getUserAnalytics": typeof users_queries_getUserAnalytics;
