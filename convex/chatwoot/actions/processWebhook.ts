@@ -158,7 +158,7 @@ export const processWebhookEvent = action({
     const conversationId = webhookEvent.conversation?.id;
     const accountId = webhookEvent.account?.id;
     const contactId = webhookEvent.sender?.id;
-    const inboxName = webhookEvent.inbox?.name;
+    const inboxName = webhookEvent.account?.name === 'Merchkins' ? webhookEvent.inbox?.name : webhookEvent.account?.name;
 
     if (!conversationId || !accountId || !contactId) {
       console.error('[Chatwoot Bot] Missing conversation, account, or contact ID');
@@ -169,7 +169,7 @@ export const processWebhookEvent = action({
     const selectedValue = extractSelectedValue(webhookEvent);
 
     // Get bot token
-    const botToken = await getBotToken(ctx as any, inboxName, accountId);
+    const botToken = await getBotToken(ctx, inboxName, accountId);
     if (!botToken) {
       console.error('[Chatwoot Bot] No bot token available');
       return { processed: true, responded: false, reason: 'No bot token configured' };
