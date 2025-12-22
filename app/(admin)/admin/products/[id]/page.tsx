@@ -65,6 +65,7 @@ const productSchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters'),
   description: z.string().optional(),
   categoryId: z.string().optional(),
+  code: z.string().optional(),
   inventory: z.coerce.number().min(0, 'Inventory must be 0 or more'),
   inventoryType: z.enum(['PREORDER', 'STOCK']),
   fulfillmentDays: z.coerce.number().min(0, 'Must be 0 or more').optional(),
@@ -127,6 +128,7 @@ export default function AdminEditProductPage() {
       title: '',
       description: '',
       categoryId: '',
+      code: '',
       inventory: 0,
       inventoryType: 'STOCK',
       fulfillmentDays: undefined,
@@ -146,6 +148,7 @@ export default function AdminEditProductPage() {
         title: product.title,
         description: product.description || '',
         categoryId: product.categoryId || '',
+        code: product.code || '',
         inventory: product.inventory,
         inventoryType: product.inventoryType || 'STOCK',
         fulfillmentDays: product.fulfillmentDays,
@@ -423,6 +426,7 @@ export default function AdminEditProductPage() {
         title: values.title,
         description: values.description,
         categoryId: values.categoryId ? (values.categoryId as any) : undefined,
+        code: values.code || undefined,
         inventory: values.inventory,
         inventoryType: values.inventoryType,
         fulfillmentDays: values.fulfillmentDays,
@@ -590,6 +594,10 @@ export default function AdminEditProductPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </FormField>
+
+                <FormField label="Product Code" name="code" hint="Unique code for quick lookup (e.g., via Messenger bot)">
+                  <Input id="code" placeholder="e.g., MERCH001" className="h-10 uppercase" {...register('code')} />
                 </FormField>
               </div>
             </FormCard>

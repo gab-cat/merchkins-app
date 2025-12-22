@@ -183,6 +183,24 @@ export async function isProductSlugUnique(
 }
 
 /**
+ * Check if a product code is globally unique (codes are not scoped to organizations)
+ */
+export async function isProductCodeUnique(ctx: QueryCtx | MutationCtx, code: string, excludeId?: Id<'products'>): Promise<boolean> {
+  const existing = await ctx.db
+    .query('products')
+    .withIndex('by_code', (q) => q.eq('code', code))
+    .filter((q) => q.eq(q.field('isDeleted'), false))
+    .first();
+
+  if (!existing) {
+    return true;
+  }
+
+  // If excludeId is provided, allow the code if it belongs to that product
+  return excludeId ? existing._id === excludeId : false;
+}
+
+/**
  * Check if a category slug is unique within an organization
  */
 export async function isCategorySlugUnique(

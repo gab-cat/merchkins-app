@@ -58,8 +58,9 @@ export const handleVariantSelection = internalAction({
   handler: async (ctx, args) => {
     const { sessionId, selectedValue, accountId, conversationId, botToken } = args;
 
-    // Handle cancel
-    if (selectedValue === 'cancel' || selectedValue === '❌ Cancel Order') {
+    // Handle cancel (flexible matching)
+    const normalizedValue = selectedValue.toLowerCase().trim();
+    if (normalizedValue === 'cancel' || normalizedValue.includes('cancel order') || normalizedValue.includes('cancel')) {
       await ctx.runMutation(internal.chatwoot.orderFlow.sessionManager.updateSession, {
         sessionId,
         currentStep: 'CANCELLED',
@@ -105,12 +106,25 @@ export const handleVariantSelection = internalAction({
       const variantId = selectedValue.replace('variant_', '');
       variant = variants.find((v: ProductVariant) => v.variantId === variantId);
     } else {
-      // Try to match by title format: "VariantName - ₱Price"
-      // Extract variant name by removing the price part
-      const nameMatch = selectedValue.match(/^(.+?)\s*-\s*₱[\d,.]+$/);
+      // Try to match by title format: "VariantName - ₱Price" or "VariantName — ₱Price"
+      // Extract variant name by removing the price part (handle both dash types)
+      const nameMatch = selectedValue.match(/^(.+?)\s*[—\-]\s*₱[\d,.]+$/);
       const variantName = nameMatch ? nameMatch[1].trim() : selectedValue.trim();
 
+      // Try exact match first
       variant = variants.find((v: ProductVariant) => v.variantName === variantName);
+
+      // If not found, try case-insensitive match
+      if (!variant) {
+        const normalizedInput = variantName.toLowerCase();
+        variant = variants.find((v: ProductVariant) => v.variantName.toLowerCase() === normalizedInput);
+      }
+
+      // If still not found, try partial match (input contains variant name)
+      if (!variant) {
+        const normalizedInput = variantName.toLowerCase();
+        variant = variants.find((v: ProductVariant) => normalizedInput.includes(v.variantName.toLowerCase()));
+      }
     }
 
     if (!variant) {
@@ -182,8 +196,9 @@ export const handleSizeSelection = internalAction({
   handler: async (ctx, args) => {
     const { sessionId, selectedValue, accountId, conversationId, botToken } = args;
 
-    // Handle cancel
-    if (selectedValue === 'cancel' || selectedValue === '❌ Cancel Order') {
+    // Handle cancel (flexible matching)
+    const normalizedValue = selectedValue.toLowerCase().trim();
+    if (normalizedValue === 'cancel' || normalizedValue.includes('cancel order') || normalizedValue.includes('cancel')) {
       await ctx.runMutation(internal.chatwoot.orderFlow.sessionManager.updateSession, {
         sessionId,
         currentStep: 'CANCELLED',
@@ -200,8 +215,8 @@ export const handleSizeSelection = internalAction({
       return { success: true, nextStep: 'CANCELLED' };
     }
 
-    // Handle back to variants
-    if (selectedValue === 'back_variant' || selectedValue === '⬅️ Back to variants') {
+    // Handle back to variants (flexible matching)
+    if (selectedValue === 'back_variant' || normalizedValue.includes('back to variant') || normalizedValue.includes('back')) {
       const session = await ctx.runQuery(internal.chatwoot.orderFlow.sessionManager.getActiveSession, {
         conversationId,
       });
@@ -356,8 +371,9 @@ export const handleNotesInput = internalAction({
   handler: async (ctx, args) => {
     const { sessionId, notesText, accountId, conversationId, botToken } = args;
 
-    // Handle cancel
-    if (notesText === 'cancel') {
+    // Handle cancel (flexible matching)
+    const normalizedValue = notesText.toLowerCase().trim();
+    if (normalizedValue === 'cancel' || normalizedValue.includes('cancel order') || normalizedValue.includes('cancel')) {
       await ctx.runMutation(internal.chatwoot.orderFlow.sessionManager.updateSession, {
         sessionId,
         currentStep: 'CANCELLED',
@@ -374,8 +390,9 @@ export const handleNotesInput = internalAction({
       return { success: true, nextStep: 'CANCELLED' };
     }
 
-    // Handle skip
-    const notes = notesText === 'skip_notes' ? undefined : notesText.trim();
+    // Handle skip (flexible matching)
+    const notes =
+      normalizedValue === 'skip_notes' || normalizedValue.includes('skip') || normalizedValue.includes('no notes') ? undefined : notesText.trim();
 
     // Get session to check if user has email
     const session = await ctx.runQuery(internal.chatwoot.orderFlow.sessionManager.getActiveSession, {

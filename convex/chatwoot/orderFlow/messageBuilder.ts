@@ -40,17 +40,17 @@ export function buildVariantSelectionMessage(productTitle: string, variants: Pro
   const items: InputSelectItem[] = variants
     .filter((v) => v.isAvailable)
     .map((v) => ({
-      title: `${v.variantName} - ₱${v.price.toFixed(2)}`,
+      title: `${v.variantName} — ₱${v.price.toFixed(2)}`,
       value: `variant_${v.variantId}`,
     }));
 
   // Add cancel option
   items.push({
-    title: '❌ Cancel Order',
+    title: 'Cancel Order',
     value: 'cancel',
   });
 
-  return buildInputSelectMessage(`📦 ${toBoldFont(productTitle)}\n\nPlease select a variant:`, items);
+  return buildInputSelectMessage(`🛍️ ${toBoldFont('Select a Variant')}\n\nPlease choose an option below:`, items);
 }
 
 /**
@@ -66,16 +66,16 @@ export function buildSizeSelectionMessage(productTitle: string, variantName: str
 
   // Add back option
   items.push({
-    title: '⬅️ Back to variants',
+    title: 'Back to Variants',
     value: 'back_variant',
   });
 
   items.push({
-    title: '❌ Cancel Order',
+    title: 'Cancel Order',
     value: 'cancel',
   });
 
-  return buildInputSelectMessage(`📦 ${toBoldFont(productTitle)} - ${variantName}\n\nPlease select a size:`, items);
+  return buildInputSelectMessage(`📏 ${toBoldFont('Select a Size')}\n${variantName}\n\nPlease choose a size:`, items);
 }
 
 /**
@@ -83,7 +83,9 @@ export function buildSizeSelectionMessage(productTitle: string, variantName: str
  */
 export function buildQuantityPromptMessage(productTitle: string, variantName: string, size?: string): ChatwootMessagePayload {
   const selection = size ? `${variantName} (${size})` : variantName;
-  return buildTextMessage(`📦 ${toBoldFont(productTitle)} - ${selection}\n\nHow many would you like to order? Please reply with a number (1-99):`);
+  return buildTextMessage(
+    `🔢 ${toBoldFont('Enter Quantity')}\n\nYou selected: ${selection}\n\nPlease reply with the quantity you would like to order (1-99).`
+  );
 }
 
 /**
@@ -91,25 +93,32 @@ export function buildQuantityPromptMessage(productTitle: string, variantName: st
  */
 export function buildNotesPromptMessage(): ChatwootMessagePayload {
   const items: InputSelectItem[] = [
-    { title: '⏩ Skip (No notes)', value: 'skip_notes' },
-    { title: '❌ Cancel Order', value: 'cancel' },
+    { title: 'Skip (No notes)', value: 'skip_notes' },
+    { title: 'Cancel Order', value: 'cancel' },
   ];
 
-  return buildInputSelectMessage('📝 Any special notes or instructions for your order?\n\nYou can type your notes or select an option:', items);
+  return buildInputSelectMessage(
+    `📝 ${toBoldFont('Order Notes')}\n\nWould you like to add any special instructions for your order?\n\nType your notes or select an option below:`,
+    items
+  );
 }
 
 /**
  * Build email input prompt
  */
 export function buildEmailPromptMessage(): ChatwootMessagePayload {
-  return buildTextMessage('📧 To complete your order, please provide your email address:\n\n(We will send you an OTP code to verify your email)');
+  return buildTextMessage(
+    `📧 ${toBoldFont('Email Verification')}\n\nPlease provide your email address to complete your order.\n\nWe will send you a verification code to confirm.`
+  );
 }
 
 /**
  * Build OTP verification prompt
  */
 export function buildOTPPromptMessage(email: string): ChatwootMessagePayload {
-  return buildTextMessage(`📧 We sent a verification code to ${toBoldFont(email)}.\n\nPlease enter the 6-digit code:`);
+  return buildTextMessage(
+    `🔐 ${toBoldFont('Verification Code Sent')}\n\nWe sent a 6-digit code to ${toBoldFont(email)}.\n\nPlease enter the code to verify your email.`
+  );
 }
 
 /**
@@ -125,12 +134,13 @@ export function buildPaymentLinkMessage(
 ): ChatwootMessagePayload {
   const selection = size ? `${variantName} (${size})` : variantName;
   return buildTextMessage(
-    `${toBoldFont('✅ Order Created!')}\n\n` +
-      `📦 ${productTitle}\n` +
-      `   ${selection} x${quantity}\n\n` +
-      `${toBoldFont(`💰 Total: ₱${total.toFixed(2)}`)}\n\n` +
-      `🔗 Pay here: ${paymentUrl}\n\n` +
-      `Thank you for your order! You will receive a confirmation once payment is received.`
+    `✅ ${toBoldFont('Order Created')}\n\n` +
+      `${toBoldFont('Product:')} ${productTitle}\n` +
+      `${toBoldFont('Variant:')} ${selection}\n` +
+      `${toBoldFont('Quantity:')} ${quantity}\n` +
+      `${toBoldFont('Total:')} ₱${total.toFixed(2)}\n\n` +
+      `💳 Please complete your payment:\n${paymentUrl}\n\n` +
+      `You will receive a confirmation once your payment has been processed.`
   );
 }
 
@@ -139,9 +149,9 @@ export function buildPaymentLinkMessage(
  */
 export function buildOrderConfirmationMessage(orderNumber: string): ChatwootMessagePayload {
   return buildTextMessage(
-    `${toBoldFont('🎉 Payment Received!')}\n\n` +
-      `Your order ${toBoldFont(orderNumber)} has been confirmed and is now being processed.\n\n` +
-      `We'll keep you updated on the status. Thank you!`
+    `💚 ${toBoldFont('Payment Confirmed')}\n\n` +
+      `Order ${toBoldFont(orderNumber)} has been confirmed and is now being processed.\n\n` +
+      `Thank you for your purchase! We will keep you updated on your order status. 🙏`
   );
 }
 
@@ -149,14 +159,16 @@ export function buildOrderConfirmationMessage(orderNumber: string): ChatwootMess
  * Build error message
  */
 export function buildErrorMessage(message: string): ChatwootMessagePayload {
-  return buildTextMessage(`❌ ${message}`);
+  return buildTextMessage(message);
 }
 
 /**
  * Build cancel confirmation message
  */
 export function buildCancelMessage(): ChatwootMessagePayload {
-  return buildTextMessage('❌ Order cancelled.\n\nYou can start a new order anytime by sending a product code (e.g., CODE: PROD123).');
+  return buildTextMessage(
+    `❌ ${toBoldFont('Order Cancelled')}\n\nYour order has been cancelled. You can start a new order anytime by sending a product code.\n\nExample: CODE: PROD123`
+  );
 }
 /**
  * Send message to Chatwoot conversation
@@ -272,9 +284,10 @@ export function buildProductInfoMessage(
   reviewsCount: number,
   totalOrders: number,
   fulfillmentDays: number | undefined,
-  inventoryType: 'PREORDER' | 'STOCK'
+  inventoryType: 'PREORDER' | 'STOCK',
+  productUrl?: string
 ): ChatwootMessagePayload {
-  let content = `📦 ${toBoldFont(title)}\n\n`;
+  let content = `${toBoldFont(title)}\n\n`;
 
   // Description (truncated if too long)
   if (description) {
@@ -285,28 +298,27 @@ export function buildProductInfoMessage(
   // Price range
   if (minPrice !== undefined && maxPrice !== undefined) {
     if (minPrice === maxPrice) {
-      content += `💰 ${toBoldFont('Price:')} ₱${minPrice.toFixed(2)}\n`;
+      content += `${toBoldFont('Price:')} ₱${minPrice.toFixed(2)}\n`;
     } else {
-      content += `💰 ${toBoldFont('Price:')} ₱${minPrice.toFixed(2)} - ₱${maxPrice.toFixed(2)}\n`;
+      content += `${toBoldFont('Price:')} ₱${minPrice.toFixed(2)} — ₱${maxPrice.toFixed(2)}\n`;
     }
   }
 
   // Ratings and reviews
   if (reviewsCount > 0) {
-    const stars = '⭐'.repeat(Math.round(rating));
-    content += `${stars} ${rating.toFixed(1)} (${reviewsCount} reviews)\n`;
+    content += `${toBoldFont('Rating:')} ${rating.toFixed(1)} ★ (${reviewsCount} reviews)\n`;
   }
 
   // Total orders
   if (totalOrders > 0) {
-    content += `📊 ${totalOrders} orders\n`;
+    content += `${toBoldFont('Sold:')} ${totalOrders} orders\n`;
   }
 
   // Fulfillment info
   if (inventoryType === 'PREORDER') {
-    content += `⏳ ${toBoldFont('Pre-order')} - Ships in ${fulfillmentDays || 7} days\n`;
+    content += `${toBoldFont('Type:')} Pre-order (ships in ${fulfillmentDays || 7} days)\n`;
   } else if (fulfillmentDays) {
-    content += `🚚 Ready in ${fulfillmentDays} days\n`;
+    content += `${toBoldFont('Delivery:')} Ready in ${fulfillmentDays} days\n`;
   }
 
   // Tags
@@ -315,7 +327,12 @@ export function buildProductInfoMessage(
       .slice(0, 5)
       .map((t) => `#${t}`)
       .join(' ');
-    content += `\n🏷️ ${tagStr}`;
+    content += `\n${tagStr}`;
+  }
+
+  // Product URL at the bottom
+  if (productUrl) {
+    content += `\n\n${toBoldFont('View Product:')}\n${productUrl}`;
   }
 
   return buildTextMessage(content);

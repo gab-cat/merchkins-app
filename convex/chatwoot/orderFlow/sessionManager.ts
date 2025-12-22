@@ -3,10 +3,13 @@
 
 import { v } from 'convex/values';
 import { MutationCtx, QueryCtx, internalMutation, internalQuery } from '../../_generated/server';
+import { internal } from '../../_generated/api';
 import { Id } from '../../_generated/dataModel';
 import { OrderSessionStep } from './types';
 
-// Session expiry: 30 minutes
+// Session expiry: 10 minutes (for scheduler auto-close)
+const SESSION_TIMEOUT_MS = 10 * 60 * 1000;
+// Session expiry extension: 30 minutes (legacy expiry check)
 const SESSION_EXPIRY_MS = 30 * 60 * 1000;
 
 // ============= QUERIES =============
@@ -56,6 +59,7 @@ export const getActiveSession = internalQuery({
         v.literal('CANCELLED')
       ),
       orderId: v.optional(v.id('orders')),
+      scheduledCloseId: v.optional(v.id('_scheduled_functions')),
       expiresAt: v.number(),
       createdAt: v.number(),
       updatedAt: v.number(),
@@ -197,6 +201,14 @@ export const createSessionHandler = async (
     updatedAt: now,
   });
 
+  // Schedule auto-close after 10 minutes
+  const scheduledCloseId = await ctx.scheduler.runAfter(SESSION_TIMEOUT_MS, internal.chatwoot.orderFlow.sessionManager.closeExpiredSession, {
+    sessionId,
+  });
+
+  // Save the scheduled function ID to the session
+  await ctx.db.patch(sessionId, { scheduledCloseId });
+
   return sessionId;
 };
 
@@ -255,6 +267,15 @@ export const updateSessionHandler = async (
   // Extend expiry on each update
   updateData.expiresAt = now + SESSION_EXPIRY_MS;
 
+  // If session is completed or cancelled, cancel the scheduled close
+  if (args.currentStep === 'COMPLETED' || args.currentStep === 'CANCELLED') {
+    const session = await ctx.db.get(sessionId);
+    if (session?.scheduledCloseId) {
+      await ctx.scheduler.cancel(session.scheduledCloseId);
+      updateData.scheduledCloseId = undefined;
+    }
+  }
+
   await ctx.db.patch(sessionId, updateData);
 
   return sessionId;
@@ -264,4 +285,35 @@ export const updateSession = internalMutation({
   args: updateSessionArgs,
   returns: v.id('messengerOrderSessions'),
   handler: updateSessionHandler,
+});
+
+// ============= SCHEDULED FUNCTIONS =============
+
+/**
+ * Close expired session - called by scheduler after 10 minutes
+ */
+export const closeExpiredSession = internalMutation({
+  args: {
+    sessionId: v.id('messengerOrderSessions'),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+
+    if (!session) {
+      return null;
+    }
+
+    // Only close if session is still active (not completed or cancelled)
+    if (session.currentStep !== 'COMPLETED' && session.currentStep !== 'CANCELLED') {
+      await ctx.db.patch(args.sessionId, {
+        currentStep: 'CANCELLED',
+        scheduledCloseId: undefined,
+        updatedAt: Date.now(),
+      });
+      console.log(`[SessionManager] Auto-closed expired session: ${args.sessionId}`);
+    }
+
+    return null;
+  },
 });

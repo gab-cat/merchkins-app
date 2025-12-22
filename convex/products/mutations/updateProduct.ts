@@ -15,6 +15,7 @@ import {
   validateCategoryExists,
   requireOrganizationPermission,
   isProductSlugUnique,
+  isProductCodeUnique,
 } from '../../helpers';
 
 // Update existing product
@@ -24,6 +25,7 @@ export const updateProductArgs = {
   title: v.optional(v.string()),
   description: v.optional(v.string()),
   slug: v.optional(v.string()),
+  code: v.optional(v.string()),
   discountLabel: v.optional(v.string()),
   supposedPrice: v.optional(v.number()),
   imageUrl: v.optional(v.array(v.string())),
@@ -55,6 +57,7 @@ export const updateProductHandler = async (
     title?: string;
     description?: string;
     slug?: string;
+    code?: string;
     discountLabel?: string;
     supposedPrice?: number;
     imageUrl?: string[];
@@ -161,6 +164,22 @@ export const updateProductHandler = async (
   // Handle title update
   if (args.title) {
     updates.title = sanitizeString(args.title);
+  }
+
+  // Handle code update
+  if (args.code !== undefined) {
+    if (args.code) {
+      // Validate code uniqueness (codes are globally unique)
+      const sanitizedCode = sanitizeString(args.code).toUpperCase();
+      const isUnique = await isProductCodeUnique(ctx, sanitizedCode, args.productId);
+      if (!isUnique) {
+        throw new Error('Product code already exists. Please use a unique code.');
+      }
+      updates.code = sanitizedCode;
+    } else {
+      // Allow clearing the code
+      updates.code = undefined;
+    }
   }
 
   // Handle description update

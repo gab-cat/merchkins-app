@@ -101,14 +101,20 @@ export const startOrderFlowHandler = async (
 
   // Build R2 public URL
   const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://pub-bef9c89ebd5d427c9bf90c155b9b8fd0.r2.dev';
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com';
+
+  // Build product URL
+  const organizationSlug = product.organizationInfo?.slug || '';
+  const productSlug = product.slug;
+  const productUrl = organizationSlug ? `${APP_URL}/o/${organizationSlug}/p/${productSlug}` : '';
 
   // Send product image with details as attachment (if available)
   const productImageUrl = product.imageUrl?.[0];
   if (productImageUrl) {
     const fullImageUrl = productImageUrl.startsWith('http') ? productImageUrl : `${R2_PUBLIC_URL}/${productImageUrl}`;
 
-    // Build enhanced product info caption
-    let caption = `📦 ${toBoldFont(product.title)}`;
+    // Build professional product info caption
+    let caption = `${toBoldFont(product.title)}`;
 
     // Add description (truncated)
     if (product.description) {
@@ -119,28 +125,27 @@ export const startOrderFlowHandler = async (
     // Add price range
     if (product.minPrice !== undefined && product.maxPrice !== undefined) {
       if (product.minPrice === product.maxPrice) {
-        caption += `\n\n💰 ${toBoldFont('Price:')} ₱${product.minPrice.toFixed(2)}`;
+        caption += `\n\n${toBoldFont('Price:')} ₱${product.minPrice.toFixed(2)}`;
       } else {
-        caption += `\n\n💰 ${toBoldFont('Price:')} ₱${product.minPrice.toFixed(2)} - ₱${product.maxPrice.toFixed(2)}`;
+        caption += `\n\n${toBoldFont('Price:')} ₱${product.minPrice.toFixed(2)} — ₱${product.maxPrice.toFixed(2)}`;
       }
     }
 
     // Add ratings if available
     if (product.reviewsCount > 0) {
-      const stars = '⭐'.repeat(Math.min(Math.round(product.rating), 5));
-      caption += `\n${stars} ${product.rating.toFixed(1)} (${product.reviewsCount} reviews)`;
+      caption += `\n${toBoldFont('Rating:')} ${product.rating.toFixed(1)} ★ (${product.reviewsCount} reviews)`;
     }
 
     // Add order count if available
     if (product.totalOrders && product.totalOrders > 0) {
-      caption += `\n📊 ${product.totalOrders} sold`;
+      caption += `\n${toBoldFont('Sold:')} ${product.totalOrders} orders`;
     }
 
     // Add fulfillment info
     if (product.inventoryType === 'PREORDER') {
-      caption += `\n⏳ ${toBoldFont('Pre-order')} - Ships in ${product.fulfillmentDays || 7} days`;
+      caption += `\n${toBoldFont('Type:')} Pre-order (ships in ${product.fulfillmentDays || 7} days)`;
     } else if (product.fulfillmentDays) {
-      caption += `\n🚚 Ready in ${product.fulfillmentDays} days`;
+      caption += `\n${toBoldFont('Delivery:')} Ready in ${product.fulfillmentDays} days`;
     }
 
     // Add tags
@@ -149,23 +154,28 @@ export const startOrderFlowHandler = async (
         .slice(0, 5)
         .map((t: string) => `#${t}`)
         .join(' ');
-      caption += `\n\n🏷️ ${tagStr}`;
+      caption += `\n\n${tagStr}`;
+    }
+
+    // Add product URL at the bottom
+    if (productUrl) {
+      caption += `\n\n${toBoldFont('View Product:')}\n${productUrl}`;
     }
 
     // Try to send as attachment, fall back to text message if it fails
     const attachmentSent = await sendChatwootImageAttachment(accountId, conversationId, fullImageUrl, caption, botToken);
 
     if (!attachmentSent) {
-      // Fallback: send text message with image URL
+      // Fallback: send text message without image URL, just product URL
       await sendChatwootMessage(
         accountId,
         conversationId,
-        { content: `${caption}\n\n🖼️ ${fullImageUrl}`, content_type: 'text', message_type: 'outgoing', private: false },
+        { content: caption, content_type: 'text', message_type: 'outgoing', private: false },
         botToken
       );
     }
   } else {
-    // No image - just send product info
+    // No image - just send product info with product URL
     const productInfoMessage = buildProductInfoMessage(
       product.title,
       product.description,
@@ -176,7 +186,8 @@ export const startOrderFlowHandler = async (
       product.reviewsCount,
       product.totalOrders || 0,
       product.fulfillmentDays,
-      product.inventoryType
+      product.inventoryType,
+      productUrl
     );
     await sendChatwootMessage(accountId, conversationId, productInfoMessage, botToken);
   }

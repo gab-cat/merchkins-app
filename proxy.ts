@@ -16,35 +16,48 @@ export default clerkMiddleware(async (auth, req) => {
     const subdomain = hostname.split('.')[0];
 
     // Skip if subdomain is app, staging, or starts with preview
-    // Only redirect when accessing the root path to avoid redirect loops
-    if (subdomain !== 'app' && subdomain !== 'staging' && !subdomain.startsWith('preview') && req.nextUrl.pathname === '/') {
-      try {
-        // Replace the .cloud at the end to .site
-        const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace('.cloud', '.site');
-        if (!convexUrl) {
-          console.error('NEXT_PUBLIC_CONVEX_URL not configured');
-        } else {
-          // Check if organization exists
-          const resolverResponse = await fetch(`${convexUrl}/resolve-org?slug=${subdomain}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            cache: 'force-cache',
-          });
+    if (subdomain !== 'app' && subdomain !== 'staging' && !subdomain.startsWith('preview')) {
+      const pathname = req.nextUrl.pathname;
 
-          if (resolverResponse.ok) {
-            // Organization exists, rewrite to storefront
-            console.log('Organization found for subdomain:', subdomain, '- rewriting to /o/' + subdomain);
-            const newUrl = new URL(`/o/${subdomain}`, req.url);
-            return NextResponse.rewrite(newUrl);
+      // Skip paths that shouldn't be rewritten (admin, api, static files, auth, etc.)
+      const skipPaths = ['/admin', '/api', '/_next', '/sign-in', '/sign-up', '/webhooks', '/monitoring', '/landing', '/o/'];
+      const shouldSkip = skipPaths.some((p) => pathname.startsWith(p)) || pathname === '/sitemap.xml' || pathname === '/robots.txt';
+
+      if (!shouldSkip) {
+        try {
+          // Replace the .cloud at the end to .site
+          const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace('.cloud', '.site');
+          if (!convexUrl) {
+            console.error('NEXT_PUBLIC_CONVEX_URL not configured');
           } else {
-            console.log('Organization not found for subdomain:', subdomain, '- status:', resolverResponse.status);
+            // Check if organization exists (only for root path to optimize, trust subdomain for other paths)
+            if (pathname === '/') {
+              const resolverResponse = await fetch(`${convexUrl}/resolve-org?slug=${subdomain}`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                cache: 'force-cache',
+              });
+
+              if (resolverResponse.ok) {
+                console.log('Organization found for subdomain:', subdomain, '- rewriting to /o/' + subdomain);
+                const newUrl = new URL(`/o/${subdomain}`, req.url);
+                return NextResponse.rewrite(newUrl);
+              } else {
+                console.log('Organization not found for subdomain:', subdomain, '- status:', resolverResponse.status);
+              }
+            } else {
+              // For non-root paths on valid subdomain, rewrite directly (trust subdomain)
+              const newUrl = new URL(`/o/${subdomain}${pathname}`, req.url);
+              newUrl.search = req.nextUrl.search; // Preserve query params
+              return NextResponse.rewrite(newUrl);
+            }
           }
+        } catch (error) {
+          console.error('Error checking organization:', error);
+          // Continue normally if resolver fails
         }
-      } catch (error) {
-        console.error('Error checking organization:', error);
-        // Continue normally if resolver fails
       }
     }
   }

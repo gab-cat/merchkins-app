@@ -38,6 +38,9 @@ export const messengerOrderSessions = defineTable({
   // Order result
   orderId: v.optional(v.id('orders')),
 
+  // Scheduler for auto-close
+  scheduledCloseId: v.optional(v.id('_scheduled_functions')),
+
   expiresAt: v.number(),
   createdAt: v.number(),
   updatedAt: v.number(),
