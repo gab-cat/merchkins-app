@@ -97,7 +97,7 @@ export function ServicesSection() {
           {services.map((service, index) => (
             <motion.div
               key={service.title}
-              className="flex-shrink-0 w-[300px] md:w-[320px] snap-start"
+              className="shrink-0 w-[300px] md:w-[320px] snap-start"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -105,7 +105,7 @@ export function ServicesSection() {
             >
               <div className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 h-full border border-slate-100">
                 {/* Image */}
-                <div className="relative aspect-[4/3] overflow-hidden">
+                <div className="relative aspect-4/3 overflow-hidden">
                   <Image
                     src={service.image}
                     alt={service.title}

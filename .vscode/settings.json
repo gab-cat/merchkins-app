@@ -1,6 +1,9 @@
 {
   // "typescript.experimental.useTsgo": true,
   "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSaveMode": "file",
   "prettier.configPath": ".prettierrc",

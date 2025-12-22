@@ -46,14 +46,10 @@ export function AdminHeader() {
   return (
     <header
       data-testid="admin-header"
-      className={cn(
-        'sticky top-0 z-50 w-full border-b border-border',
-        'bg-card/95 backdrop-blur-xl supports-[backdrop-filter]:bg-card/90',
-        'relative'
-      )}
+      className={cn('sticky top-0 z-50 w-full border-b border-border', 'bg-card/95 backdrop-blur-xl supports-backdrop-filter:bg-card/90', 'relative')}
     >
       {/* Subtle bottom accent */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/20 to-transparent" />
 
       <div className="container mx-auto flex h-14 items-center gap-6 px-6 relative z-10">
         <div className="flex items-center gap-4">

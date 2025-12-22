@@ -19,7 +19,7 @@ export function LandingFooter() {
           <div className="flex items-center gap-4">
             <Link href="/landing" className="flex items-center gap-2 group">
               <div className="h-9 w-9 rounded-xl bg-[#1d43d8] flex items-center justify-center shadow-lg shadow-[#1d43d8]/25">
-                <span className="font-genty text-[#adfc04] text-lg">M</span>
+                <span className="font-genty text-brand-neon text-lg">M</span>
               </div>
               <span className="font-heading font-bold text-xl text-slate-900">Merchkins</span>
             </Link>

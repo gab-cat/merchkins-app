@@ -36,7 +36,7 @@ export function BentoGrid() {
     <section id="features" className="py-20 md:py-28 bg-slate-50 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#1d43d8]/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-[#adfc04]/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-brand-neon/10 rounded-full blur-3xl" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Section Title - Left Aligned */}
@@ -53,7 +53,7 @@ export function BentoGrid() {
             {/* Card 1: Large Feature - Multi-tenant Stores (spans 8 cols, 2 rows) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-12 md:col-span-8 row-span-2 bg-gradient-to-br from-[#1d43d8] via-[#2952e8] to-[#4169f0] rounded-3xl p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
+              className="group relative col-span-12 md:col-span-8 row-span-2 bg-linear-to-br from-[#1d43d8] via-[#2952e8] to-[#4169f0] rounded-3xl p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
             >
               {/* Animated Lottie background */}
               <div className="absolute top-4 right-4 w-32 h-32 opacity-30">
@@ -90,7 +90,7 @@ export function BentoGrid() {
                       animate={{ y: [0, -5, 0] }}
                       transition={{ duration: 2, delay: i * 0.2, repeat: Infinity }}
                     >
-                      <Star className="h-5 w-5 text-[#adfc04]" />
+                      <Star className="h-5 w-5 text-brand-neon" />
                     </motion.div>
                   ))}
                 </div>
@@ -112,7 +112,7 @@ export function BentoGrid() {
                   <span className="text-xs text-slate-500 w-24">Startups</span>
                   <div className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-[#1d43d8] to-[#4169f0] rounded-full"
+                      className="h-full bg-linear-to-r from-[#1d43d8] to-[#4169f0] rounded-full"
                       initial={{ width: 0 }}
                       whileInView={{ width: '85%' }}
                       transition={{ delay: 0.4, duration: 1, ease: 'easeOut' }}
@@ -125,7 +125,7 @@ export function BentoGrid() {
                   <span className="text-xs text-slate-500 w-24">SMBs</span>
                   <div className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-[#1d43d8]/70 to-[#4169f0]/70 rounded-full"
+                      className="h-full bg-linear-to-r from-[#1d43d8]/70 to-[#4169f0]/70 rounded-full"
                       initial={{ width: 0 }}
                       whileInView={{ width: '60%' }}
                       transition={{ delay: 0.5, duration: 1, ease: 'easeOut' }}
@@ -138,14 +138,14 @@ export function BentoGrid() {
                   <span className="text-xs text-slate-500 w-24">Enterprise</span>
                   <div className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-[#adfc04] to-[#c5ff4d] rounded-full"
+                      className="h-full bg-linear-to-r from-brand-neon to-[#c5ff4d] rounded-full"
                       initial={{ width: 0 }}
                       whileInView={{ width: '25%' }}
                       transition={{ delay: 0.6, duration: 1, ease: 'easeOut' }}
                       viewport={{ once: true }}
                     />
                   </div>
-                  <span className="text-xs font-semibold text-[#adfc04] w-8">15</span>
+                  <span className="text-xs font-semibold text-brand-neon w-8">15</span>
                 </div>
               </div>
             </motion.div>
@@ -161,9 +161,9 @@ export function BentoGrid() {
                 fill
                 className="object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/50 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-[#0f172a] via-[#0f172a]/50 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#adfc04] rounded-full text-xs font-medium text-slate-900 mb-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-neon rounded-full text-xs font-medium text-slate-900 mb-3">
                   <Users className="h-3 w-3" />
                   Team Collab
                 </div>
@@ -177,7 +177,7 @@ export function BentoGrid() {
               variants={itemVariants}
               className="group relative col-span-6 md:col-span-4 row-span-1 bg-white rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all duration-500 border border-slate-100 flex items-center gap-4"
             >
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#adfc04] to-[#8fcc00] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#adfc04]/25">
+              <div className="h-12 w-12 rounded-2xl bg-linear-to-br from-brand-neon to-[#8fcc00] flex items-center justify-center shrink-0 shadow-lg shadow-brand-neon/25">
                 <ShoppingCart className="h-6 w-6 text-slate-900" />
               </div>
               <div>
@@ -191,7 +191,7 @@ export function BentoGrid() {
               variants={itemVariants}
               className="group relative col-span-6 md:col-span-4 row-span-1 bg-[#0f172a] rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all duration-500 flex items-center gap-4"
             >
-              <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0">
+              <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
                 <Truck className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -199,7 +199,7 @@ export function BentoGrid() {
                 <p className="text-slate-400 text-sm">Production to delivery, we handle it all</p>
               </div>
               <motion.div
-                className="absolute -right-2 -top-2 w-8 h-8 bg-[#adfc04] rounded-full flex items-center justify-center shadow-lg"
+                className="absolute -right-2 -top-2 w-8 h-8 bg-brand-neon rounded-full flex items-center justify-center shadow-lg"
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
@@ -210,7 +210,7 @@ export function BentoGrid() {
             {/* Card 8: Trending/Growth Card (spans 4 cols, 2 rows) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-12 md:col-span-4 row-span-2 bg-gradient-to-br from-[#adfc04] via-[#c5ff4d] to-[#adfc04] rounded-3xl p-6 md:p-8 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden"
+              className="group relative col-span-12 md:col-span-4 row-span-2 bg-linear-to-br from-brand-neon via-[#c5ff4d] to-brand-neon rounded-3xl p-6 md:p-8 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden"
             >
               {/* Pattern overlay */}
               <div
@@ -225,7 +225,7 @@ export function BentoGrid() {
               <div className="relative z-10 h-full flex flex-col justify-between">
                 <div>
                   <div className="h-14 w-14 rounded-2xl bg-slate-900 flex items-center justify-center mb-6">
-                    <TrendingUp className="h-7 w-7 text-[#adfc04]" />
+                    <TrendingUp className="h-7 w-7 text-brand-neon" />
                   </div>
                   <h3 className="font-heading text-2xl font-bold text-slate-900 mb-2">Grow Your Brand</h3>
                   <p className="text-slate-700 leading-relaxed">Scale your merchandise operations with analytics, insights, and automation tools.</p>
@@ -268,7 +268,7 @@ export function BentoGrid() {
               </div>
               <div className="relative z-10 h-full flex flex-col justify-between">
                 <div>
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-rose-400 via-amber-400 to-emerald-400 flex items-center justify-center flex-shrink-0 shadow-lg mb-4">
+                  <div className="h-14 w-14 rounded-2xl bg-linear-to-br from-rose-400 via-amber-400 to-emerald-400 flex items-center justify-center shrink-0 shadow-lg mb-4">
                     <Paintbrush className="h-7 w-7 text-white" />
                   </div>
                   <h3 className="font-heading text-xl font-bold text-slate-900 mb-2">Custom Branding</h3>
@@ -280,7 +280,7 @@ export function BentoGrid() {
                 <div className="flex items-center gap-3 mt-4">
                   <div className="flex items-center gap-1">
                     <div className="w-6 h-6 rounded-full bg-[#1d43d8]" />
-                    <div className="w-6 h-6 rounded-full bg-[#adfc04]" />
+                    <div className="w-6 h-6 rounded-full bg-brand-neon" />
                     <div className="w-6 h-6 rounded-full bg-slate-900" />
                   </div>
                   <span className="text-xs text-slate-400">Brand Palette</span>
@@ -291,7 +291,7 @@ export function BentoGrid() {
             {/* Card 6: NEW - Real-time Notifications (below Work Together) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-6 md:col-span-4 row-span-1 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden"
+              className="group relative col-span-6 md:col-span-4 row-span-1 bg-linear-to-br from-violet-500 via-purple-500 to-fuchsia-500 rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden"
             >
               {/* Floating bell animations */}
               <div className="absolute top-2 right-2 flex gap-1">
@@ -314,7 +314,7 @@ export function BentoGrid() {
                 ))}
               </div>
               <div className="relative z-10 h-full flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
                   <Bell className="h-6 w-6 text-white" />
                 </div>
                 <div>

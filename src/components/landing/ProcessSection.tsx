@@ -76,7 +76,7 @@ export function ProcessSection() {
     <section ref={containerRef} className="py-20 md:py-28 bg-slate-50 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-40 -left-20 w-80 h-80 bg-[#1d43d8]/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-0 w-96 h-96 bg-[#adfc04]/8 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-0 w-96 h-96 bg-brand-neon/8 rounded-full blur-3xl" />
 
       {/* Floating grid pattern */}
       <div
@@ -92,7 +92,7 @@ export function ProcessSection() {
         <div className="text-center mb-16 md:mb-20">
           <BlurFade delay={0}>
             <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">
-              <Sparkles className="h-4 w-4 text-[#adfc04]" />
+              <Sparkles className="h-4 w-4 text-brand-neon" />
               How It Works
             </span>
           </BlurFade>
@@ -118,7 +118,7 @@ export function ProcessSection() {
         >
           {/* Animated vertical timeline - desktop only */}
           <div className="hidden lg:block absolute left-1/2 top-0 bottom-0 w-px bg-slate-200 -translate-x-1/2">
-            <motion.div className="w-full bg-gradient-to-b from-[#1d43d8] via-[#adfc04] to-emerald-500" style={{ height: lineHeight }} />
+            <motion.div className="w-full bg-linear-to-b from-[#1d43d8] via-brand-neon to-emerald-500" style={{ height: lineHeight }} />
           </div>
 
           {/* Steps */}
@@ -139,7 +139,7 @@ export function ProcessSection() {
                         {/* Step number badge */}
                         <div className={`absolute -top-4 ${isEven ? 'lg:right-8 left-6 lg:left-auto' : 'left-6 lg:left-8'}`}>
                           <div
-                            className={`inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br ${step.accent} text-white font-heading font-bold text-sm shadow-lg`}
+                            className={`inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-linear-to-br ${step.accent} text-white font-heading font-bold text-sm shadow-lg`}
                           >
                             {step.number}
                           </div>
@@ -149,7 +149,7 @@ export function ProcessSection() {
                           {/* Icon */}
                           <div className={`h-14 w-14 rounded-2xl ${step.bgAccent} flex items-center justify-center`}>
                             <Icon
-                              className={`h-7 w-7 bg-gradient-to-br ${step.accent} bg-clip-text text-transparent`}
+                              className={`h-7 w-7 bg-linear-to-br ${step.accent} bg-clip-text text-transparent`}
                               style={{ color: index === 0 ? '#f59e0b' : index === 1 ? '#1d43d8' : index === 2 ? '#10b981' : '#84cc16' }}
                             />
                           </div>
@@ -171,7 +171,7 @@ export function ProcessSection() {
                     {/* Timeline node - desktop only */}
                     <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                       <motion.div
-                        className={`w-5 h-5 rounded-full bg-gradient-to-br ${step.accent} shadow-lg ring-4 ring-slate-50`}
+                        className={`w-5 h-5 rounded-full bg-linear-to-br ${step.accent} shadow-lg ring-4 ring-slate-50`}
                         initial={{ scale: 0 }}
                         whileInView={{ scale: 1 }}
                         viewport={{ once: true }}

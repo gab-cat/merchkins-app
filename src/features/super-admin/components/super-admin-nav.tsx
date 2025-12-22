@@ -75,6 +75,7 @@ export function SuperAdminNav() {
   const platformItems = [
     { href: '/super-admin/overview', icon: LayoutDashboard, label: 'Overview' },
     { href: '/super-admin/organizations', icon: Building2, label: 'Organizations' },
+    { href: '/super-admin/applications', icon: ScrollText, label: 'Applications' }, // Using ScrollText as clipboard/list replacement
     { href: '/super-admin/users', icon: Users, label: 'Users' },
     { href: '/super-admin/payouts', icon: DollarSign, label: 'Payouts' },
   ];

@@ -149,7 +149,7 @@ export function SiteFooter() {
 
   return (
     <footer
-      className="relative bg-white border-t border-primary"
+      className="relative bg-white border-t border-primary mt-12"
       style={{
         backgroundColor: shouldApplyTheme ? 'var(--footer-bg)' : 'white',
         color: shouldApplyTheme ? 'var(--footer-fg)' : undefined,
@@ -170,6 +170,33 @@ export function SiteFooter() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               Your one-stop platform for custom merchandise. We help organizations create, manage, and sell branded products with ease.
             </p>
+          </div>
+
+          {/* Contact */}
+          <div className="space-y-2">
+            <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Contact</h4>
+            <div className="flex flex-col gap-2.5">
+              <Link
+                href="mailto:support@merchkins.com"
+                className="group inline-flex items-start gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <Mail className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>support@merchkins.com</span>
+              </Link>
+              <Link
+                href="tel:+639999667583"
+                className="group inline-flex items-start gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <Phone className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>+63 (999) 966-7583</span>
+              </Link>
+              <div className="inline-flex items-start gap-2 text-xs text-muted-foreground">
+                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+                <span className="leading-relaxed">
+                  Magis TBI Richie Hall, Ateneo de Naga University, Ateneo Avenue, Bagumbayan Sur, Naga City, Camarines Sur, 4400, PH
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Support */}
@@ -218,33 +245,6 @@ export function SiteFooter() {
                 <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             </form>
-          </div>
-
-          {/* Contact */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Contact</h4>
-            <div className="flex flex-col gap-2.5">
-              <Link
-                href="mailto:business@merchkins.com"
-                className="group inline-flex items-start gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
-              >
-                <Mail className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>business@merchkins.com</span>
-              </Link>
-              <Link
-                href="tel:+639999667583"
-                className="group inline-flex items-start gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
-              >
-                <Phone className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>+63 (999) 966-7583</span>
-              </Link>
-              <div className="inline-flex items-start gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                <span className="leading-relaxed">
-                  Magis TBI Richie Hall, Ateneo de Naga University, Ateneo Avenue, Bagumbayan Sur, Naga City, Camarines Sur, 4400, PH
-                </span>
-              </div>
-            </div>
           </div>
         </motion.div>
 

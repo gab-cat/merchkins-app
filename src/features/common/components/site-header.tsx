@@ -331,7 +331,7 @@ function SiteHeaderContent({
               )}
               aria-label="Go back home"
             >
-              <Link className="!text-xs" href="https://app.merchkins.com">
+              <Link className="text-xs!" href="https://app.merchkins.com">
                 <ArrowLeft className="h-2 w-2" />
                 <span className="hidden sm:inline text-xs">Go back home</span>
               </Link>
@@ -564,7 +564,7 @@ function SiteHeaderContent({
                   <Button
                     size="sm"
                     className={cn(
-                      'px-3 md:px-5 h-9 text-sm font-medium transition-all duration-300 rounded-full shadow-lg',
+                      'px-4! md:px-8! h-9 text-sm font-medium transition-all duration-300 rounded-full shadow-lg',
                       isScrolled
                         ? 'bg-white/20 hover:bg-white/30 text-white hover:shadow-xl backdrop-blur-sm'
                         : shouldApplyTheme

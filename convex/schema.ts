@@ -30,6 +30,7 @@ import { refundRequests } from './models/refundRequests';
 import { voucherRedemptionCosts } from './models/voucherRedemptionCosts';
 import { orderBatches } from './models/orderBatches';
 import { messengerOrderSessions, emailVerificationCodes } from './models/messengerOrders';
+import { storefrontApplications } from './models/storefrontApplications';
 
 export default defineSchema({
   // User management
@@ -107,4 +108,7 @@ export default defineSchema({
   // Messenger ordering
   messengerOrderSessions,
   emailVerificationCodes,
+
+  // Storefront applications
+  storefrontApplications,
 });
