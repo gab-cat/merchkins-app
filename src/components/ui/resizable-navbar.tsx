@@ -108,7 +108,74 @@ export function Navbar({ children, className, style }: NavbarProps) {
         }}
       >
         <motion.div
-          className={cn('mx-auto flex items-center w-full h-full', isScrolled && 'supports-[backdrop-filter]:backdrop-blur-sm')}
+          className={cn('mx-auto flex items-center w-full h-full', isScrolled && 'supports-backdrop-filter:backdrop-blur-sm')}
+          style={{
+            overflow: 'hidden',
+          }}
+          animate={{
+            maxWidth: isScrolled ? '56rem' : '100%',
+            borderRadius: isScrolled ? '9999px' : '0px',
+            backgroundColor: isScrolled ? 'rgba(0, 0, 0, 0.4)' : initialBgColor,
+            paddingLeft: isScrolled ? '1.5rem' : '0',
+            paddingRight: isScrolled ? '1.5rem' : '0',
+          }}
+          transition={{
+            type: 'spring',
+            stiffness: 150,
+            damping: 20,
+            mass: 0.5,
+          }}
+        >
+          {children}
+        </motion.div>
+      </motion.nav>
+    </NavbarScrollContext.Provider>
+  );
+}
+
+export function LandingNavbar({ children, className, style }: NavbarProps) {
+  const { scrollY } = useScroll();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useMotionValueEvent(scrollY, 'change', (latest) => {
+    setIsScrolled(latest > 50);
+  });
+
+  // Get initial background color from style prop if provided
+  const initialBgColor = style?.backgroundColor || 'rgba(255, 255, 255, 0.95)';
+
+  // Extract backgroundColor from style to animate it separately
+  const { backgroundColor, ...restStyle } = style || {};
+
+  // Remove backdrop blur from className when scrolled
+  const processedClassName = isScrolled ? className?.replace(/supports-\[backdrop-filter\]:backdrop-blur-md/g, '').trim() : className;
+
+  return (
+    <NavbarScrollContext.Provider value={{ isScrolled }}>
+      <motion.nav
+        className={cn('fixed top-0 left-0 right-0 z-50', processedClassName)}
+        style={{
+          position: 'fixed',
+          ...restStyle,
+          backdropFilter: isScrolled ? 'none' : undefined,
+        }}
+        animate={{
+          top: isScrolled ? '0.5rem' : '0',
+          paddingTop: isScrolled ? '0' : '2rem',
+          paddingLeft: isScrolled ? '2rem' : 'clamp(1.5rem, 5vw, 3rem)',
+          paddingRight: isScrolled ? '2rem' : 'clamp(1.5rem, 5vw, 3rem)',
+          height: isScrolled ? '4rem' : '6rem',
+          backgroundColor: isScrolled ? 'transparent' : backgroundColor || initialBgColor,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 150,
+          damping: 20,
+          mass: 0.5,
+        }}
+      >
+        <motion.div
+          className={cn('mx-auto flex items-center w-full h-full', isScrolled && 'supports-backdrop-filter:backdrop-blur-sm')}
           style={{
             overflow: 'hidden',
           }}

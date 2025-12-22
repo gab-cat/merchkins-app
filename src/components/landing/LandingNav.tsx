@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
@@ -14,6 +14,25 @@ const navLinks = [
 
 export function LandingNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleSmoothScroll = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const targetId = href.replace('#', '');
+    const targetElement = document.getElementById(targetId);
+
+    if (targetElement) {
+      const headerOffset = 80; // Account for sticky header height
+      const elementPosition = targetElement.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+
+    setMobileMenuOpen(false);
+  }, []);
 
   return (
     <motion.header
@@ -40,7 +59,8 @@ export function LandingNav() {
               <motion.a
                 key={link.href}
                 href={link.href}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-[#1d43d8] transition-colors relative group"
+                onClick={(e) => handleSmoothScroll(e, link.href)}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-[#1d43d8] transition-colors relative group cursor-pointer"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + index * 0.05, duration: 0.4 }}
@@ -90,11 +110,11 @@ export function LandingNav() {
                 <motion.a
                   key={link.href}
                   href={link.href}
-                  className="px-4 py-3 text-base font-medium text-slate-600 hover:text-[#1d43d8] hover:bg-slate-50 rounded-xl transition-colors"
+                  onClick={(e) => handleSmoothScroll(e, link.href)}
+                  className="px-4 py-3 text-base font-medium text-slate-600 hover:text-[#1d43d8] hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
                 </motion.a>

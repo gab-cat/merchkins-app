@@ -89,7 +89,7 @@ export default function ApplyPage() {
                 <BlurFade delay={0.1}>
                   <div className="inline-flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400">
                     <span className="w-8 h-px bg-slate-200" />
-                    Join the Ecosystem
+                    Launch Your Business
                     <span className="w-8 h-px bg-slate-200" />
                   </div>
                 </BlurFade>
@@ -102,7 +102,7 @@ export default function ApplyPage() {
 
                 <BlurFade delay={0.3}>
                   <p className="text-slate-500 text-base max-w-md mx-auto font-medium leading-relaxed">
-                    Start selling your custom merchandise with zero hassle. Fill out the application below to get started.
+                    Get your own storefront with unified ordering, payments, and omni-channel customer support. Apply now to get started.
                   </p>
                 </BlurFade>
               </div>
@@ -168,9 +168,9 @@ export default function ApplyPage() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-3">Organization Context (Optional)</label>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-3">About Your Business (Optional)</label>
                       <Textarea
-                        placeholder="Tell us a little bit about what you do..."
+                        placeholder="Tell us about your business, what you sell, and how you'd like to grow..."
                         {...form.register('description')}
                         rows={3}
                         className="resize-none bg-slate-50/50 border-slate-200 rounded-3xl focus:bg-white focus:ring-0 focus:border-primary transition-all text-sm px-5 py-4 font-medium"

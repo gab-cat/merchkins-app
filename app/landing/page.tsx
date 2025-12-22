@@ -1,4 +1,4 @@
-import { SiteHeader } from '@/src/features/common/components/site-header';
+import { LandingHeader } from '@/src/components/landing/LandingHeader';
 import { SiteFooter } from '@/src/features/common/components/site-footer';
 import { HeroSection } from '@/src/components/landing/HeroSection';
 import { AboutSection } from '@/src/components/landing/AboutSection';
@@ -50,7 +50,7 @@ export default function LandingPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
 
-      <SiteHeader />
+      <LandingHeader />
       <main className="flex-1">
         <HeroSection />
         <AboutSection />

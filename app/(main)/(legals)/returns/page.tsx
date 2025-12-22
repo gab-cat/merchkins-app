@@ -103,9 +103,29 @@ export default function ReturnsPage() {
             </ol>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">3.3 Review Process</h3>
-            <p className="text-slate-700 leading-relaxed">
+            <p className="text-slate-700 leading-relaxed mb-4">
               Cancellation requests are reviewed by the organization administrators (sellers). The review process typically takes 1-3 business days.
               Approved cancellations will result in a refund voucher being issued to your account.
+            </p>
+
+            <h3 className="text-xl font-semibold mb-3 mt-6">3.4 Pre-Orders and Made-to-Order Products</h3>
+            <p className="text-slate-700 leading-relaxed mb-4">Special cancellation rules apply to pre-orders and made-to-order products:</p>
+            <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 mb-4">
+              <li>
+                <strong>Pre-orders:</strong> The 24-hour cancellation window applies from the time of payment confirmation, regardless of the expected
+                delivery date
+              </li>
+              <li>
+                <strong>Made-to-order products:</strong> Custom or personalized items may have restricted cancellation options once production has
+                begun
+              </li>
+              <li>
+                <strong>Batch production:</strong> For products in batch production runs (e.g., limited edition merchandise), cancellations after the
+                production cutoff date may not be accepted
+              </li>
+            </ul>
+            <p className="text-slate-700 leading-relaxed">
+              Sellers must clearly communicate any special cancellation policies for pre-orders or made-to-order products at the time of purchase.
             </p>
           </section>
 
@@ -281,10 +301,27 @@ export default function ReturnsPage() {
                 <strong>Seek Legal Remedies:</strong> As a last resort, you may pursue legal action through appropriate channels
               </li>
             </ol>
-            <p className="text-slate-700 leading-relaxed">
+            <p className="text-slate-700 leading-relaxed mb-4">
               Merchkins is committed to fair resolution of all disputes and will cooperate fully with regulatory authorities in the investigation of
               any consumer complaints.
             </p>
+
+            <h3 className="text-xl font-semibold mb-3 mt-6">8.1 How to Contact Support</h3>
+            <p className="text-slate-700 leading-relaxed mb-4">You can reach our support team through multiple channels:</p>
+            <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4">
+              <li>
+                <strong>Website:</strong> Visit the seller's storefront and use the chat widget
+              </li>
+              <li>
+                <strong>Facebook Messenger:</strong> Message the seller's connected Facebook page
+              </li>
+              <li>
+                <strong>Email:</strong> Send an email to business@merchkins.com for platform-level support
+              </li>
+              <li>
+                <strong>Order Page:</strong> Use the "Report an Issue" button on your order details page
+              </li>
+            </ul>
           </section>
 
           <section className="mb-10">

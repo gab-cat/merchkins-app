@@ -19,11 +19,12 @@ export default function CTAComponent() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 border border-primary/20 text-xs font-medium text-primary mb-1">
             <Ticket className="h-3 w-3" />
-            <span>Partner with Merchkins</span>
+            <span>Launch Your Storefront</span>
           </div>
-          <h3 className="text-xl font-bold font-heading">Ready to sell your own merch?</h3>
+          <h3 className="text-xl font-bold font-heading">Ready to streamline your business?</h3>
           <p className="text-muted-foreground max-w-lg text-sm">
-            Open your own storefront on Merchkins and let us handle production, inventory, and fulfillment while you focus on your brand.
+            Get your own storefront with unified ordering, payment processing, and fulfillment — plus omni-channel support to manage all customer
+            conversations in one inbox.
           </p>
         </div>
         <Link href="/apply">

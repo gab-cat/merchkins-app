@@ -117,6 +117,26 @@ export default function PrivacyPage() {
                 <strong>Analytics providers:</strong> Aggregated usage data
               </li>
             </ul>
+
+            <h3 className="text-xl font-semibold mb-3 mt-6">2.4 Omni-Channel Communication Data</h3>
+            <p className="text-slate-700 leading-relaxed mb-4">When you communicate through our omni-channel inbox, we collect:</p>
+            <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 mb-4">
+              <li>
+                <strong>Facebook Messenger:</strong> Messages, profile information (name, profile picture) as permitted by Facebook's data policies
+              </li>
+              <li>
+                <strong>Facebook Page messages:</strong> Inquiries, comments, and replies on connected business pages
+              </li>
+              <li>
+                <strong>Website chat:</strong> Chat messages, session data, and any information you voluntarily provide
+              </li>
+              <li>
+                <strong>Email:</strong> Email address, message content, and attachments
+              </li>
+            </ul>
+            <p className="text-slate-700 leading-relaxed">
+              This data is collected to provide customer support, process orders, and maintain communication history for dispute resolution.
+            </p>
           </section>
 
           <section className="mb-10">
@@ -172,11 +192,28 @@ export default function PrivacyPage() {
 
             <p className="text-slate-700 leading-relaxed mb-4">We may share your personal information with:</p>
 
-            <h3 className="text-xl font-semibold mb-3 mt-6">4.1 Sellers</h3>
+            <h3 className="text-xl font-semibold mb-3 mt-6">4.1 Sellers (Storefront Operators)</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
-              When you place an order, we share your name, contact details, and shipping address with the relevant seller to fulfill your order.
-              Sellers are required to handle your data in compliance with applicable privacy laws.
+              When you place an order or communicate with a seller through our platform, we share your information with the relevant seller. Sellers
+              receive:
             </p>
+            <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 mb-4">
+              <li>Name, email address, and phone number</li>
+              <li>Shipping and billing address</li>
+              <li>Order details (products, quantities, preferences)</li>
+              <li>Communication history through our omni-channel inbox</li>
+              <li>Payment status (not payment method details)</li>
+            </ul>
+            <p className="text-slate-700 leading-relaxed mb-4">
+              <strong>Seller obligations:</strong> Sellers are contractually required to:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 mb-4">
+              <li>Use customer data only for order fulfillment and customer service</li>
+              <li>Handle data in compliance with the Data Privacy Act of 2012</li>
+              <li>Not share customer data with third parties without consent</li>
+              <li>Not use customer data for unrelated marketing without separate consent</li>
+              <li>Implement reasonable security measures to protect customer data</li>
+            </ul>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">4.2 Service Providers</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
@@ -217,8 +254,221 @@ export default function PrivacyPage() {
 
           <section className="mb-10">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-3">
+              <Share2 className="h-6 w-6 text-slate-600" />
+              5. Third-Party API Integrations
+            </h2>
+
+            <p className="text-slate-700 leading-relaxed mb-4">
+              Merchkins integrates with third-party platforms to provide omni-channel communication features for sellers. This section describes how
+              we access, use, store, and protect data from these integrations.
+            </p>
+
+            {/* Google API Disclosure Card */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 not-prose mb-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="h-10 w-10 bg-white rounded-lg flex items-center justify-center border border-slate-200 shrink-0">
+                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none">
+                    <path
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      fill="#4285F4"
+                    />
+                    <path
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      fill="#34A853"
+                    />
+                    <path
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      fill="#FBBC05"
+                    />
+                    <path
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      fill="#EA4335"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Google API Services User Data Disclosure</h3>
+                  <p className="text-slate-600 text-sm">Gmail integration for omni-channel inbox (available to organization administrators)</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-2">Data Accessed</h4>
+                  <p className="text-slate-600 text-sm mb-2">When organization administrators connect their Gmail account, we access:</p>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600 text-sm ml-2">
+                    <li>Email messages (read-only) from the connected inbox</li>
+                    <li>Email metadata (sender, recipient, subject, date)</li>
+                    <li>User profile information (email address, name)</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-2">Data Usage</h4>
+                  <p className="text-slate-600 text-sm mb-2">Google user data is used exclusively to:</p>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600 text-sm ml-2">
+                    <li>Display email messages within our omni-channel inbox interface</li>
+                    <li>Enable sellers to respond to customer inquiries from a unified dashboard</li>
+                    <li>Synchronize email communications for customer support purposes</li>
+                  </ul>
+                  <p className="text-slate-600 text-sm mt-2">
+                    <strong>
+                      We do not use Google user data for advertising, profiling, or any purpose unrelated to providing the omni-channel inbox feature.
+                    </strong>
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-2">Data Sharing</h4>
+                  <p className="text-slate-600 text-sm">
+                    Google user data is <strong>not shared with any third parties</strong>. Data is only accessible to the organization administrator
+                    who connected the account and authorized team members within their organization. We do not sell, rent, or trade Google user data.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-2">Data Storage & Protection</h4>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600 text-sm ml-2">
+                    <li>Google OAuth tokens are encrypted at rest using AES-256 encryption</li>
+                    <li>Email content is cached temporarily for display purposes only</li>
+                    <li>Data is stored on secure, access-controlled cloud infrastructure</li>
+                    <li>Access is restricted to authorized personnel only</li>
+                    <li>We implement industry-standard security measures including TLS encryption for data in transit</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-2">Data Retention & Deletion</h4>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600 text-sm ml-2">
+                    <li>OAuth tokens are retained only while the integration is active</li>
+                    <li>Cached email data is retained for up to 30 days for display purposes</li>
+                    <li>Users can disconnect their Google account at any time via Settings {'>'} Integrations</li>
+                    <li>Upon disconnection, all Google user data (tokens and cached content) is deleted within 7 days</li>
+                    <li>Users may request immediate deletion by contacting business@merchkins.com</li>
+                  </ul>
+                </div>
+
+                <div className="bg-blue-50 rounded-lg p-3 mt-4">
+                  <p className="text-blue-800 text-sm">
+                    <strong>Google API Services User Data Policy Compliance:</strong> Merchkins' use and transfer of information received from Google
+                    APIs adheres to the{' '}
+                    <a
+                      href="https://developers.google.com/terms/api-services-user-data-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-blue-900"
+                    >
+                      Google API Services User Data Policy
+                    </a>
+                    , including the Limited Use requirements.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Facebook/Meta API Disclosure Card */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 not-prose">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="h-10 w-10 bg-white rounded-lg flex items-center justify-center border border-slate-200 shrink-0">
+                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="#1877F2">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Meta (Facebook) API User Data Disclosure</h3>
+                  <p className="text-slate-600 text-sm">Facebook Messenger and Page integration for omni-channel inbox</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-2">Data Accessed</h4>
+                  <p className="text-slate-600 text-sm mb-2">When sellers connect their Facebook Page, we access:</p>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600 text-sm ml-2">
+                    <li>Facebook Messenger conversations from the connected Page</li>
+                    <li>Facebook Page inbox messages and comments</li>
+                    <li>User profile information of message senders (name, profile picture as permitted by Facebook)</li>
+                    <li>Page access tokens for sending/receiving messages</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-2">Data Usage</h4>
+                  <p className="text-slate-600 text-sm mb-2">Facebook/Meta user data is used exclusively to:</p>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600 text-sm ml-2">
+                    <li>Display Messenger and Page conversations in our unified inbox</li>
+                    <li>Enable sellers to respond to customer messages from one dashboard</li>
+                    <li>Facilitate order inquiries and customer support through Messenger</li>
+                    <li>Associate conversations with customer orders when applicable</li>
+                  </ul>
+                  <p className="text-slate-600 text-sm mt-2">
+                    <strong>
+                      We do not use Facebook user data for advertising, building user profiles, or any purpose beyond providing customer communication
+                      features.
+                    </strong>
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-2">Data Sharing</h4>
+                  <p className="text-slate-600 text-sm">
+                    Facebook user data is shared only with the seller (storefront operator) who connected the Facebook Page. Data is{' '}
+                    <strong>not shared with any other third parties</strong>. We do not sell, rent, or trade Facebook user data.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-2">Data Storage & Protection</h4>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600 text-sm ml-2">
+                    <li>Facebook access tokens are encrypted at rest</li>
+                    <li>Conversation data is stored in secure, access-controlled databases</li>
+                    <li>All data transfers use TLS encryption</li>
+                    <li>Access is restricted to the connected seller and their authorized team members</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-2">Data Retention & Deletion</h4>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600 text-sm ml-2">
+                    <li>Conversation history is retained while the integration is active for customer service continuity</li>
+                    <li>Access tokens are retained only while the integration is connected</li>
+                    <li>Sellers can disconnect their Facebook Page at any time via Settings {'>'} Integrations</li>
+                    <li>Upon disconnection, access tokens are deleted immediately; conversation data is deleted within 30 days</li>
+                    <li>Users may request immediate deletion by contacting business@merchkins.com</li>
+                  </ul>
+                </div>
+
+                <div className="bg-blue-50 rounded-lg p-3 mt-4">
+                  <p className="text-blue-800 text-sm">
+                    <strong>Meta Platform Terms Compliance:</strong> Merchkins' use of data received from Meta APIs complies with the{' '}
+                    <a
+                      href="https://developers.facebook.com/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-blue-900"
+                    >
+                      Meta Platform Terms
+                    </a>{' '}
+                    and{' '}
+                    <a
+                      href="https://developers.facebook.com/policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-blue-900"
+                    >
+                      Developer Policies
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-3">
               <Globe className="h-6 w-6 text-slate-600" />
-              5. International Data Transfers
+              6. International Data Transfers
             </h2>
             <p className="text-slate-700 leading-relaxed mb-4">
               Your personal information may be transferred to and processed in countries outside the Philippines where our service providers operate.
@@ -238,7 +488,7 @@ export default function PrivacyPage() {
           <section className="mb-10">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-3">
               <Lock className="h-6 w-6 text-slate-600" />
-              6. Data Security
+              7. Data Security
             </h2>
             <p className="text-slate-700 leading-relaxed mb-4">
               We implement robust technical, organizational, and physical security measures to protect your personal information from unauthorized
@@ -273,7 +523,7 @@ export default function PrivacyPage() {
           <section className="mb-10">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-3">
               <Clock className="h-6 w-6 text-slate-600" />
-              7. Data Retention
+              8. Data Retention
             </h2>
             <p className="text-slate-700 leading-relaxed mb-4">
               We retain your personal information only for as long as necessary to fulfill the purposes for which it was collected, or as required by
@@ -305,7 +555,7 @@ export default function PrivacyPage() {
           <section className="mb-10">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-3">
               <UserCheck className="h-6 w-6 text-slate-600" />
-              8. Your Rights Under the Data Privacy Act
+              9. Your Rights Under the Data Privacy Act
             </h2>
             <p className="text-slate-700 leading-relaxed mb-4">
               Under the Data Privacy Act of 2012, you have the following rights regarding your personal information:
@@ -350,7 +600,7 @@ export default function PrivacyPage() {
               </div>
             </div>
 
-            <h3 className="text-xl font-semibold mb-3">8.1 Exercising Your Rights</h3>
+            <h3 className="text-xl font-semibold mb-3">9.1 Exercising Your Rights</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
               To exercise any of these rights, please contact our Data Protection Officer at
               <a href="mailto:business@merchkins.com" className="text-blue-600 hover:underline">
@@ -366,15 +616,15 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold mb-4">9. Cookies and Tracking Technologies</h2>
+            <h2 className="text-2xl font-semibold mb-4">10. Cookies and Tracking Technologies</h2>
 
-            <h3 className="text-xl font-semibold mb-3 mt-6">9.1 What Are Cookies?</h3>
+            <h3 className="text-xl font-semibold mb-3 mt-6">10.1 What Are Cookies?</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
               Cookies are small text files stored on your device when you visit our Platform. They help us provide a better user experience, remember
               your preferences, and analyze how you use our services.
             </p>
 
-            <h3 className="text-xl font-semibold mb-3 mt-6">9.2 Types of Cookies We Use</h3>
+            <h3 className="text-xl font-semibold mb-3 mt-6">10.2 Types of Cookies We Use</h3>
             <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 mb-4">
               <li>
                 <strong>Essential cookies:</strong> Required for Platform functionality (authentication, security, cart)
@@ -390,7 +640,7 @@ export default function PrivacyPage() {
               </li>
             </ul>
 
-            <h3 className="text-xl font-semibold mb-3 mt-6">9.3 Managing Cookies</h3>
+            <h3 className="text-xl font-semibold mb-3 mt-6">10.3 Managing Cookies</h3>
             <p className="text-slate-700 leading-relaxed">
               You can control cookies through your browser settings. Most browsers allow you to refuse cookies or delete existing cookies. However,
               disabling essential cookies may affect Platform functionality.
@@ -398,7 +648,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold mb-4">10. Children's Privacy</h2>
+            <h2 className="text-2xl font-semibold mb-4">11. Children's Privacy</h2>
             <p className="text-slate-700 leading-relaxed mb-4">
               Our Platform is not intended for children under the age of thirteen (13). We do not knowingly collect personal information from children
               under 13. If we become aware that we have collected personal data from a child under 13 without parental consent, we will take steps to
@@ -411,7 +661,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold mb-4">11. Third-Party Links</h2>
+            <h2 className="text-2xl font-semibold mb-4">12. Third-Party Links</h2>
             <p className="text-slate-700 leading-relaxed">
               Our Platform may contain links to third-party websites or services that are not owned or controlled by Merchkins. We are not responsible
               for the privacy practices of these third parties. We encourage you to review the privacy policies of any third-party sites you visit.
@@ -421,7 +671,7 @@ export default function PrivacyPage() {
           <section className="mb-10">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-3">
               <Bell className="h-6 w-6 text-slate-600" />
-              12. Data Breach Notification
+              13. Data Breach Notification
             </h2>
             <p className="text-slate-700 leading-relaxed mb-4">
               In the event of a personal data breach that is likely to result in a risk to your rights and freedoms, we will:
@@ -436,7 +686,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold mb-4">13. Changes to This Privacy Policy</h2>
+            <h2 className="text-2xl font-semibold mb-4">14. Changes to This Privacy Policy</h2>
             <p className="text-slate-700 leading-relaxed mb-4">
               We may update this Privacy Policy from time to time to reflect changes in our practices, technologies, legal requirements, or other
               factors. When we make material changes, we will:
@@ -452,7 +702,7 @@ export default function PrivacyPage() {
           <section className="mb-10">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-3">
               <HelpCircle className="h-6 w-6 text-slate-600" />
-              14. Complaints and Contact Information
+              15. Complaints and Contact Information
             </h2>
             <p className="text-slate-700 leading-relaxed mb-4">
               If you have questions, concerns, or complaints about this Privacy Policy or our data practices, please contact our Data Protection
@@ -485,7 +735,7 @@ export default function PrivacyPage() {
               </ul>
             </div>
 
-            <h3 className="text-xl font-semibold mb-3">14.1 Filing a Complaint with the NPC</h3>
+            <h3 className="text-xl font-semibold mb-3">15.1 Filing a Complaint with the NPC</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
               If you are not satisfied with our response, you have the right to file a complaint with the National Privacy Commission:
             </p>

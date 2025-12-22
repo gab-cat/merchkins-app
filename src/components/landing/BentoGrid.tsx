@@ -41,19 +41,27 @@ export function BentoGrid() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         {/* Section Title - Left Aligned */}
         <BlurFade delay={0} className="mb-12">
-          <span className="text-sm font-medium text-slate-400 uppercase tracking-wider block mb-3">Features</span>
+          <span className="text-lg font-medium text-black border border-slate-200 px-4 py-1 rounded-full tracking-tight max-w-fit block mb-3">
+            Features
+          </span>
           <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight max-w-2xl">
             Everything you need in <span className="text-[#1d43d8]">one platform</span>
           </h2>
         </BlurFade>
 
-        <motion.div variants={containerVariants} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }}>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="opacity-0 animate-in fade-in duration-0 fill-mode-forwards"
+        >
           {/* Bento Grid - More creative asymmetric layout */}
           <div className="grid grid-cols-12 gap-4 md:gap-6 auto-rows-[140px] md:auto-rows-[160px]">
             {/* Card 1: Large Feature - Multi-tenant Stores (spans 8 cols, 2 rows) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-12 md:col-span-8 row-span-2 bg-linear-to-br from-[#1d43d8] via-[#2952e8] to-[#4169f0] rounded-3xl p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden"
+              className="group relative col-span-12 md:col-span-8 row-span-2 bg-linear-to-br from-[#1d43d8] via-[#2952e8] to-[#4169f0] rounded-3xl p-6 md:p-8 transition-all duration-500 overflow-hidden"
             >
               {/* Animated Lottie background */}
               <div className="absolute top-4 right-4 w-32 h-32 opacity-30">
@@ -75,9 +83,9 @@ export function BentoGrid() {
                     <Building2 className="h-4 w-4" />
                     <span>Multi-Tenant Platform</span>
                   </div>
-                  <h3 className="font-heading text-2xl md:text-3xl font-bold text-white mb-3">Professional Storefronts for Every Team</h3>
+                  <h3 className="font-heading text-2xl md:text-3xl font-bold text-white mb-3">Your Own Professional Storefront</h3>
                   <p className="text-white/80 leading-relaxed max-w-lg">
-                    Create branded storefronts with custom themes, logos, and domains. Serve your community in perfect style, any season.
+                    Create your branded online store with custom themes, logos, and domains. Perfect for artists, freelancers, and small businesses.
                   </p>
                 </div>
 
@@ -100,11 +108,11 @@ export function BentoGrid() {
             {/* Card 2: Stats Card (spans 4 cols, 2 rows) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-12 md:col-span-4 row-span-2 bg-white rounded-3xl p-6 md:p-8 shadow-sm hover:shadow-xl transition-all duration-500 border border-slate-100"
+              className="group relative col-span-12 md:col-span-4 row-span-2 bg-white rounded-3xl p-6 md:p-8 transition-all duration-500 border border-slate-100"
             >
               <div className="text-5xl md:text-6xl font-heading font-bold text-[#1d43d8] mb-2">100+</div>
-              <h3 className="font-heading text-lg font-semibold text-slate-900 mb-4">Partner Organizations</h3>
-              <p className="text-slate-600 text-sm mb-6">Trusted partners ready to boost your brand from idea to fulfillment.</p>
+              <h3 className="font-heading text-lg font-semibold text-slate-900 mb-4">Active Sellers</h3>
+              <p className="text-slate-600 text-sm mb-6">Freelancers, artists, and SMEs growing their businesses with Merchkins.</p>
 
               {/* Animated progress bars */}
               <div className="space-y-3">
@@ -153,7 +161,7 @@ export function BentoGrid() {
             {/* Card 3: Image Card - Work Together (spans 4 cols, 2 rows) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-6 md:col-span-4 row-span-2 bg-[#0f172a] rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500"
+              className="group relative col-span-6 md:col-span-4 row-span-2 bg-[#0f172a] rounded-3xl overflow-hidden transition-all duration-500"
             >
               <Image
                 src="/landing/team-collab.png"
@@ -167,17 +175,19 @@ export function BentoGrid() {
                   <Users className="h-3 w-3" />
                   Team Collab
                 </div>
-                <h3 className="font-heading text-xl font-bold text-white mb-2">Work Together</h3>
-                <p className="text-white/70 text-sm">Collaborate seamlessly with your team on designs, orders, and inventory management.</p>
+                <h3 className="font-heading text-xl font-bold text-white mb-2">Team Collaboration</h3>
+                <p className="text-white/70 text-sm">
+                  Manage your business with your team — shared access to orders, inventory, and customer support.
+                </p>
               </div>
             </motion.div>
 
             {/* Card 4: Feature - Easy Checkout (spans 4 cols, 1 row) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-6 md:col-span-4 row-span-1 bg-white rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all duration-500 border border-slate-100 flex items-center gap-4"
+              className="group relative col-span-6 md:col-span-4 row-span-1 bg-white rounded-3xl p-5 transition-all duration-500 border border-slate-100 flex items-center gap-4"
             >
-              <div className="h-12 w-12 rounded-2xl bg-linear-to-br from-brand-neon to-[#8fcc00] flex items-center justify-center shrink-0 shadow-lg shadow-brand-neon/25">
+              <div className="h-12 w-12 rounded-2xl bg-linear-to-br from-brand-neon to-[#8fcc00] flex items-center justify-center shrink-0">
                 <ShoppingCart className="h-6 w-6 text-slate-900" />
               </div>
               <div>
@@ -189,17 +199,17 @@ export function BentoGrid() {
             {/* Card 5: Feature - Fast Fulfillment (spans 4 cols, 1 row) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-6 md:col-span-4 row-span-1 bg-[#0f172a] rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all duration-500 flex items-center gap-4"
+              className="group relative col-span-6 md:col-span-4 row-span-1 bg-[#0f172a] rounded-3xl p-5 transition-all duration-500 flex items-center gap-4"
             >
               <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
                 <Truck className="h-6 w-6 text-white" />
               </div>
               <div>
                 <h3 className="font-heading text-lg font-bold text-white">Fast Fulfillment</h3>
-                <p className="text-slate-400 text-sm">Production to delivery, we handle it all</p>
+                <p className="text-slate-400 text-sm">Streamlined order processing to delivery</p>
               </div>
               <motion.div
-                className="absolute -right-2 -top-2 w-8 h-8 bg-brand-neon rounded-full flex items-center justify-center shadow-lg"
+                className="absolute -right-2 -top-2 w-8 h-8 bg-brand-neon rounded-full flex items-center justify-center"
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
@@ -210,7 +220,7 @@ export function BentoGrid() {
             {/* Card 8: Trending/Growth Card (spans 4 cols, 2 rows) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-12 md:col-span-4 row-span-2 bg-linear-to-br from-brand-neon via-[#c5ff4d] to-brand-neon rounded-3xl p-6 md:p-8 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden"
+              className="group relative col-span-12 md:col-span-4 row-span-2 bg-linear-to-br from-brand-neon via-[#c5ff4d] to-brand-neon rounded-3xl p-6 md:p-8 transition-all duration-500 overflow-hidden"
             >
               {/* Pattern overlay */}
               <div
@@ -227,8 +237,8 @@ export function BentoGrid() {
                   <div className="h-14 w-14 rounded-2xl bg-slate-900 flex items-center justify-center mb-6">
                     <TrendingUp className="h-7 w-7 text-brand-neon" />
                   </div>
-                  <h3 className="font-heading text-2xl font-bold text-slate-900 mb-2">Grow Your Brand</h3>
-                  <p className="text-slate-700 leading-relaxed">Scale your merchandise operations with analytics, insights, and automation tools.</p>
+                  <h3 className="font-heading text-2xl font-bold text-slate-900 mb-2">Grow Your Business</h3>
+                  <p className="text-slate-700 leading-relaxed">Scale your operations with analytics, insights, and powerful automation tools.</p>
                 </div>
 
                 {/* Mini chart visualization */}
@@ -251,14 +261,14 @@ export function BentoGrid() {
             {/* Card 7: NEW - Custom Branding (spans 4 cols, 2 rows) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-6 md:col-span-4 row-span-2 bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all duration-500 border border-slate-100 overflow-hidden"
+              className="group relative col-span-6 md:col-span-4 row-span-2 bg-white rounded-3xl p-6 transition-all duration-500 border border-slate-100 overflow-hidden"
             >
               {/* Decorative color swatches */}
               <div className="absolute right-4 bottom-4 flex gap-2 rotate-6 opacity-70">
                 {['bg-[#1d43d8]', 'bg-[#adfc04]', 'bg-rose-500', 'bg-amber-400', 'bg-emerald-500'].map((color, i) => (
                   <motion.div
                     key={i}
-                    className={`w-10 h-24 ${color} rounded-xl shadow-lg`}
+                    className={`w-10 h-24 ${color} rounded-xl`}
                     initial={{ y: 30, opacity: 0 }}
                     whileInView={{ y: 0, opacity: 0.9 }}
                     transition={{ delay: 0.1 * i, duration: 0.5 }}
@@ -268,7 +278,7 @@ export function BentoGrid() {
               </div>
               <div className="relative z-10 h-full flex flex-col justify-between">
                 <div>
-                  <div className="h-14 w-14 rounded-2xl bg-linear-to-br from-rose-400 via-amber-400 to-emerald-400 flex items-center justify-center shrink-0 shadow-lg mb-4">
+                  <div className="h-14 w-14 rounded-2xl bg-linear-to-br from-rose-400 via-amber-400 to-emerald-400 flex items-center justify-center shrink-0 mb-4">
                     <Paintbrush className="h-7 w-7 text-white" />
                   </div>
                   <h3 className="font-heading text-xl font-bold text-slate-900 mb-2">Custom Branding</h3>
@@ -291,7 +301,7 @@ export function BentoGrid() {
             {/* Card 6: NEW - Real-time Notifications (below Work Together) */}
             <motion.div
               variants={itemVariants}
-              className="group relative col-span-6 md:col-span-4 row-span-1 bg-linear-to-br from-violet-500 via-purple-500 to-fuchsia-500 rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden"
+              className="group relative col-span-6 md:col-span-4 row-span-1 bg-linear-to-br from-violet-500 via-purple-500 to-fuchsia-500 rounded-3xl p-5 transition-all duration-500 overflow-hidden"
             >
               {/* Floating bell animations */}
               <div className="absolute top-2 right-2 flex gap-1">
@@ -318,8 +328,8 @@ export function BentoGrid() {
                   <Bell className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-heading text-lg font-bold text-white">Instant Alerts</h3>
-                  <p className="text-white/80 text-sm">Stay updated on orders & inventory</p>
+                  <h3 className="font-heading text-lg font-bold text-white">Omni-Channel Inbox</h3>
+                  <p className="text-white/80 text-sm">Messenger, email, Facebook — one inbox</p>
                 </div>
               </div>
             </motion.div>

@@ -15,6 +15,7 @@ import {
   Phone,
   MapPin,
   Clock,
+  Store,
 } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -152,6 +153,44 @@ const faqCategories = [
       {
         q: 'Can I transfer my voucher to someone else?',
         a: 'No. Vouchers are non-transferable and can only be used by the account holder to whom they were issued.',
+      },
+    ],
+  },
+  {
+    icon: Store,
+    title: 'For Sellers',
+    questions: [
+      {
+        q: 'How do I apply for a storefront?',
+        a: 'Visit merchkins.com/apply and fill out the application form with your business details. Our team will review your application and get back to you within 3-5 business days.',
+      },
+      {
+        q: 'Who can open a storefront on Merchkins?',
+        a: 'Merchkins is designed for artists, freelancers, and small-to-medium businesses. Whether you sell custom merchandise, handmade goods, or services with physical products, you can apply for a storefront.',
+      },
+      {
+        q: 'How do I manage orders?',
+        a: "Once approved, you'll have access to your seller dashboard where you can view and manage orders, update order status, track payments, and communicate with customers.",
+      },
+      {
+        q: 'What is the omni-channel inbox?',
+        a: 'The omni-channel inbox unifies all your customer messages from Facebook Messenger, Facebook Page, website chat, and email into one place. This helps you respond faster and never miss a customer inquiry.',
+      },
+      {
+        q: 'How do I connect my Facebook Page?',
+        a: "In your seller dashboard, go to Settings > Integrations and follow the prompts to connect your Facebook Business Page. You'll need admin access to the page you want to connect.",
+      },
+      {
+        q: 'What are my responsibilities as a seller?',
+        a: 'Sellers must provide accurate product information, fulfill orders promptly, respond to customer inquiries within 24-48 hours, handle refund requests fairly, and comply with Philippine consumer protection laws.',
+      },
+      {
+        q: 'How do I handle refund requests?',
+        a: "When a customer requests a refund, you'll receive a notification. Review the request in your dashboard, communicate with the customer if needed, and approve or provide an alternative resolution. Refunds are issued as platform vouchers.",
+      },
+      {
+        q: "Can I use Merchkins' fulfillment services?",
+        a: 'Yes, where available. Contact our team to learn about fulfillment options for your products, including production, packaging, and shipping services.',
       },
     ],
   },

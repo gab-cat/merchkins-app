@@ -44,10 +44,10 @@ function AnimatedCounter({ end, suffix = '', duration = 2 }: CounterProps) {
 }
 
 const stats = [
-  { value: 12000, suffix: '+', label: 'Products Created' },
-  { value: 89, suffix: '%', label: 'Customer Satisfaction' },
-  { value: 1200, suffix: '+', label: 'Active Members' },
-  { value: 125, suffix: '+', label: 'Organizations Served' },
+  { value: 12000, suffix: '+', label: 'Orders Processed' },
+  { value: 89, suffix: '%', label: 'Seller Satisfaction' },
+  { value: 1200, suffix: '+', label: 'Active Sellers' },
+  { value: 125, suffix: '+', label: 'Storefronts Launched' },
 ];
 
 export function StatsSection() {
@@ -56,7 +56,9 @@ export function StatsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Title */}
         <BlurFade delay={0} className="text-center mb-16">
-          <span className="text-sm font-medium text-slate-400 uppercase tracking-wider">A few more facts about us in numbers</span>
+          <span className="text-lg tracking-tight font-medium text-black border border-slate-200 px-4 py-1 rounded-full">
+            A few more facts about us in numbers
+          </span>
         </BlurFade>
 
         {/* Stats Grid */}

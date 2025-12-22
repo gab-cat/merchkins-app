@@ -24,3 +24,4 @@ export const getChatwootConfigHandler = async (
     websiteToken: organization.chatwootWebsiteToken || null,
   };
 };
+

@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+
 import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/utils';
@@ -27,6 +27,7 @@ import {
 import { showToast } from '@/lib/toast';
 import { useThemeExclusionAuto, getOrgSlugFromSubdomain } from '../../../stores/theme-exclusion';
 import { useOrgLink } from '@/src/hooks/use-org-link';
+import { BlurFade } from '@/src/components/ui/animations';
 
 export function SiteFooter() {
   const pathname = usePathname();
@@ -140,6 +141,7 @@ export function SiteFooter() {
       { href: buildOrgLink('/tickets'), label: 'Support' },
       { href: '/returns', label: 'Returns' },
       { href: '/help', label: 'Help' },
+      { href: '/data-processing', label: 'Data Processing' },
     ],
     legal: [
       { href: '/terms', label: 'Terms' },
@@ -157,149 +159,143 @@ export function SiteFooter() {
     >
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8 md:py-12">
         {/* Links Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
-        >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* Merchkins */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Merchkins</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Your one-stop platform for custom merchandise. We help organizations create, manage, and sell branded products with ease.
-            </p>
-          </div>
+          <BlurFade delay={0.1}>
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Merchkins</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                The all-in-one platform for sellers, freelancers, and SMEs. Unified ordering, payments, fulfillment, and omni-channel customer
+                support.
+              </p>
+            </div>
+          </BlurFade>
 
           {/* Contact */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Contact</h4>
-            <div className="flex flex-col gap-2.5">
-              <Link
-                href="mailto:support@merchkins.com"
-                className="group inline-flex items-start gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
-              >
-                <Mail className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>support@merchkins.com</span>
-              </Link>
-              <Link
-                href="tel:+639999667583"
-                className="group inline-flex items-start gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
-              >
-                <Phone className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>+63 (999) 966-7583</span>
-              </Link>
-              <div className="inline-flex items-start gap-2 text-xs text-muted-foreground">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                <span className="leading-relaxed">
-                  Magis TBI Richie Hall, Ateneo de Naga University, Ateneo Avenue, Bagumbayan Sur, Naga City, Camarines Sur, 4400, PH
-                </span>
+          <BlurFade delay={0.3}>
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Contact</h4>
+              <div className="flex flex-col gap-2.5">
+                <Link
+                  href="mailto:support@merchkins.com"
+                  className="group inline-flex items-start gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  <Mail className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>support@merchkins.com</span>
+                </Link>
+                <Link
+                  href="tel:+639999667583"
+                  className="group inline-flex items-start gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  <Phone className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>+63 (999) 966-7583</span>
+                </Link>
+                <div className="inline-flex items-start gap-2 text-xs text-muted-foreground">
+                  <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span className="leading-relaxed">
+                    Magis TBI Richie Hall, Ateneo de Naga University, Ateneo Avenue, Bagumbayan Sur, Naga City, Camarines Sur, 4400, PH
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          </BlurFade>
 
           {/* Support */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Support</h4>
-            <ul className="space-y-1.5">
-              {footerLinks.support.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="group inline-flex items-center gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <span>{link.label}</span>
-                    <ArrowRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <BlurFade delay={0.5}>
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Support</h4>
+              <ul className="space-y-1.5">
+                {footerLinks.support.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="group inline-flex items-center gap-2 text-sm transition-colors text-muted-foreground hover:text-foreground"
+                    >
+                      <span>{link.label}</span>
+                      <ArrowRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </BlurFade>
 
           {/* Newsletter */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Newsletter</h4>
-            <form
-              className="space-y-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const form = e.currentTarget as HTMLFormElement;
-                const input = form.elements.namedItem('email') as HTMLInputElement | null;
-                const email = input?.value?.trim() || '';
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                  showToast({ type: 'error', title: 'Enter a valid email address' });
-                  return;
-                }
-                showToast({ type: 'success', title: 'Subscribed! Thanks for joining.' });
-                form.reset();
-              }}
-            >
-              <Input name="email" type="email" placeholder="Your email" className="h-10 text-sm bg-white border-border rounded-full" required />
-              <Button
-                type="submit"
-                size="sm"
-                className="w-full h-10 bg-white text-primary border border-primary hover:bg-primary/10 hover:text-primary"
+          <BlurFade delay={0.7}>
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Newsletter</h4>
+              <form
+                className="space-y-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget as HTMLFormElement;
+                  const input = form.elements.namedItem('email') as HTMLInputElement | null;
+                  const email = input?.value?.trim() || '';
+                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showToast({ type: 'error', title: 'Enter a valid email address' });
+                    return;
+                  }
+                  showToast({ type: 'success', title: 'Subscribed! Thanks for joining.' });
+                  form.reset();
+                }}
               >
-                Subscribe
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-            </form>
-          </div>
-        </motion.div>
+                <Input name="email" type="email" placeholder="Your email" className="h-10 text-sm bg-white border-border rounded-full" required />
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="w-full h-10 bg-white text-primary border border-primary hover:bg-primary/10 hover:text-primary"
+                >
+                  Subscribe
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </form>
+            </div>
+          </BlurFade>
+        </div>
 
         {/* Large Brand Name Section */}
-        <motion.div
-          ref={containerRef}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-12 md:mt-24 w-full overflow-hidden"
-        >
-          <h2
-            ref={brandTextRef}
-            className={cn(
-              'w-full font-bold tracking-tighter leading-none font-heading whitespace-nowrap',
-              shouldApplyTheme && organization ? 'text-primary' : 'text-foreground'
-            )}
-            style={{
-              fontSize: 'clamp(6rem, 18vw, 24rem)',
-              lineHeight: '1',
-            }}
-          >
-            {shouldApplyTheme ? (
-              organization?.name || 'Merchkins'
-            ) : (
-              <>
-                <span className="text-primary whitespace-nowrap">Merchkins</span>
-              </>
-            )}
-          </h2>
-        </motion.div>
+        <BlurFade delay={1}>
+          <div ref={containerRef} className="mt-12 md:mt-24 w-full overflow-hidden">
+            <h2
+              ref={brandTextRef}
+              className={cn(
+                'w-full font-bold tracking-tight leading-none font-heading whitespace-nowrap',
+                shouldApplyTheme && organization ? 'text-primary' : 'text-foreground'
+              )}
+              style={{
+                fontSize: 'clamp(6rem, 18vw, 24rem)',
+                lineHeight: '1',
+              }}
+            >
+              {shouldApplyTheme ? (
+                organization?.name || 'Merchkins'
+              ) : (
+                <>
+                  <span className="text-primary whitespace-nowrap">Merchkins</span>
+                </>
+              )}
+            </h2>
+          </div>
+        </BlurFade>
 
         {/* Bottom Bar */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-8 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4"
-        >
-          <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} {organization?.name || 'Merchkins'}. All rights reserved.
-          </p>
-          <div className="flex items-center gap-4">
-            {footerLinks.legal.map((link, index) => (
-              <React.Fragment key={link.label}>
-                <Link href={link.href} className="text-xs transition-colors text-muted-foreground hover:text-foreground">
-                  {link.label}
-                </Link>
-                {index < footerLinks.legal.length - 1 && <span className="text-xs text-muted-foreground/30">/</span>}
-              </React.Fragment>
-            ))}
+        <BlurFade delay={1.2}>
+          <div className="mt-8 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-muted-foreground">
+              &copy; {new Date().getFullYear()} {organization?.name || 'Merchkins'}. All rights reserved.
+            </p>
+            <div className="flex items-center gap-4">
+              {footerLinks.legal.map((link, index) => (
+                <React.Fragment key={link.label}>
+                  <Link href={link.href} className="text-xs transition-colors text-muted-foreground hover:text-foreground">
+                    {link.label}
+                  </Link>
+                  {index < footerLinks.legal.length - 1 && <span className="text-xs text-muted-foreground/30">/</span>}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
-        </motion.div>
+        </BlurFade>
       </div>
     </footer>
   );
