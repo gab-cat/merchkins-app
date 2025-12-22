@@ -20,6 +20,35 @@ export const createChatwootHmacTokenHandler = async (
     hmacToken: string;
   }
 ) => {
+  // Check if a token already exists for this user/org/inbox combination
+  // This prevents duplicates in case the mutation is called directly
+  // Use the same logic as the query handler
+  const allTokens = await ctx.db
+    .query('chatwootHmacTokens')
+    .withIndex('by_user', (q) => q.eq('userId', args.userId))
+    .collect();
+
+  // Filter to find exact match (handles undefined values properly)
+  const existingToken = allTokens.find((t) => {
+    // Match organizationId: both undefined or both equal
+    const orgMatch =
+      (args.organizationId === undefined && t.organizationId === undefined) ||
+      (args.organizationId !== undefined && t.organizationId === args.organizationId);
+    
+    // Match inbox: both undefined or both equal
+    const inboxMatch =
+      (args.inbox === undefined && t.inbox === undefined) ||
+      (args.inbox !== undefined && t.inbox === args.inbox);
+    
+    return orgMatch && inboxMatch;
+  });
+
+  if (existingToken) {
+    // Token already exists, return the existing token's ID
+    console.log('Chatwoot HMAC token already exists, skipping creation');
+    return existingToken._id;
+  }
+
   const now = Date.now();
 
   // Create the token record

@@ -65,7 +65,7 @@ export function ChatwootProvider({
   const { userId: clerkId, isLoaded: authLoaded } = useAuth();
   const { user } = useCurrentUser();
   const generateHmac = useAction(api.users.actions.generateChatwootHmac.generateChatwootHmac);
-  
+
   // Query for cached HMAC token
   const cachedToken = useQuery(
     api.users.queries.index.getChatwootHmacToken,
@@ -79,10 +79,7 @@ export function ChatwootProvider({
   );
 
   // Query for organization to get slug if organizationId is provided
-  const organization = useQuery(
-    api.organizations.queries.index.getOrganizationById,
-    organizationId ? { organizationId } : 'skip'
-  );
+  const organization = useQuery(api.organizations.queries.index.getOrganizationById, organizationId ? { organizationId } : 'skip');
 
   const [sdkReady, setSdkReady] = useState(false);
   const initializedRef = useRef(false);
@@ -261,6 +258,13 @@ export function ChatwootProvider({
       return;
     }
 
+    // Wait for the query to finish loading before proceeding
+    // cachedToken is undefined while loading, null if not found, or an object if found
+    if (cachedToken === undefined) {
+      console.log('[Chatwoot] Waiting for cached token query to finish loading');
+      return;
+    }
+
     const initializeUser = async () => {
       try {
         // Check if we have a cached token first
@@ -270,9 +274,10 @@ export function ChatwootProvider({
           console.log('[Chatwoot] Using cached HMAC token');
           identifierHash = cachedToken.hmacToken;
         } else {
-          // Generate HMAC for identity validation (action will check cache again)
+          // Query finished loading and no cached token found - generate one
+          // The action will check cache again to prevent race conditions
           const identifier = user._id;
-          console.log('[Chatwoot] Generating HMAC for user', identifier, 'org:', organizationId);
+          console.log('[Chatwoot] No cached token found, generating HMAC for user', identifier, 'org:', organizationId);
 
           // Get organization slug if available
           const organizationSlug = organization?.slug || (inbox === 'platform' ? 'platform' : inbox === 'admin' ? 'admin' : undefined);
