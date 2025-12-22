@@ -12,11 +12,6 @@ export const handleXenditWebhookArgs = {
 
 export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webhookEvent: XenditWebhookEvent }) => {
   const webhookEvent = args.webhookEvent;
-  // Only process successful payments
-  if (webhookEvent.status !== 'PAID') {
-    console.log(`Ignoring webhook event with status: ${webhookEvent.status}`);
-    return { processed: false, reason: 'Not a successful payment' };
-  }
 
   // Get the system admin user for webhook operations
   const systemUser = await ctx.db
@@ -27,6 +22,158 @@ export const handleXenditWebhookHandler = async (ctx: MutationCtx, args: { webho
   if (!systemUser) {
     console.error('System admin user not found');
     throw new Error('System admin user not found');
+  }
+
+  // Handle EXPIRED status - cancel orders and restore stock
+  if (webhookEvent.status === 'EXPIRED') {
+    const externalId = webhookEvent.external_id;
+    const now = Date.now();
+    const isGroupedPayment = externalId.startsWith('checkout-');
+
+    if (isGroupedPayment) {
+      // Handle checkout session expiry
+      const checkoutId = externalId.replace('checkout-', '');
+
+      // Get checkout session
+      const session = await ctx.db
+        .query('checkoutSessions')
+        .withIndex('by_checkout_id', (q) => q.eq('checkoutId', checkoutId))
+        .first();
+
+      if (!session) {
+        console.error(`Checkout session not found for external_id: ${externalId}`);
+        return { processed: false, reason: 'Checkout session not found', statusCode: 404 };
+      }
+
+      // Check if session is already expired (idempotency)
+      if (session.status === 'EXPIRED') {
+        console.log(`Checkout session ${checkoutId} already expired`);
+        return { processed: true, reason: 'Session already expired' };
+      }
+
+      // Get all orders in the session
+      const orders = await Promise.all(session.orderIds.map((orderId) => ctx.db.get(orderId)));
+      const validOrders = orders.filter((order): order is NonNullable<typeof order> => order !== null && !order.isDeleted);
+
+      if (validOrders.length === 0) {
+        console.error(`No valid orders found in checkout session: ${checkoutId}`);
+        return { processed: false, reason: 'No valid orders found', statusCode: 404 };
+      }
+
+      const cancelledOrderIds: string[] = [];
+
+      // Cancel all pending orders in the session
+      for (const order of validOrders) {
+        // Only cancel if still pending (idempotency check)
+        if (order.status === 'PENDING' && order.paymentStatus === 'PENDING') {
+          try {
+            await ctx.runMutation(internal.orders.mutations.index.cancelOrderInternal, {
+              orderId: order._id,
+              reason: 'PAYMENT_FAILED',
+              message: 'Payment invoice expired',
+              actorId: systemUser._id,
+              actorName: 'Xendit Payment System',
+            });
+            cancelledOrderIds.push(order._id);
+
+            // Log cancellation action
+            await logAction(
+              ctx,
+              'order_cancelled',
+              'SYSTEM_EVENT',
+              'MEDIUM',
+              `Order ${order.orderNumber} cancelled due to expired payment invoice`,
+              undefined, // System action
+              order.organizationId,
+              {
+                orderId: order._id,
+                orderNumber: order.orderNumber,
+                reason: 'PAYMENT_FAILED',
+                checkoutId: session.checkoutId,
+                transactionId: webhookEvent.id,
+              }
+            );
+          } catch (error) {
+            // Log error but continue processing other orders
+            console.error(`Error cancelling order ${order._id}:`, error);
+          }
+        }
+      }
+
+      // Update checkout session status to EXPIRED
+      await ctx.db.patch(session._id, {
+        status: 'EXPIRED',
+        updatedAt: now,
+      });
+
+      console.log(`Successfully processed expired invoice for checkout session ${checkoutId}, cancelled ${cancelledOrderIds.length} orders`);
+      return {
+        processed: true,
+        cancelledOrderIds,
+        checkoutId,
+      };
+    } else {
+      // Handle single order expiry
+      const orderNumber = externalId;
+      const order = await ctx.db
+        .query('orders')
+        .withIndex('by_isDeleted', (q) => q.eq('isDeleted', false))
+        .filter((q) => q.eq(q.field('orderNumber'), orderNumber))
+        .first();
+
+      if (!order) {
+        console.error(`Order not found for external_id: ${orderNumber}`);
+        return { processed: false, reason: 'Order not found', statusCode: 404 };
+      }
+
+      // Only cancel if still pending (idempotency check)
+      if (order.status !== 'PENDING' || order.paymentStatus !== 'PENDING') {
+        console.log(`Order ${orderNumber} is not pending (status: ${order.status}, paymentStatus: ${order.paymentStatus}), skipping cancellation`);
+        return { processed: true, reason: 'Order not pending' };
+      }
+
+      try {
+        await ctx.runMutation(internal.orders.mutations.index.cancelOrderInternal, {
+          orderId: order._id,
+          reason: 'PAYMENT_FAILED',
+          message: 'Payment invoice expired',
+          actorId: systemUser._id,
+          actorName: 'Xendit Payment System',
+        });
+
+        // Log cancellation action
+        await logAction(
+          ctx,
+          'order_cancelled',
+          'SYSTEM_EVENT',
+          'MEDIUM',
+          `Order ${order.orderNumber} cancelled due to expired payment invoice`,
+          undefined, // System action
+          order.organizationId,
+          {
+            orderId: order._id,
+            orderNumber: order.orderNumber,
+            reason: 'PAYMENT_FAILED',
+            transactionId: webhookEvent.id,
+          }
+        );
+
+        console.log(`Successfully processed expired invoice for order ${orderNumber}`);
+        return {
+          processed: true,
+          orderId: order._id,
+        };
+      } catch (error) {
+        console.error(`Error cancelling order ${orderNumber}:`, error);
+        return { processed: false, reason: 'Error cancelling order', error: String(error) };
+      }
+    }
+  }
+
+  // Only process successful payments
+  if (webhookEvent.status !== 'PAID') {
+    console.log(`Ignoring webhook event with status: ${webhookEvent.status}`);
+    return { processed: false, reason: 'Not a successful payment or expired invoice' };
   }
 
   // Find the order by external_id (should match order number)
