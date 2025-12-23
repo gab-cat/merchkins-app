@@ -37,3 +37,4 @@ export function KnowledgeBaseSearch({ value, onChange, placeholder = 'Search art
 
 
 
+

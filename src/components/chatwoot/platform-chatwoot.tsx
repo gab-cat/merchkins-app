@@ -13,3 +13,4 @@ export function PlatformChatwoot() {
   return <ChatwootProvider websiteToken={WEBSITE_TOKEN} baseUrl={BASE_URL} primaryColor="#1d43d8" />;
 }
 
+
