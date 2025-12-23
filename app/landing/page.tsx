@@ -6,6 +6,7 @@ import { BentoGrid } from '@/src/components/landing/BentoGrid';
 import { StatsSection } from '@/src/components/landing/StatsSection';
 import { ProcessSection } from '@/src/components/landing/ProcessSection';
 import { ServicesSection } from '@/src/components/landing/ServicesSection';
+import Head from 'next/head';
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://merchkins.com';
 
@@ -46,6 +47,10 @@ export default function LandingPage() {
 
   return (
     <>
+      {/* Manually set favicon */}
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       {/* JSON-LD Structured Data */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />

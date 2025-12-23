@@ -4,6 +4,9 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://merchkins.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
+  icons: {
+    icon: '/favicon.ico',
+  },
   title: 'Merchkins — The All-in-One Platform for Independent Sellers',
   description:
     'Run your entire business in one place. Custom storefronts, unified order management, payment processing, fulfillment services, and omni-channel customer support — designed for artists, freelancers, and SMEs.',

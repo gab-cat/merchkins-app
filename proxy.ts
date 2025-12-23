@@ -12,7 +12,7 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Only process subdomains on production domains
-  if (hostname && hostname.endsWith('.merchkins.com:3000')) {
+  if (hostname && hostname.endsWith('.merchkins.com')) {
     const subdomain = hostname.split('.')[0];
 
     // Skip if subdomain is app, staging, or starts with preview
