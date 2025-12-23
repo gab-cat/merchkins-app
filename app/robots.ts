@@ -22,6 +22,8 @@ export default function robots(): MetadataRoute.Robots {
         '/returns',
         '/help',
         '/data-processing',
+        '/shipping',
+        '/contact',
       ],
       disallow: [
         '/admin/',

@@ -28,6 +28,7 @@ import { showToast } from '@/lib/toast';
 import { useThemeExclusionAuto, getOrgSlugFromSubdomain } from '../../../stores/theme-exclusion';
 import { useOrgLink } from '@/src/hooks/use-org-link';
 import { BlurFade } from '@/src/components/ui/animations';
+import { GoogleReviewsBadge } from '@/src/components/google';
 
 export function SiteFooter() {
   const pathname = usePathname();
@@ -138,7 +139,7 @@ export function SiteFooter() {
 
   const footerLinks = {
     support: [
-      { href: buildOrgLink('/tickets'), label: 'Support' },
+      { href: '/shipping', label: 'Shipping' },
       { href: '/returns', label: 'Returns' },
       { href: '/help', label: 'Help' },
       { href: '/data-processing', label: 'Data Processing' },
@@ -174,7 +175,13 @@ export function SiteFooter() {
           {/* Contact */}
           <BlurFade delay={0.3}>
             <div className="space-y-2">
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Contact</h4>
+              <Link
+                href="/contact"
+                className="group inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider mb-2 text-primary hover:text-primary/80 transition-colors"
+              >
+                Contact
+                <ArrowRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+              </Link>
               <div className="flex flex-col gap-2.5">
                 <Link
                   href="mailto:support@merchkins.com"
@@ -297,6 +304,9 @@ export function SiteFooter() {
           </div>
         </BlurFade>
       </div>
+
+      {/* Google Customer Reviews Badge */}
+      <GoogleReviewsBadge position="BOTTOM_LEFT" />
     </footer>
   );
 }

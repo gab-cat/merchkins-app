@@ -49,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
 
     // Add legal pages
-    const legalPages = ['terms', 'privacy', 'returns', 'help', 'data-processing'];
+    const legalPages = ['terms', 'privacy', 'returns', 'help', 'data-processing', 'shipping', 'contact'];
     for (const page of legalPages) {
       sitemapEntries.push({
         url: `${baseUrl}/${page}`,

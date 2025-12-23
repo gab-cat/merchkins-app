@@ -18,7 +18,8 @@ export default clerkMiddleware(async (auth, req) => {
     // Skip if subdomain is app, staging, or starts with preview
     if (subdomain !== 'app' && subdomain !== 'staging' && !subdomain.startsWith('preview')) {
       const pathname = req.nextUrl.pathname;
-      const shouldSkip = skipPaths.some((p) => pathname.startsWith(p)) || pathname === '/sitemap.xml' || pathname === '/robots.txt';
+      const shouldSkip =
+        skipPaths.some((p) => pathname.startsWith(p)) || pathname === '/sitemap.xml' || pathname === '/robots.txt' || pathname === '/products.xml';
 
       if (!shouldSkip) {
         try {
@@ -89,12 +90,15 @@ const isPublicRoute = createRouteMatcher([
   '/landing(.*)',
   '/sitemap.xml',
   '/robots.txt',
+  '/products.xml',
 
   '/terms(.*)',
   '/privacy(.*)',
   '/returns(.*)',
   '/data-processing(.*)',
   '/help(.*)',
+  '/shipping(.*)',
+  '/contact(.*)',
 
   '/apply(.*)',
   '/code(.*)',
@@ -120,6 +124,8 @@ const skipPaths = [
   '/returns',
   '/help',
   '/data-processing',
+  '/shipping',
+  '/contact',
 
   // User account & profile pages
   '/account',

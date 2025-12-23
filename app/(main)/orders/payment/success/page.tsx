@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { motion } from 'framer-motion';
+import { GoogleCustomerReviews } from '@/src/components/google';
 
 // Custom hook to get window size for confetti
 function useWindowSize() {
@@ -377,6 +378,14 @@ export default function PaymentSuccessPage() {
                 A confirmation email has been sent to your email address
               </motion.p>
             </motion.div>
+
+            {/* Google Customer Reviews opt-in */}
+            <GoogleCustomerReviews
+              orderId={singleOrder.orderNumber || singleOrder._id}
+              email={singleOrder.customerInfo.email}
+              estimatedDeliveryDate={singleOrder.estimatedDelivery}
+              orderDate={singleOrder.orderDate}
+            />
           </div>
         </div>
       );
@@ -1233,6 +1242,14 @@ export default function PaymentSuccessPage() {
             A confirmation email has been sent to your email address
           </motion.p>
         </motion.div>
+
+        {/* Google Customer Reviews opt-in */}
+        <GoogleCustomerReviews
+          orderId={orders![0].orderNumber || checkoutId || orders![0]._id}
+          email={orders![0].customerInfo.email}
+          estimatedDeliveryDate={orders![0].estimatedDelivery}
+          orderDate={orders![0].orderDate}
+        />
       </div>
     </div>
   );
