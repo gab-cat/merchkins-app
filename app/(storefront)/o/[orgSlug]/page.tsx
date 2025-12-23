@@ -11,6 +11,13 @@ import { AnimatedFeaturedCategories } from '@/src/components/animated-featured-c
 import { QuickActions } from '@/src/components/storefront-quick-actions';
 import { buildR2PublicUrl } from '@/lib/utils';
 
+// Enable ISR - regenerate page every 60 seconds
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  return [];
+}
+
 interface PageParams {
   params: Promise<{ orgSlug: string }>;
 }

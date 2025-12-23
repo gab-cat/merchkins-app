@@ -8,7 +8,9 @@ import CTAComponent from '@/src/features/common/components/cta';
 // import { PlatformBackground } from '@/src/components/ui/backgrounds/platform-background';
 
 export const metadata: Metadata = {
-  title: 'Merchkins',
+  title: 'Shop | Merchkins',
+  description:
+    'Browse and shop from independent sellers, artists, and SMEs. Find unique merchandise, support local businesses, and enjoy seamless ordering.',
 };
 
 export default function MainLayout({ children }: { children: ReactNode }) {

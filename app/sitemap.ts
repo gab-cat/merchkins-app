@@ -20,8 +20,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     sitemapEntries.push({
       url: `${baseUrl}/search`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
+      changeFrequency: 'daily',
+      priority: 0.7,
     });
 
     // Add landing page
@@ -29,8 +29,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/landing`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.9,
+      priority: 1.0,
     });
+
+    // Add apply page (for storefront applications)
+    sitemapEntries.push({
+      url: `${baseUrl}/apply`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    });
+
+    // Add code lookup page
+    sitemapEntries.push({
+      url: `${baseUrl}/code`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    });
+
+    // Add legal pages
+    const legalPages = ['terms', 'privacy', 'returns', 'help', 'data-processing'];
+    for (const page of legalPages) {
+      sitemapEntries.push({
+        url: `${baseUrl}/${page}`,
+        lastModified: new Date(),
+        changeFrequency: 'yearly',
+        priority: 0.3,
+      });
+    }
 
     // Fetch all public products
     try {

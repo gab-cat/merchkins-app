@@ -306,10 +306,10 @@ export function OrderDetail({ orderId }: { orderId: string }) {
           {/* Store Card - Sleek Display */}
           {order.organizationInfo && (
             <motion.div variants={itemVariants} className="mb-6">
-              <Link href={`/stores/${order.organizationInfo.slug}`} className="block group">
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-slate-50 border border-slate-100 p-4 transition-all duration-300 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-100/50">
+              <Link href={`/o/${order.organizationInfo.slug}`} className="block group">
+                <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-slate-50 via-white to-slate-50 border border-slate-100 p-4 transition-all duration-300 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-100/50">
                   {/* Subtle gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#1d43d8]/[0.02] to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-r from-[#1d43d8]/2 to-transparent pointer-events-none" />
 
                   <div className="relative flex items-center gap-4">
                     {/* Store Logo */}
@@ -325,7 +325,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                           />
                         </div>
                       ) : (
-                        <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-[#1d43d8] to-[#1d43d8]/80 flex items-center justify-center shadow-md shadow-[#1d43d8]/20">
+                        <div className="h-14 w-14 rounded-xl bg-linear-to-br from-[#1d43d8] to-[#1d43d8]/80 flex items-center justify-center shadow-md shadow-[#1d43d8]/20">
                           <Store className="h-6 w-6 text-white" />
                         </div>
                       )}
@@ -399,7 +399,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                   )}
                 </div>
               ) : canRequestRefund ? (
-                <div className="rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50/50 to-orange-50/50 p-4">
+                <div className="rounded-xl border border-amber-200 bg-linear-to-r from-amber-50/50 to-orange-50/50 p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 flex-1">
                       <div className="p-2 rounded-lg bg-amber-100 shrink-0">
@@ -503,7 +503,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                 <Ticket className="h-4 w-4 text-slate-400" />
                 <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Applied Voucher</h2>
               </div>
-              <div className="rounded-xl border border-emerald-100 p-4 bg-gradient-to-r from-emerald-50/50 to-[#adfc04]/5">
+              <div className="rounded-xl border border-emerald-100 p-4 bg-linear-to-r from-emerald-50/50 to-brand-neon/5">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-lg bg-emerald-100 shrink-0">
                     {(order.voucherSnapshot as { discountType?: string })?.discountType === 'PERCENTAGE' ? (
@@ -636,10 +636,10 @@ function ProductImage({ imageKey }: { imageKey?: string }) {
   const url = buildR2PublicUrl(imageKey || null);
   if (!url) {
     return (
-      <div className="h-14 w-14 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+      <div className="h-14 w-14 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
         <Package className="h-6 w-6 text-slate-300" />
       </div>
     );
   }
-  return <Image src={url} alt="Product" width={56} height={56} className="h-14 w-14 rounded-lg object-cover flex-shrink-0 border border-slate-100" />;
+  return <Image src={url} alt="Product" width={56} height={56} className="h-14 w-14 rounded-lg object-cover shrink-0 border border-slate-100" />;
 }

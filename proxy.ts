@@ -12,15 +12,12 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Only process subdomains on production domains
-  if (hostname && hostname.endsWith('.merchkins.com')) {
+  if (hostname && hostname.endsWith('.merchkins.com:3000')) {
     const subdomain = hostname.split('.')[0];
 
     // Skip if subdomain is app, staging, or starts with preview
     if (subdomain !== 'app' && subdomain !== 'staging' && !subdomain.startsWith('preview')) {
       const pathname = req.nextUrl.pathname;
-
-      // Skip paths that shouldn't be rewritten (admin, api, static files, auth, etc.)
-      const skipPaths = ['/admin', '/api', '/_next', '/sign-in', '/sign-up', '/webhooks', '/monitoring', '/landing', '/o/'];
       const shouldSkip = skipPaths.some((p) => pathname.startsWith(p)) || pathname === '/sitemap.xml' || pathname === '/robots.txt';
 
       if (!shouldSkip) {
@@ -92,10 +89,54 @@ const isPublicRoute = createRouteMatcher([
   '/landing(.*)',
   '/sitemap.xml',
   '/robots.txt',
+
   '/terms(.*)',
   '/privacy(.*)',
   '/returns(.*)',
+  '/data-processing(.*)',
   '/help(.*)',
+
   '/apply(.*)',
   '/code(.*)',
 ]);
+
+const skipPaths = [
+  // System/internal paths
+  '/admin',
+  '/api',
+  '/_next',
+  '/webhooks',
+  '/monitoring',
+  '/landing',
+  '/o/', // Already organization-specific routes
+
+  // Auth paths
+  '/sign-in',
+  '/sign-up',
+
+  // Legal pages (from (legals) directory)
+  '/terms',
+  '/privacy',
+  '/returns',
+  '/help',
+  '/data-processing',
+
+  // User account & profile pages
+  '/account',
+  '/user-profile',
+  '/organizations',
+  '/orgs',
+
+  // Commerce pages
+  '/checkout',
+  '/cart',
+  '/orders',
+
+  // Other platform pages
+  '/apply',
+  '/code',
+  '/invite',
+  '/chats',
+  '/search',
+  '/tickets',
+];

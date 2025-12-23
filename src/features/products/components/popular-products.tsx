@@ -13,6 +13,7 @@ import { BlurFade } from '@/src/components/ui/animations';
 import { ArrowRight, TrendingUp, ChevronLeft, ChevronRight, Flame } from 'lucide-react';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { cn } from '@/lib/utils';
+import { useOrgLink } from '@/src/hooks/use-org-link';
 
 type ProductCardData = {
   _id: string;
@@ -35,6 +36,7 @@ interface PopularProductsProps {
 
 export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProducts }: PopularProductsProps = {}) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { buildOrgLink } = useOrgLink(orgSlug);
 
   const organization = preloadedOrganization
     ? usePreloadedQuery(preloadedOrganization)
@@ -88,7 +90,7 @@ export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProdu
             </div>
             <Link
               className="group inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-semibold transition-all duration-200 whitespace-nowrap"
-              href={orgSlug ? `/o/${orgSlug}/search` : '/search'}
+              href={buildOrgLink('/search')}
             >
               <span>View all</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -108,7 +110,7 @@ export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProdu
               transition={{ delay: i * 0.05, duration: 0.4 }}
             >
               <Card className="overflow-hidden rounded-2xl border-0 bg-card shadow-md py-0">
-                <div className="aspect-[4/3] bg-gradient-to-br from-secondary to-secondary/50 skeleton" />
+                <div className="aspect-4/3 bg-linear-to-br from-secondary to-secondary/50 skeleton" />
                 <CardHeader className="p-4 space-y-2">
                   <CardTitle className="h-5 w-3/4 rounded-lg bg-secondary skeleton" />
                   <div className="h-3 w-full rounded-lg bg-secondary skeleton" />
@@ -134,11 +136,11 @@ export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProdu
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <Link href={orgSlug ? `/o/${orgSlug}/p/${featuredProduct.slug}` : `/p/${featuredProduct.slug}`} className="group block h-full">
+                  <Link href={buildOrgLink(`/p/${featuredProduct.slug}`)} className="group block h-full">
                     <div
                       className={cn(
                         'relative h-full rounded-3xl overflow-hidden',
-                        'bg-gradient-to-br from-primary via-primary/90 to-primary/70',
+                        'bg-linear-to-br from-primary via-primary/90 to-primary/70',
                         'shadow-xl hover:shadow-2xl transition-all duration-500',
                         'hover:scale-[1.02]'
                       )}
@@ -157,7 +159,7 @@ export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProdu
                       </div>
 
                       {/* Product image */}
-                      <div className="relative aspect-[4/5] p-6 pt-16">
+                      <div className="relative aspect-4/5 p-6 pt-16">
                         {featuredProduct.imageUrl?.[0] ? (
                           <div className="relative h-full w-full rounded-2xl overflow-hidden bg-white/10 backdrop-blur-sm">
                             <R2Image
@@ -176,7 +178,7 @@ export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProdu
                       </div>
 
                       {/* Product info overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                      <div className="absolute bottom-0 left-0 right-0 p-6 bg-linear-to-t from-black/80 via-black/40 to-transparent">
                         <h3 className="text-xl font-bold text-white font-heading line-clamp-2 mb-2">{featuredProduct.title}</h3>
                         {featuredProduct.description && <p className="text-white/70 text-sm line-clamp-2 mb-3">{featuredProduct.description}</p>}
                         <div className="flex items-center justify-between">
@@ -227,7 +229,7 @@ export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProdu
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {products.map((p, index) => (
-                <div key={p._id} className="flex-shrink-0 w-[280px] snap-start">
+                <div key={p._id} className="shrink-0 w-[280px] snap-start">
                   <ProductCard
                     _id={p._id}
                     slug={p.slug}

@@ -8,7 +8,21 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: ['/', '/landing', '/p/', '/c/', '/search', '/o/'],
+      allow: [
+        '/',
+        '/landing',
+        '/search',
+        '/apply',
+        '/code',
+        '/p/', // Product pages
+        '/c/', // Category pages
+        '/o/', // Organization storefronts
+        '/terms',
+        '/privacy',
+        '/returns',
+        '/help',
+        '/data-processing',
+      ],
       disallow: [
         '/admin/',
         '/super-admin/',
@@ -21,6 +35,9 @@ export default function robots(): MetadataRoute.Robots {
         '/chats/',
         '/invite/',
         '/user-profile',
+        '/api/',
+        '/_next/',
+        '/tickets/',
       ],
     },
     sitemap: `${baseUrl}/sitemap.xml`,

@@ -44,34 +44,68 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: 'Merchkins Storefront',
-  description: 'Custom merch made easy — shop, manage, and fulfill with Merchkins',
+  title: {
+    default: 'Merchkins — All-in-One Platform for Independent Sellers',
+    template: '%s | Merchkins',
+  },
+  description:
+    'The unified commerce platform for artists, freelancers, and SMEs. Custom storefronts, unified order management, and omni-channel customer support — all in one place.',
   icons: {
     icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
+  keywords: [
+    'e-commerce platform',
+    'unified commerce',
+    'independent sellers',
+    'custom storefront',
+    'merchandise platform',
+    'SME commerce',
+    'freelancer store',
+    'artist marketplace',
+    'omni-channel support',
+    'order management',
+    'Philippines e-commerce',
+  ],
+  authors: [{ name: 'Merchkins', url: 'https://merchkins.com' }],
+  creator: 'Merchkins',
+  publisher: 'Merchkins',
   openGraph: {
-    title: 'Merchkins — Custom Merch Made Easy',
-    description: 'Create, manage, and fulfill custom merchandise for your organization. Join thousands of teams building their brand with Merchkins.',
-    url: `${baseUrl}/landing`,
+    title: 'Merchkins — All-in-One Platform for Independent Sellers',
+    description:
+      'The unified commerce platform for artists, freelancers, and SMEs. Custom storefronts, unified order management, and omni-channel customer support — all in one place.',
+    url: baseUrl,
     type: 'website',
     siteName: 'Merchkins',
-    locale: 'en_US',
+    locale: 'en_PH',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Merchkins — Custom Merch Made Easy',
+        alt: 'Merchkins — The All-in-One Platform for Independent Sellers',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Merchkins — Custom Merch Made Easy',
-    description: 'Create, manage, and fulfill custom merchandise for your organization. Join thousands of teams building their brand with Merchkins.',
+    title: 'Merchkins — All-in-One Platform for Independent Sellers',
+    description:
+      'The unified commerce platform for artists, freelancers, and SMEs. Custom storefronts, unified order management, and omni-channel inbox.',
     site: '@merchkins',
     creator: '@merchkins',
     images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 

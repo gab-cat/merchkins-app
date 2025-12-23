@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { BlurFade } from '@/src/components/ui/animations';
 import { ArrowRight, LayoutGrid, Sparkles, Shirt, Coffee, Laptop, Gift, Music, Camera, Palette, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useOrgLink } from '@/src/hooks/use-org-link';
 
 // Icon mapping for categories (can be extended)
 const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -57,6 +58,7 @@ export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCa
   const organization = preloadedOrganization
     ? usePreloadedQuery(preloadedOrganization)
     : useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string }));
+  const { buildOrgLink } = useOrgLink(orgSlug);
 
   // First try to get featured categories
   const featuredResult = preloadedCategories
@@ -100,7 +102,7 @@ export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCa
           </div>
           <Link
             className="group inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-semibold transition-all duration-200 whitespace-nowrap"
-            href={orgSlug ? `/o/${orgSlug}/search` : '/search'}
+            href={buildOrgLink('/search')}
           >
             <span>View all</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -118,7 +120,7 @@ export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCa
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: i * 0.05, duration: 0.3 }}
               className={cn(
-                'rounded-2xl bg-gradient-to-br from-secondary to-secondary/50 skeleton',
+                'rounded-2xl bg-linear-to-br from-secondary to-secondary/50 skeleton',
                 i === 0 ? 'col-span-2 row-span-2 aspect-square md:aspect-auto' : 'aspect-square'
               )}
             />
@@ -140,7 +142,7 @@ export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCa
                 className={cn(isLarge && 'col-span-2 row-span-2')}
               >
                 <Link
-                  href={orgSlug ? `/o/${orgSlug}/c/${c.slug}` : `/c/${c.slug}`}
+                  href={buildOrgLink(`/c/${c.slug}`)}
                   className={cn(
                     'group relative flex flex-col h-full rounded-2xl overflow-hidden',
                     'bg-card border border-border/50',
@@ -151,7 +153,7 @@ export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCa
                 >
                   {/* Background gradient */}
                   <div
-                    className={cn('absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500', gradient)}
+                    className={cn('absolute inset-0 bg-linear-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500', gradient)}
                   />
 
                   {/* Custom color background if available */}
@@ -219,7 +221,7 @@ export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCa
                   <div
                     className={cn(
                       'absolute top-0 right-0 w-16 h-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500',
-                      'bg-gradient-to-bl from-primary/20 to-transparent rounded-bl-3xl'
+                      'bg-linear-to-bl from-primary/20 to-transparent rounded-bl-3xl'
                     )}
                   />
                 </Link>
