@@ -6,6 +6,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL || 'https://chat.merc
 const WEBSITE_TOKEN = process.env.NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN || 'UakrRi1963wGUyMxXa8YmGLA';
 
 export function PlatformChatwoot() {
+  // Don't instantiate Chatwoot in development mode
+  if (process.env.NODE_ENV === 'development') {
+    return null;
+  }
+
   if (!WEBSITE_TOKEN) {
     return null;
   }

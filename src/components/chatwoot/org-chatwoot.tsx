@@ -11,6 +11,11 @@ interface OrgChatwootProps {
 const BASE_URL = process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL || 'https://chat.merchkins.com';
 
 export function OrgChatwoot({ orgSlug }: OrgChatwootProps) {
+  // Don't instantiate Chatwoot in development mode
+  if (process.env.NODE_ENV === 'development') {
+    return null;
+  }
+
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug });
 
   // Don't render if org doesn't exist or hasn't configured Chatwoot tokens

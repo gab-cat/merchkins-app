@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import Script from 'next/script';
 
 // Google Customer Reviews merchant ID
@@ -12,6 +12,22 @@ interface GoogleReviewsBadgeProps {
   position?: BadgePosition;
 }
 
+// Global flag to track widget initialization across component remounts
+declare global {
+  interface Window {
+    __googleMerchantWidgetInitialized?: boolean;
+  }
+}
+
+/**
+ * Check if the Google Merchant Widget iframe already exists in the DOM
+ */
+const isWidgetAlreadyRendered = (): boolean => {
+  // Check for the widget iframe container
+  const widgetContainer = document.querySelector('[id*="merchant-widget"]') || document.querySelector('iframe[src*="merchantwidget"]');
+  return widgetContainer !== null;
+};
+
 /**
  * Google Customer Reviews badge component.
  * Displays seller rating and participation in the Google Customer Reviews program.
@@ -19,13 +35,20 @@ interface GoogleReviewsBadgeProps {
  * @see https://support.google.com/merchants/answer/7105655
  */
 export function GoogleReviewsBadge({ position = 'BOTTOM_RIGHT' }: GoogleReviewsBadgeProps) {
-  const hasInitialized = useRef(false);
-
   useEffect(() => {
     const script = document.getElementById('merchantWidgetScript');
 
     const initializeBadge = () => {
-      if (hasInitialized.current) return;
+      // Check global flag to prevent multiple initializations across navigations
+      if (window.__googleMerchantWidgetInitialized) {
+        return;
+      }
+
+      // Check if widget iframe already exists in DOM
+      if (isWidgetAlreadyRendered()) {
+        window.__googleMerchantWidgetInitialized = true;
+        return;
+      }
 
       const merchantwidget = (
         window as unknown as {
@@ -36,11 +59,20 @@ export function GoogleReviewsBadge({ position = 'BOTTOM_RIGHT' }: GoogleReviewsB
       ).merchantwidget;
 
       if (merchantwidget) {
-        hasInitialized.current = true;
-        merchantwidget.start({
-          merchant_id: MERCHANT_ID,
-          position: position,
-        });
+        try {
+          merchantwidget.start({
+            merchant_id: MERCHANT_ID,
+            position: position,
+          });
+          window.__googleMerchantWidgetInitialized = true;
+        } catch (error) {
+          // If widget already exists, mark as initialized to prevent retries
+          if (error instanceof Error && error.message.includes('already exists')) {
+            window.__googleMerchantWidgetInitialized = true;
+          } else {
+            console.error('Failed to initialize Google Merchant Widget:', error);
+          }
+        }
       }
     };
 

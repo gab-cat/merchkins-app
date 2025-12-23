@@ -62,6 +62,11 @@ export function ChatwootProvider({
   inbox,
   launcherTitle = 'Chat with us',
 }: ChatwootProviderProps) {
+  // Don't instantiate Chatwoot in development mode
+  if (process.env.NODE_ENV === 'development') {
+    return null;
+  }
+
   const { userId: clerkId, isLoaded: authLoaded } = useAuth();
   const { user } = useCurrentUser();
   const generateHmac = useAction(api.users.actions.generateChatwootHmac.generateChatwootHmac);

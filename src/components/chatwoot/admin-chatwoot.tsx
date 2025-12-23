@@ -7,6 +7,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL || 'https://chat.merc
 const ADMIN_WEBSITE_TOKEN = 'M6oBewdRtApX3EX67jrtTKqE';
 
 export function AdminChatwoot() {
+  // Don't instantiate Chatwoot in development mode
+  if (process.env.NODE_ENV === 'development') {
+    return null;
+  }
+
   return (
     <ChatwootProvider
       websiteToken={ADMIN_WEBSITE_TOKEN}
