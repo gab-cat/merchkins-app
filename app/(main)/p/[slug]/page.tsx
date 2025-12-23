@@ -51,7 +51,8 @@ export default async function Page({ params }: PageProps) {
               offers: {
                 '@type': 'Offer',
                 price: product.minPrice || 0,
-                priceCurrency: 'USD',
+                priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+                priceCurrency: 'PHP',
                 availability: product.inventory > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
                 seller: product.organizationInfo
                   ? {

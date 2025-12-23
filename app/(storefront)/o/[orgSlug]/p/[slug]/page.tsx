@@ -143,8 +143,9 @@ export default async function Page({ params }: PageProps) {
               brand: organization ? { '@type': 'Brand', name: organization.name } : undefined,
               offers: {
                 '@type': 'Offer',
+                priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
                 price: product.minPrice || 0,
-                priceCurrency: 'USD',
+                priceCurrency: 'PHP',
                 availability: product.inventory > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
                 seller: organization
                   ? {
