@@ -153,6 +153,41 @@ export default async function Page({ params }: PageProps) {
                       name: organization.name,
                     }
                   : undefined,
+                shippingDetails: {
+                  '@type': 'OfferShippingDetails',
+                  shippingRate: {
+                    '@type': 'MonetaryAmount',
+                    value: 0,
+                    currency: 'PHP',
+                  },
+                  shippingDestination: {
+                    '@type': 'DefinedRegion',
+                    addressCountry: 'PH',
+                  },
+                  deliveryTime: {
+                    '@type': 'ShippingDeliveryTime',
+                    handlingTime: {
+                      '@type': 'QuantitativeValue',
+                      minValue: 1,
+                      maxValue: 3,
+                      unitCode: 'DAY',
+                    },
+                    transitTime: {
+                      '@type': 'QuantitativeValue',
+                      minValue: 3,
+                      maxValue: 7,
+                      unitCode: 'DAY',
+                    },
+                  },
+                },
+                hasMerchantReturnPolicy: {
+                  '@type': 'MerchantReturnPolicy',
+                  applicableCountry: 'PH',
+                  returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+                  merchantReturnDays: 7,
+                  returnMethod: 'https://schema.org/ReturnByMail',
+                  returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
+                },
               },
               aggregateRating:
                 product.reviewsCount > 0

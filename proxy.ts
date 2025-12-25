@@ -99,6 +99,7 @@ const isPublicRoute = createRouteMatcher([
   '/help(.*)',
   '/shipping(.*)',
   '/contact(.*)',
+  '/about(.*)',
 
   '/apply(.*)',
   '/code(.*)',
@@ -126,6 +127,7 @@ const skipPaths = [
   '/data-processing',
   '/shipping',
   '/contact',
+  '/about',
 
   // User account & profile pages
   '/account',

@@ -51,6 +51,41 @@ export default async function Head({ params }: { params: Promise<{ orgSlug: stri
             price: Number(offerPrice.toFixed(2)),
             availability: (product.inventory ?? 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
             url: `/o/${organization.slug}/p/${product.slug}`,
+            shippingDetails: {
+              '@type': 'OfferShippingDetails',
+              shippingRate: {
+                '@type': 'MonetaryAmount',
+                value: 0,
+                currency: 'PHP',
+              },
+              shippingDestination: {
+                '@type': 'DefinedRegion',
+                addressCountry: 'PH',
+              },
+              deliveryTime: {
+                '@type': 'ShippingDeliveryTime',
+                handlingTime: {
+                  '@type': 'QuantitativeValue',
+                  minValue: 1,
+                  maxValue: 3,
+                  unitCode: 'DAY',
+                },
+                transitTime: {
+                  '@type': 'QuantitativeValue',
+                  minValue: 3,
+                  maxValue: 7,
+                  unitCode: 'DAY',
+                },
+              },
+            },
+            hasMerchantReturnPolicy: {
+              '@type': 'MerchantReturnPolicy',
+              applicableCountry: 'PH',
+              returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+              merchantReturnDays: 7,
+              returnMethod: 'https://schema.org/ReturnByMail',
+              returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
+            },
           }
         : undefined,
   };

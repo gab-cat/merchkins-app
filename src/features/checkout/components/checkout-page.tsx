@@ -1026,6 +1026,18 @@ export function CheckoutPage() {
                       )}
                     </AnimatePresence>
 
+                    {/* Refund Policy Notice */}
+                    <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-100">
+                      <Gift className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+                      <div>
+                        <span className="font-medium">Voucher-Only Refunds:</span>{' '}
+                        <span>All approved refunds are issued as platform vouchers, not cash.</span>{' '}
+                        <Link href="/returns" className="text-amber-800 underline underline-offset-2 hover:text-amber-900 font-medium">
+                          View full policy
+                        </Link>
+                      </div>
+                    </div>
+
                     {/* Terms agreement */}
                     <div className="flex items-start gap-3 pt-2">
                       <Checkbox

@@ -22,6 +22,7 @@ export interface ProductCardProps {
   isBestPrice?: boolean;
   discountLabel?: string;
   orgSlug?: string;
+  organizationName?: string;
   index?: number;
   className?: string;
 }
@@ -38,6 +39,7 @@ export function ProductCard({
   isBestPrice,
   discountLabel,
   orgSlug,
+  organizationName,
   index = 0,
   className = '',
 }: ProductCardProps) {
@@ -132,6 +134,8 @@ export function ProductCard({
                   </span>
                 )}
               </div>
+              {/* Seller badge */}
+              {organizationName && <span className="text-[10px] text-muted-foreground/70 truncate max-w-[140px]">Sold by {organizationName}</span>}
             </div>
 
             {/* Arrow indicator */}
