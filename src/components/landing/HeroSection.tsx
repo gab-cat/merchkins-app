@@ -87,7 +87,7 @@ export function HeroSection() {
             {/* CTA Button */}
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link
-                href="https://app.merchkins.com"
+                href={process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.merchkins.com'}
                 className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand-neon text-slate-900 text-base font-bold rounded-full hover:bg-[#bbfd2d] transition-all shadow-xl shadow-black/10 hover:-translate-y-0.5"
               >
                 Launch your storefront

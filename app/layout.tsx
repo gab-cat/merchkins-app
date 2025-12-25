@@ -120,9 +120,9 @@ export default function RootLayout({
       signUpUrl="/sign-up"
       afterSignOutUrl="https://merchkins.com"
       supportEmail="support@merchkins.com"
-      signUpForceRedirectUrl="https://app.merchkins.com"
-      signInFallbackRedirectUrl="https://app.merchkins.com"
-      signUpFallbackRedirectUrl="https://app.merchkins.com"
+      signUpForceRedirectUrl={baseUrl}
+      signInFallbackRedirectUrl={baseUrl}
+      signUpFallbackRedirectUrl={baseUrl}
       appearance={{
         variables: {
           colorPrimary: '#1d43d8',

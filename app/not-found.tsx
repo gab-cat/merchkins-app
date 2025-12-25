@@ -34,7 +34,10 @@ export default function NotFound() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link href="https://app.merchkins.com" className={cn(buttonVariants({ variant: 'default', size: 'lg' }))}>
+            <Link
+              href={process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.merchkins.com'}
+              className={cn(buttonVariants({ variant: 'default', size: 'lg' }))}
+            >
               <Home className="mr-1.5" />
               Back to home
             </Link>

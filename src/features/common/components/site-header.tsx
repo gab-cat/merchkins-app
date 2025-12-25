@@ -331,7 +331,7 @@ function SiteHeaderContent({
               )}
               aria-label="Go back home"
             >
-              <Link className="text-xs!" href="https://app.merchkins.com">
+              <Link className="text-xs!" href={process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.merchkins.com'}>
                 <ArrowLeft className="h-2 w-2" />
                 <span className="hidden sm:inline text-xs">Go back home</span>
               </Link>

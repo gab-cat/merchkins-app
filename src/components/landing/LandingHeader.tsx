@@ -66,7 +66,7 @@ export function LandingHeader() {
                   </motion.a>
                 ))}
                 <Link
-                  href="https://app.merchkins.com"
+                  href={process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.merchkins.com'}
                   className="mt-4 flex items-center justify-center gap-2 px-5 py-3 bg-brand-neon text-slate-900 text-base font-bold rounded-full hover:bg-[#bbfd2d] transition-all"
                   onClick={() => setMobileMenuOpen(false)}
                 >
