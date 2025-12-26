@@ -11,7 +11,8 @@ export function VouchersList() {
   const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip');
   const vouchers = useQuery(api.vouchers.queries.index.getVouchersByUser, currentUser?._id ? { userId: currentUser._id, includeUsed: true } : 'skip');
 
-  if (clerkId && (currentUser === undefined || vouchers === undefined)) {
+  // Loading state: queries are still in flight
+  if (clerkId && currentUser === undefined) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
@@ -27,7 +28,8 @@ export function VouchersList() {
     );
   }
 
-  if (!vouchers) {
+  // Vouchers still loading after user is confirmed
+  if (vouchers === undefined) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-slate-400" />

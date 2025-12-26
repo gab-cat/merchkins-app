@@ -1062,7 +1062,7 @@ export function CheckoutPage() {
                         <Link href="/privacy" className="text-[#1d43d8] hover:underline font-medium">
                           Privacy Policy
                         </Link>
-                        . Refunds are issued as platform vouchers. Customer-initiated cancellations are voucher-only. Seller-initiated cancellations allow monetary refund requests after 14 days.{' '}
+                        . Refunds may be issued as platform vouchers for convenience, subject to your statutory rights to monetary refunds where required by Philippine consumer protection laws (R.A. 7394 and R.A. 8792). Seller-initiated cancellations are processed promptly with immediate monetary refunds as required by law.{' '}
                         <Link href="/returns" className="text-[#1d43d8] hover:underline font-medium">
                           Learn more
                         </Link>

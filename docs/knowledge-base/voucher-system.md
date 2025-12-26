@@ -53,8 +53,14 @@ Good for clearing inventory or introducing new products.
 - **What is it?** When you approve a refund request or cancel a paid order, the system automatically creates this voucher for the customer.
 - **How it works:** The customer receives a code equal to the refund amount. They can use this code to buy anything from any store on the platform.
 - **Cancellation Types:**
-  - **Customer-initiated:** Vouchers are voucher-only (no monetary refund option).
-  - **Seller-initiated:** Vouchers can be converted to monetary refunds after 14 days from issuance.
+  - **Customer-initiated:** 
+    - **Process:** Customers can request a refund within **24 hours** of making a payment. Once you approve the request, the system automatically creates a refund voucher for the customer. If you reject the request, the order continues as normal and no voucher is issued.
+    - **Monetary Refund Eligibility:** Customer-initiated refund vouchers are **not eligible** for monetary refund requests through the platform system. However, consumers retain their statutory rights to monetary refunds where required by Philippine consumer protection laws (e.g., for defective, damaged, or misrepresented products).
+    - **Use Case:** This provides a convenient way to handle refunds while maintaining platform engagement.
+  - **Seller-initiated:** 
+    - **Process:** When you cancel a paid order, the system automatically creates a refund voucher for the customer. Monetary refunds are processed immediately or as required by law, without undue delay.
+    - **Monetary Refund Eligibility:** Seller-initiated vouchers become eligible for monetary refund requests after a **14-day waiting period** from voucher creation (only if completely unused).
+    - **Use Case:** Provides customers with immediate credit while allowing them to request monetary refunds after the waiting period if they prefer.
 - **Note for Sellers:** If a customer uses a Refund Voucher to buy from your store, **you still get paid the full amount** (minus the standard platform fee). The platform covers the cost of the voucher.
 
 ---
@@ -102,8 +108,41 @@ This means the customer used credit from a previous refund. Don't worry—this i
 
 ### What happens when I cancel a paid order?
 
-When you cancel a paid order, the customer automatically receives a refund voucher. This voucher is marked as "seller-initiated" and after 14 days, the customer can request a monetary refund for it. The voucher remains valid and usable until the customer requests a monetary refund (if they choose to do so).
+When you cancel a paid order, refunds will be processed promptly in accordance with applicable Philippine consumer protection statutes. Monetary refunds will be issued immediately or as required by law, without undue delay. The system may create a refund voucher marked as "seller-initiated," but consumers retain their statutory rights to monetary refunds where required by law. The voucher remains valid and usable until the customer requests a monetary refund (if they choose to do so).
 
 ### Can customers see their vouchers?
 
-Yes. Customers can view all their vouchers on the Vouchers page (`/vouchers`). They can see voucher details, status, and for seller-initiated vouchers, they can request monetary refunds after the 14-day waiting period.
+Yes. Customers can view all their vouchers on the Vouchers page (`/vouchers`). They can see voucher details, status, and request monetary refunds in accordance with their statutory rights under Philippine consumer protection laws (R.A. 7394 and R.A. 8792).
+
+### How does the customer-initiated refund process work?
+
+**For Customers:**
+
+1. **Request Window:** You can request a refund within **24 hours** of making a payment for an order. After 24 hours, the system blocks new refund requests (though sellers may still coordinate refunds offline if they choose).
+
+2. **Submitting a Request:** 
+   - Go to your order details page
+   - Select a reason for the refund (e.g., wrong size, defective item, changed mind)
+   - Optionally add a message explaining your request
+   - Submit the request
+
+3. **Review Process:** The seller reviews your request and can either approve or reject it. You'll receive a notification when the seller makes a decision.
+
+4. **If Approved:**
+   - The order is automatically cancelled
+   - A **Refund Voucher** is created for you equal to the amount you paid
+   - The voucher can be used immediately on any store on the platform
+   - The voucher never expires
+   - **Important:** Customer-initiated refund vouchers cannot be converted to monetary refunds through the platform system. However, you retain your statutory rights to monetary refunds where required by Philippine consumer protection laws (e.g., for defective, damaged, or misrepresented products).
+
+5. **If Rejected:**
+   - The order continues as normal
+   - No voucher is issued
+   - You can contact the seller directly if you have concerns
+
+**For Sellers:**
+
+- You'll see refund requests in your Admin Dashboard
+- Review each request and provide an approval or rejection with a message
+- Approved requests automatically create refund vouchers and cancel the order
+- Rejected requests allow the order to continue processing normally

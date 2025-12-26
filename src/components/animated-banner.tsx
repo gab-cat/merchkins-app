@@ -270,7 +270,7 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={openChatwoot}
+                  onClick={() => openChatwoot('open')}
                   disabled={!isChatwootReady}
                   className="text-white/70 hover:text-white hover:bg-white/10 font-medium h-9 rounded-full transition-all duration-200 disabled:opacity-50"
                 >

@@ -3,19 +3,21 @@ title: Handling Refunds
 description: How to process refunds and understand the voucher system.
 category: finance
 icon: DollarSign
-lastUpdated: 2025-12-17
+lastUpdated: 2025-01-20
 ---
 
 # Handling Refunds
 
-## The Golden Rule: Vouchers First, Monetary Refunds Available for Seller-Initiated Cancellations
+## Consumer Rights and Refund Policy
 
-At our platform, **refunds are issued as store credit vouchers**. The refund method depends on who initiated the cancellation:
+In accordance with the **Consumer Act of the Philippines (R.A. 7394)** and the **Electronic Commerce Act (R.A. 8792)**, consumers retain their statutory rights to monetary refunds where required by law.
 
-- **Customer-initiated cancellations:** Refunds are issued exclusively as platform vouchers. Cash refunds are not available.
-- **Seller-initiated cancellations:** Refunds are initially issued as platform vouchers. However, customers can request a monetary refund after 14 days from the voucher issuance date.
+**Refund Methods:**
 
-**Why vouchers first?** This keeps money within the ecosystem and protects you (the seller) from losing revenue instantly. For seller-initiated cancellations, the option for monetary refunds after a waiting period provides additional consumer protection.
+- **Customer-initiated cancellations:** Refunds may be issued as platform vouchers for convenience, subject to the consumer's statutory rights. Consumers retain the right to monetary refunds where required by applicable Philippine consumer protection laws, including but not limited to cases involving defective, damaged, or misrepresented products.
+- **Seller-initiated cancellations:** Refunds will be processed promptly and in accordance with applicable Philippine consumer protection statutes. Monetary refunds will be issued immediately or as required by law, without undue delay.
+
+**Important:** These statutory consumer rights cannot be waived or limited by any policy, term, or condition. The Platform will process all refunds in compliance with applicable Philippine consumer protection statutes.
 
 ---
 
@@ -26,14 +28,14 @@ At our platform, **refunds are issued as store credit vouchers**. The refund met
 1.  **Customer Requests Refund:** A customer can request a refund within **24 hours** of making a payment.
 2.  **You Review It:** You will see the request in your Admin Dashboard.
 3.  **Approve or Reject:**
-    - **If Approved:** The system _automatically_ creates a **Refund Voucher** for the customer. This voucher is voucher-only (no monetary refund option).
+    - **If Approved:** The system _automatically_ creates a **Refund Voucher** for the customer. However, consumers retain their statutory rights to monetary refunds where required by Philippine consumer protection laws (e.g., for defective, damaged, or misrepresented products).
     - **If Rejected:** The order continues as normal.
 
 ### Seller-Initiated Cancellations
 
-1.  **You Cancel a Paid Order:** When you cancel a paid order, the system _automatically_ creates a **Refund Voucher** for the customer.
-2.  **14-Day Waiting Period:** The customer must wait 14 days from voucher issuance before they can request a monetary refund.
-3.  **Monetary Refund Request:** After 14 days, the customer can request a monetary refund through their Vouchers page. Super-admins review and process these requests.
+1.  **You Cancel a Paid Order:** When you cancel a paid order, refunds will be processed promptly in accordance with applicable Philippine consumer protection statutes.
+2.  **Immediate Processing:** Monetary refunds will be issued immediately or as required by law, without undue delay. The system may create a refund voucher, but consumers retain their statutory rights to monetary refunds.
+3.  **Monetary Refund:** Customers can request monetary refunds immediately through their Vouchers page or by contacting support. Super-admins review and process these requests promptly.
 
 ---
 
@@ -45,7 +47,41 @@ When a refund is approved or an order is cancelled, the customer receives a **Re
 - **Where to use:** They can use this voucher to buy again from your store _or_ any other store on the platform.
 - **Validity:** It never expires.
 - **Cancellation Type:** The voucher tracks whether it was issued from a customer-initiated or seller-initiated cancellation.
-- **Monetary Refund Eligibility:** Only vouchers from seller-initiated cancellations are eligible for monetary refund requests (after 14 days).
+- **Monetary Refund Eligibility:** Consumers retain their statutory rights to monetary refunds where required by Philippine consumer protection laws, regardless of voucher issuance. For seller-initiated cancellations, monetary refunds are processed immediately or as required by law.
+
+---
+
+## Partial Voucher Usage and Monetary Refund Requests
+
+### How Partial Usage Works
+
+Refund vouchers are **single-use only**. However, if your order total is less than the voucher value, only the required amount is deducted:
+
+- **Example:** You have a ₱1,000 refund voucher and make a ₱500 purchase. The voucher covers ₱500, but the voucher is then marked as used and cannot be used again.
+
+**Important Limitation:** Once a refund voucher has been used (even partially), you **cannot** request a monetary refund for any remaining balance. The system only allows monetary refund requests for **unused vouchers**.
+
+### The 14-Day Waiting Period
+
+For seller-initiated cancellations, refund vouchers have a **14-day waiting period** before monetary refund requests become eligible:
+
+- **When the period starts:** The 14-day period begins from the **voucher creation date** (when the refund voucher was issued), not from when it was used or when you decide to request a refund.
+- **When it applies:** This waiting period only applies to vouchers from **seller-initiated cancellations**. Customer-initiated cancellation vouchers are not eligible for monetary refunds through the platform system (though consumers retain statutory rights).
+- **Rationale:** The 14-day period provides a reasonable window for customers to use the voucher on the platform while ensuring sellers have adequate time to process refunds and manage cash flow. This period balances consumer protection with operational practicality, allowing customers to explore platform options before requesting a monetary refund.
+
+### Monetary Refund Request Timeline
+
+**For Seller-Initiated Cancellation Vouchers:**
+
+1. **Days 0-13:** The voucher can be used on the platform, but monetary refund requests are not yet available. The system will show how many days remain until eligibility.
+2. **Day 14+:** Once 14 days have passed since voucher creation, customers can request a monetary refund for the **full unused voucher value** through their Vouchers page.
+3. **After Request:** Once a monetary refund request is submitted, the voucher is marked as requested and cannot be used. Super-admins review and process these requests promptly.
+
+**Edge Cases:**
+
+- **Partially used vouchers:** If you use part of a voucher (e.g., ₱500 of a ₱1,000 voucher), you cannot request a monetary refund for the remaining ₱500. The voucher is considered "used" once any portion is applied to an order.
+- **Multiple vouchers:** Each voucher has its own 14-day period based on its individual creation date. If you have multiple vouchers, each must wait 14 days from its own creation date before becoming eligible.
+- **Voucher expiration:** Refund vouchers never expire, so the 14-day period is not affected by time limits. However, you must request the monetary refund while the voucher is still unused.
 
 ---
 
@@ -86,8 +122,31 @@ The system blocks customer-initiated refund requests after 24 hours. However, yo
 
 ### What happens when I cancel a paid order?
 
-When you cancel a paid order, the customer automatically receives a refund voucher. After 14 days, they can request a monetary refund for this voucher through their Vouchers page. Super-admins handle these monetary refund requests.
+When you cancel a paid order, refunds will be processed promptly in accordance with applicable Philippine consumer protection statutes. Monetary refunds will be issued immediately or as required by law. The system may create a refund voucher, but consumers retain their statutory rights to monetary refunds where required by law. Customers can request monetary refunds immediately through their Vouchers page or by contacting support.
 
 ### Can customers request monetary refunds for all vouchers?
 
-No. Only vouchers issued from seller-initiated cancellations are eligible for monetary refund requests. Customer-initiated refund vouchers are voucher-only and cannot be converted to monetary refunds.
+**Platform System Eligibility:**
+
+- **Seller-initiated cancellation vouchers:** Eligible for monetary refund requests after a 14-day waiting period from voucher creation, but only if the voucher is **completely unused**.
+- **Customer-initiated cancellation vouchers:** Not eligible for monetary refund requests through the platform system.
+
+**Statutory Rights:**
+Consumers retain their statutory rights to monetary refunds where required by Philippine consumer protection laws (R.A. 7394 and R.A. 8792), regardless of voucher issuance. These statutory rights cannot be waived. For seller-initiated cancellations, monetary refunds are processed immediately or as required by law. For customer-initiated cancellations, consumers retain the right to monetary refunds where required by applicable laws (e.g., for defective, damaged, or misrepresented products).
+
+### What happens if I partially use a refund voucher?
+
+If you use part of a refund voucher (e.g., ₱500 of a ₱1,000 voucher on a smaller purchase), the voucher is marked as used and cannot be used again. **You cannot request a monetary refund for the remaining balance** once any portion of the voucher has been applied to an order. The system only allows monetary refund requests for completely unused vouchers.
+
+**Best Practice:** If you're considering requesting a monetary refund, do not use the voucher until after the 14-day waiting period has passed and you've decided whether to use it or request a refund.
+
+### Why is there a 14-day waiting period for monetary refunds?
+
+The 14-day waiting period serves several purposes:
+
+1. **Operational Efficiency:** Provides sellers with a predictable window to manage refunds and cash flow without immediate monetary withdrawals.
+2. **Platform Engagement:** Encourages customers to explore and use vouchers on the platform, supporting the marketplace ecosystem.
+3. **Consumer Protection Balance:** While respecting statutory consumer rights, the period allows for a reasonable balance between immediate refund needs and platform sustainability.
+4. **Fraud Prevention:** Helps prevent abuse where customers might immediately request monetary refunds without giving the platform a fair opportunity to serve them.
+
+The period is calculated from the voucher creation date (when the refund was issued), not from when you decide to request a refund. This ensures consistent and predictable eligibility timelines for all customers.

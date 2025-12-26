@@ -1,4 +1,4 @@
-import { query, mutation } from '../../_generated/server';
+import { query } from '../../_generated/server';
 import { getTicketsHandler, getTicketsArgs } from './getTickets';
 import { getTicketByIdHandler, getTicketByIdArgs } from './getTicketById';
 import { getTicketUpdatesHandler, getTicketUpdatesArgs } from './getTicketUpdates';

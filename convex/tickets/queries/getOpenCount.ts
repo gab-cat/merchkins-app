@@ -35,21 +35,40 @@ export const getOpenCountHandler = async (ctx: QueryCtx, args: Infer<typeof getO
 
     openCount = openTickets.length + inProgressTickets.length;
   } else {
-    // User scope: created by the user
-    // Use compound index to efficiently query by creator and status
-    // Query for OPEN status
-    const openTickets = await ctx.db
-      .query('tickets')
-      .withIndex('by_creator_and_status', (q) => q.eq('createdById', user._id).eq('status', TICKET_STATUS.OPEN))
-      .collect();
+    // User scope: filter by creator or assignee based on forAssignee flag
+    if (args.forAssignee) {
+      // Filter by assigneeId when forAssignee is true
+      // Use compound index to efficiently query by assignee and status
+      // Query for OPEN status
+      const openTickets = await ctx.db
+        .query('tickets')
+        .withIndex('by_assignee_status', (q) => q.eq('assignedToId', user._id).eq('status', TICKET_STATUS.OPEN))
+        .collect();
 
-    // Query for IN_PROGRESS status
-    const inProgressTickets = await ctx.db
-      .query('tickets')
-      .withIndex('by_creator_and_status', (q) => q.eq('createdById', user._id).eq('status', TICKET_STATUS.IN_PROGRESS))
-      .collect();
+      // Query for IN_PROGRESS status
+      const inProgressTickets = await ctx.db
+        .query('tickets')
+        .withIndex('by_assignee_status', (q) => q.eq('assignedToId', user._id).eq('status', TICKET_STATUS.IN_PROGRESS))
+        .collect();
 
-    openCount = openTickets.length + inProgressTickets.length;
+      openCount = openTickets.length + inProgressTickets.length;
+    } else {
+      // Filter by createdById when forAssignee is false or undefined
+      // Use compound index to efficiently query by creator and status
+      // Query for OPEN status
+      const openTickets = await ctx.db
+        .query('tickets')
+        .withIndex('by_creator_and_status', (q) => q.eq('createdById', user._id).eq('status', TICKET_STATUS.OPEN))
+        .collect();
+
+      // Query for IN_PROGRESS status
+      const inProgressTickets = await ctx.db
+        .query('tickets')
+        .withIndex('by_creator_and_status', (q) => q.eq('createdById', user._id).eq('status', TICKET_STATUS.IN_PROGRESS))
+        .collect();
+
+      openCount = openTickets.length + inProgressTickets.length;
+    }
   }
 
   return { count: openCount };

@@ -30,7 +30,9 @@ export default function ReturnsPage() {
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
               <Gift className="h-6 w-6 text-emerald-600 mb-2" />
               <h3 className="font-semibold text-emerald-900">Refund Options</h3>
-              <p className="text-sm text-emerald-700">Refunds may be issued as platform vouchers, subject to your statutory rights to monetary refunds where required by law.</p>
+              <p className="text-sm text-emerald-700">
+                Refunds may be issued as platform vouchers, subject to your statutory rights to monetary refunds where required by law.
+              </p>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <ShieldCheck className="h-6 w-6 text-amber-600 mb-2" />
@@ -138,7 +140,8 @@ export default function ReturnsPage() {
                   <h3 className="font-bold text-blue-900 text-lg mb-3">Consumer Rights and Refund Policy</h3>
                   <p className="text-blue-800 mb-4">
                     In accordance with the <strong>Consumer Act of the Philippines (R.A. 7394)</strong> and the{' '}
-                    <strong>Electronic Commerce Act (R.A. 8792)</strong>, consumers retain their statutory rights to monetary refunds where required by law.
+                    <strong>Electronic Commerce Act (R.A. 8792)</strong>, consumers retain their statutory rights to monetary refunds where required
+                    by law.
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-blue-700 text-sm mb-4 ml-4">
                     <li>
@@ -151,9 +154,9 @@ export default function ReturnsPage() {
                       consumer protection statutes. Monetary refunds will be issued immediately or as required by law, without undue delay.
                     </li>
                     <li>
-                      <strong>Statutory rights:</strong> These statutory consumer rights cannot be waived or limited by any policy, term, or condition.
-                      The Platform will process all refunds in compliance with applicable Philippine consumer protection statutes, including R.A. 7394
-                      and R.A. 8792.
+                      <strong>Statutory rights:</strong> These statutory consumer rights cannot be waived or limited by any policy, term, or
+                      condition. The Platform will process all refunds in compliance with applicable Philippine consumer protection statutes,
+                      including R.A. 7394 and R.A. 8792.
                     </li>
                   </ul>
                 </div>
@@ -187,7 +190,8 @@ export default function ReturnsPage() {
 
             <h3 className="text-xl font-semibold mb-3 mt-6">4.2 Monetary Refund Requests</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
-              Consumers have the right to request monetary refunds in accordance with applicable Philippine consumer protection laws. For seller-initiated cancellations, monetary refunds will be processed immediately or as required by law. To request a monetary refund:
+              Consumers have the right to request monetary refunds in accordance with applicable Philippine consumer protection laws. For
+              seller-initiated cancellations, monetary refunds will be processed immediately or as required by law. To request a monetary refund:
             </p>
             <ol className="list-decimal list-inside space-y-2 text-slate-700 ml-4 mb-4">
               <li>Navigate to your Vouchers page or Order details</li>
@@ -197,7 +201,8 @@ export default function ReturnsPage() {
               <li>Once approved, the refund will be processed to your original payment method promptly</li>
             </ol>
             <p className="text-slate-700 leading-relaxed mb-4">
-              <strong>Processing Time:</strong> Monetary refund requests are processed promptly in accordance with applicable laws, typically within 3-5 business days after approval. Refunds will be credited to your original payment method.
+              <strong>Processing Time:</strong> Monetary refund requests are processed promptly in accordance with applicable laws, typically within
+              3-5 business days after approval. Refunds will be credited to your original payment method.
             </p>
             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
               <div className="flex items-start gap-3">
@@ -205,7 +210,8 @@ export default function ReturnsPage() {
                 <div>
                   <p className="text-blue-800 font-medium">Your Rights:</p>
                   <p className="text-blue-700 text-sm mt-1">
-                    Under Philippine consumer protection laws, you retain the right to monetary refunds where required by statute, regardless of any voucher issuance. These statutory rights cannot be waived.
+                    Under Philippine consumer protection laws, you retain the right to monetary refunds where required by statute, regardless of any
+                    voucher issuance. These statutory rights cannot be waived.
                   </p>
                 </div>
               </div>
@@ -213,13 +219,18 @@ export default function ReturnsPage() {
 
             <h3 className="text-xl font-semibold mb-3 mt-6">4.3 Legal Basis</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
-              This refund policy is designed to comply with Philippine consumer protection laws, including the <strong>Consumer Act of the Philippines (R.A. 7394)</strong> and the <strong>Electronic Commerce Act (R.A. 8792)</strong>. Under these statutes, consumers have the right to monetary refunds, repairs, or replacements for defective, damaged, or misrepresented products.
+              This refund policy is designed to comply with Philippine consumer protection laws, including the{' '}
+              <strong>Consumer Act of the Philippines (R.A. 7394)</strong> and the <strong>Electronic Commerce Act (R.A. 8792)</strong>. Under these
+              statutes, consumers have the right to monetary refunds, repairs, or replacements for defective, damaged, or misrepresented products.
             </p>
             <p className="text-slate-700 leading-relaxed mb-4">
-              Platform vouchers may be offered as a convenient refund option, but they do not limit or replace your statutory rights to monetary refunds where required by law. For seller-initiated cancellations, refunds will be processed promptly and in accordance with applicable consumer protection statutes, without undue delay.
+              Platform vouchers may be offered as a convenient refund option, but they do not limit or replace your statutory rights to monetary
+              refunds where required by law. For seller-initiated cancellations, refunds will be processed promptly and in accordance with applicable
+              consumer protection statutes, without undue delay.
             </p>
             <p className="text-slate-700 leading-relaxed">
-              <strong>Important:</strong> Your statutory consumer rights cannot be waived or limited by any policy, term, or condition. The Platform is committed to processing all refunds in full compliance with applicable Philippine consumer protection laws.
+              <strong>Important:</strong> Your statutory consumer rights cannot be waived or limited by any policy, term, or condition. The Platform
+              is committed to processing all refunds in full compliance with applicable Philippine consumer protection laws.
             </p>
           </section>
 
@@ -310,7 +321,7 @@ export default function ReturnsPage() {
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 border-b border-slate-200">Request Type</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 border-b border-slate-200">Processing Time</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 border-b border-slate-200">Voucher Issuance</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 border-b border-slate-200">Refund Method</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -322,25 +333,40 @@ export default function ReturnsPage() {
                   <tr>
                     <td className="px-4 py-3 text-sm text-slate-700">Seller-initiated Cancellation</td>
                     <td className="px-4 py-3 text-sm text-slate-700">Immediate</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">Monetary refund processed immediately or as required by law; voucher may be offered as alternative</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">
+                      Monetary refund processed immediately or as required by law; voucher may be offered as alternative
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-sm text-slate-700">Monetary Refund Request</td>
                     <td className="px-4 py-3 text-sm text-slate-700">3-5 business days</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">Processed promptly to original payment method in accordance with applicable laws</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">
+                      Processed promptly to original payment method in accordance with applicable laws
+                    </td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-sm text-slate-700">Defective/Damaged Product</td>
                     <td className="px-4 py-3 text-sm text-slate-700">3-5 business days</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">Voucher issued upon verification</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">Monetary refund (per R.A. 7394) / voucher optional upon verification</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-sm text-slate-700">Wrong Item Received</td>
                     <td className="px-4 py-3 text-sm text-slate-700">3-5 business days</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">Voucher issued upon verification</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">Monetary refund (per R.A. 7394) / voucher optional upon verification</td>
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                <p className="text-blue-800 text-sm">
+                  <strong>Note:</strong> For cases involving defective, damaged, or misrepresented products (including wrong items received),
+                  consumers retain their statutory rights to monetary refunds under the Consumer Act of the Philippines (R.A. 7394) and Electronic
+                  Commerce Act (R.A. 8792). While vouchers may be issued initially for convenience, consumers may request conversion to monetary
+                  refunds where required by law. These statutory rights cannot be waived or limited.
+                </p>
+              </div>
             </div>
           </section>
 

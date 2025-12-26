@@ -18,6 +18,7 @@ export const getTicketsArgs = {
   search: v.optional(v.string()),
   limit: v.optional(v.number()),
   offset: v.optional(v.number()),
+  retryKey: v.optional(v.number()),
 };
 
 export const getTicketsHandler = async (
@@ -37,6 +38,7 @@ export const getTicketsHandler = async (
     search?: string;
     limit?: number;
     offset?: number;
+    retryKey?: number;
   }
 ) => {
   const user = await requireAuthentication(ctx);

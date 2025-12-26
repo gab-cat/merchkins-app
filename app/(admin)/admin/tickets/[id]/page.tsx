@@ -52,6 +52,39 @@ import {
 
 type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+type TicketUpdateType = 'STATUS_CHANGE' | 'COMMENT' | 'ASSIGNMENT' | 'PRIORITY_CHANGE' | 'ESCALATION';
+
+// Ticket Update Interface
+export interface TicketUpdate {
+  _id: Id<'ticketUpdates'>;
+  ticketId: Id<'tickets'>;
+  update: TicketStatus;
+  createdById: Id<'users'>;
+  creatorInfo: {
+    firstName?: string;
+    lastName?: string;
+    email: string;
+    imageUrl?: string;
+  };
+  ticketInfo: {
+    title: string;
+    priority: string;
+    category?: string;
+  };
+  content: string;
+  updateType: TicketUpdateType;
+  previousValue?: string;
+  newValue?: string;
+  attachments?: Array<{
+    filename: string;
+    url: string;
+    size: number;
+    mimeType: string;
+  }>;
+  isInternal: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
 
 // Configuration constants
 const STATUS_CONFIG: Record<TicketStatus, { icon: React.ElementType; color: string; bgColor: string; label: string }> = {
@@ -75,14 +108,14 @@ const UPDATE_TYPE_ICONS: Record<string, React.ElementType> = {
 };
 
 // Activity Feed Item
-function UpdateItem({ update, index }: { update: any; index: number }) {
+function UpdateItem({ update, index }: { update: TicketUpdate; index: number }) {
   const Icon = UPDATE_TYPE_ICONS[update.updateType] || Info;
   const isComment = update.updateType === 'COMMENT';
 
   const creatorName =
-    update.creatorInfo?.firstName || update.creatorInfo?.lastName
-      ? `${update.creatorInfo?.firstName || ''} ${update.creatorInfo?.lastName || ''}`.trim()
-      : update.creatorInfo?.email || 'System';
+    update.creatorInfo.firstName || update.creatorInfo.lastName
+      ? `${update.creatorInfo.firstName || ''} ${update.creatorInfo.lastName || ''}`.trim()
+      : update.creatorInfo.email || 'System';
 
   const initials = (creatorName || 'S').slice(0, 2).toUpperCase();
 

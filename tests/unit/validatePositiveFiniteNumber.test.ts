@@ -2,7 +2,7 @@
  * Unit tests for validatePositiveFiniteNumber validation function
  * Tests both positive validation path and error paths (NaN, Infinity, negative, zero)
  */
-
+// @ts-expect-error Bun test is not supported
 import { describe, it, expect } from 'bun:test';
 import { validatePositiveFiniteNumber } from '../../convex/helpers/validation';
 
@@ -29,101 +29,69 @@ describe('validatePositiveFiniteNumber', () => {
 
   describe('Error path - NaN', () => {
     it('should throw error for NaN', () => {
-      expect(() => validatePositiveFiniteNumber(NaN, 'Requested amount')).toThrow(
-        'Requested amount cannot be NaN'
-      );
+      expect(() => validatePositiveFiniteNumber(NaN, 'Requested amount')).toThrow('Requested amount cannot be NaN');
     });
 
     it('should throw error for NaN with custom field name', () => {
-      expect(() => validatePositiveFiniteNumber(NaN, 'Custom field')).toThrow(
-        'Custom field cannot be NaN'
-      );
+      expect(() => validatePositiveFiniteNumber(NaN, 'Custom field')).toThrow('Custom field cannot be NaN');
     });
   });
 
   describe('Error path - Infinity', () => {
     it('should throw error for positive Infinity', () => {
-      expect(() => validatePositiveFiniteNumber(Infinity, 'Requested amount')).toThrow(
-        'Requested amount must be a finite number'
-      );
+      expect(() => validatePositiveFiniteNumber(Infinity, 'Requested amount')).toThrow('Requested amount must be a finite number');
     });
 
     it('should throw error for negative Infinity', () => {
-      expect(() => validatePositiveFiniteNumber(-Infinity, 'Requested amount')).toThrow(
-        'Requested amount must be a finite number'
-      );
+      expect(() => validatePositiveFiniteNumber(-Infinity, 'Requested amount')).toThrow('Requested amount must be a finite number');
     });
 
     it('should throw error for Infinity with custom field name', () => {
-      expect(() => validatePositiveFiniteNumber(Infinity, 'Custom field')).toThrow(
-        'Custom field must be a finite number'
-      );
+      expect(() => validatePositiveFiniteNumber(Infinity, 'Custom field')).toThrow('Custom field must be a finite number');
     });
   });
 
   describe('Error path - Negative numbers', () => {
     it('should throw error for negative numbers', () => {
-      expect(() => validatePositiveFiniteNumber(-1, 'Requested amount')).toThrow(
-        'Requested amount must be a positive number greater than 0'
-      );
-      expect(() => validatePositiveFiniteNumber(-100, 'Requested amount')).toThrow(
-        'Requested amount must be a positive number greater than 0'
-      );
-      expect(() => validatePositiveFiniteNumber(-0.01, 'Requested amount')).toThrow(
-        'Requested amount must be a positive number greater than 0'
-      );
+      expect(() => validatePositiveFiniteNumber(-1, 'Requested amount')).toThrow('Requested amount must be a positive number greater than 0');
+      expect(() => validatePositiveFiniteNumber(-100, 'Requested amount')).toThrow('Requested amount must be a positive number greater than 0');
+      expect(() => validatePositiveFiniteNumber(-0.01, 'Requested amount')).toThrow('Requested amount must be a positive number greater than 0');
     });
 
     it('should throw error for negative numbers with custom field name', () => {
-      expect(() => validatePositiveFiniteNumber(-50, 'Custom field')).toThrow(
-        'Custom field must be a positive number greater than 0'
-      );
+      expect(() => validatePositiveFiniteNumber(-50, 'Custom field')).toThrow('Custom field must be a positive number greater than 0');
     });
   });
 
   describe('Error path - Zero', () => {
     it('should throw error for zero', () => {
-      expect(() => validatePositiveFiniteNumber(0, 'Requested amount')).toThrow(
-        'Requested amount must be a positive number greater than 0'
-      );
+      expect(() => validatePositiveFiniteNumber(0, 'Requested amount')).toThrow('Requested amount must be a positive number greater than 0');
     });
 
     it('should throw error for negative zero', () => {
-      expect(() => validatePositiveFiniteNumber(-0, 'Requested amount')).toThrow(
-        'Requested amount must be a positive number greater than 0'
-      );
+      expect(() => validatePositiveFiniteNumber(-0, 'Requested amount')).toThrow('Requested amount must be a positive number greater than 0');
     });
 
     it('should throw error for zero with custom field name', () => {
-      expect(() => validatePositiveFiniteNumber(0, 'Custom field')).toThrow(
-        'Custom field must be a positive number greater than 0'
-      );
+      expect(() => validatePositiveFiniteNumber(0, 'Custom field')).toThrow('Custom field must be a positive number greater than 0');
     });
   });
 
   describe('Error path - Non-number types', () => {
     it('should throw error for string', () => {
-      expect(() => validatePositiveFiniteNumber('100' as unknown as number, 'Requested amount')).toThrow(
-        'Requested amount must be a number'
-      );
+      expect(() => validatePositiveFiniteNumber('100' as unknown as number, 'Requested amount')).toThrow('Requested amount must be a number');
     });
 
     it('should throw error for null', () => {
-      expect(() => validatePositiveFiniteNumber(null as unknown as number, 'Requested amount')).toThrow(
-        'Requested amount must be a number'
-      );
+      expect(() => validatePositiveFiniteNumber(null as unknown as number, 'Requested amount')).toThrow('Requested amount must be a number');
     });
 
     it('should throw error for undefined', () => {
-      expect(() => validatePositiveFiniteNumber(undefined as unknown as number, 'Requested amount')).toThrow(
-        'Requested amount must be a number'
-      );
+      expect(() => validatePositiveFiniteNumber(undefined as unknown as number, 'Requested amount')).toThrow('Requested amount must be a number');
     });
 
     it('should throw error for object', () => {
-      expect(() => validatePositiveFiniteNumber({} as unknown as number, 'Requested amount')).toThrow(
-        'Requested amount must be a number'
-      );
+      expect(() => validatePositiveFiniteNumber({} as unknown as number, 'Requested amount')).toThrow('Requested amount must be a number');
     });
   });
 
@@ -132,10 +100,9 @@ describe('validatePositiveFiniteNumber', () => {
       expect(() => validatePositiveFiniteNumber(Number.EPSILON, 'Test field')).not.toThrow();
     });
 
-    it('should reject numbers very close to zero but positive', () => {
+    it('should accept numbers very close to zero but positive', () => {
       // This should pass as it's still positive
       expect(() => validatePositiveFiniteNumber(0.000000000000001, 'Test field')).not.toThrow();
     });
   });
 });
-

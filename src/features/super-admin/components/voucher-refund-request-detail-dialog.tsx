@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { CheckCircle2, XCircle, Clock, DollarSign, Gift, User, Calendar, Mail, Store } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, DollarSign, Gift, User, Phone, Mail, Store } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 const schema = z.object({
@@ -236,7 +236,7 @@ export function VoucherRefundRequestDetailDialog({ requestId, open, onOpenChange
                     </span>
                     {request.customerInfo.phone && (
                       <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
+                        <Phone className="h-3 w-3" />
                         {request.customerInfo.phone}
                       </span>
                     )}

@@ -39,7 +39,6 @@ export const rejectVoucherRefundRequestHandler = async (
   const sanitizedMessage = sanitizeString(args.adminMessage);
 
   const now = Date.now();
-  const actorName = `${currentUser.firstName ?? ''} ${currentUser.lastName ?? ''}`.trim() || currentUser.email;
 
   // Update voucher refund request
   await ctx.db.patch(args.voucherRefundRequestId, {
@@ -75,4 +74,3 @@ export const rejectVoucherRefundRequestHandler = async (
 
   return args.voucherRefundRequestId;
 };
-

@@ -1,12 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-
-/**
- * Monetary refund delay period for seller-initiated cancellations
- * Refund vouchers become eligible for monetary refund after this period
- */
-const MONETARY_REFUND_DELAY_MS = 14 * 24 * 60 * 60 * 1000; // 14 days in milliseconds
+import { calculateMonetaryRefundEligibleAt } from '../../helpers/utils';
 
 /**
  * Generates a unique refund voucher code
@@ -74,7 +69,7 @@ export const createRefundVoucherHandler = async (
   const now = Date.now();
 
   // Calculate monetary refund eligibility (14 days for seller-initiated cancellations)
-  const monetaryRefundEligibleAt = args.cancellationInitiator === 'SELLER' ? now + MONETARY_REFUND_DELAY_MS : undefined;
+  const monetaryRefundEligibleAt = calculateMonetaryRefundEligibleAt(args.cancellationInitiator, now);
 
   // Create REFUND voucher
   // REFUND vouchers are:

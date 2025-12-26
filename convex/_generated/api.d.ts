@@ -161,6 +161,7 @@ import type * as messages_queries_searchMessages from "../messages/queries/searc
 import type * as migrations_backfillImageUrls from "../migrations/backfillImageUrls.js";
 import type * as migrations_backfillOrderLogs from "../migrations/backfillOrderLogs.js";
 import type * as migrations_backfillPaidAt from "../migrations/backfillPaidAt.js";
+import type * as migrations_migrateVoucherSchema from "../migrations/migrateVoucherSchema.js";
 import type * as models_announcements from "../models/announcements.js";
 import type * as models_carts from "../models/carts.js";
 import type * as models_categories from "../models/categories.js";
@@ -614,6 +615,7 @@ declare const fullApi: ApiFromModules<{
   "migrations/backfillImageUrls": typeof migrations_backfillImageUrls;
   "migrations/backfillOrderLogs": typeof migrations_backfillOrderLogs;
   "migrations/backfillPaidAt": typeof migrations_backfillPaidAt;
+  "migrations/migrateVoucherSchema": typeof migrations_migrateVoucherSchema;
   "models/announcements": typeof models_announcements;
   "models/carts": typeof models_carts;
   "models/categories": typeof models_categories;

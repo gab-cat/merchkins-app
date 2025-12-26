@@ -334,3 +334,70 @@ export function deepMerge<T extends Record<string, unknown>>(target: T, source: 
 
   return result;
 }
+
+/**
+ * Monetary refund delay period for seller-initiated cancellations
+ * Refund vouchers become eligible for monetary refund after this period
+ */
+export const MONETARY_REFUND_DELAY_MS = 14 * 24 * 60 * 60 * 1000; // 14 days in milliseconds
+
+/**
+ * Validate if a seller-initiated voucher is eligible for monetary refund
+ * Returns an object with eligibility status and days remaining if not eligible
+ */
+export function validateMonetaryRefundEligibility(
+  cancellationInitiator: 'CUSTOMER' | 'SELLER' | undefined,
+  monetaryRefundEligibleAt: number | undefined,
+  usedCount: number,
+  createdAt: number
+): {
+  isEligible: boolean;
+  daysRemaining?: number;
+  error?: string;
+} {
+  // Only seller-initiated vouchers are eligible
+  if (cancellationInitiator !== 'SELLER') {
+    return {
+      isEligible: false,
+      error: 'Only vouchers from seller-initiated cancellations are eligible for monetary refunds',
+    };
+  }
+
+  // Voucher must be unused
+  if (usedCount > 0) {
+    return {
+      isEligible: false,
+      error: 'Cannot request monetary refund for a voucher that has already been used',
+    };
+  }
+
+  // Calculate eligibility timestamp if not set
+  const eligibleAt = monetaryRefundEligibleAt ?? createdAt + MONETARY_REFUND_DELAY_MS;
+  const now = Date.now();
+
+  if (now < eligibleAt) {
+    const daysRemaining = Math.ceil((eligibleAt - now) / (24 * 60 * 60 * 1000));
+    return {
+      isEligible: false,
+      daysRemaining,
+      error: `Monetary refund will be available in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}`,
+    };
+  }
+
+  return {
+    isEligible: true,
+  };
+}
+
+/**
+ * Calculate monetary refund eligible timestamp for seller-initiated vouchers
+ */
+export function calculateMonetaryRefundEligibleAt(
+  cancellationInitiator: 'CUSTOMER' | 'SELLER' | undefined,
+  createdAt: number
+): number | undefined {
+  if (cancellationInitiator === 'SELLER') {
+    return createdAt + MONETARY_REFUND_DELAY_MS;
+  }
+  return undefined;
+}

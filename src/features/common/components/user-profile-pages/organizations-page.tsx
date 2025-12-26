@@ -210,50 +210,47 @@ export function OrganizationsPage() {
                           <div className="flex items-center gap-1.5 shrink-0">
                             {org.slug && (
                               <>
-                                <Link
-                                  href="/"
+                                <Button
+                                  asChild
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 px-2 rounded-lg text-xs font-medium hover:bg-slate-100 transition-all"
                                   onClick={() => {
                                     closeUserProfile();
                                   }}
                                 >
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 px-2 rounded-lg text-xs font-medium hover:bg-slate-100 transition-all"
-                                  >
+                                  <Link href="/">
                                     <Home className="h-3 w-3" />
-                                  </Button>
-                                </Link>
-                                <Link
-                                  href={`/o/${org.slug}`}
+                                  </Link>
+                                </Button>
+                                <Button
+                                  asChild
+                                  size="sm"
+                                  className="h-8 px-3 rounded-lg text-xs font-medium bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-sm hover:shadow-md transition-all"
                                   onClick={() => {
                                     closeUserProfile();
                                   }}
                                 >
-                                  <Button
-                                    size="sm"
-                                    className="h-8 px-3 rounded-lg text-xs font-medium bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-sm hover:shadow-md transition-all"
-                                  >
+                                  <Link href={`/o/${org.slug}`}>
                                     <ShoppingBag className="h-3 w-3 mr-1.5" />
                                     Store
-                                  </Button>
-                                </Link>
+                                  </Link>
+                                </Button>
                                 {elevated && (
-                                  <Link
-                                    href={`/admin?org=${org.slug}`}
+                                  <Button
+                                    asChild
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 px-3 rounded-lg text-xs font-medium border-slate-200 hover:border-[#1d43d8]/50 hover:bg-[#1d43d8]/5 transition-all"
                                     onClick={() => {
                                       closeUserProfile();
                                     }}
                                   >
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-8 px-3 rounded-lg text-xs font-medium border-slate-200 hover:border-[#1d43d8]/50 hover:bg-[#1d43d8]/5 transition-all"
-                                    >
+                                    <Link href={`/admin?org=${org.slug}`}>
                                       <Settings className="h-3 w-3 mr-1.5" />
                                       Admin
-                                    </Button>
-                                  </Link>
+                                    </Link>
+                                  </Button>
                                 )}
                               </>
                             )}

@@ -275,7 +275,13 @@ export function AdminCommandPalette({ open, onOpenChange, orgSlug }: AdminComman
 
     if (item) {
       if (item.href.startsWith('http://') || item.href.startsWith('https://')) {
-        window.open(item.href, '_blank');
+        const link = document.createElement('a');
+        link.href = item.href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       } else {
         router.push(item.href);
       }

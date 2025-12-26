@@ -141,6 +141,13 @@ export default function AdminEditProductPage() {
   const isBestPrice = watch('isBestPrice');
   const isActive = watch('isActive');
 
+  // Clear fulfillmentDays when switching to STOCK
+  useEffect(() => {
+    if (inventoryType === 'STOCK') {
+      setValue('fulfillmentDays', undefined, { shouldDirty: true });
+    }
+  }, [inventoryType, setValue]);
+
   // Initialize form with product data
   useEffect(() => {
     if (product) {
@@ -429,7 +436,7 @@ export default function AdminEditProductPage() {
         code: values.code || undefined,
         inventory: values.inventory,
         inventoryType: values.inventoryType,
-        fulfillmentDays: values.fulfillmentDays,
+        fulfillmentDays: values.inventoryType === 'PREORDER' ? values.fulfillmentDays : undefined,
         isBestPrice: values.isBestPrice,
         isActive: values.isActive,
         tags: tags,

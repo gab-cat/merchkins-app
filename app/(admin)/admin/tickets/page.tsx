@@ -283,7 +283,8 @@ export default function AdminTicketsPage() {
   const myAssignedTickets = useQuery(
     api.tickets.queries.index.getTickets,
     // We pass assignedToMe: true to let backend filter by current user
-    { assignedToMe: true, limit: 20 }
+    // retryKey is included to force refetch when handleRetryAssignedTickets is called
+    { assignedToMe: true, limit: 20, retryKey: assignedTicketsRetryTrigger }
   );
 
   // Loading and error states for myAssignedTickets
@@ -354,8 +355,7 @@ export default function AdminTicketsPage() {
   };
 
   const handleRetryAssignedTickets = () => {
-    // Update state to trigger component re-render
-    // Convex queries will automatically retry on re-render if there was an error
+    // Increment retryKey to change query arguments and force Convex to refetch
     setAssignedTicketsRetryTrigger((prev) => prev + 1);
   };
 

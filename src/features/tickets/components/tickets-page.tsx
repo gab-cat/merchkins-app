@@ -286,14 +286,8 @@ export function TicketsPage() {
     hasMore,
     loadMore,
   } = useCursorPagination<TicketListItem, { organizationId: Id<'organizations'>; search?: string }>({
-    query: api.tickets.queries.index.getTicketsPage,
-    baseArgs:
-      organization?._id
-        ? {
-            organizationId: organization._id,
-            ...(debouncedSearch.trim() ? { search: debouncedSearch.trim() } : {}),
-          }
-        : 'skip',
+    query: api.tickets.queries.index.getTickets,
+    baseArgs: organization?._id ? { organizationId: organization._id, search: debouncedSearch.trim() } : 'skip',
     limit: 25,
     selectPage: (res: unknown) => {
       const result = res as { page?: readonly TicketListItem[]; isDone?: boolean; continueCursor?: string | null };

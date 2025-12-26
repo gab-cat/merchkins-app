@@ -94,9 +94,7 @@ export function VoucherCard({ voucher }: VoucherCardProps) {
               <Gift className="h-5 w-5 text-emerald-600" />
               <h3 className="font-semibold text-lg">{voucher.name}</h3>
             </div>
-            {voucher.description && (
-              <p className="text-sm text-slate-600 mb-2">{voucher.description}</p>
-            )}
+            {voucher.description && <p className="text-sm text-slate-600 mb-2">{voucher.description}</p>}
             <div className="flex items-center gap-2 mb-2">
               <span className="font-mono text-lg font-bold text-emerald-700">{voucher.code}</span>
               {getStatusBadge()}
@@ -107,9 +105,7 @@ export function VoucherCard({ voucher }: VoucherCardProps) {
         <div className="space-y-2 mb-4">
           <div className="flex items-center justify-between">
             <span className="text-sm text-slate-600">Value:</span>
-            <span className="font-semibold text-lg text-emerald-700">
-              {formatCurrency(voucher.discountValue, 'PHP')}
-            </span>
+            <span className="font-semibold text-lg text-emerald-700">{formatCurrency(voucher.discountValue, 'PHP')}</span>
           </div>
 
           {voucher.cancellationInitiator && (
@@ -146,18 +142,14 @@ export function VoucherCard({ voucher }: VoucherCardProps) {
           )}
         </div>
 
-        {voucher.cancellationInitiator === 'SELLER' && voucher.computedStatus === 'active' && (
+        {voucher.cancellationInitiator === 'SELLER' && voucher.computedStatus === 'active' && !voucher.monetaryRefundRequestedAt && (
           <div className="border-t border-slate-200 pt-4 mt-4">
             {voucher.isMonetaryRefundEligible ? (
               <div className="space-y-2">
                 <p className="text-sm text-slate-600">
                   You can request a monetary refund for this voucher. The voucher will be deactivated once approved.
                 </p>
-                <Button
-                  onClick={() => setShowRefundDialog(true)}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                  size="sm"
-                >
+                <Button onClick={() => setShowRefundDialog(true)} className="w-full bg-blue-600 hover:bg-blue-700" size="sm">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Request Monetary Refund
                 </Button>
@@ -184,14 +176,7 @@ export function VoucherCard({ voucher }: VoucherCardProps) {
         )}
       </motion.div>
 
-      {showRefundDialog && (
-        <VoucherRefundRequestDialog
-          voucherId={voucher._id}
-          open={showRefundDialog}
-          onOpenChange={setShowRefundDialog}
-        />
-      )}
+      {showRefundDialog && <VoucherRefundRequestDialog voucherId={voucher._id} open={showRefundDialog} onOpenChange={setShowRefundDialog} />}
     </>
   );
 }
-
