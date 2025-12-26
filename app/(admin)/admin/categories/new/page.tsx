@@ -98,7 +98,10 @@ export default function AdminCreateCategoryPage() {
   const createCategory = useMutation(api.categories.mutations.index.createCategory);
   const uploadFile = useUploadFile(api.files.r2);
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
-  const categoriesRoot = useQuery(api.categories.queries.index.getCategories, organization?._id ? { organizationId: organization._id, level: 0 } : { level: 0 });
+  const categoriesRoot = useQuery(
+    api.categories.queries.index.getCategories,
+    organization?._id ? { organizationId: organization._id, level: 0 } : { level: 0 }
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageKey, setImageKey] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -182,7 +185,11 @@ export default function AdminCreateCategoryPage() {
         title="Create Category"
         description="Add a new product category to organize your inventory"
         icon={<FolderTree className="h-5 w-5" />}
-        breadcrumbs={[{ label: 'Admin', href: '/admin' }, { label: 'Categories', href: `/admin/categories${orgSlug ? `?org=${orgSlug}` : ''}` }, { label: 'New Category' }]}
+        breadcrumbs={[
+          { label: 'Admin', href: '/admin' },
+          { label: 'Categories', href: `/admin/categories${orgSlug ? `?org=${orgSlug}` : ''}` },
+          { label: 'New Category' },
+        ]}
         actions={
           <Button variant="outline" asChild>
             <Link href={`/admin/categories${orgSlug ? `?org=${orgSlug}` : ''}`}>

@@ -64,6 +64,7 @@ export const sendOrderConfirmationEmail = internalAction({
               year: 'numeric',
             })
           : undefined,
+        paymentUrl: order.xenditInvoiceUrl,
       });
 
       // Send via Mailgun

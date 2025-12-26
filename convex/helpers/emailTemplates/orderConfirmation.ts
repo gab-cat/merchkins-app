@@ -39,13 +39,14 @@ export interface OrderConfirmationData {
   paymentMethod: string;
   deliveryAddress?: string;
   estimatedDelivery?: string;
+  paymentUrl?: string;
 }
 
 /**
  * Generate the order confirmation email HTML - Premium dark mode
  */
 export const generateOrderConfirmationEmail = (data: OrderConfirmationData): { subject: string; html: string } => {
-  const subject = `Order Confirmed #${data.orderNumber} ✓`;
+  const subject = `Order Placed #${data.orderNumber}`;
 
   // Build items list HTML with premium styling
   const itemsHtml = data.items
@@ -115,7 +116,8 @@ export const generateOrderConfirmationEmail = (data: OrderConfirmationData): { s
     ${createDetailRow('Order Number', `<span style="font-family: ${EMAIL_FONTS.mono}; color: ${EMAIL_COLORS.accent};">#${data.orderNumber}</span>`)}
     ${createDetailRow('Order Date', formatDate(data.orderDate))}
     ${createDetailRow('Store', data.organizationName)}
-    ${createDetailRow('Payment', data.paymentMethod)}
+    ${createDetailRow('Payment Status', '<span style="color: ' + EMAIL_COLORS.warning + ';">Pending</span>')}
+    ${createDetailRow('Payment Method', data.paymentMethod)}
     ${data.estimatedDelivery ? createDetailRow('Est. Delivery', data.estimatedDelivery) : ''}
   `;
 
@@ -125,12 +127,12 @@ export const generateOrderConfirmationEmail = (data: OrderConfirmationData): { s
       Hey ${data.customerFirstName}! 🎉
     </p>
     
-    ${createParagraph("Your order is confirmed and we're getting it ready. Here's what you ordered:")}
+    ${createParagraph("Your order has been placed! Complete your payment to confirm your order. Here's what you ordered:")}
     
     ${createCard({
       title: 'Order Details',
       content: orderDetailsContent,
-      statusType: 'success',
+      statusType: 'primary',
       showBorder: true,
     })}
     
@@ -157,21 +159,42 @@ export const generateOrderConfirmationEmail = (data: OrderConfirmationData): { s
     
     ${createDivider()}
     
-    ${createParagraph("We'll send you tracking details once your order ships.", { muted: true })}
+    <!-- Payment CTA Section -->
+    ${
+      data.paymentUrl
+        ? createCenteredButton({
+            text: 'Pay Now',
+            url: data.paymentUrl,
+            variant: 'primary',
+          })
+        : ''
+    }
+    
+    <!-- Warning about 24-hour cancellation -->
+    ${createCard({
+      title: '⚠️ Important',
+      content: `<p style="margin: 0; color: ${EMAIL_COLORS.textPrimary}; font-weight: 500;">Your order will be automatically cancelled in 24 hours if payment is not completed.</p>`,
+      statusType: 'warning',
+      showBorder: true,
+    })}
+    
+    ${createDivider()}
+    
+    ${createParagraph("Complete your payment to secure your order. We'll send you tracking details once your order ships.", { muted: true })}
     
     ${createCenteredButton({
       text: 'View Order',
       url: `${EMAIL_ASSETS.appUrl}/orders`,
-      variant: 'primary',
+      variant: 'neutral',
     })}
   `;
 
   const html = createEmailWrapper(
     `
     ${createEmailHeader({
-      title: 'Order Confirmed',
+      title: 'Order Placed',
       subtitle: `Order #${data.orderNumber}`,
-      statusType: 'success',
+      statusType: 'primary',
       showLogo: true,
     })}
     ${createEmailBody(bodyContent)}
