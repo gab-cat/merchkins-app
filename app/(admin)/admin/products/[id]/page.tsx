@@ -98,7 +98,10 @@ export default function AdminEditProductPage() {
   const updateVariantImage = useMutation(api.products.mutations.index.updateVariantImage);
   const updateVariantStatus = useMutation(api.products.mutations.index.updateVariantStatus);
   const uploadFile = useUploadFile(api.files.r2);
-  const categories = useQuery(api.categories.queries.index.getCategories, product?.organizationId ? { organizationId: product.organizationId } : {});
+  const categories = useQuery(
+    api.categories.queries.index.getCategories,
+    product?.organizationId ? { organizationId: product.organizationId } : 'skip'
+  );
 
   // State
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);

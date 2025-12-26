@@ -76,7 +76,7 @@ export default function AdminCreateProductPage() {
   const createProduct = useMutation(api.products.mutations.index.createProduct);
   const uploadFile = useUploadFile(api.files.r2);
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
-  const categories = useQuery(api.categories.queries.index.getCategories, organization?._id ? { organizationId: organization._id } : {});
+  const categories = useQuery(api.categories.queries.index.getCategories, organization?._id ? { organizationId: organization._id } : 'skip');
 
   // State
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);

@@ -680,6 +680,7 @@ export function CheckoutPage() {
       // Create unified Xendit invoice for all orders
       try {
         const invoice = await createGroupedXenditInvoice({ checkoutId });
+        router.push(`/orders/payment/success?checkoutId=${checkoutId}`);
         // Redirect to Xendit payment page
         window.location.href = invoice.invoiceUrl;
       } catch (invoiceError) {
@@ -1062,7 +1063,9 @@ export function CheckoutPage() {
                         <Link href="/privacy" className="text-[#1d43d8] hover:underline font-medium">
                           Privacy Policy
                         </Link>
-                        . Refunds may be issued as platform vouchers for convenience, subject to your statutory rights to monetary refunds where required by Philippine consumer protection laws (R.A. 7394 and R.A. 8792). Seller-initiated cancellations are processed promptly with immediate monetary refunds as required by law.{' '}
+                        . Refunds may be issued as platform vouchers for convenience, subject to your statutory rights to monetary refunds where
+                        required by Philippine consumer protection laws (R.A. 7394 and R.A. 8792). Seller-initiated cancellations are processed
+                        promptly with immediate monetary refunds as required by law.{' '}
                         <Link href="/returns" className="text-[#1d43d8] hover:underline font-medium">
                           Learn more
                         </Link>

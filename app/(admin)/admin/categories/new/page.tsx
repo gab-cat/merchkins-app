@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { useMutation, useQuery } from 'convex/react';
 import { useUploadFile } from '@convex-dev/r2/react';
 import { api } from '@/convex/_generated/api';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Id } from '@/convex/_generated/dataModel';
 import { cn } from '@/lib/utils';
@@ -93,9 +93,12 @@ function FormField({
 
 export default function AdminCreateCategoryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const orgSlug = searchParams.get('org');
   const createCategory = useMutation(api.categories.mutations.index.createCategory);
   const uploadFile = useUploadFile(api.files.r2);
-  const categoriesRoot = useQuery(api.categories.queries.index.getCategories, { level: 0 });
+  const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
+  const categoriesRoot = useQuery(api.categories.queries.index.getCategories, organization?._id ? { organizationId: organization._id, level: 0 } : { level: 0 });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageKey, setImageKey] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -151,6 +154,7 @@ export default function AdminCreateCategoryPage() {
     setIsSubmitting(true);
     try {
       await createCategory({
+        organizationId: organization?._id,
         name: values.name,
         description: values.description || undefined,
         slug: values.slug || undefined,
@@ -160,7 +164,8 @@ export default function AdminCreateCategoryPage() {
         displayOrder: values.displayOrder,
       });
       showToast({ type: 'success', title: 'Category created successfully' });
-      router.push('/admin/categories');
+      const suffix = orgSlug ? `?org=${orgSlug}` : '';
+      router.push(`/admin/categories${suffix}`);
     } catch (err) {
       showToast({ type: 'error', title: 'Failed to create category' });
     } finally {
@@ -177,10 +182,10 @@ export default function AdminCreateCategoryPage() {
         title="Create Category"
         description="Add a new product category to organize your inventory"
         icon={<FolderTree className="h-5 w-5" />}
-        breadcrumbs={[{ label: 'Admin', href: '/admin' }, { label: 'Categories', href: '/admin/categories' }, { label: 'New Category' }]}
+        breadcrumbs={[{ label: 'Admin', href: '/admin' }, { label: 'Categories', href: `/admin/categories${orgSlug ? `?org=${orgSlug}` : ''}` }, { label: 'New Category' }]}
         actions={
           <Button variant="outline" asChild>
-            <Link href="/admin/categories">
+            <Link href={`/admin/categories${orgSlug ? `?org=${orgSlug}` : ''}`}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Cancel
             </Link>

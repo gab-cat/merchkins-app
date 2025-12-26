@@ -77,7 +77,7 @@ export default function AdminCreateVoucherPage() {
   const createVoucher = useMutation(api.vouchers.mutations.index.createVoucher);
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
   const products = useQuery(api.products.queries.index.getProducts, organization?._id ? { organizationId: organization._id, limit: 100 } : { limit: 100 });
-  const categories = useQuery(api.categories.queries.index.getCategories, organization?._id ? { organizationId: organization._id } : {});
+  const categories = useQuery(api.categories.queries.index.getCategories, organization?._id ? { organizationId: organization._id } : 'skip');
 
   // State
   const [submitError, setSubmitError] = useState<string | null>(null);

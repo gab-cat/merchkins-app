@@ -140,7 +140,10 @@ export default function AdminEditCategoryPage() {
 
   // Queries
   const category = useQuery(api.categories.queries.index.getCategoryById, { categoryId });
-  const categoriesRoot = useQuery(api.categories.queries.index.getCategories, { level: 0, limit: 200, offset: 0 });
+  const categoriesRoot = useQuery(
+    api.categories.queries.index.getCategories,
+    category?.organizationId ? { organizationId: category.organizationId, level: 0, limit: 200, offset: 0 } : { level: 0, limit: 200, offset: 0 }
+  );
 
   // Mutations
   const updateCategory = useMutation(api.categories.mutations.index.updateCategory);
