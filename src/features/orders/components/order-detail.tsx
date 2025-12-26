@@ -53,6 +53,7 @@ interface OrderItemUI {
   };
   quantity: number;
   price?: number;
+  customerNote?: string;
 }
 
 function formatCurrency(amount: number | undefined) {
@@ -263,7 +264,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                   <div className="p-2 rounded-xl bg-[#1d43d8]/10">
                     <Receipt className="h-5 w-5 text-[#1d43d8]" />
                   </div>
-                  <h1 className="text-2xl font-bold font-heading tracking-tight text-slate-900">Order {orderNumber}</h1>
+                  <h1 className="text-2xl font-bold font-heading tracking-tight text-slate-900">{orderNumber}</h1>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-500 flex-wrap">
                   <span className="flex items-center gap-1.5">
@@ -295,7 +296,7 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                   {order.orderSource === 'MESSENGER' && (
                     <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
                       <MessageCircle className="h-3 w-3" />
-                      Messenger
+                      Order from Messenger
                     </span>
                   )}
                 </div>
@@ -432,27 +433,45 @@ export function OrderDetail({ orderId }: { orderId: string }) {
               <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Items ({items.length})</h2>
             </div>
             <div className="rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
-              {items.map((it, idx) => (
-                <div key={idx} className="flex items-center gap-4 p-4 bg-white hover:bg-slate-50/50 transition-colors">
-                  <ProductImage imageKey={it.productInfo.imageUrl?.[0]} />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 text-sm truncate">{it.productInfo.title}</p>
-                    {/* Variant and Size info */}
-                    {(it.productInfo.variantName || it.size) && (
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {it.productInfo.variantName && <span className="text-xs text-slate-500">{it.productInfo.variantName}</span>}
-                        {it.size && (
-                          <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{it.size.label}</span>
-                        )}
+              {items.map((it, idx) => {
+                const unitPrice = it.price ?? 0;
+                const subtotal = unitPrice * it.quantity;
+                return (
+                  <div key={idx} className="flex items-start gap-4 p-4 bg-white hover:bg-slate-50/50 transition-colors">
+                    <ProductImage imageKey={it.productInfo.imageUrl?.[0]} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-900 text-sm truncate">{it.productInfo.title}</p>
+                      {/* Variant and Size info */}
+                      {(it.productInfo.variantName || it.size) && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {it.productInfo.variantName && <span className="text-xs text-slate-500">{it.productInfo.variantName}</span>}
+                          {it.size && (
+                            <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">{it.size.label}</span>
+                          )}
+                        </div>
+                      )}
+                      {/* Pricing breakdown */}
+                      <div className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-500">
+                        <span>{formatCurrency(unitPrice)}</span>
+                        <span className="text-slate-300">×</span>
+                        <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 bg-slate-100 text-slate-600 font-medium rounded">
+                          {it.quantity}
+                        </span>
                       </div>
-                    )}
-                    <p className="text-xs text-slate-400 mt-1">Qty: {it.quantity}</p>
+                      {/* Customer note */}
+                      {it.customerNote && (
+                        <p className="text-xs text-slate-500 mt-1.5 italic bg-slate-50 px-2 py-1 rounded border-l-2 border-slate-300">
+                          {it.customerNote}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-semibold text-slate-900 text-sm">{formatCurrency(subtotal)}</p>
+                      {it.quantity > 1 && <p className="text-[10px] text-slate-400 mt-0.5">subtotal</p>}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-slate-900 text-sm">{formatCurrency(it.price)}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               {items.length === 0 && <div className="p-8 text-center text-slate-400 text-sm">No items in this order</div>}
             </div>
           </motion.div>

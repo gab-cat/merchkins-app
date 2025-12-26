@@ -344,12 +344,7 @@ export function CartPage() {
 
                   {/* Items */}
                   {group.items.map((item, itemIndex) => (
-                    <CartLineItem
-                      key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
-                      cartId={cart._id}
-                      item={item}
-                      index={itemIndex}
-                    />
+                    <CartLineItem key={item.addedAt} cartId={cart._id} item={item} addedAt={item.addedAt} index={itemIndex} />
                   ))}
                 </motion.div>
               ))}
@@ -512,7 +507,7 @@ type CartItem = {
   addedAt: number;
 };
 
-function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: CartItem; index?: number }) {
+function CartLineItem({ cartId, item, addedAt, index = 0 }: { cartId: Id<'carts'>; item: CartItem; addedAt: number; index?: number }) {
   const setSelected = useMutation(api.carts.mutations.index.setItemSelected);
   const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity);
   const setItemNote = useMutation(api.carts.mutations.index.setItemNote);
@@ -552,6 +547,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
             productId: item.productInfo.productId,
             variantId: item.variantId,
             sizeId: sizeId,
+            addedAt: addedAt,
             quantity: clampedQty,
           });
           lastServerQty.current = clampedQty;
@@ -581,6 +577,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
           productId: item.productInfo.productId,
           variantId: item.variantId,
           sizeId: sizeId,
+          addedAt: addedAt,
           quantity: 0,
         }),
         { loading: 'Removing item…', success: 'Item removed', error: () => 'Failed to remove item' }
@@ -667,6 +664,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                     productId: item.productInfo.productId,
                     variantId: item.variantId,
                     sizeId: sizeId,
+                    addedAt: addedAt,
                     selected: Boolean(checked),
                   });
                 }}
@@ -842,6 +840,7 @@ function CartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: 
                       productId: item.productInfo.productId,
                       variantId: item.variantId,
                       sizeId: sizeId,
+                      addedAt: addedAt,
                       note: e.target.value.trim() || undefined,
                     });
                     showToast({ type: 'success', title: 'Note saved' });

@@ -8,12 +8,13 @@ export const setItemSelectedArgs = {
   productId: v.id('products'),
   variantId: v.optional(v.string()),
   sizeId: v.optional(v.string()),
+  addedAt: v.number(),
   selected: v.boolean(),
 };
 
 export const setItemSelectedHandler = async (
   ctx: MutationCtx,
-  args: { cartId: Id<'carts'>; productId: Id<'products'>; variantId?: string; sizeId?: string; selected: boolean }
+  args: { cartId: Id<'carts'>; productId: Id<'products'>; variantId?: string; sizeId?: string; addedAt: number; selected: boolean }
 ) => {
   const currentUser = await requireAuthentication(ctx);
   const cart = await validateCartExists(ctx, args.cartId);
@@ -24,17 +25,8 @@ export const setItemSelectedHandler = async (
 
   const now = Date.now();
   const items = [...cart.embeddedItems];
-  const index = items.findIndex((i) => {
-    if (i.productInfo.productId !== product._id) return false;
-    if (args.variantId != null) {
-      if ((i.variantId ?? null) !== args.variantId) return false;
-      // Also match by sizeId
-      const itemSizeId = i.size?.id ?? null;
-      const argsSizeId = args.sizeId ?? null;
-      return itemSizeId === argsSizeId;
-    }
-    return (i.variantId ?? null) === null;
-  });
+  // Match item by unique addedAt timestamp
+  const index = items.findIndex((i) => i.addedAt === args.addedAt);
   if (index === -1) throw new Error('Item not found in cart');
 
   items[index] = { ...items[index], selected: args.selected, addedAt: now };

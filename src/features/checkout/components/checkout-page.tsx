@@ -331,6 +331,10 @@ function CheckoutItem({ item }: CheckoutItemProps) {
         <p className="text-xs text-slate-400 mt-1">
           {item.quantity} × {formatCurrency(item.productInfo.price)}
         </p>
+        {/* Customer note */}
+        {item.note && (
+          <p className="text-xs text-slate-500 mt-1.5 italic bg-slate-50 px-2 py-1 rounded border-l-2 border-slate-300">&ldquo;{item.note}&rdquo;</p>
+        )}
       </div>
 
       {/* Price */}
@@ -1027,7 +1031,7 @@ export function CheckoutPage() {
                     </AnimatePresence>
 
                     {/* Refund Policy Notice */}
-                    <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-100">
+                    {/* <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-100">
                       <Gift className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                       <div>
                         <span className="font-medium">Voucher-Only Refunds:</span>{' '}
@@ -1036,7 +1040,7 @@ export function CheckoutPage() {
                           View full policy
                         </Link>
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Terms agreement */}
                     <div className="flex items-start gap-3 pt-2">
@@ -1058,6 +1062,7 @@ export function CheckoutPage() {
                         <Link href="/privacy" className="text-[#1d43d8] hover:underline font-medium">
                           Privacy Policy
                         </Link>
+                        . All approved refunds are issued as platform vouchers, not cash.
                       </label>
                     </div>
 

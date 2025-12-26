@@ -28,6 +28,7 @@ import { chatRooms, chatParticipants, chatMessages, messageReactions, chatRoomSt
 import { vouchers, voucherUsages } from './models/vouchers';
 import { refundRequests } from './models/refundRequests';
 import { voucherRedemptionCosts } from './models/voucherRedemptionCosts';
+import { voucherRefundRequests } from './models/voucherRefundRequests';
 import { orderBatches } from './models/orderBatches';
 import { messengerOrderSessions, emailVerificationCodes } from './models/messengerOrders';
 import { storefrontApplications } from './models/storefrontApplications';
@@ -105,6 +106,7 @@ export default defineSchema({
   // Refund management
   refundRequests,
   voucherRedemptionCosts,
+  voucherRefundRequests,
 
   // Messenger ordering
   messengerOrderSessions,

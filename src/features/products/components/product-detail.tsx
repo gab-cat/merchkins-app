@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -26,6 +26,7 @@ import {
   TrendingUp,
   ArrowRight,
   Clock,
+  Loader2,
 } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 import { useCartSheetStore } from '@/src/stores/cart-sheet';
@@ -41,6 +42,32 @@ import { useRequireAuth } from '@/src/features/auth/hooks/use-require-auth';
 import { SignInRequiredDialog } from '@/src/features/auth/components/sign-in-required-dialog';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { BlurFade } from '@/src/components/ui/animations/effects';
+
+/**
+ * Formats a count to display friendly ranges like "10+", "50+", "100+", etc.
+ * - Under 5: show exact number
+ * - 5-9: "5+"
+ * - 10-49: "10+"
+ * - 50-99: "50+"
+ * - 100-199: "100+", 200-299: "200+", ... up to 900+
+ * - 1000+: "1000+", "2000+", ... up to "9000+"
+ * - 10000+: "9000+"
+ */
+function formatCount(count: number): string {
+  if (count < 5) return count.toString();
+  if (count < 10) return '5+';
+  if (count < 50) return '10+';
+  if (count < 100) return '50+';
+  if (count < 1000) {
+    const hundreds = Math.floor(count / 100) * 100;
+    return `${hundreds}+`;
+  }
+  if (count < 10000) {
+    const thousands = Math.floor(count / 1000) * 1000;
+    return `${thousands}+`;
+  }
+  return '9000+';
+}
 
 interface ProductDetailProps {
   slug: string;
@@ -94,6 +121,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
   const [selectedSizeId, setSelectedSizeId] = useState<string | undefined>(undefined);
   const [variantDialogOpen, setVariantDialogOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+  const [isAddingToCart, startAddingToCart] = useTransition();
 
   const selectedVariant = useMemo(() => {
     if (!product) return undefined;
@@ -133,7 +161,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
   // PREORDER products always have infinite stock, STOCK products check inventory
   const inStock = product?.inventoryType === 'PREORDER' || (selectedVariant?.inventory ?? product?.inventory ?? 0) > 0;
 
-  async function handleAddToCart() {
+  function handleAddToCart() {
     requireAuth(async () => {
       if (!product) return;
 
@@ -166,26 +194,28 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
         return;
       }
 
-      try {
-        const size =
-          selectedSizeId && selectedSize
-            ? {
-                id: selectedSize.id,
-                label: selectedSize.label,
-                price: selectedSize.price,
-              }
-            : undefined;
+      startAddingToCart(async () => {
+        try {
+          const size =
+            selectedSizeId && selectedSize
+              ? {
+                  id: selectedSize.id,
+                  label: selectedSize.label,
+                  price: selectedSize.price,
+                }
+              : undefined;
 
-        await addItem({
-          productId: product._id,
-          variantId: selectedVariantId,
-          size,
-          quantity: 1,
-        });
-        openCartSheet();
-      } catch {
-        showToast({ type: 'error', title: 'Failed to add to cart' });
-      }
+          await addItem({
+            productId: product._id,
+            variantId: selectedVariantId,
+            size,
+            quantity: 1,
+          });
+          openCartSheet();
+        } catch {
+          showToast({ type: 'error', title: 'Failed to add to cart' });
+        }
+      });
     });
   }
 
@@ -277,13 +307,13 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                       <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-50 border border-yellow-200">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         <span className="font-semibold text-yellow-700">{product.rating.toFixed(1)}</span>
-                        <span className="text-yellow-600/80">({product.reviewsCount} reviews)</span>
+                        <span className="text-yellow-600/80">({formatCount(product.reviewsCount)} reviews)</span>
                       </div>
                     )}
                     {product.totalOrders !== undefined && product.totalOrders !== null && product.totalOrders > 0 && (
                       <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10">
                         <TrendingUp className="h-4 w-4 text-primary" />
-                        <span className="font-medium text-primary">{product.totalOrders} orders</span>
+                        <span className="font-medium text-primary">{formatCount(product.totalOrders)} orders</span>
                       </div>
                     )}
                   </div>
@@ -431,15 +461,21 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                     size="lg"
                     onClick={handleAddToCart}
                     disabled={Boolean(
+                      isAddingToCart ||
                       // PREORDER products are always available, only check stock for STOCK products
                       (product.inventoryType === 'STOCK' && !inStock) ||
-                        (activeVariants.length > 0 && !selectedVariantId) ||
-                        (selectedVariantId && selectedVariant?.sizes && selectedVariant.sizes.length > 0 && !selectedSizeId)
+                      (activeVariants.length > 0 && !selectedVariantId) ||
+                      (selectedVariantId && selectedVariant?.sizes && selectedVariant.sizes.length > 0 && !selectedSizeId)
                     )}
                     aria-label="Add to cart"
                     className="group relative overflow-hidden flex-1 h-14 text-base font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    {product.inventoryType === 'PREORDER' || inStock ? (
+                    {isAddingToCart ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Adding...
+                      </>
+                    ) : product.inventoryType === 'PREORDER' || inStock ? (
                       <>
                         <ShoppingCart className="mr-2 h-5 w-5" />
                         {product.inventoryType === 'PREORDER' ? 'Preorder now' : 'Add to cart'}
@@ -524,7 +560,9 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                   <h2 className="text-lg font-bold text-slate-900 tracking-tight font-heading">Reviews</h2>
                 </div>
                 {product.reviewsCount !== undefined && product.reviewsCount > 0 && (
-                  <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full ml-1">{product.reviewsCount}</span>
+                  <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full ml-1">
+                    {formatCount(product.reviewsCount)}
+                  </span>
                 )}
               </div>
             </div>

@@ -64,7 +64,34 @@ export const vouchers = defineTable({
   sourceOrderId: v.optional(v.id('orders')),
   assignedToUserId: v.optional(v.id('users')), // Personal voucher assignment
 
+  // Tracks who initiated the refund that created this voucher
+  // 'customer' = customer requested cancellation
+  // 'seller' = seller cancelled the order
+  initiatedBy: v.optional(v.union(v.literal('customer'), v.literal('seller'))),
+
+  // For seller-initiated refunds: date when customer becomes eligible to request monetary refund (14 days after creation)
+  monetaryRefundEligibleAt: v.optional(v.number()),
+
+  // Monetary refund request status for this voucher
+  // 'not_eligible' = customer-initiated (never eligible) or not yet 14 days
+  // 'eligible' = seller-initiated and 14+ days have passed
+  // 'requested' = customer has submitted a monetary refund request
+  // 'approved' = super-admin approved, pending transfer
+  // 'transferred' = money has been transferred
+  // 'rejected' = request was rejected
+  monetaryRefundStatus: v.optional(
+    v.union(
+      v.literal('not_eligible'),
+      v.literal('eligible'),
+      v.literal('requested'),
+      v.literal('approved'),
+      v.literal('transferred'),
+      v.literal('rejected')
+    )
+  ),
+
   createdAt: v.number(),
+
   updatedAt: v.number(),
 })
   .index('by_code', ['code'])

@@ -11,12 +11,18 @@ function generateRefundVoucherCode(): string {
   return `REFUND-${randomPart}`;
 }
 
+// 14 days in milliseconds
+const MONETARY_REFUND_ELIGIBILITY_DAYS = 14;
+const MONETARY_REFUND_ELIGIBILITY_MS = MONETARY_REFUND_ELIGIBILITY_DAYS * 24 * 60 * 60 * 1000;
+
 export const createRefundVoucherArgs = {
   refundRequestId: v.id('refundRequests'),
   orderId: v.id('orders'),
   amount: v.number(),
   assignedToUserId: v.id('users'),
   createdById: v.id('users'),
+  // Who initiated the refund: 'customer' for customer-requested, 'seller' for seller-initiated cancellation
+  initiatedBy: v.union(v.literal('customer'), v.literal('seller')),
 } as const;
 
 export const createRefundVoucherHandler = async (
@@ -27,6 +33,7 @@ export const createRefundVoucherHandler = async (
     amount: number;
     assignedToUserId: Id<'users'>;
     createdById: Id<'users'>;
+    initiatedBy: 'customer' | 'seller';
   }
 ) => {
   // Get user info for creator
@@ -59,6 +66,13 @@ export const createRefundVoucherHandler = async (
   }
 
   const now = Date.now();
+
+  // Determine monetary refund eligibility based on initiator
+  // Customer-initiated: never eligible for monetary refund
+  // Seller-initiated: eligible after 14 days
+  const isSellerInitiated = args.initiatedBy === 'seller';
+  const monetaryRefundEligibleAt = isSellerInitiated ? now + MONETARY_REFUND_ELIGIBILITY_MS : undefined;
+  const monetaryRefundStatus = isSellerInitiated ? ('not_eligible' as const) : ('not_eligible' as const);
 
   // Create REFUND voucher
   // REFUND vouchers are:
@@ -95,6 +109,10 @@ export const createRefundVoucherHandler = async (
     sourceRefundRequestId: args.refundRequestId,
     sourceOrderId: args.orderId,
     assignedToUserId: args.assignedToUserId,
+    // New fields for monetary refund tracking
+    initiatedBy: args.initiatedBy,
+    monetaryRefundEligibleAt,
+    monetaryRefundStatus,
     createdAt: now,
     updatedAt: now,
   });

@@ -65,7 +65,7 @@ export function QuickActions({ orgSlug }: QuickActionsProps) {
       icon: MessageSquare,
       label: 'Chat with us',
       description: 'Get instant support',
-      href: buildOrgLink('/chats'),
+      href: 'https://chat.merchkins.com',
       color: 'text-[#1d43d8]',
       bgColor: 'bg-[#1d43d8]/10',
       hoverBg: 'group-hover:bg-[#1d43d8]',

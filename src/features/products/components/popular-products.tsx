@@ -165,6 +165,8 @@ export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProdu
                             <R2Image
                               fileKey={featuredProduct.imageUrl[0]}
                               alt={featuredProduct.title}
+                              fetchPriority="high"
+                              loading="eager"
                               fill
                               className="object-cover transition-transform duration-500 group-hover:scale-110"
                               sizes="(max-width: 1024px) 100vw, 40vw"

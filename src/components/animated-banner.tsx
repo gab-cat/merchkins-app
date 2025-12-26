@@ -101,7 +101,14 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Image src={bannerUrl} alt={`${organization.name} banner`} fill className="object-cover object-center" priority />
+          <Image
+            src={bannerUrl}
+            alt={`${organization.name} banner`}
+            fill
+            className="object-cover object-center"
+            fetchPriority="high"
+            loading="eager"
+          />
           {/* Multi-layer gradient overlay for depth */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-slate-900/30" />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-transparent to-slate-900/40" />

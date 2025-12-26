@@ -32,6 +32,7 @@ export const createProductArgs = {
   inventory: v.number(),
   inventoryType: v.union(v.literal('PREORDER'), v.literal('STOCK')),
   fulfillmentDays: v.optional(v.number()),
+  code: v.optional(v.string()),
   variants: v.array(
     v.object({
       variantName: v.string(),
@@ -68,6 +69,7 @@ export const createProductHandler = async (
     inventory: number;
     inventoryType: 'PREORDER' | 'STOCK';
     fulfillmentDays?: number;
+    code?: string;
     variants: Array<{
       variantName: string;
       price: number;
@@ -224,6 +226,7 @@ export const createProductHandler = async (
     organizationInfo,
     slug: productData.slug,
     title: productData.title,
+    code: args.code,
     isActive: true,
     description: productData.description,
     discountLabel: productData.discountLabel,

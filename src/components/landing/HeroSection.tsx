@@ -50,7 +50,7 @@ export function HeroSection() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Image src="/landing/hero-bg.png" alt="Hero Background" fill className="object-cover rounded-2xl" priority />
+          <Image src="/landing/hero-bg.png" alt="Hero Background" fill className="object-cover rounded-2xl" fetchPriority="high" loading="eager" />
           {/* Dark overlay for contrast */}
           <div className="absolute inset-0 bg-slate-950/40" />
           {/* Gradient overlay for better text readability */}

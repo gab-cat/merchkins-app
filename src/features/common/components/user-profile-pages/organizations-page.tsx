@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useAuth } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { useAuth, useClerk } from '@clerk/nextjs';
 import { useQuery } from 'convex/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
@@ -10,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { BlurFade } from '@/src/components/ui/animations/effects';
 import { RoleBadge, OrgTypeBadge } from '@/src/components/ui/role-badge';
-import { Building2, ShoppingBag, Settings, ArrowRight, Users, ExternalLink, ChevronRight, Search } from 'lucide-react';
+import { Building2, ShoppingBag, Settings, ArrowRight, Users, ExternalLink, ChevronRight, Search, Home } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -31,12 +32,20 @@ const itemVariants = {
 
 export function OrganizationsPage() {
   const { userId: clerkId } = useAuth();
+  const { closeUserProfile } = useClerk();
+  const router = useRouter();
 
   const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }));
 
   const orgs = useQuery(api.organizations.queries.index.getOrganizationsByUser, currentUser?._id ? { userId: currentUser._id } : 'skip');
 
   const loading = currentUser === undefined || orgs === undefined;
+
+  // Handler to navigate and close the user menu
+  const handleNavigation = (href: string) => {
+    closeUserProfile();
+    router.push(href);
+  };
 
   // Add error handling for when clerkId is not available
   if (!clerkId) {
@@ -206,29 +215,35 @@ export function OrganizationsPage() {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0">
                             {org.slug && (
                               <>
-                                <Link href={`/o/${org.slug}`} prefetch>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleNavigation('/')}
+                                  className="h-8 px-2 rounded-lg text-xs font-medium hover:bg-slate-100 transition-all"
+                                >
+                                  <Home className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleNavigation(`/o/${org.slug}`)}
+                                  className="h-8 px-3 rounded-lg text-xs font-medium bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-sm hover:shadow-md transition-all"
+                                >
+                                  <ShoppingBag className="h-3 w-3 mr-1.5" />
+                                  Store
+                                </Button>
+                                {elevated && (
                                   <Button
                                     size="sm"
-                                    className="h-8 px-3 rounded-lg text-xs font-medium bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-sm hover:shadow-md transition-all"
+                                    variant="outline"
+                                    onClick={() => handleNavigation(`/admin?org=${org.slug}`)}
+                                    className="h-8 px-3 rounded-lg text-xs font-medium border-slate-200 hover:border-[#1d43d8]/50 hover:bg-[#1d43d8]/5 transition-all"
                                   >
-                                    <ShoppingBag className="h-3 w-3 mr-1.5" />
-                                    Store
+                                    <Settings className="h-3 w-3 mr-1.5" />
+                                    Admin
                                   </Button>
-                                </Link>
-                                {elevated && (
-                                  <Link href={`/admin?org=${org.slug}`}>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-8 px-3 rounded-lg text-xs font-medium border-slate-200 hover:border-[#1d43d8]/50 hover:bg-[#1d43d8]/5 transition-all"
-                                    >
-                                      <Settings className="h-3 w-3 mr-1.5" />
-                                      Admin
-                                    </Button>
-                                  </Link>
                                 )}
                               </>
                             )}

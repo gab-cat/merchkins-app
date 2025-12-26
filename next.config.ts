@@ -54,6 +54,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     minimumCacheTTL: 31536000,
+    qualities: [75, 100],
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
@@ -73,8 +74,8 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    optimizePackageImports: ['lucide-react'],
-    useLightningcss: true,
+    // optimizePackageImports: ['lucide-react'],
+    // useLightningcss: true,
   },
   transpilePackages: ['@clerk/nextjs'],
 };

@@ -9,6 +9,7 @@ import {
   sanitizeString,
   requireOrganizationPermission,
 } from '../../helpers';
+import { r2 } from '../../files/r2';
 
 // Update category
 export const updateCategoryArgs = {
@@ -180,8 +181,19 @@ export const updateCategoryHandler = async (
     updateData.level = newLevel;
   }
 
-  // Update simple fields
-  if (args.imageUrl !== undefined) updateData.imageUrl = args.imageUrl;
+  // Handle imageUrl change with R2 cleanup
+  if (args.imageUrl !== undefined) {
+    // Delete old image from R2 if it exists and is being replaced/removed
+    if (existingCategory.imageUrl && args.imageUrl !== existingCategory.imageUrl) {
+      try {
+        await r2.deleteObject(ctx, existingCategory.imageUrl);
+      } catch (e) {
+        // Log but don't fail if cleanup fails (image may already be deleted)
+        console.error('Failed to delete old category image:', e);
+      }
+    }
+    updateData.imageUrl = args.imageUrl || undefined;
+  }
   if (args.iconUrl !== undefined) updateData.iconUrl = args.iconUrl;
   if (args.color !== undefined) updateData.color = args.color;
   if (args.tags !== undefined) updateData.tags = args.tags;

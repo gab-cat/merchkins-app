@@ -1076,7 +1076,17 @@ export default function AdminEditProductPage() {
                 </FormField>
 
                 <FormField label="Total Inventory" name="inventory" error={errors.inventory?.message}>
-                  <Input id="inventory" type="number" min={0} className="h-10" {...register('inventory', { valueAsNumber: true })} />
+                  <Input
+                    id="inventory"
+                    type="number"
+                    min={0}
+                    className="h-10"
+                    disabled={inventoryType === 'PREORDER'}
+                    {...register('inventory', { valueAsNumber: true })}
+                  />
+                  {inventoryType === 'PREORDER' && (
+                    <p className="text-xs text-muted-foreground mt-1">Stock tracking is disabled for pre-order items</p>
+                  )}
                 </FormField>
 
                 <FormField label="Fulfillment Days" name="fulfillmentDays" hint="Days until ready/delivered (leave empty if not applicable)">
@@ -1086,6 +1096,7 @@ export default function AdminEditProductPage() {
                     min={0}
                     placeholder="e.g. 3"
                     className="h-10"
+                    disabled={inventoryType === 'PREORDER'}
                     {...register('fulfillmentDays', { valueAsNumber: true })}
                   />
                 </FormField>

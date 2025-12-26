@@ -5,19 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import {
-  ShoppingCart,
-  Search,
-  Building2,
-  Package,
-  User as UserIcon,
-  MessageSquare,
-  Ticket,
-  ArrowRight,
-  ArrowLeft,
-  Sparkles,
-  LogIn,
-} from 'lucide-react';
+import { ShoppingCart, Search, Building2, Package, User as UserIcon, ArrowRight, ArrowLeft, Sparkles, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -121,23 +109,6 @@ export function SiteHeader() {
     return userOrganizations.some((org) => org._id === organization._id);
   }, [organization?._id, userOrganizations]);
 
-  // Unread counts - only run when authenticated AND member of organization
-  const chatsUnread = useQuery(
-    api.chats.queries.index.getUnreadCount,
-    isSignedIn && organization?._id && isMember
-      ? { organizationId: organization._id }
-      : ('skip' as unknown as { organizationId?: Id<'organizations'> })
-  );
-  const ticketsUnread = useQuery(
-    api.tickets.queries.index.getUnreadCount,
-    isSignedIn && organization?._id && isMember
-      ? { organizationId: organization._id }
-      : ('skip' as unknown as { organizationId?: Id<'organizations'>; forAssignee?: boolean })
-  );
-  const totalChatUnread = (chatsUnread as { count?: number } | undefined)?.count || 0;
-  const totalTicketUnread = (ticketsUnread as { count?: number } | undefined)?.count || 0;
-  const totalSupportUnread = totalChatUnread + totalTicketUnread;
-
   // Show home button if on storefront or using another store's theme
   const showHomeButton = useMemo(() => {
     return !!orgSlugFromPath || (!!persistedSlug && !orgSlugFromPath);
@@ -192,9 +163,6 @@ export function SiteHeader() {
           setSearch={setSearch}
           handleSearchSubmit={handleSearchSubmit}
           totalItems={totalItems}
-          totalSupportUnread={totalSupportUnread}
-          totalChatUnread={totalChatUnread}
-          totalTicketUnread={totalTicketUnread}
           mobileMenuOpen={mobileMenuOpen}
           setMobileMenuOpen={setMobileMenuOpen}
           router={router}
@@ -214,9 +182,7 @@ function SiteHeaderContent({
   setSearch,
   handleSearchSubmit,
   totalItems,
-  totalSupportUnread,
-  totalChatUnread,
-  totalTicketUnread,
+
   mobileMenuOpen,
   setMobileMenuOpen,
   router,
@@ -230,9 +196,7 @@ function SiteHeaderContent({
   setSearch: (value: string) => void;
   handleSearchSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   totalItems: number;
-  totalSupportUnread: number;
-  totalChatUnread: number;
-  totalTicketUnread: number;
+
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
   router: any;
@@ -444,81 +408,6 @@ function SiteHeaderContent({
               </motion.div>
             )}
           </SignedIn>
-          {/* Enhanced Support dropdown - hidden when compressed */}
-          {!isScrolled && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      'gap-1.5 px-2.5 h-9 relative transition-all duration-300 rounded-lg',
-                      isScrolled
-                        ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
-                        : shouldApplyTheme
-                          ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
-                          : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
-                    )}
-                  >
-                    <MessageSquare
-                      className={cn(
-                        'h-4 w-4 transition-transform duration-300 group-hover:rotate-12',
-                        isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
-                      )}
-                    />
-                    <span
-                      className={cn(
-                        'hidden sm:inline text-sm font-medium',
-                        isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
-                      )}
-                    >
-                      Support
-                    </span>
-                    {totalSupportUnread > 0 && (
-                      <motion.span
-                        className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-medium shadow-lg"
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        {totalSupportUnread}
-                      </motion.span>
-                    )}
-                  </Button>
-                </motion.div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 animate-in fade-in-0 zoom-in-95">
-                <DropdownMenuItem asChild data-testid="support-chats">
-                  <Link href={buildOrgLink('/chats')} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
-                    <MessageSquare className="h-4 w-4" />
-                    <span>Chats</span>
-                    {totalChatUnread > 0 && (
-                      <span className="ml-auto h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center animate-pulse font-medium">
-                        {totalChatUnread}
-                      </span>
-                    )}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild data-testid="support-tickets">
-                  <Link href={buildOrgLink('/tickets')} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
-                    <Ticket className="h-4 w-4" />
-                    <span>Tickets</span>
-                    {totalTicketUnread > 0 && (
-                      <span className="ml-auto h-4 w-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center animate-pulse font-medium">
-                        {totalTicketUnread}
-                      </span>
-                    )}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild data-testid="support-new-ticket">
-                  <Link href={buildOrgLink('/tickets/new')} className="flex items-center gap-2 hover:bg-accent/50 transition-colors">
-                    <Ticket className="h-4 w-4" />
-                    <span>Create ticket</span>
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
 
           <SignedIn>
             <CartSheet initialCount={totalItems}>

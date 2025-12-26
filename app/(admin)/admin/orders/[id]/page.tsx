@@ -20,7 +20,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ReceivePaymentDialog } from '@/src/features/orders/components/receive-payment-dialog';
 import { OrderLogsSection } from '@/src/features/orders/components/order-logs-section';
 import { AddOrderNoteDialog } from '@/src/features/orders/components/add-order-note-dialog';
 import { OrderStatusChangeDialog } from '@/src/features/orders/components/order-status-change-dialog';
@@ -44,21 +43,17 @@ import {
   ArrowLeft,
   Package,
   Clock,
-  CheckCircle,
   Truck,
   XCircle,
   User,
-  Mail,
+  Phone,
   Calendar,
-  CreditCard,
   Receipt,
   AlertTriangle,
   RefreshCw,
-  Banknote,
   Tag,
   Hash,
   CircleDollarSign,
-  MessageSquarePlus,
   Ticket,
 } from 'lucide-react';
 
@@ -171,30 +166,36 @@ function OrderItemCard({ item, index }: { item: OrderItem; index: number }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="flex items-center gap-4 p-4 rounded-xl border bg-card hover:shadow-sm transition-shadow"
+      className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:shadow-sm transition-shadow"
     >
       <LineItemImage imageKey={item.productInfo?.imageUrl?.[0]} />
       <div className="flex-1 min-w-0">
         <h4 className="font-medium text-sm truncate">{item.productInfo?.title || 'Unknown Product'}</h4>
         {item.productInfo?.variantName && <p className="text-xs text-muted-foreground">{item.productInfo.variantName}</p>}
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground mt-0.5">
           Qty: <span className="font-medium text-foreground">{item.quantity}</span>
+          <span className="mx-1.5 text-muted-foreground/50">•</span>
+          <span>{formatCurrency((item.price || 0) / (item.quantity || 1))} each</span>
         </p>
+        {item.customerNote && (
+          <p className="mt-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded border-l-2 border-muted-foreground/30 italic">
+            Note: {item.customerNote}
+          </p>
+        )}
       </div>
-      <div className="text-right">
+      <div className="text-right shrink-0">
         <p className="font-semibold">{formatCurrency(item.price)}</p>
-        <p className="text-xs text-muted-foreground">{formatCurrency((item.price || 0) / (item.quantity || 1))} each</p>
       </div>
     </motion.div>
   );
 }
 
-// Summary row component
+// Summary row component - compact version
 function SummaryRow({ label, value, highlight, negative }: { label: string; value: string; highlight?: boolean; negative?: boolean }) {
   return (
-    <div className={cn('flex items-center justify-between py-2', highlight && 'text-lg font-semibold')}>
-      <span className={cn(!highlight && 'text-muted-foreground')}>{label}</span>
-      <span className={cn(negative && 'text-emerald-600')}>
+    <div className={cn('flex items-center justify-between py-1', highlight && 'text-base font-semibold pt-2')}>
+      <span className={cn('text-sm', !highlight && 'text-muted-foreground')}>{label}</span>
+      <span className={cn('text-sm', negative && 'text-emerald-600', highlight && 'text-base')}>
         {negative && '-'}
         {value}
       </span>
@@ -291,11 +292,6 @@ export default function AdminOrderDetailPage() {
     setStatusChangeDialog({ open: true, type: 'status', newValue: next });
   }
 
-  function handlePaymentButtonClick(next: PaymentStatus) {
-    if (!order || updating || order.paymentStatus === next) return;
-    setStatusChangeDialog({ open: true, type: 'payment', newValue: next });
-  }
-
   function handleCancelClick() {
     if (!order || updating) return;
     // For cancellation, we'll use the status change dialog with CANCELLED
@@ -353,7 +349,7 @@ export default function AdminOrderDetailPage() {
       {/* Page Header */}
       <PageHeader
         title={order.orderNumber ? `Order #${order.orderNumber}` : 'Order Details'}
-        description={`Placed on ${new Date(order.orderDate).toLocaleDateString()}`}
+        description={`Placed on ${new Date(order.orderDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}`}
         icon={<ShoppingBag className="h-5 w-5" />}
         breadcrumbs={[{ label: 'Admin', href: '/admin' }, { label: 'Orders', href: '/admin/orders' }, { label: order.orderNumber || 'Order' }]}
         actions={
@@ -416,41 +412,6 @@ export default function AdminOrderDetailPage() {
             </Card>
           </motion.div>
 
-          {/* Payment Status Actions */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <CreditCard className="h-4 w-4" />
-                  Payment Status
-                </CardTitle>
-                <CardDescription>Update the payment status</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {(Object.entries(PAYMENT_STATUS_CONFIG) as [PaymentStatus, (typeof PAYMENT_STATUS_CONFIG)[PaymentStatus]][]).map(
-                    ([status, config]) => {
-                      const isActive = order.paymentStatus === status;
-                      return (
-                        <Button
-                          key={status}
-                          variant={isActive ? 'default' : 'outline'}
-                          size="sm"
-                          disabled={updating}
-                          onClick={() => handlePaymentButtonClick(status)}
-                          className={cn('transition-all', isActive && 'pointer-events-none')}
-                        >
-                          <Banknote className={cn('h-4 w-4 mr-1.5', !isActive && config.color)} />
-                          {config.label}
-                        </Button>
-                      );
-                    }
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
           {/* Xendit Payment Metadata */}
           {paymentsData?.payments && paymentsData.payments.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
@@ -491,51 +452,38 @@ export default function AdminOrderDetailPage() {
         <div className="space-y-6">
           {/* Order Summary */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <CircleDollarSign className="h-4 w-4" />
                   Summary
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-1">
-                <SummaryRow label="Items" value={String(order.itemCount || items.length)} />
+              <CardContent className="pt-0 space-y-0">
                 <SummaryRow
-                  label="Subtotal"
+                  label={`${order.itemCount || items.length} items`}
                   value={formatCurrency((order.totalAmount || 0) + (order.voucherDiscount || order.discountAmount || 0))}
                 />
                 {/* Voucher discount display */}
                 {order.voucherCode && (order.voucherDiscount || 0) > 0 && (
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-emerald-600 flex items-center gap-1.5 text-sm">
-                      <Ticket className="h-3.5 w-3.5" />
-                      Voucher
-                      <code className="text-xs bg-emerald-100 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded font-mono">{order.voucherCode}</code>
+                  <div className="flex items-center justify-between py-1">
+                    <span className="text-emerald-600 flex items-center gap-1 text-sm">
+                      <Ticket className="h-3 w-3" />
+                      <code className="text-xs bg-emerald-100 dark:bg-emerald-950/30 px-1 py-0.5 rounded font-mono">{order.voucherCode}</code>
                     </span>
-                    <span className="text-emerald-600">-{formatCurrency(order.voucherDiscount || 0)}</span>
+                    <span className="text-sm text-emerald-600">-{formatCurrency(order.voucherDiscount || 0)}</span>
                   </div>
                 )}
                 {/* Legacy discount (non-voucher) */}
                 {!order.voucherCode && (order.discountAmount || 0) > 0 && (
                   <SummaryRow label="Discount" value={formatCurrency(order.discountAmount || 0)} negative />
                 )}
-                <Separator className="my-3" />
+                <Separator className="my-2" />
                 <SummaryRow label="Total" value={formatCurrency(order.totalAmount || 0)} highlight />
 
-                <div className="pt-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm text-muted-foreground">Payment</span>
-                    <PaymentStatusBadge status={order.paymentStatus} />
-                  </div>
-                  <ReceivePaymentDialog
-                    orderId={order._id as Id<'orders'>}
-                    customerId={order.customerId as Id<'users'>}
-                    organizationId={order.organizationId as Id<'organizations'>}
-                    defaultAmount={Math.max(0, order.totalAmount || 0)}
-                    onCreated={() => {
-                      showToast({ type: 'success', title: 'Payment recorded' });
-                    }}
-                  />
+                <div className="flex items-center justify-between pt-2 mt-1 border-t">
+                  <span className="text-xs text-muted-foreground">Payment</span>
+                  <PaymentStatusBadge status={order.paymentStatus} />
                 </div>
               </CardContent>
             </Card>
@@ -544,44 +492,58 @@ export default function AdminOrderDetailPage() {
           {/* Customer Information */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <User className="h-4 w-4" />
-                  Customer
+                  Customer Details
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3 mb-4">
-                  <Avatar className="h-10 w-10">
+              <CardContent className="pt-0">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-11 w-11 border">
+                    {order.customerInfo?.imageUrl ? <AvatarImage src={order.customerInfo.imageUrl} alt="Customer" /> : null}
                     <AvatarFallback className="bg-primary/10 text-primary text-sm">{customerInitials}</AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-medium text-sm">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">
                       {order.customerInfo?.firstName} {order.customerInfo?.lastName}
                     </p>
-                    <p className="text-xs text-muted-foreground">{order.customerInfo?.email}</p>
+                    <p className="text-xs text-muted-foreground truncate">{order.customerInfo?.email}</p>
+                    {order.customerInfo?.phone && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Phone className="h-3 w-3" />
+                        {order.customerInfo.phone}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <Separator className="my-3" />
 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-1 text-sm">
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Order Date</span>
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span className="text-xs">Order Date</span>
                   </div>
-                  <p className="font-medium pl-6">{new Date(order.orderDate).toLocaleString()}</p>
+                  <p className="font-medium text-sm pl-5">
+                    {new Date(order.orderDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                    <span className="text-muted-foreground font-normal ml-1.5">
+                      {new Date(order.orderDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                    </span>
+                  </p>
                 </div>
 
                 {order.customerNotes && (
                   <>
                     <Separator className="my-3" />
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-1">
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <Tag className="h-4 w-4" />
-                        <span>Notes</span>
+                        <Tag className="h-3.5 w-3.5" />
+                        <span className="text-xs">Customer Note</span>
                       </div>
-                      <p className="text-muted-foreground pl-6 text-xs">{order.customerNotes}</p>
+                      <p className="text-sm text-muted-foreground pl-5 bg-muted/50 p-2 rounded border-l-2 border-muted-foreground/30 italic">
+                        {order.customerNotes}
+                      </p>
                     </div>
                   </>
                 )}

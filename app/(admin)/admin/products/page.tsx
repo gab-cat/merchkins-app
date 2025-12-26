@@ -56,14 +56,7 @@ function ProductCard({ product, orgSlug, index }: ProductCardProps) {
     >
       {/* Image */}
       <div className="relative aspect-square bg-muted">
-        <R2Image
-          fileKey={product.imageUrl?.[0]}
-          alt={product.title}
-          width={300}
-          height={300}
-          className="w-full h-full object-cover"
-          fallbackClassName="w-full h-full"
-        />
+        <R2Image fileKey={product.imageUrl?.[0]} alt={product.title} fill className="w-full h-full object-cover" fallbackClassName="w-full h-full" />
         {/* Quick actions overlay */}
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           <Link href={`/admin/products/${product._id}${suffix}`}>
@@ -140,14 +133,7 @@ function ProductListItem({ product, orgSlug, index }: ProductListItemProps) {
     >
       {/* Image */}
       <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-muted shrink-0">
-        <R2Image
-          fileKey={product.imageUrl?.[0]}
-          alt={product.title}
-          width={56}
-          height={56}
-          className="h-full w-full object-cover"
-          fallbackClassName="h-full w-full"
-        />
+        <R2Image fileKey={product.imageUrl?.[0]} alt={product.title} fill className="h-full w-full object-cover" fallbackClassName="h-full w-full" />
       </div>
 
       {/* Info */}
@@ -270,7 +256,10 @@ export default function AdminProductsPage() {
         title="Products"
         description="Manage your product catalog, pricing, and inventory"
         icon={<Package className="h-5 w-5" />}
-        breadcrumbs={[{ label: 'Admin', href: `/admin/overview${suffix}` }, { label: 'Products', href: `/admin/products${suffix}` }]}
+        breadcrumbs={[
+          { label: 'Admin', href: `/admin/overview${suffix}` },
+          { label: 'Products', href: `/admin/products${suffix}` },
+        ]}
         actions={
           <Link href={`/admin/products/new${suffix}`}>
             <Button>

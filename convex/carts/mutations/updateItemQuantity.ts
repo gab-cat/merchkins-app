@@ -11,6 +11,7 @@ export const updateItemQuantityArgs = {
   productId: v.id('products'),
   variantId: v.optional(v.string()),
   sizeId: v.optional(v.string()),
+  addedAt: v.number(),
   quantity: v.number(),
 };
 
@@ -21,6 +22,7 @@ export const updateItemQuantityHandler = async (
     productId: Id<'products'>;
     variantId?: string;
     sizeId?: string;
+    addedAt: number;
     quantity: number;
   }
 ): Promise<Id<'carts'>> => {
@@ -62,18 +64,8 @@ export const updateItemQuantityHandler = async (
 
   const now = Date.now();
   const items = [...cart.embeddedItems];
-  // Match item: prefer variantId when provided; otherwise match only items without variantId by variantName
-  const index = items.findIndex((i) => {
-    if (i.productInfo.productId !== product._id) return false;
-    if (args.variantId != null) {
-      if ((i.variantId ?? null) !== args.variantId) return false;
-      // Also match by sizeId if provided
-      const itemSizeId = i.size?.id ?? null;
-      const argsSizeId = args.sizeId ?? null;
-      return itemSizeId === argsSizeId;
-    }
-    return (i.variantId ?? null) === null;
-  });
+  // Match item by unique addedAt timestamp
+  const index = items.findIndex((i) => i.addedAt === args.addedAt);
   if (index === -1) {
     throw new Error('Item not found in cart');
   }
@@ -85,6 +77,7 @@ export const updateItemQuantityHandler = async (
       productId: args.productId,
       variantId: args.variantId,
       sizeId: args.sizeId,
+      addedAt: args.addedAt,
     });
   }
 

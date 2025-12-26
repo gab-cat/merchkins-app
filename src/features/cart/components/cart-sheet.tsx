@@ -15,9 +15,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useCartSheetStore } from '@/src/stores/cart-sheet';
-import { ShoppingCart, Trash2, Plus, Minus, CreditCard, Sparkles, ArrowRight, Package, Store } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, CreditCard, Sparkles, ArrowRight, Package, Store, Loader2 } from 'lucide-react';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { showToast, promiseToast } from '@/lib/toast';
+import { BlurFade } from '@/src/components/ui/animations/effects';
 
 type CartItem = {
   variantId?: string;
@@ -50,6 +51,7 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
   const closeSheet = useCartSheetStore((s) => s.close);
   const cart = useQuery(api.carts.queries.index.getCartByUser, {});
   const clearCart = useMutation(api.carts.mutations.index.clearCart);
+  const [isClearing, setIsClearing] = useState(false);
 
   const totals = useMemo(() => {
     return {
@@ -76,7 +78,8 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
   }, [cart]);
 
   async function handleClear() {
-    if (!cart) return;
+    if (!cart || isClearing) return;
+    setIsClearing(true);
     try {
       await promiseToast(clearCart({ cartId: cart._id }), {
         loading: 'Clearing cart…',
@@ -85,6 +88,8 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
       });
     } catch {
       // no-op
+    } finally {
+      setIsClearing(false);
     }
   }
 
@@ -157,8 +162,8 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
             </SheetClose>
           </div>
         ) : (
-          <div className="flex h-full min-h-[60vh] flex-col">
-            <ScrollArea className="flex-1 px-4 py-4">
+          <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+            <ScrollArea className="flex-1 min-h-0 px-4 py-4 overflow-">
               <AnimatePresence>
                 <div className="space-y-4">
                   {Object.entries(groupedByOrg).map(([orgId, group], groupIndex) => (
@@ -174,12 +179,7 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
                         <span className="text-xs font-bold uppercase tracking-wider text-primary">{group.name}</span>
                       </div>
                       {group.items.map((item, itemIndex) => (
-                        <MiniCartLineItem
-                          key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
-                          cartId={cart._id}
-                          item={item as CartItem}
-                          index={itemIndex}
-                        />
+                        <MiniCartLineItem key={item.addedAt} cartId={cart._id} item={item as CartItem} addedAt={item.addedAt} index={itemIndex} />
                       ))}
                     </motion.div>
                   ))}
@@ -188,7 +188,7 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
             </ScrollArea>
 
             {/* Summary section */}
-            <div className="px-5 py-4 border-t bg-gradient-to-b from-muted/30 to-muted/50">
+            <div className="shrink-0 px-5 py-4 border-t bg-linear-to-b from-muted/30 to-muted/50">
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span>Subtotal ({totals.totalItems} items)</span>
@@ -206,15 +206,17 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
               </div>
             </div>
 
-            <SheetFooter className="gap-3 p-5 border-t bg-white">
+            <SheetFooter className="shrink-0 gap-3 p-5 border-t bg-white">
               <div className="flex w-full items-center gap-3">
                 <Button
                   variant="ghost"
                   size="sm"
                   className="shrink-0 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
                   onClick={handleClear}
+                  disabled={isClearing}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" /> Clear
+                  {isClearing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                  {isClearing ? 'Clearing...' : 'Clear'}
                 </Button>
                 <div className="ml-auto">
                   <SheetClose asChild>
@@ -229,7 +231,7 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
                         Checkout
                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                         {/* Shimmer effect */}
-                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-white/20 to-transparent" />
                       </Button>
                     </Link>
                   </SheetClose>
@@ -243,7 +245,7 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
   );
 }
 
-function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; item: CartItem; index?: number }) {
+function MiniCartLineItem({ cartId, item, addedAt, index = 0 }: { cartId: Id<'carts'>; item: CartItem; addedAt: number; index?: number }) {
   const setSelected = useMutation(api.carts.mutations.index.setItemSelected);
   const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity);
   const setItemNote = useMutation(api.carts.mutations.index.setItemNote);
@@ -253,6 +255,10 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
   // Optimistic quantity state
   const [optimisticQty, setOptimisticQty] = useState(item.quantity);
   const [isEditing, setIsEditing] = useState(false);
+  const [isUpdatingQty, setIsUpdatingQty] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [isUpdatingVariant, setIsUpdatingVariant] = useState(false);
+  const [isUpdatingSize, setIsUpdatingSize] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const lastServerQty = useRef(item.quantity);
 
@@ -273,6 +279,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
 
       // Optimistic update
       setOptimisticQty(clampedQty);
+      setIsUpdatingQty(true);
 
       // Debounce the actual mutation
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -283,6 +290,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
             productId: item.productInfo.productId,
             variantId: item.variantId,
             sizeId: sizeId,
+            addedAt: addedAt,
             quantity: clampedQty,
           });
           lastServerQty.current = clampedQty;
@@ -290,10 +298,12 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
           // Rollback on failure
           setOptimisticQty(previousQty);
           showToast({ type: 'error', title: 'Failed to update quantity' });
+        } finally {
+          setIsUpdatingQty(false);
         }
       }, 300);
     },
-    [cartId, item.productInfo.productId, item.productInfo.inventory, item.variantId, sizeId, updateQty]
+    [cartId, item.productInfo.productId, item.productInfo.inventory, item.variantId, sizeId, updateQty, addedAt]
   );
 
   async function handleDec() {
@@ -305,6 +315,8 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
   }
 
   async function handleRemove() {
+    if (isRemoving) return;
+    setIsRemoving(true);
     try {
       await promiseToast(
         updateQty({
@@ -312,12 +324,15 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
           productId: item.productInfo.productId,
           variantId: item.variantId,
           sizeId: sizeId,
+          addedAt: addedAt,
           quantity: 0,
         }),
         { loading: 'Removing item…', success: 'Item removed', error: () => 'Failed to remove item' }
       );
     } catch {
       // no-op
+    } finally {
+      setIsRemoving(false);
     }
   }
 
@@ -328,6 +343,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
         productId: item.productInfo.productId,
         variantId: item.variantId,
         sizeId: sizeId,
+        addedAt: addedAt,
         note: note.trim() || undefined,
       });
       showToast({ type: 'success', title: 'Note saved' });
@@ -338,6 +354,8 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
 
   async function handleVariantChange(newVariantId?: string) {
     if ((newVariantId ?? null) === (item.variantId ?? null)) return;
+    if (isUpdatingVariant) return;
+    setIsUpdatingVariant(true);
     try {
       await promiseToast(
         updateItemVariant({
@@ -352,6 +370,8 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
       );
     } catch {
       // no-op
+    } finally {
+      setIsUpdatingVariant(false);
     }
   }
 
@@ -360,6 +380,8 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
     const currentSizeId = item.size?.id ?? null;
     const newSizeId = newSize?.id ?? null;
     if (currentSizeId === newSizeId) return;
+    if (isUpdatingSize) return;
+    setIsUpdatingSize(true);
 
     try {
       await promiseToast(
@@ -375,6 +397,8 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
       );
     } catch {
       // no-op
+    } finally {
+      setIsUpdatingSize(false);
     }
   }
 
@@ -394,13 +418,15 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.3 }}
+    <BlurFade
+      delay={index * 0.05}
+      duration={0.3}
+      yOffset={0}
+      blurAmount={6}
+      once={false}
       className={cn(
         'rounded-2xl border-2 p-4 transition-all duration-300',
-        item.selected ? 'border-primary/30 bg-primary/[0.03] shadow-md' : 'border-transparent bg-muted/30 hover:bg-muted/50'
+        item.selected ? 'border-primary/30 bg-primary/3 shadow-md' : 'border-transparent bg-muted/30 hover:bg-muted/50'
       )}
     >
       <div className="flex items-start gap-3">
@@ -413,6 +439,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
                 productId: item.productInfo.productId,
                 variantId: item.variantId,
                 sizeId: sizeId,
+                addedAt: addedAt,
                 selected: Boolean(checked),
               });
             }}
@@ -425,7 +452,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
           {item.productInfo.imageUrl?.[0] ? (
             <R2Image fileKey={item.productInfo.imageUrl[0]} alt={item.productInfo.title} fill sizes="64px" className="object-cover" />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-secondary to-secondary/60 rounded-xl flex items-center justify-center">
+            <div className="h-full w-full bg-linear-to-br from-secondary to-secondary/60 rounded-xl flex items-center justify-center">
               <Package className="h-6 w-6 text-muted-foreground/50" />
             </div>
           )}
@@ -447,14 +474,16 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
                         size="sm"
                         className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white rounded-full"
                         aria-label="Select variant"
+                        disabled={isUpdatingVariant}
                       >
+                        {isUpdatingVariant ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
                         <span className="truncate">{item.productInfo.variantName ?? 'Select variant'}</span>
                         <span aria-hidden className="ml-1">
                           ▾
                         </span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="min-w-[10rem] rounded-xl shadow-xl border-0">
+                    <DropdownMenuContent align="start" className="min-w-40 rounded-xl shadow-xl border-0">
                       <DropdownMenuRadioGroup value={item.variantId ?? ''} onValueChange={(val) => handleVariantChange(val || undefined)}>
                         {product.variants
                           .filter((v) => v.isActive)
@@ -486,14 +515,16 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
                             size="sm"
                             className="h-7 text-xs justify-between border-muted hover:border-primary/30 bg-white rounded-full"
                             aria-label="Select size"
+                            disabled={isUpdatingSize}
                           >
+                            {isUpdatingSize ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
                             <span className="truncate">Size: {item.size?.label ?? 'Select'}</span>
                             <span aria-hidden className="ml-1">
                               ▾
                             </span>
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="min-w-[10rem] rounded-xl shadow-xl border-0">
+                        <DropdownMenuContent align="start" className="min-w-40 rounded-xl shadow-xl border-0">
                           <DropdownMenuRadioGroup
                             value={item.size?.id ?? ''}
                             onValueChange={(val) => {
@@ -536,20 +567,27 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
                 data-testid="cart-item-qty-decrease"
                 aria-label="Decrease quantity"
                 className="h-7 w-7 p-0 rounded-full hover:bg-primary/10"
+                disabled={isUpdatingQty || optimisticQty <= 1}
               >
                 <Minus className="h-3.5 w-3.5" />
               </Button>
-              <input
-                type="number"
-                min={1}
-                max={item.productInfo.inventory || 9999}
-                value={optimisticQty}
-                onChange={handleQuantityInputChange}
-                onFocus={() => setIsEditing(true)}
-                onBlur={handleQuantityBlur}
-                className="min-w-10 w-12 text-center text-sm font-semibold border-none bg-transparent focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                aria-label="Quantity"
-              />
+              <div className="relative min-w-10 w-12 flex items-center justify-center">
+                {isUpdatingQty && <Loader2 className="h-3.5 w-3.5 animate-spin absolute text-primary" />}
+                <input
+                  type="number"
+                  min={1}
+                  max={item.productInfo.inventory || 9999}
+                  value={optimisticQty}
+                  onChange={handleQuantityInputChange}
+                  onFocus={() => setIsEditing(true)}
+                  onBlur={handleQuantityBlur}
+                  className={cn(
+                    'w-full text-center text-sm font-semibold border-none bg-transparent focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
+                    isUpdatingQty && 'opacity-0'
+                  )}
+                  aria-label="Quantity"
+                />
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
@@ -557,6 +595,7 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
                 data-testid="cart-item-qty-increase"
                 aria-label="Increase quantity"
                 className="h-7 w-7 p-0 rounded-full hover:bg-primary/10"
+                disabled={isUpdatingQty}
               >
                 <Plus className="h-3.5 w-3.5" />
               </Button>
@@ -568,8 +607,10 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
               onClick={handleRemove}
               data-testid="cart-item-remove"
               className="h-7 px-2.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+              disabled={isRemoving}
             >
-              <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
+              {isRemoving ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Trash2 className="h-3.5 w-3.5 mr-1" />}
+              {isRemoving ? 'Removing...' : 'Remove'}
             </Button>
           </div>
 
@@ -590,6 +631,6 @@ function MiniCartLineItem({ cartId, item, index = 0 }: { cartId: Id<'carts'>; it
           </div>
         </div>
       </div>
-    </motion.div>
+    </BlurFade>
   );
 }

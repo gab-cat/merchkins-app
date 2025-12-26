@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useMutation, useQuery } from 'convex/react';
+import { useUploadFile } from '@convex-dev/r2/react';
 import { api } from '@/convex/_generated/api';
 import { Doc, Id } from '@/convex/_generated/dataModel';
 import { cn } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
+import { compressToWebP } from '@/lib/compress';
+import { R2Image } from '@/src/components/ui/r2-image';
 
 // Admin components
 import { PageHeader } from '@/src/components/admin/page-header';
@@ -57,6 +60,9 @@ import {
   Check,
   Calendar,
   Clock,
+  ImagePlus,
+  Upload,
+  Loader2,
 } from 'lucide-react';
 
 type Category = Doc<'categories'>;
@@ -140,6 +146,7 @@ export default function AdminEditCategoryPage() {
   const updateCategory = useMutation(api.categories.mutations.index.updateCategory);
   const deleteCategory = useMutation(api.categories.mutations.index.deleteCategory);
   const restoreCategory = useMutation(api.categories.mutations.index.restoreCategory);
+  const uploadFile = useUploadFile(api.files.r2);
 
   // Local state for form fields
   const [name, setName] = useState('');
@@ -149,6 +156,8 @@ export default function AdminEditCategoryPage() {
   const [isActive, setIsActive] = useState(true);
   const [isFeatured, setIsFeatured] = useState(false);
   const [displayOrder, setDisplayOrder] = useState(0);
+  const [imageKey, setImageKey] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -162,6 +171,7 @@ export default function AdminEditCategoryPage() {
       setIsActive(category.isActive);
       setIsFeatured(category.isFeatured || false);
       setDisplayOrder(category.displayOrder || 0);
+      setImageKey(category.imageUrl || null);
     }
   }, [category]);
 
@@ -175,10 +185,11 @@ export default function AdminEditCategoryPage() {
         parentCategoryId !== (category.parentCategoryId || '') ||
         isActive !== category.isActive ||
         isFeatured !== (category.isFeatured || false) ||
-        displayOrder !== (category.displayOrder || 0);
+        displayOrder !== (category.displayOrder || 0) ||
+        imageKey !== (category.imageUrl || null);
       setHasChanges(changed);
     }
-  }, [category, name, description, slug, parentCategoryId, isActive, isFeatured, displayOrder]);
+  }, [category, name, description, slug, parentCategoryId, isActive, isFeatured, displayOrder, imageKey]);
 
   const loading = category === undefined;
 
@@ -187,6 +198,32 @@ export default function AdminEditCategoryPage() {
     const list = categoriesRoot?.categories || [];
     return list.filter((c: Category) => c._id !== categoryId);
   }, [categoriesRoot, categoryId]);
+
+  // Image upload handler
+  const handleImageUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setIsUploading(true);
+      try {
+        const compressed = await compressToWebP(file);
+        const key = await uploadFile(compressed);
+        setImageKey(key);
+      } catch (err) {
+        showToast({ type: 'error', title: 'Failed to upload image' });
+      } finally {
+        setIsUploading(false);
+      }
+      e.target.value = '';
+    },
+    [uploadFile]
+  );
+
+  // Remove image handler
+  const handleRemoveImage = useCallback(() => {
+    setImageKey(null);
+  }, []);
 
   // Save all changes
   async function handleSave() {
@@ -199,6 +236,7 @@ export default function AdminEditCategoryPage() {
         description: description || undefined,
         slug,
         parentCategoryId: parentCategoryId ? (parentCategoryId as Id<'categories'>) : undefined,
+        imageUrl: imageKey || '',
         isActive,
         isFeatured,
         displayOrder,
@@ -327,6 +365,49 @@ export default function AdminEditCategoryPage() {
             </Card>
           </motion.div>
 
+          {/* Category Image */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <ImagePlus className="h-4 w-4" />
+                  Category Image
+                </CardTitle>
+                <CardDescription>Optional image to represent this category</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {imageKey ? (
+                  <div className="relative group aspect-video max-w-xs rounded-lg overflow-hidden border">
+                    <R2Image fileKey={imageKey} alt="Category image" fill className="object-cover" />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Button type="button" variant="destructive" size="sm" onClick={handleRemoveImage}>
+                        <Trash2 className="h-4 w-4 mr-1.5" />
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <label
+                    className={cn(
+                      'aspect-video max-w-xs rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all',
+                      isUploading ? 'opacity-50 pointer-events-none' : 'hover:border-muted-foreground/50 hover:bg-muted/50'
+                    )}
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                        <span className="text-sm text-muted-foreground">Click or drop to upload</span>
+                      </>
+                    )}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                  </label>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {/* Hierarchy & Display */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Card>
@@ -339,12 +420,12 @@ export default function AdminEditCategoryPage() {
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField label="Parent Category">
-                    <Select value={parentCategoryId} onValueChange={setParentCategoryId}>
+                    <Select value={parentCategoryId || '__none__'} onValueChange={(value) => setParentCategoryId(value === '__none__' ? '' : value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="None (Root category)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">None (Root category)</SelectItem>
+                        <SelectItem value="__none__">None (Root category)</SelectItem>
                         {siblings.map((c: Category) => (
                           <SelectItem key={c._id} value={c._id}>
                             {c.name}

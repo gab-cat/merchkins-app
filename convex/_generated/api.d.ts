@@ -185,6 +185,7 @@ import type * as models_surveys from "../models/surveys.js";
 import type * as models_tickets from "../models/tickets.js";
 import type * as models_users from "../models/users.js";
 import type * as models_voucherRedemptionCosts from "../models/voucherRedemptionCosts.js";
+import type * as models_voucherRefundRequests from "../models/voucherRefundRequests.js";
 import type * as models_vouchers from "../models/vouchers.js";
 import type * as orderBatches_index from "../orderBatches/index.js";
 import type * as orderBatches_mutations_assignOrdersToBatch from "../orderBatches/mutations/assignOrdersToBatch.js";
@@ -623,6 +624,7 @@ declare const fullApi: ApiFromModules<{
   "models/tickets": typeof models_tickets;
   "models/users": typeof models_users;
   "models/voucherRedemptionCosts": typeof models_voucherRedemptionCosts;
+  "models/voucherRefundRequests": typeof models_voucherRefundRequests;
   "models/vouchers": typeof models_vouchers;
   "orderBatches/index": typeof orderBatches_index;
   "orderBatches/mutations/assignOrdersToBatch": typeof orderBatches_mutations_assignOrdersToBatch;

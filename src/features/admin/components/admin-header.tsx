@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
-import { Menu, Bell, Search } from 'lucide-react';
+import { Menu, Search, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -109,9 +109,16 @@ export function AdminHeader() {
         </div>
 
         <div className="ml-auto flex items-center gap-2" suppressHydrationWarning>
-          <Button variant="ghost" size="icon" aria-label="Notifications" className="h-9 w-9 rounded-lg hover:bg-muted transition-colors">
-            <Bell className="h-4 w-4" />
-          </Button>
+          <Link href="/">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 px-3 gap-1.5 text-sm font-medium rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Home</span>
+            </Button>
+          </Link>
           <SignedOut>
             <Link href="/sign-in">
               <Button variant="ghost" size="sm" className="h-9 px-4 text-sm font-medium rounded-lg hover:bg-muted transition-colors">

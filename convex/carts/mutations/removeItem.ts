@@ -9,6 +9,7 @@ export const removeItemArgs = {
   productId: v.id('products'),
   variantId: v.optional(v.string()),
   sizeId: v.optional(v.string()),
+  addedAt: v.number(),
 };
 
 export const removeItemHandler = async (
@@ -18,6 +19,7 @@ export const removeItemHandler = async (
     productId: Id<'products'>;
     variantId?: string;
     sizeId?: string;
+    addedAt: number;
   }
 ) => {
   const currentUser = await requireAuthentication(ctx);
@@ -40,25 +42,13 @@ export const removeItemHandler = async (
   const now = Date.now();
   const beforeLength = cart.embeddedItems.length;
   let removedQuantity = 0;
+  // Match item by unique addedAt timestamp
   const items = cart.embeddedItems.filter((i) => {
-    const sameProduct = i.productInfo.productId === args.productId;
-    let match = false;
-    if (sameProduct) {
-      if (args.variantId != null) {
-        if ((i.variantId ?? null) === args.variantId) {
-          // Also match by sizeId
-          const itemSizeId = i.size?.id ?? null;
-          const argsSizeId = args.sizeId ?? null;
-          match = itemSizeId === argsSizeId;
-        }
-      } else {
-        match = (i.variantId ?? null) === null;
-      }
+    if (i.addedAt === args.addedAt) {
+      removedQuantity = i.quantity;
+      return false; // Remove this item
     }
-    if (match) {
-      removedQuantity += i.quantity;
-    }
-    return !match;
+    return true;
   });
   if (items.length === beforeLength) {
     throw new Error('Item not found in cart');

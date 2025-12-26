@@ -35,6 +35,7 @@ const productSchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters'),
   description: z.string().optional(),
   categoryId: z.string().optional(),
+  code: z.string().optional(),
   tags: z.string().optional(),
   inventory: z.coerce.number().min(0, 'Inventory must be 0 or more'),
   inventoryType: z.enum(['PREORDER', 'STOCK']),
@@ -97,6 +98,7 @@ export default function AdminCreateProductPage() {
       title: '',
       description: '',
       categoryId: '',
+      code: '',
       tags: '',
       inventory: 0,
       inventoryType: 'STOCK',
@@ -200,9 +202,10 @@ export default function AdminCreateProductPage() {
         imageUrl: uploadedImages.map((img) => img.key),
         tags: tags,
         isBestPrice: values.isBestPrice,
-        inventory: values.inventory,
+        code: values.code || undefined,
+        inventory: values.inventoryType === 'PREORDER' ? 0 : values.inventory,
         inventoryType: values.inventoryType,
-        fulfillmentDays: values.fulfillmentDays,
+        fulfillmentDays: values.inventoryType === 'PREORDER' ? undefined : values.fulfillmentDays,
         variants: validVariants.map((v) => ({
           variantName: v.name,
           price: v.price,
@@ -310,6 +313,10 @@ export default function AdminCreateProductPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </FormField>
+
+                <FormField label="Product Code" name="code" hint="Unique code for quick lookup (e.g., via Messenger bot)">
+                  <Input id="code" placeholder="e.g., MERCH001" className="h-10 uppercase" {...register('code')} />
                 </FormField>
               </div>
             </FormCard>
@@ -434,7 +441,17 @@ export default function AdminCreateProductPage() {
                 </FormField>
 
                 <FormField label="Total Inventory" name="inventory" error={errors.inventory?.message}>
-                  <Input id="inventory" type="number" min={0} className="h-10" {...register('inventory', { valueAsNumber: true })} />
+                  <Input
+                    id="inventory"
+                    type="number"
+                    min={0}
+                    className="h-10"
+                    disabled={inventoryType === 'PREORDER'}
+                    {...register('inventory', { valueAsNumber: true })}
+                  />
+                  {inventoryType === 'PREORDER' && (
+                    <p className="text-xs text-muted-foreground mt-1">Stock tracking is disabled for pre-order items</p>
+                  )}
                 </FormField>
 
                 <FormField label="Fulfillment Days" name="fulfillmentDays" hint="Days until ready/delivered (leave empty if not applicable)">
@@ -444,6 +461,7 @@ export default function AdminCreateProductPage() {
                     min={0}
                     placeholder="e.g. 3"
                     className="h-10"
+                    disabled={inventoryType === 'PREORDER'}
                     {...register('fulfillmentDays', { valueAsNumber: true })}
                   />
                 </FormField>

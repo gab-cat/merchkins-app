@@ -17,15 +17,12 @@ import {
   Plus,
   Edit,
   LucideIcon,
+  ListOrdered,
+  Receipt,
+  DollarSign,
+  BookOpen,
 } from 'lucide-react';
-import {
-  CommandDialog,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from '@/components/ui/command';
+import { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from '@/components/ui/command';
 
 interface SearchItem {
   id: string;
@@ -96,6 +93,42 @@ export function AdminCommandPalette({ open, onOpenChange, orgSlug }: AdminComman
         category: 'Dashboard',
         description: 'View payment information',
       },
+      {
+        id: 'batches',
+        label: 'Batches',
+        keywords: ['batches', 'batch', 'bulk', 'group orders'],
+        href: `/admin/batches${suffix}`,
+        icon: ListOrdered,
+        category: 'Dashboard',
+        description: 'Manage order batches',
+      },
+      {
+        id: 'refunds',
+        label: 'Refunds',
+        keywords: ['refunds', 'refund', 'returns', 'money back'],
+        href: `/admin/refunds${suffix}`,
+        icon: Receipt,
+        category: 'Dashboard',
+        description: 'Manage refund requests',
+      },
+      {
+        id: 'payouts',
+        label: 'Payouts',
+        keywords: ['payouts', 'payout', 'withdrawals', 'earnings'],
+        href: `/admin/payouts${suffix}`,
+        icon: DollarSign,
+        category: 'Dashboard',
+        description: 'Manage payout requests',
+      },
+      {
+        id: 'vouchers',
+        label: 'Vouchers',
+        keywords: ['vouchers', 'voucher', 'coupons', 'discounts', 'promo codes'],
+        href: `/admin/vouchers${suffix}`,
+        icon: Ticket,
+        category: 'Dashboard',
+        description: 'Manage vouchers and discounts',
+      },
       // Dashboard Actions
       {
         id: 'add-product',
@@ -147,10 +180,10 @@ export function AdminCommandPalette({ open, onOpenChange, orgSlug }: AdminComman
         id: 'chats',
         label: 'Chats',
         keywords: ['chats', 'chat', 'messages', 'conversations'],
-        href: `/admin/chats${suffix}`,
+        href: 'https://chat.merchkins.com',
         icon: MessageSquare,
         category: 'Communication',
-        description: 'View chat conversations',
+        description: 'Open Chatwoot chat dashboard',
       },
       // Insights
       {
@@ -161,6 +194,15 @@ export function AdminCommandPalette({ open, onOpenChange, orgSlug }: AdminComman
         icon: BarChart3,
         category: 'Insights',
         description: 'View analytics and reports',
+      },
+      {
+        id: 'knowledge-base',
+        label: 'Knowledge Base',
+        keywords: ['knowledge base', 'kb', 'docs', 'documentation', 'help articles', 'faq'],
+        href: `/admin/knowledge-base${suffix}`,
+        icon: BookOpen,
+        category: 'Insights',
+        description: 'Manage knowledge base articles',
       },
       {
         id: 'view-analytics',
@@ -230,7 +272,7 @@ export function AdminCommandPalette({ open, onOpenChange, orgSlug }: AdminComman
       const searchValue = `${item.label} ${item.keywords.join(' ')} ${item.description || ''}`;
       return searchValue === value;
     });
-    
+
     if (item) {
       router.push(item.href);
       onOpenChange(false);
@@ -253,12 +295,7 @@ export function AdminCommandPalette({ open, onOpenChange, orgSlug }: AdminComman
                 // Create searchable value that includes label, keywords, and description for better matching
                 const searchValue = `${item.label} ${item.keywords.join(' ')} ${item.description || ''}`;
                 return (
-                  <CommandItem
-                    key={item.id}
-                    value={searchValue}
-                    onSelect={handleSelect}
-                    className="cursor-pointer"
-                  >
+                  <CommandItem key={item.id} value={searchValue} onSelect={handleSelect} className="cursor-pointer">
                     <Icon className="h-4 w-4" />
                     <div className="flex flex-col">
                       <span className="font-medium">{item.label}</span>
@@ -274,4 +311,3 @@ export function AdminCommandPalette({ open, onOpenChange, orgSlug }: AdminComman
     </CommandDialog>
   );
 }
-

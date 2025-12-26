@@ -2,6 +2,7 @@ import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 import { requireAuthentication, logAction, requireOrganizationPermission } from '../../helpers';
+import { r2 } from '../../files/r2';
 
 // Delete category (soft delete)
 export const deleteCategoryArgs = {
@@ -57,6 +58,14 @@ export const deleteCategoryHandler = async (
 
   if (args.force && currentUser.isAdmin) {
     // Hard delete - completely remove from database
+    // Delete category image from R2 if it exists
+    if (existingCategory.imageUrl) {
+      try {
+        await r2.deleteObject(ctx, existingCategory.imageUrl);
+      } catch (e) {
+        console.error('Failed to delete category image:', e);
+      }
+    }
     await ctx.db.delete(args.categoryId);
 
     await logAction(

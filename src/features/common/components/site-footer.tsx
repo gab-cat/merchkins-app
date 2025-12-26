@@ -167,7 +167,13 @@ export function SiteFooter() {
               <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">Merchkins</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 The all-in-one platform for sellers, freelancers, and SMEs. Unified ordering, payments, fulfillment, and omni-channel customer
-                support.
+                support.{' '}
+                <span className="text-primary">
+                  <Link href="/about" className="group inline-flex items-center gap-2 text-sm transition-colors text-primary hover:text-primary/80">
+                    <span>Learn more.</span>
+                    <ArrowRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                  </Link>
+                </span>
               </p>
             </div>
           </BlurFade>

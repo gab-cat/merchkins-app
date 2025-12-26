@@ -52,7 +52,7 @@ export function FloatingActionBar({ orgSlug }: FloatingActionBarProps) {
     {
       icon: MessageSquare,
       label: 'Chat',
-      href: buildOrgLink('/chats'),
+      href: 'https://chat.merchkins.com',
       color: 'text-[#1d43d8]',
     },
     {
