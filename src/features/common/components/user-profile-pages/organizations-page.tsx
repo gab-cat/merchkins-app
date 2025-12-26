@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth, useClerk } from '@clerk/nextjs';
 import { useQuery } from 'convex/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -33,19 +32,12 @@ const itemVariants = {
 export function OrganizationsPage() {
   const { userId: clerkId } = useAuth();
   const { closeUserProfile } = useClerk();
-  const router = useRouter();
 
   const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }));
 
   const orgs = useQuery(api.organizations.queries.index.getOrganizationsByUser, currentUser?._id ? { userId: currentUser._id } : 'skip');
 
   const loading = currentUser === undefined || orgs === undefined;
-
-  // Handler to navigate and close the user menu
-  const handleNavigation = (href: string) => {
-    closeUserProfile();
-    router.push(href);
-  };
 
   // Add error handling for when clerkId is not available
   if (!clerkId) {
@@ -218,32 +210,50 @@ export function OrganizationsPage() {
                           <div className="flex items-center gap-1.5 shrink-0">
                             {org.slug && (
                               <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleNavigation('/')}
-                                  className="h-8 px-2 rounded-lg text-xs font-medium hover:bg-slate-100 transition-all"
+                                <Link
+                                  href="/"
+                                  onClick={() => {
+                                    closeUserProfile();
+                                  }}
                                 >
-                                  <Home className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleNavigation(`/o/${org.slug}`)}
-                                  className="h-8 px-3 rounded-lg text-xs font-medium bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-sm hover:shadow-md transition-all"
-                                >
-                                  <ShoppingBag className="h-3 w-3 mr-1.5" />
-                                  Store
-                                </Button>
-                                {elevated && (
                                   <Button
                                     size="sm"
-                                    variant="outline"
-                                    onClick={() => handleNavigation(`/admin?org=${org.slug}`)}
-                                    className="h-8 px-3 rounded-lg text-xs font-medium border-slate-200 hover:border-[#1d43d8]/50 hover:bg-[#1d43d8]/5 transition-all"
+                                    variant="ghost"
+                                    className="h-8 px-2 rounded-lg text-xs font-medium hover:bg-slate-100 transition-all"
                                   >
-                                    <Settings className="h-3 w-3 mr-1.5" />
-                                    Admin
+                                    <Home className="h-3 w-3" />
                                   </Button>
+                                </Link>
+                                <Link
+                                  href={`/o/${org.slug}`}
+                                  onClick={() => {
+                                    closeUserProfile();
+                                  }}
+                                >
+                                  <Button
+                                    size="sm"
+                                    className="h-8 px-3 rounded-lg text-xs font-medium bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-sm hover:shadow-md transition-all"
+                                  >
+                                    <ShoppingBag className="h-3 w-3 mr-1.5" />
+                                    Store
+                                  </Button>
+                                </Link>
+                                {elevated && (
+                                  <Link
+                                    href={`/admin?org=${org.slug}`}
+                                    onClick={() => {
+                                      closeUserProfile();
+                                    }}
+                                  >
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-8 px-3 rounded-lg text-xs font-medium border-slate-200 hover:border-[#1d43d8]/50 hover:bg-[#1d43d8]/5 transition-all"
+                                    >
+                                      <Settings className="h-3 w-3 mr-1.5" />
+                                      Admin
+                                    </Button>
+                                  </Link>
                                 )}
                               </>
                             )}

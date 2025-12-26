@@ -44,16 +44,14 @@ export const approveRefundRequestHandler = async (ctx: MutationCtx, args: { refu
     throw new Error('Cannot approve refund for a delivered order');
   }
 
-  // Create REFUND voucher
-  // When seller approves a refund request, they are initiating the cancellation
-  // This makes the voucher eligible for monetary refund after 14 days
+  // Create REFUND voucher (customer-initiated cancellation)
   const voucherId = await ctx.runMutation(internal.refundRequests.mutations.index.createRefundVoucher, {
     refundRequestId: args.refundRequestId,
     orderId: refundRequest.orderId,
     amount: refundRequest.refundAmount,
     assignedToUserId: refundRequest.requestedById,
     createdById: currentUser._id,
-    initiatedBy: 'seller', // Seller is approving = seller-initiated cancellation
+    cancellationInitiator: 'CUSTOMER',
   });
 
   // Update refund request

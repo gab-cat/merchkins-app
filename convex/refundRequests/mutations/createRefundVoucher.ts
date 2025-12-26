@@ -3,6 +3,12 @@ import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 
 /**
+ * Monetary refund delay period for seller-initiated cancellations
+ * Refund vouchers become eligible for monetary refund after this period
+ */
+const MONETARY_REFUND_DELAY_MS = 14 * 24 * 60 * 60 * 1000; // 14 days in milliseconds
+
+/**
  * Generates a unique refund voucher code
  * Format: REFUND-XXXXXX
  */
@@ -11,31 +17,31 @@ function generateRefundVoucherCode(): string {
   return `REFUND-${randomPart}`;
 }
 
-// 14 days in milliseconds
-const MONETARY_REFUND_ELIGIBILITY_DAYS = 14;
-const MONETARY_REFUND_ELIGIBILITY_MS = MONETARY_REFUND_ELIGIBILITY_DAYS * 24 * 60 * 60 * 1000;
-
 export const createRefundVoucherArgs = {
-  refundRequestId: v.id('refundRequests'),
+  refundRequestId: v.optional(v.id('refundRequests')),
   orderId: v.id('orders'),
   amount: v.number(),
   assignedToUserId: v.id('users'),
   createdById: v.id('users'),
-  // Who initiated the refund: 'customer' for customer-requested, 'seller' for seller-initiated cancellation
-  initiatedBy: v.union(v.literal('customer'), v.literal('seller')),
+  cancellationInitiator: v.union(v.literal('CUSTOMER'), v.literal('SELLER')),
 } as const;
 
 export const createRefundVoucherHandler = async (
   ctx: MutationCtx,
   args: {
-    refundRequestId: Id<'refundRequests'>;
+    refundRequestId?: Id<'refundRequests'>;
     orderId: Id<'orders'>;
     amount: number;
     assignedToUserId: Id<'users'>;
     createdById: Id<'users'>;
-    initiatedBy: 'customer' | 'seller';
+    cancellationInitiator: 'CUSTOMER' | 'SELLER';
   }
 ) => {
+  // Validate amount is a positive number
+  if (typeof args.amount !== 'number' || args.amount <= 0) {
+    throw new Error('Amount must be a positive number');
+  }
+
   // Get user info for creator
   const creator = await ctx.db.get(args.createdById);
   if (!creator) {
@@ -67,12 +73,8 @@ export const createRefundVoucherHandler = async (
 
   const now = Date.now();
 
-  // Determine monetary refund eligibility based on initiator
-  // Customer-initiated: never eligible for monetary refund
-  // Seller-initiated: eligible after 14 days
-  const isSellerInitiated = args.initiatedBy === 'seller';
-  const monetaryRefundEligibleAt = isSellerInitiated ? now + MONETARY_REFUND_ELIGIBILITY_MS : undefined;
-  const monetaryRefundStatus = isSellerInitiated ? ('not_eligible' as const) : ('not_eligible' as const);
+  // Calculate monetary refund eligibility (14 days for seller-initiated cancellations)
+  const monetaryRefundEligibleAt = args.cancellationInitiator === 'SELLER' ? now + MONETARY_REFUND_DELAY_MS : undefined;
 
   // Create REFUND voucher
   // REFUND vouchers are:
@@ -86,7 +88,7 @@ export const createRefundVoucherHandler = async (
     organizationId: undefined, // Platform-wide
     code,
     name: `Refund Voucher - Order ${order.orderNumber ?? String(args.orderId)}`,
-    description: `Refund voucher issued for cancelled order`,
+    description: `Refund voucher issued for ${args.cancellationInitiator.toLowerCase()}-initiated cancellation`,
     discountType: 'REFUND',
     discountValue: args.amount,
     minOrderAmount: undefined, // No minimum
@@ -109,10 +111,9 @@ export const createRefundVoucherHandler = async (
     sourceRefundRequestId: args.refundRequestId,
     sourceOrderId: args.orderId,
     assignedToUserId: args.assignedToUserId,
-    // New fields for monetary refund tracking
-    initiatedBy: args.initiatedBy,
+    cancellationInitiator: args.cancellationInitiator,
     monetaryRefundEligibleAt,
-    monetaryRefundStatus,
+    monetaryRefundRequestedAt: undefined,
     createdAt: now,
     updatedAt: now,
   });

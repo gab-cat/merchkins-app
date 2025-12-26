@@ -50,8 +50,11 @@ Good for clearing inventory or introducing new products.
 
 ### 4. Refund Voucher
 
-- **What is it?** When you approve a refund request, the system automatically creates this voucher for the customer.
+- **What is it?** When you approve a refund request or cancel a paid order, the system automatically creates this voucher for the customer.
 - **How it works:** The customer receives a code equal to the refund amount. They can use this code to buy anything from any store on the platform.
+- **Cancellation Types:**
+  - **Customer-initiated:** Vouchers are voucher-only (no monetary refund option).
+  - **Seller-initiated:** Vouchers can be converted to monetary refunds after 14 days from issuance.
 - **Note for Sellers:** If a customer uses a Refund Voucher to buy from your store, **you still get paid the full amount** (minus the standard platform fee). The platform covers the cost of the voucher.
 
 ---
@@ -96,3 +99,11 @@ No, the system currently allows only one voucher code per order.
 ### Why did I receive an order paid with a "Refund Voucher"?
 
 This means the customer used credit from a previous refund. Don't worry—this is treated like cash. You will receive your payout for this order just like any normal transaction.
+
+### What happens when I cancel a paid order?
+
+When you cancel a paid order, the customer automatically receives a refund voucher. This voucher is marked as "seller-initiated" and after 14 days, the customer can request a monetary refund for it. The voucher remains valid and usable until the customer requests a monetary refund (if they choose to do so).
+
+### Can customers see their vouchers?
+
+Yes. Customers can view all their vouchers on the Vouchers page (`/vouchers`). They can see voucher details, status, and for seller-initiated vouchers, they can request monetary refunds after the 14-day waiting period.

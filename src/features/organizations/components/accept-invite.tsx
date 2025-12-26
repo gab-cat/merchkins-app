@@ -10,7 +10,9 @@ import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { BlurFade } from '@/src/components/ui/animations/effects';
-import { Users, Mail, Clock, XCircle, CheckCircle2, Building2, LogIn, Sparkles, ArrowLeft } from 'lucide-react';
+import { Users, Mail, Clock, XCircle, CheckCircle2, Building2, LogIn, Sparkles, ArrowLeft, Store } from 'lucide-react';
+import { Id } from '@/convex/_generated/dataModel';
+import { useCurrentUser } from '../../auth/hooks/use-current-user';
 
 interface AcceptInvitePageProps {
   code: string;
@@ -35,11 +37,16 @@ const itemVariants = {
 
 export function AcceptInvitePage({ code }: AcceptInvitePageProps) {
   const router = useRouter();
-  const { userId: clerkId, isSignedIn } = useAuth();
+  const { user } = useCurrentUser();
 
-  const invite = useQuery(api.organizations.queries.index.getInviteLinkByCode, code ? { code } : ('skip' as unknown as { code: string }));
+  const invite = useQuery(api.organizations.queries.index.getInviteLinkByCode, code ? { code } : 'skip');
 
-  const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }));
+  const currentUser = useQuery(api.users.queries.index.getCurrentUser, user ? { clerkId: user.clerkId } : 'skip');
+
+  const userOrganizations = useQuery(
+    api.organizations.queries.index.getOrganizationsByUser,
+    currentUser ? { userId: currentUser._id, isActive: true } : 'skip'
+  );
 
   const joinOrganization = useMutation(api.organizations.mutations.index.joinOrganization);
 
@@ -50,6 +57,15 @@ export function AcceptInvitePage({ code }: AcceptInvitePageProps) {
   const orgSlug = invite?.organizationInfo?.slug;
   const logoKey = invite?.organizationInfo?.logo;
   const expiresAt = invite?.expiresAt;
+  const organizationId = invite?.organizationId;
+
+  // Check if user is already a member
+  // Returns undefined when loading, true/false when loaded
+  const isAlreadyMember = useMemo(() => {
+    if (!organizationId) return undefined;
+    if (userOrganizations === undefined) return undefined; // Still loading
+    return userOrganizations.some((org) => org._id === organizationId);
+  }, [organizationId, userOrganizations]);
 
   const expired = useMemo(() => {
     if (!expiresAt) return false;
@@ -215,7 +231,7 @@ export function AcceptInvitePage({ code }: AcceptInvitePageProps) {
 
           {/* Action Section */}
           <motion.div variants={itemVariants}>
-            {!isSignedIn ? (
+            {!user?.clerkId ? (
               <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 mb-4">
                 <div className="flex items-start gap-3">
                   <div className="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
@@ -230,6 +246,55 @@ export function AcceptInvitePage({ code }: AcceptInvitePageProps) {
                         Sign in to Continue
                       </Button>
                     </Link>
+                  </div>
+                </div>
+              </div>
+            ) : isAlreadyMember === undefined ? (
+              <div className="space-y-3">
+                {/* Loading state */}
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                      <div className="h-4 w-4 border-2 border-slate-300 border-t-[#1d43d8] rounded-full animate-spin" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-slate-900 mb-1">Checking membership...</h3>
+                      <p className="text-xs text-slate-600">Please wait while we verify your status.</p>
+                    </div>
+                  </div>
+                </div>
+                <Button disabled className="w-full rounded-full h-10 bg-slate-200 text-slate-500 cursor-not-allowed">
+                  <div className="h-3.5 w-3.5 border-2 border-slate-400/30 border-t-slate-400 rounded-full animate-spin mr-1.5" />
+                  Loading...
+                </Button>
+              </div>
+            ) : isAlreadyMember ? (
+              <div className="space-y-3">
+                {/* Already a member status */}
+                <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                  <div className="flex items-start gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-slate-900 mb-1">Already a Member</h3>
+                      <p className="text-xs text-slate-600 mb-3">You&apos;re already a member of this organization.</p>
+                      {orgSlug ? (
+                        <Link href={`/o/${orgSlug}`}>
+                          <Button size="sm" className="w-full rounded-full bg-[#1d43d8] hover:bg-[#1638b3]">
+                            <Store className="h-3.5 w-3.5 mr-1.5" />
+                            View Store
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Link href="/organizations">
+                          <Button size="sm" className="w-full rounded-full bg-[#1d43d8] hover:bg-[#1638b3]">
+                            <Building2 className="h-3.5 w-3.5 mr-1.5" />
+                            View Organizations
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

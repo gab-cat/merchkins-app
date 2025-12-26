@@ -6,6 +6,7 @@ import { requireAuthentication, requireOrganizationAdminOrStaff, isOrganizationM
 export const getTicketsArgs = {
   createdById: v.optional(v.id('users')),
   assignedToId: v.optional(v.id('users')),
+  assignedToMe: v.optional(v.boolean()),
   organizationId: v.optional(v.id('organizations')),
   status: v.optional(v.union(v.literal('OPEN'), v.literal('IN_PROGRESS'), v.literal('RESOLVED'), v.literal('CLOSED'))),
   priority: v.optional(v.union(v.literal('LOW'), v.literal('MEDIUM'), v.literal('HIGH'))),
@@ -24,6 +25,7 @@ export const getTicketsHandler = async (
   args: {
     createdById?: Id<'users'>;
     assignedToId?: Id<'users'>;
+    assignedToMe?: boolean;
     organizationId?: Id<'organizations'>;
     status?: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
     priority?: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -73,6 +75,8 @@ export const getTicketsHandler = async (
       throw new Error("Permission denied: cannot view others' assigned tickets");
     }
     query = ctx.db.query('tickets').withIndex('by_assignee', (q) => q.eq('assignedToId', args.assignedToId!));
+  } else if (args.assignedToMe) {
+    query = ctx.db.query('tickets').withIndex('by_assignee', (q) => q.eq('assignedToId', user._id));
   } else if (args.status) {
     query = ctx.db.query('tickets').withIndex('by_status', (q) => q.eq('status', args.status!));
   } else if (args.priority) {
@@ -126,12 +130,7 @@ export const getTicketsHandler = async (
       const creatorEmail = ticket.creatorInfo?.email?.toLowerCase() || '';
       const ticketId = ticket._id?.toLowerCase() || '';
 
-      return (
-        title.includes(searchTerm) ||
-        description.includes(searchTerm) ||
-        creatorEmail.includes(searchTerm) ||
-        ticketId.includes(searchTerm)
-      );
+      return title.includes(searchTerm) || description.includes(searchTerm) || creatorEmail.includes(searchTerm) || ticketId.includes(searchTerm);
     });
   }
 

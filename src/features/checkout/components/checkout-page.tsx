@@ -1062,7 +1062,10 @@ export function CheckoutPage() {
                         <Link href="/privacy" className="text-[#1d43d8] hover:underline font-medium">
                           Privacy Policy
                         </Link>
-                        . All approved refunds are issued as platform vouchers, not cash.
+                        . Refunds are issued as platform vouchers. Customer-initiated cancellations are voucher-only. Seller-initiated cancellations allow monetary refund requests after 14 days.{' '}
+                        <Link href="/returns" className="text-[#1d43d8] hover:underline font-medium">
+                          Learn more
+                        </Link>
                       </label>
                     </div>
 

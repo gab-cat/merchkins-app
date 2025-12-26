@@ -100,7 +100,7 @@ const faqCategories = [
       },
       {
         q: 'How do refunds work?',
-        a: 'All refunds are issued as platform vouchers that can be used at any store on Merchkins. Vouchers never expire and maintain the full value of your refund. Cash refunds are not available.',
+        a: 'Refunds are issued as platform vouchers. For customer-initiated cancellations, refunds are voucher-only. For seller-initiated cancellations, you receive a voucher initially, but you can request a monetary refund after 14 days. Vouchers never expire and can be used at any store on Merchkins. Visit your Vouchers page to view and manage your vouchers.',
       },
       {
         q: 'What if I receive a defective or wrong item?',
@@ -108,7 +108,11 @@ const faqCategories = [
       },
       {
         q: 'How long does the refund process take?',
-        a: 'Refund requests are typically processed within 1-5 business days. Once approved, your voucher will be immediately available in your account.',
+        a: 'Refund requests are typically processed within 1-5 business days. Once approved, your voucher will be immediately available in your account. For seller-initiated cancellations, monetary refund requests (after 14 days) are processed within 3-5 business days after approval.',
+      },
+      {
+        q: 'Can I request a monetary refund for a voucher?',
+        a: 'Yes, but only for vouchers issued from seller-initiated cancellations. After 14 days from when the voucher was issued, you can request a monetary refund through your Vouchers page. The voucher must be unused and eligible. Once approved, the refund will be processed to your original payment method.',
       },
     ],
   },
@@ -148,7 +152,7 @@ const faqCategories = [
       },
       {
         q: 'Do vouchers expire?',
-        a: 'Refund vouchers do not expire. Promotional vouchers may have expiration dates, which will be clearly indicated.',
+        a: 'Refund vouchers do not expire. Promotional vouchers may have expiration dates, which will be clearly indicated. You can view all your vouchers on the Vouchers page.',
       },
       {
         q: 'Can I transfer my voucher to someone else?',
@@ -186,7 +190,7 @@ const faqCategories = [
       },
       {
         q: 'How do I handle refund requests?',
-        a: "When a customer requests a refund, you'll receive a notification. Review the request in your dashboard, communicate with the customer if needed, and approve or provide an alternative resolution. Refunds are issued as platform vouchers.",
+        a: "When a customer requests a refund, you'll receive a notification. Review the request in your dashboard, communicate with the customer if needed, and approve or provide an alternative resolution. Customer-initiated refunds are issued as platform vouchers only. If you cancel a paid order, the customer receives a voucher but can request a monetary refund after 14 days.",
       },
       {
         q: "Can I use Merchkins' fulfillment services?",

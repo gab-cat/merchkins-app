@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,6 +24,12 @@ import {
   Calendar,
   Users,
   Bell,
+  RefreshCw,
+  Building,
+  UserCheck,
+  Globe,
+  Briefcase,
+  ShieldCheck,
 } from 'lucide-react';
 
 // Admin Components
@@ -42,8 +48,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Card, CardContent } from '@/components/ui/card';
 
 import { showToast } from '@/lib/toast';
+import { cn } from '@/lib/utils';
 
 type Announcement = Doc<'announcements'>;
 
@@ -55,6 +64,34 @@ const levelConfig: Record<AnnouncementLevel, { icon: any; color: string; bg: str
   INFO: { icon: Info, color: 'text-blue-600', bg: 'bg-blue-500/10' },
   WARNING: { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-500/10' },
   CRITICAL: { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-500/10' },
+};
+
+const audienceConfig: Record<TargetAudience, { icon: any; label: string; description: string }> = {
+  ALL: {
+    icon: Globe,
+    label: 'Everyone',
+    description: 'Visible to all users, including visitors and guests.',
+  },
+  CUSTOMERS: {
+    icon: Users,
+    label: 'Customers',
+    description: 'Visible only to registered customers.',
+  },
+  MERCHANTS: {
+    icon: Building,
+    label: 'Merchants',
+    description: 'Visible to merchant accounts and their staff.',
+  },
+  STAFF: {
+    icon: Briefcase,
+    label: 'Staff',
+    description: 'Visible to internal organization staff members.',
+  },
+  ADMINS: {
+    icon: ShieldCheck,
+    label: 'Admins',
+    description: 'Restricted to organization administrators only.',
+  },
 };
 
 function AnnouncementCard({
@@ -183,15 +220,18 @@ function AnnouncementCard({
   );
 }
 
-function CreateAnnouncementDialog({
+function AnnouncementDialog({
   open,
   onOpenChange,
   organizationId,
+  initialData,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   organizationId?: Id<'organizations'>;
+  initialData?: Announcement;
 }) {
+  const isEdit = !!initialData;
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [level, setLevel] = useState<AnnouncementLevel>('INFO');
@@ -200,7 +240,26 @@ function CreateAnnouncementDialog({
   const [isPinned, setIsPinned] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title);
+      setContent(initialData.content);
+      setLevel(initialData.level as AnnouncementLevel);
+      setTargetAudience(initialData.targetAudience as TargetAudience);
+      setCategory(initialData.category || '');
+      setIsPinned(initialData.isPinned);
+    } else {
+      setTitle('');
+      setContent('');
+      setLevel('INFO');
+      setTargetAudience('ALL');
+      setCategory('');
+      setIsPinned(false);
+    }
+  }, [initialData, open]);
+
   const createAnnouncement = useMutation(api.announcements.mutations.index.createAnnouncement);
+  const updateAnnouncement = useMutation(api.announcements.mutations.index.updateAnnouncement);
 
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {
@@ -210,29 +269,35 @@ function CreateAnnouncementDialog({
 
     setIsSubmitting(true);
     try {
-      await createAnnouncement({
-        organizationId,
-        title: title.trim(),
-        content: content.trim(),
-        level,
-        targetAudience,
-        category: category.trim() || undefined,
-        isPinned,
-        type: 'NORMAL',
-        contentType: 'TEXT',
-      });
-      showToast({ type: 'success', title: 'Announcement created successfully' });
+      if (isEdit && initialData) {
+        await updateAnnouncement({
+          announcementId: initialData._id,
+          title: title.trim(),
+          content: content.trim(),
+          level,
+          targetAudience,
+          category: category.trim() || undefined,
+          isPinned,
+        });
+        showToast({ type: 'success', title: 'Announcement updated successfully' });
+      } else {
+        await createAnnouncement({
+          organizationId,
+          title: title.trim(),
+          content: content.trim(),
+          level,
+          targetAudience,
+          category: category.trim() || undefined,
+          isPinned,
+          type: 'NORMAL',
+          contentType: 'TEXT',
+        });
+        showToast({ type: 'success', title: 'Announcement created successfully' });
+      }
       onOpenChange(false);
-      // Reset form
-      setTitle('');
-      setContent('');
-      setLevel('INFO');
-      setTargetAudience('ALL');
-      setCategory('');
-      setIsPinned(false);
     } catch (error) {
       console.error(error);
-      showToast({ type: 'error', title: 'Failed to create announcement' });
+      showToast({ type: 'error', title: `Failed to ${isEdit ? 'update' : 'create'} announcement` });
     } finally {
       setIsSubmitting(false);
     }
@@ -240,23 +305,36 @@ function CreateAnnouncementDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-admin-heading">Create Announcement</DialogTitle>
-          <DialogDescription>Create a new announcement to broadcast to your audience.</DialogDescription>
+          <DialogTitle className="font-admin-heading">{isEdit ? 'Edit Announcement' : 'Create Announcement'}</DialogTitle>
+          <DialogDescription>
+            {isEdit ? 'Update the details of your announcement.' : 'Create a new announcement to broadcast to your audience.'}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input id="title" placeholder="Announcement title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <div className="space-y-6 py-4">
+          {/* Main Info */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title *</Label>
+              <Input id="title" placeholder="Announcement title" value={title} onChange={(e) => setTitle(e.target.value)} className="font-medium" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="content">Content *</Label>
+              <Textarea
+                id="content"
+                placeholder="Write your announcement..."
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="content">Content *</Label>
-            <Textarea id="content" placeholder="Write your announcement..." value={content} onChange={(e) => setContent(e.target.value)} rows={4} />
-          </div>
-
+          {/* Classification */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Level</Label>
@@ -288,32 +366,52 @@ function CreateAnnouncementDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>Target Audience</Label>
-              <Select value={targetAudience} onValueChange={(v) => setTargetAudience(v as TargetAudience)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">Everyone</SelectItem>
-                  <SelectItem value="CUSTOMERS">Customers</SelectItem>
-                  <SelectItem value="STAFF">Staff</SelectItem>
-                  <SelectItem value="MERCHANTS">Merchants</SelectItem>
-                  <SelectItem value="ADMINS">Admins</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="category">Category (optional)</Label>
+              <Input id="category" placeholder="e.g., Updates" value={category} onChange={(e) => setCategory(e.target.value)} />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="category">Category (optional)</Label>
-            <Input id="category" placeholder="e.g., Updates, Maintenance" value={category} onChange={(e) => setCategory(e.target.value)} />
+          {/* Target Audience */}
+          <div className="space-y-3">
+            <Label>Target Audience</Label>
+            <RadioGroup value={targetAudience} onValueChange={(v) => setTargetAudience(v as TargetAudience)} className="grid grid-cols-1 gap-2">
+              {Object.entries(audienceConfig).map(([key, config]) => {
+                const Icon = config.icon;
+                const isSelected = targetAudience === key;
+                return (
+                  <div
+                    key={key}
+                    className={cn(
+                      'relative flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-all hover:bg-muted/50',
+                      isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'bg-card'
+                    )}
+                    onClick={() => setTargetAudience(key as TargetAudience)}
+                  >
+                    <RadioGroupItem value={key} id={key} className="mt-1" />
+                    <div className="flex-1 space-y-1">
+                      <Label htmlFor={key} className="font-medium cursor-pointer flex items-center gap-2">
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                        {config.label}
+                      </Label>
+                      <p className="text-xs text-muted-foreground font-normal">{config.description}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </RadioGroup>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 rounded-lg border p-3 bg-muted/20">
             <Checkbox id="pinned" checked={isPinned} onCheckedChange={(checked) => setIsPinned(checked as boolean)} />
-            <Label htmlFor="pinned" className="text-sm cursor-pointer">
-              Pin this announcement
-            </Label>
+            <div className="grid gap-1.5 leading-none">
+              <Label
+                htmlFor="pinned"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                Pin announcement
+              </Label>
+              <p className="text-xs text-muted-foreground">Pinned announcements appear at the top of lists.</p>
+            </div>
           </div>
         </div>
 
@@ -322,7 +420,16 @@ function CreateAnnouncementDialog({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? 'Creating...' : 'Create Announcement'}
+            {isSubmitting ? (
+              <>
+                <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
+                {isEdit ? 'Updating...' : 'Creating...'}
+              </>
+            ) : isEdit ? (
+              'Save Changes'
+            ) : (
+              'Create Announcement'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -355,7 +462,8 @@ export default function AdminAnnouncementsPage() {
   const [search, setSearch] = useState('');
   const [onlyActive, setOnlyActive] = useState(true);
   const [levelFilter, setLevelFilter] = useState<AnnouncementLevel | 'ALL'>('ALL');
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | undefined>(undefined);
 
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
 
@@ -431,6 +539,16 @@ export default function AdminAnnouncementsPage() {
     }
   };
 
+  const openCreateDialog = () => {
+    setEditingAnnouncement(undefined);
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (announcement: Announcement) => {
+    setEditingAnnouncement(announcement);
+    setDialogOpen(true);
+  };
+
   if (loading) {
     return <AnnouncementsSkeleton />;
   }
@@ -443,7 +561,7 @@ export default function AdminAnnouncementsPage() {
         icon={<Megaphone className="h-5 w-5" />}
         breadcrumbs={[{ label: 'Admin', href: `/admin/overview${orgSlug ? `?org=${orgSlug}` : ''}` }, { label: 'Announcements' }]}
         actions={
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button onClick={openCreateDialog}>
             <Plus className="h-4 w-4 mr-1.5" />
             New Announcement
           </Button>
@@ -496,7 +614,7 @@ export default function AdminAnnouncementsPage() {
           }
           action={{
             label: 'Create Announcement',
-            onClick: () => setCreateDialogOpen(true),
+            onClick: openCreateDialog,
           }}
         />
       ) : (
@@ -508,9 +626,7 @@ export default function AdminAnnouncementsPage() {
                 announcement={announcement}
                 onToggleActive={() => handleToggleActive(announcement._id, !!announcement.isActive)}
                 onTogglePinned={() => handleTogglePinned(announcement._id, !!announcement.isPinned)}
-                onEdit={() => {
-                  /* TODO: Implement edit dialog */
-                }}
+                onEdit={() => openEditDialog(announcement)}
                 onDelete={() => handleDelete(announcement._id)}
               />
             ))}
@@ -518,8 +634,8 @@ export default function AdminAnnouncementsPage() {
         </div>
       )}
 
-      {/* Create Dialog */}
-      <CreateAnnouncementDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} organizationId={organization?._id} />
+      {/* Create/Edit Dialog */}
+      <AnnouncementDialog open={dialogOpen} onOpenChange={setDialogOpen} organizationId={organization?._id} initialData={editingAnnouncement} />
     </div>
   );
 }

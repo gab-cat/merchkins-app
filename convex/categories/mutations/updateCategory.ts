@@ -182,16 +182,10 @@ export const updateCategoryHandler = async (
   }
 
   // Handle imageUrl change with R2 cleanup
+  let oldImageUrl: string | undefined;
   if (args.imageUrl !== undefined) {
-    // Delete old image from R2 if it exists and is being replaced/removed
-    if (existingCategory.imageUrl && args.imageUrl !== existingCategory.imageUrl) {
-      try {
-        await r2.deleteObject(ctx, existingCategory.imageUrl);
-      } catch (e) {
-        // Log but don't fail if cleanup fails (image may already be deleted)
-        console.error('Failed to delete old category image:', e);
-      }
-    }
+    // Store the old image URL for cleanup after successful DB update
+    oldImageUrl = existingCategory.imageUrl && args.imageUrl !== existingCategory.imageUrl ? existingCategory.imageUrl : undefined;
     updateData.imageUrl = args.imageUrl || undefined;
   }
   if (args.iconUrl !== undefined) updateData.iconUrl = args.iconUrl;
@@ -203,6 +197,16 @@ export const updateCategoryHandler = async (
 
   // Update category
   await ctx.db.patch(args.categoryId, updateData);
+
+  // Delete old image from R2 after successful DB update
+  if (oldImageUrl) {
+    try {
+      await r2.deleteObject(ctx, oldImageUrl);
+    } catch (e) {
+      // Log but don't fail if cleanup fails (image may already be deleted)
+      console.error('Failed to delete old category image:', e);
+    }
+  }
 
   // If level changed, we need to update all descendants recursively
   if (updateData.level !== undefined && updateData.level !== existingCategory.level) {

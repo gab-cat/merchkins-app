@@ -113,10 +113,10 @@ export function AdminNav() {
     api.organizations.queries.index.getOrganizationBySlug,
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
   );
-  const ticketUnread = useQuery(api.tickets.queries.index.getUnreadCount, organization?._id ? { organizationId: organization._id } : {});
+  const ticketOpen = useQuery(api.tickets.queries.index.getOpenCount, organization?._id ? { organizationId: organization._id } : {});
   const refundPending = useQuery(api.refundRequests.queries.index.getPendingCount, organization?._id ? { organizationId: organization._id } : {});
   const payoutPending = useQuery(api.payouts.queries.index.getPendingCount, organization?._id ? { organizationId: organization._id } : {});
-  const ticketsCount = ticketUnread?.count || 0;
+  const ticketsCount = ticketOpen?.count || 0;
   const refundsCount = refundPending?.count || 0;
   const payoutsCount = payoutPending?.count || 0;
 

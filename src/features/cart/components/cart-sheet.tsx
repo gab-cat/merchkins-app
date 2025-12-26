@@ -163,7 +163,7 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
           </div>
         ) : (
           <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-            <ScrollArea className="flex-1 min-h-0 px-4 py-4 overflow-">
+            <ScrollArea className="flex-1 min-h-0 px-4 py-4">
               <AnimatePresence>
                 <div className="space-y-4">
                   {Object.entries(groupedByOrg).map(([orgId, group], groupIndex) => (

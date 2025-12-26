@@ -56,7 +56,8 @@ import { BlurFade } from '@/src/components/ui/animations/effects';
 function formatCount(count: number): string {
   if (count < 5) return count.toString();
   if (count < 10) return '5+';
-  if (count < 50) return '10+';
+  if (count < 10) return '10+';
+  if (count < 50) return '50+';
   if (count < 100) return '50+';
   if (count < 1000) {
     const hundreds = Math.floor(count / 100) * 100;
@@ -66,7 +67,9 @@ function formatCount(count: number): string {
     const thousands = Math.floor(count / 1000) * 1000;
     return `${thousands}+`;
   }
-  return '9000+';
+  // For very large counts, show abbreviated format
+  const thousands = Math.floor(count / 1000);
+  return `${thousands}k+`;
 }
 
 interface ProductDetailProps {

@@ -64,34 +64,12 @@ export const vouchers = defineTable({
   sourceOrderId: v.optional(v.id('orders')),
   assignedToUserId: v.optional(v.id('users')), // Personal voucher assignment
 
-  // Tracks who initiated the refund that created this voucher
-  // 'customer' = customer requested cancellation
-  // 'seller' = seller cancelled the order
-  initiatedBy: v.optional(v.union(v.literal('customer'), v.literal('seller'))),
-
-  // For seller-initiated refunds: date when customer becomes eligible to request monetary refund (14 days after creation)
-  monetaryRefundEligibleAt: v.optional(v.number()),
-
-  // Monetary refund request status for this voucher
-  // 'not_eligible' = customer-initiated (never eligible) or not yet 14 days
-  // 'eligible' = seller-initiated and 14+ days have passed
-  // 'requested' = customer has submitted a monetary refund request
-  // 'approved' = super-admin approved, pending transfer
-  // 'transferred' = money has been transferred
-  // 'rejected' = request was rejected
-  monetaryRefundStatus: v.optional(
-    v.union(
-      v.literal('not_eligible'),
-      v.literal('eligible'),
-      v.literal('requested'),
-      v.literal('approved'),
-      v.literal('transferred'),
-      v.literal('rejected')
-    )
-  ),
+  // Cancellation initiator tracking (for REFUND type vouchers)
+  cancellationInitiator: v.optional(v.union(v.literal('CUSTOMER'), v.literal('SELLER'))), // Who initiated the cancellation
+  monetaryRefundEligibleAt: v.optional(v.number()), // Timestamp when monetary refund becomes available (14 days after creation for seller-initiated)
+  monetaryRefundRequestedAt: v.optional(v.number()), // Timestamp when customer requested monetary refund
 
   createdAt: v.number(),
-
   updatedAt: v.number(),
 })
   .index('by_code', ['code'])
@@ -102,7 +80,9 @@ export const vouchers = defineTable({
   .index('by_validUntil', ['validUntil'])
   .index('by_creator', ['createdById'])
   .index('by_organization_active', ['organizationId', 'isActive'])
-  .index('by_discountType', ['discountType']);
+  .index('by_discountType', ['discountType'])
+  .index('by_assignedUser', ['assignedToUserId'])
+  .index('by_monetaryRefundEligible', ['monetaryRefundEligibleAt']);
 
 /**
  * Voucher usage tracking

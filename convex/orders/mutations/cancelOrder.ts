@@ -91,6 +91,40 @@ export const cancelOrderHandler = async (
     updatedAt: now,
   });
 
+  // If seller cancels a paid order, create a refund voucher (seller-initiated)
+  // Customer can request monetary refund after 14 days
+  if (order.paymentStatus === 'PAID' && currentUser._id !== order.customerId) {
+    try {
+      // Check if voucher already exists for this order
+      const existingVoucher = await ctx.db
+        .query('vouchers')
+        .withIndex('by_assignedUser', (q) => q.eq('assignedToUserId', order.customerId))
+        .filter((q) => q.eq(q.field('sourceOrderId'), order._id))
+        .filter((q) => q.eq(q.field('discountType'), 'REFUND'))
+        .filter((q) => q.eq(q.field('isDeleted'), false))
+        .first();
+
+      if (!existingVoucher) {
+        // Get customer info
+        const customer = await ctx.db.get(order.customerId);
+        if (customer) {
+          // Create refund voucher for seller-initiated cancellation
+          await ctx.runMutation(internal.refundRequests.mutations.index.createRefundVoucher, {
+            refundRequestId: undefined, // No refund request for seller-initiated cancellation
+            orderId: order._id,
+            amount: order.totalAmount,
+            assignedToUserId: order.customerId,
+            createdById: currentUser._id,
+            cancellationInitiator: 'SELLER',
+          });
+        }
+      }
+    } catch (error) {
+      // Best-effort voucher creation; do not block cancellation on voucher creation failure
+      console.error('[cancelOrder] Failed to create refund voucher for seller-initiated cancellation:', error);
+    }
+  }
+
   // If this order was already included in a payout invoice and was paid, create an adjustment
   // to deduct the amount from the next payout period
   if (order.paymentStatus === 'PAID' && order.payoutInvoiceId && order.organizationId) {

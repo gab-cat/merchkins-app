@@ -46,7 +46,32 @@ export const getOrganizationMembersHandler = async (
     cursor: cursor || null,
   });
 
-  return results;
+  // Populate userInfo from users table to ensure data is current
+  const membersWithUpdatedUserInfo = await Promise.all(
+    results.page.map(async (member) => {
+      const user = await ctx.db.get(member.userId);
+      if (user) {
+        return {
+          ...member,
+          userInfo: {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phone: user.phone || '',
+            imageUrl: user.imageUrl,
+            isStaff: user.isStaff,
+          },
+        };
+      }
+      // If user doesn't exist, return member with existing userInfo
+      return member;
+    })
+  );
+
+  return {
+    ...results,
+    page: membersWithUpdatedUserInfo,
+  };
 };
 
 // Internal version that doesn't require authentication (for use in actions/mutations)
@@ -87,5 +112,30 @@ export const getOrganizationMembersInternalHandler = async (
     cursor: cursor || null,
   });
 
-  return results;
+  // Populate userInfo from users table to ensure data is current
+  const membersWithUpdatedUserInfo = await Promise.all(
+    results.page.map(async (member) => {
+      const user = await ctx.db.get(member.userId);
+      if (user) {
+        return {
+          ...member,
+          userInfo: {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phone: user.phone || '',
+            imageUrl: user.imageUrl,
+            isStaff: user.isStaff,
+          },
+        };
+      }
+      // If user doesn't exist, return member with existing userInfo
+      return member;
+    })
+  );
+
+  return {
+    ...results,
+    page: membersWithUpdatedUserInfo,
+  };
 };

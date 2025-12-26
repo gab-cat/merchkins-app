@@ -401,15 +401,32 @@ export default function TermsPage() {
             </p>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">8.2 Refund Method</h3>
-            <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4">
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                <Shield className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-amber-800 font-medium">Important Notice</p>
-                  <p className="text-amber-700 text-sm mt-1">
-                    All refunds are issued exclusively as <strong>platform vouchers</strong>. Cash refunds, bank transfers, or refunds to original
-                    payment methods are <strong>not available</strong> under any circumstances. This policy is disclosed prior to purchase.
+                  <p className="text-blue-800 font-medium">Consumer Rights and Refund Policy</p>
+                  <p className="text-blue-700 text-sm mt-1 mb-2">
+                    In accordance with the <strong>Consumer Act of the Philippines (R.A. 7394)</strong> and the{' '}
+                    <strong>Electronic Commerce Act (R.A. 8792)</strong>, consumers retain their statutory rights to monetary refunds where required
+                    by law.
                   </p>
+                  <ul className="list-disc list-inside space-y-1 text-blue-700 text-sm ml-4">
+                    <li>
+                      <strong>Customer-initiated cancellations:</strong> Refunds may be issued as platform vouchers for convenience, subject to the
+                      consumer's statutory rights. Consumers retain the right to monetary refunds where required by applicable Philippine consumer
+                      protection laws, including but not limited to cases involving defective, damaged, or misrepresented products.
+                    </li>
+                    <li>
+                      <strong>Seller-initiated cancellations:</strong> Refunds will be processed promptly and in accordance with applicable Philippine
+                      consumer protection statutes. Monetary refunds will be issued immediately or as required by law, without undue delay.
+                    </li>
+                    <li>
+                      <strong>Statutory rights:</strong> These statutory consumer rights cannot be waived or limited by any policy, term, or
+                      condition. The Platform will process all refunds in compliance with applicable Philippine consumer protection statutes,
+                      including R.A. 7394 and R.A. 8792.
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>

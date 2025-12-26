@@ -80,7 +80,7 @@ const buttonVariants = {
 
 export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: AnimatedBannerProps) {
   const { isAuthenticated, isMember, isLoading } = useOrganizationMembership(organization._id);
-  const { open: openChatwoot, isReady: isChatwootReady } = useChatwoot();
+  const { toggle: openChatwoot, isReady: isChatwootReady } = useChatwoot();
 
   return (
     <motion.section

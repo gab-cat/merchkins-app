@@ -379,6 +379,7 @@ import type * as surveys_queries_index from "../surveys/queries/index.js";
 import type * as surveys_queries_surveyAnalytics from "../surveys/queries/surveyAnalytics.js";
 import type * as surveys_queries_surveyCategories from "../surveys/queries/surveyCategories.js";
 import type * as surveys_queries_surveyResponses from "../surveys/queries/surveyResponses.js";
+import type * as tickets_constants from "../tickets/constants.js";
 import type * as tickets_index from "../tickets/index.js";
 import type * as tickets_mutations_createTicket from "../tickets/mutations/createTicket.js";
 import type * as tickets_mutations_deleteTicket from "../tickets/mutations/deleteTicket.js";
@@ -389,6 +390,7 @@ import type * as tickets_mutations_manageTicketUpdates from "../tickets/mutation
 import type * as tickets_mutations_restoreTicket from "../tickets/mutations/restoreTicket.js";
 import type * as tickets_mutations_updateTicket from "../tickets/mutations/updateTicket.js";
 import type * as tickets_mutations_updateTicketStats from "../tickets/mutations/updateTicketStats.js";
+import type * as tickets_queries_getOpenCount from "../tickets/queries/getOpenCount.js";
 import type * as tickets_queries_getTicketAnalytics from "../tickets/queries/getTicketAnalytics.js";
 import type * as tickets_queries_getTicketById from "../tickets/queries/getTicketById.js";
 import type * as tickets_queries_getTicketUpdates from "../tickets/queries/getTicketUpdates.js";
@@ -428,6 +430,17 @@ import type * as users_queries_getUsersByManager from "../users/queries/getUsers
 import type * as users_queries_getUsersByOrganization from "../users/queries/getUsersByOrganization.js";
 import type * as users_queries_index from "../users/queries/index.js";
 import type * as users_queries_searchUsers from "../users/queries/searchUsers.js";
+import type * as voucherRefundRequests_index from "../voucherRefundRequests/index.js";
+import type * as voucherRefundRequests_mutations_approveVoucherRefundRequest from "../voucherRefundRequests/mutations/approveVoucherRefundRequest.js";
+import type * as voucherRefundRequests_mutations_createVoucherRefundRequest from "../voucherRefundRequests/mutations/createVoucherRefundRequest.js";
+import type * as voucherRefundRequests_mutations_index from "../voucherRefundRequests/mutations/index.js";
+import type * as voucherRefundRequests_mutations_rejectVoucherRefundRequest from "../voucherRefundRequests/mutations/rejectVoucherRefundRequest.js";
+import type * as voucherRefundRequests_queries_getVoucherRefundRequestById from "../voucherRefundRequests/queries/getVoucherRefundRequestById.js";
+import type * as voucherRefundRequests_queries_getVoucherRefundRequestCounts from "../voucherRefundRequests/queries/getVoucherRefundRequestCounts.js";
+import type * as voucherRefundRequests_queries_getVoucherRefundRequests from "../voucherRefundRequests/queries/getVoucherRefundRequests.js";
+import type * as voucherRefundRequests_queries_getVoucherRefundRequestsByUser from "../voucherRefundRequests/queries/getVoucherRefundRequestsByUser.js";
+import type * as voucherRefundRequests_queries_getVoucherRefundRequestsByVoucher from "../voucherRefundRequests/queries/getVoucherRefundRequestsByVoucher.js";
+import type * as voucherRefundRequests_queries_index from "../voucherRefundRequests/queries/index.js";
 import type * as vouchers_index from "../vouchers/index.js";
 import type * as vouchers_mutations_createVoucher from "../vouchers/mutations/createVoucher.js";
 import type * as vouchers_mutations_deleteVoucher from "../vouchers/mutations/deleteVoucher.js";
@@ -437,6 +450,7 @@ import type * as vouchers_mutations_updateVoucher from "../vouchers/mutations/up
 import type * as vouchers_queries_getVoucherByCode from "../vouchers/queries/getVoucherByCode.js";
 import type * as vouchers_queries_getVoucherById from "../vouchers/queries/getVoucherById.js";
 import type * as vouchers_queries_getVouchers from "../vouchers/queries/getVouchers.js";
+import type * as vouchers_queries_getVouchersByUser from "../vouchers/queries/getVouchersByUser.js";
 import type * as vouchers_queries_index from "../vouchers/queries/index.js";
 import type * as vouchers_queries_validateVoucher from "../vouchers/queries/validateVoucher.js";
 
@@ -818,6 +832,7 @@ declare const fullApi: ApiFromModules<{
   "surveys/queries/surveyAnalytics": typeof surveys_queries_surveyAnalytics;
   "surveys/queries/surveyCategories": typeof surveys_queries_surveyCategories;
   "surveys/queries/surveyResponses": typeof surveys_queries_surveyResponses;
+  "tickets/constants": typeof tickets_constants;
   "tickets/index": typeof tickets_index;
   "tickets/mutations/createTicket": typeof tickets_mutations_createTicket;
   "tickets/mutations/deleteTicket": typeof tickets_mutations_deleteTicket;
@@ -828,6 +843,7 @@ declare const fullApi: ApiFromModules<{
   "tickets/mutations/restoreTicket": typeof tickets_mutations_restoreTicket;
   "tickets/mutations/updateTicket": typeof tickets_mutations_updateTicket;
   "tickets/mutations/updateTicketStats": typeof tickets_mutations_updateTicketStats;
+  "tickets/queries/getOpenCount": typeof tickets_queries_getOpenCount;
   "tickets/queries/getTicketAnalytics": typeof tickets_queries_getTicketAnalytics;
   "tickets/queries/getTicketById": typeof tickets_queries_getTicketById;
   "tickets/queries/getTicketUpdates": typeof tickets_queries_getTicketUpdates;
@@ -867,6 +883,17 @@ declare const fullApi: ApiFromModules<{
   "users/queries/getUsersByOrganization": typeof users_queries_getUsersByOrganization;
   "users/queries/index": typeof users_queries_index;
   "users/queries/searchUsers": typeof users_queries_searchUsers;
+  "voucherRefundRequests/index": typeof voucherRefundRequests_index;
+  "voucherRefundRequests/mutations/approveVoucherRefundRequest": typeof voucherRefundRequests_mutations_approveVoucherRefundRequest;
+  "voucherRefundRequests/mutations/createVoucherRefundRequest": typeof voucherRefundRequests_mutations_createVoucherRefundRequest;
+  "voucherRefundRequests/mutations/index": typeof voucherRefundRequests_mutations_index;
+  "voucherRefundRequests/mutations/rejectVoucherRefundRequest": typeof voucherRefundRequests_mutations_rejectVoucherRefundRequest;
+  "voucherRefundRequests/queries/getVoucherRefundRequestById": typeof voucherRefundRequests_queries_getVoucherRefundRequestById;
+  "voucherRefundRequests/queries/getVoucherRefundRequestCounts": typeof voucherRefundRequests_queries_getVoucherRefundRequestCounts;
+  "voucherRefundRequests/queries/getVoucherRefundRequests": typeof voucherRefundRequests_queries_getVoucherRefundRequests;
+  "voucherRefundRequests/queries/getVoucherRefundRequestsByUser": typeof voucherRefundRequests_queries_getVoucherRefundRequestsByUser;
+  "voucherRefundRequests/queries/getVoucherRefundRequestsByVoucher": typeof voucherRefundRequests_queries_getVoucherRefundRequestsByVoucher;
+  "voucherRefundRequests/queries/index": typeof voucherRefundRequests_queries_index;
   "vouchers/index": typeof vouchers_index;
   "vouchers/mutations/createVoucher": typeof vouchers_mutations_createVoucher;
   "vouchers/mutations/deleteVoucher": typeof vouchers_mutations_deleteVoucher;
@@ -876,6 +903,7 @@ declare const fullApi: ApiFromModules<{
   "vouchers/queries/getVoucherByCode": typeof vouchers_queries_getVoucherByCode;
   "vouchers/queries/getVoucherById": typeof vouchers_queries_getVoucherById;
   "vouchers/queries/getVouchers": typeof vouchers_queries_getVouchers;
+  "vouchers/queries/getVouchersByUser": typeof vouchers_queries_getVouchersByUser;
   "vouchers/queries/index": typeof vouchers_queries_index;
   "vouchers/queries/validateVoucher": typeof vouchers_queries_validateVoucher;
 }>;

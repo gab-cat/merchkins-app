@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useOffsetPagination } from '@/src/hooks/use-pagination';
 import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
@@ -25,6 +25,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,6 +58,7 @@ import {
   ExternalLink,
   ArrowRight,
   Check,
+  Briefcase,
 } from 'lucide-react';
 
 type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
@@ -115,6 +118,49 @@ function PriorityBadge({ priority }: { priority: TicketPriority }) {
       <span className={cn('h-1.5 w-1.5 rounded-full', config.dotColor)} />
       {config.label}
     </span>
+  );
+}
+
+// Compact Ticket Card for "Assigned to Me"
+function CompactTicketCard({ ticket }: { ticket: TicketWithInfo }) {
+  const statusConfig = STATUS_CONFIG[ticket.status as TicketStatus];
+  const priorityConfig = PRIORITY_CONFIG[ticket.priority as TicketPriority];
+  const StatusIcon = statusConfig.icon;
+
+  return (
+    <Link href={`/admin/tickets/${ticket._id}`} className="block min-w-[280px] w-[280px]">
+      <div className="h-full rounded-xl border bg-card p-3 hover:shadow-md transition-all hover:border-primary/20 group">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center shrink-0', statusConfig.bgColor)}>
+            <StatusIcon className={cn('h-4 w-4', statusConfig.color)} />
+          </div>
+          <PriorityBadge priority={ticket.priority as TicketPriority} />
+        </div>
+
+        <h4 className="font-semibold text-sm truncate mb-1 group-hover:text-primary transition-colors">{ticket.title}</h4>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+          <span className="font-mono">#{ticket._id.slice(-6).toUpperCase()}</span>
+          <span>•</span>
+          <span>{formatDate(ticket.createdAt)}</span>
+        </div>
+
+        <div className="flex items-center justify-between text-xs mt-auto">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
+              <User className="h-2.5 w-2.5 text-primary" />
+            </div>
+            <span className="truncate max-w-[100px]">{ticket.creatorInfo?.firstName || 'User'}</span>
+          </div>
+          {ticket.updateCount && ticket.updateCount > 0 && (
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <MessageSquare className="h-3 w-3" />
+              {ticket.updateCount}
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
   );
 }
 
@@ -229,8 +275,20 @@ export default function AdminTicketsPage() {
   const [dateRange, setDateRange] = useState<DateRange>({});
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [assignedTicketsRetryTrigger, setAssignedTicketsRetryTrigger] = useState(0);
 
   const debouncedSearch = useDebouncedSearch(search, 300);
+
+  // My Assigned Tickets Query, fetch only open/progress tickets assigned to current user using new backend flag
+  const myAssignedTickets = useQuery(
+    api.tickets.queries.index.getTickets,
+    // We pass assignedToMe: true to let backend filter by current user
+    { assignedToMe: true, limit: 20 }
+  );
+
+  // Loading and error states for myAssignedTickets
+  const myAssignedTicketsLoading = myAssignedTickets === undefined;
+  const myAssignedTicketsError = myAssignedTickets !== undefined && (!myAssignedTickets || !('tickets' in myAssignedTickets));
 
   const baseArgs = useMemo(
     (): TicketQueryArgs => ({
@@ -295,8 +353,23 @@ export default function AdminTicketsPage() {
     setTimeout(() => setRefreshing(false), 1000);
   };
 
+  const handleRetryAssignedTickets = () => {
+    // Update state to trigger component re-render
+    // Convex queries will automatically retry on re-render if there was an error
+    setAssignedTicketsRetryTrigger((prev) => prev + 1);
+  };
+
+  // Filter client-side to be safe and only show actionable items, though query limits to what we need optionally
+  // Only process when data is available and not loading/error
+  const myTickets = useMemo(() => {
+    if (myAssignedTicketsLoading || myAssignedTicketsError || !myAssignedTickets) {
+      return [];
+    }
+    return (myAssignedTickets.tickets || []).filter((t) => t.status === 'OPEN' || t.status === 'IN_PROGRESS');
+  }, [myAssignedTickets, myAssignedTicketsLoading, myAssignedTicketsError]);
+
   return (
-    <div className="space-y-6 font-admin-body">
+    <div className="space-y-6 font-admin-body pb-10">
       {/* Page Header */}
       <PageHeader
         title="Support Tickets"
@@ -310,6 +383,70 @@ export default function AdminTicketsPage() {
           </Button>
         }
       />
+
+      {/* Assigned to Me Section */}
+      <AnimatePresence>
+        {(myAssignedTicketsLoading || myAssignedTicketsError || myTickets.length > 0) && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-semibold font-admin-heading">Assigned to Me</h3>
+              {!myAssignedTicketsLoading && !myAssignedTicketsError && (
+                <span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{myTickets.length}</span>
+              )}
+            </div>
+
+            {myAssignedTicketsLoading ? (
+              <ScrollArea className="w-full whitespace-nowrap pb-4">
+                <div className="flex gap-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={`skeleton-${i}`} className="min-w-[280px] w-[280px]">
+                      <div className="h-full rounded-xl border bg-card p-3">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <Skeleton className="h-8 w-8 rounded-lg" />
+                          <Skeleton className="h-6 w-20 rounded-full" />
+                        </div>
+                        <Skeleton className="h-4 w-full mb-1" />
+                        <Skeleton className="h-3 w-32 mb-3" />
+                        <div className="flex items-center justify-between mt-auto">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-4 w-8" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            ) : myAssignedTicketsError ? (
+              <div className="rounded-xl border bg-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                    <AlertCircle className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Failed to load assigned tickets</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Please try again or refresh the page</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleRetryAssignedTickets} disabled={myAssignedTicketsLoading}>
+                    <RefreshCw className={cn('h-4 w-4 mr-2', myAssignedTicketsLoading && 'animate-spin')} />
+                    Retry
+                  </Button>
+                </div>
+              </div>
+            ) : myTickets.length > 0 ? (
+              <ScrollArea className="w-full whitespace-nowrap pb-4">
+                <div className="flex gap-4">
+                  {myTickets.map((ticket) => (
+                    <CompactTicketCard key={ticket._id} ticket={ticket} />
+                  ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            ) : null}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Quick Stats */}
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
@@ -335,15 +472,33 @@ export default function AdminTicketsPage() {
         ))}
       </div>
 
+      {/* Results count */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold font-admin-heading flex items-center gap-2">
+          <Inbox className="h-4 w-4" />
+          All Tickets
+        </h3>
+        {!loading && (
+          <p className="text-xs text-muted-foreground">
+            {tickets.length} ticket{tickets.length !== 1 ? 's' : ''} found
+          </p>
+        )}
+      </div>
+
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 flex-1 flex-wrap">
-          <div className="relative max-w-xs flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search by title, ID, or creator..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
-          </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-muted/30 p-1 rounded-lg">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search tickets..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 h-9 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/70"
+          />
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 px-1">
           <Select value={status} onValueChange={(v) => setStatus(v as TicketStatus | 'ALL')}>
-            <SelectTrigger className="w-[140px] h-9">
+            <SelectTrigger className="w-[130px] h-8 text-xs bg-background border-none shadow-sm">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -355,64 +510,43 @@ export default function AdminTicketsPage() {
             </SelectContent>
           </Select>
           <Select value={priority} onValueChange={(v) => setPriority(v as TicketPriority | 'ALL')}>
-            <SelectTrigger className="w-[130px] h-9">
+            <SelectTrigger className="w-[120px] h-8 text-xs bg-background border-none shadow-sm">
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Priority</SelectItem>
-              <SelectItem value="HIGH">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-red-500" />
-                  High
-                </span>
-              </SelectItem>
-              <SelectItem value="MEDIUM">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-amber-400" />
-                  Medium
-                </span>
-              </SelectItem>
-              <SelectItem value="LOW">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-slate-400" />
-                  Low
-                </span>
-              </SelectItem>
+              <SelectItem value="HIGH">High</SelectItem>
+              <SelectItem value="MEDIUM">Medium</SelectItem>
+              <SelectItem value="LOW">Low</SelectItem>
             </SelectContent>
           </Select>
-          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <div className="h-8">
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8 ml-1" onClick={handleRefresh} disabled={refreshing}>
+            <RefreshCw className={cn('h-4 w-4', refreshing && 'animate-spin')} />
+          </Button>
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
-          <RefreshCw className={cn('h-4 w-4 mr-1', refreshing && 'animate-spin')} />
-          Refresh
-        </Button>
       </div>
 
-      {/* Results count */}
-      {!loading && (
-        <p className="text-sm text-muted-foreground">
-          {tickets.length} ticket{tickets.length !== 1 ? 's' : ''} found
-        </p>
-      )}
-
       {/* Table */}
-      <div className="rounded-xl border overflow-hidden">
+      <div className="rounded-xl border overflow-hidden bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40">
-              <TableHead className="text-xs font-semibold uppercase tracking-wide">Ticket</TableHead>
-              <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
-              <TableHead className="text-xs font-semibold uppercase tracking-wide">Priority</TableHead>
-              <TableHead className="text-xs font-semibold uppercase tracking-wide">Created</TableHead>
+            <TableRow className="bg-muted/30 hover:bg-muted/30 border-b-primary/5">
+              <TableHead className="text-xs font-semibold uppercase tracking-wide w-[350px]">Ticket</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide w-[120px]">Status</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide w-[100px]">Priority</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide w-[150px]">Created</TableHead>
               <TableHead className="text-xs font-semibold uppercase tracking-wide">Creator</TableHead>
-              <TableHead className="text-xs font-semibold uppercase tracking-wide text-center">Updates</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wide text-center w-[80px]">Activity</TableHead>
               <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
           <TableBody>
             <AnimatePresence mode="popLayout">
               {loading ? (
-                Array.from({ length: 8 }).map((_, i) => (
+                Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
                     <TableCell>
                       <div className="space-y-1">
@@ -444,7 +578,11 @@ export default function AdminTicketsPage() {
                     <EmptyState
                       icon={<Inbox className="h-12 w-12 text-muted-foreground" />}
                       title="No tickets found"
-                      description={search || dateRange.dateFrom || dateRange.dateTo ? `No tickets match your filters` : 'Create a ticket to start tracking support requests'}
+                      description={
+                        search || dateRange.dateFrom || dateRange.dateTo
+                          ? `No tickets match your filters`
+                          : 'Create a ticket to start tracking support requests'
+                      }
                       action={{
                         label: 'Create Ticket',
                         onClick: () => setIsCreateOpen(true),
@@ -464,20 +602,29 @@ export default function AdminTicketsPage() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ delay: index * 0.02 }}
-                      className="group hover:bg-muted/50 transition-colors"
+                      className="group hover:bg-muted/30 transition-colors"
                     >
                       <TableCell>
-                        <Link href={`/admin/tickets/${ticket._id}`} className="block hover:text-primary transition-colors">
+                        <Link href={`/admin/tickets/${ticket._id}`} className="block group-hover:text-primary transition-colors">
                           <div className="flex items-center gap-3">
-                            <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center shrink-0', statusConfig?.bgColor)}>
-                              <StatusIcon className={cn('h-4 w-4', statusConfig?.color)} />
+                            <div
+                              className={cn(
+                                'h-9 w-9 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105',
+                                statusConfig?.bgColor
+                              )}
+                            >
+                              <StatusIcon className={cn('h-4.5 w-4.5', statusConfig?.color)} />
                             </div>
                             <div className="min-w-0">
-                              <div className="font-medium text-sm truncate max-w-[250px] flex items-center gap-1">
-                                {ticket.title}
-                                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
+                              <div className="font-semibold text-sm truncate max-w-[280px] flex items-center gap-1.5">{ticket.title}</div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs text-muted-foreground font-mono">#{ticket._id.slice(-6).toUpperCase()}</span>
+                                {ticket.category && (
+                                  <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground/70 bg-muted/50 px-1.5 py-0.5 rounded">
+                                    {ticket.category}
+                                  </span>
+                                )}
                               </div>
-                              <div className="text-xs text-muted-foreground">#{ticket._id.slice(-6).toUpperCase()}</div>
                             </div>
                           </div>
                         </Link>
@@ -490,21 +637,21 @@ export default function AdminTicketsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="text-sm">{formatDate(ticket.createdAt)}</span>
+                          <span className="text-sm font-medium">{formatDate(ticket.createdAt)}</span>
                           <span className="text-xs text-muted-foreground">{formatTime(ticket.createdAt)}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                            <User className="h-3.5 w-3.5 text-primary" />
+                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <User className="h-3 w-3 text-primary" />
                           </div>
                           <span className="text-sm truncate max-w-[150px]">{ticket.creatorInfo?.email || 'Unknown'}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                          <MessageSquare className="h-3.5 w-3.5" />
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
+                          <MessageSquare className="h-3 w-3" />
                           {ticket.updateCount || 0}
                         </span>
                       </TableCell>

@@ -1096,9 +1096,12 @@ export default function AdminEditProductPage() {
                     min={0}
                     placeholder="e.g. 3"
                     className="h-10"
-                    disabled={inventoryType === 'PREORDER'}
+                    disabled={inventoryType === 'STOCK'}
                     {...register('fulfillmentDays', { valueAsNumber: true })}
                   />
+                  {inventoryType === 'STOCK' && (
+                    <p className="text-xs text-muted-foreground mt-1">Fulfillment days are only applicable for pre-order items</p>
+                  )}
                 </FormField>
               </div>
             </FormCard>

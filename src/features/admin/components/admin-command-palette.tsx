@@ -274,7 +274,11 @@ export function AdminCommandPalette({ open, onOpenChange, orgSlug }: AdminComman
     });
 
     if (item) {
-      router.push(item.href);
+      if (item.href.startsWith('http://') || item.href.startsWith('https://')) {
+        window.open(item.href, '_blank');
+      } else {
+        router.push(item.href);
+      }
       onOpenChange(false);
     }
   };

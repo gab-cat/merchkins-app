@@ -64,6 +64,21 @@ export const deleteCategoryHandler = async (
         await r2.deleteObject(ctx, existingCategory.imageUrl);
       } catch (e) {
         console.error('Failed to delete category image:', e);
+        // Log failed deletion for monitoring and cleanup
+        await logAction(
+          ctx,
+          'failed_image_deletion',
+          'ERROR_EVENT',
+          'HIGH',
+          `Failed to delete image for category: ${existingCategory.name}`,
+          currentUser._id,
+          existingCategory.organizationId,
+          {
+            categoryId: args.categoryId,
+            imageUrl: existingCategory.imageUrl,
+            error: String(e),
+          }
+        );
       }
     }
     await ctx.db.delete(args.categoryId);

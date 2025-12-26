@@ -29,8 +29,8 @@ export default function ReturnsPage() {
             </div>
             <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
               <Gift className="h-6 w-6 text-emerald-600 mb-2" />
-              <h3 className="font-semibold text-emerald-900">Platform Vouchers</h3>
-              <p className="text-sm text-emerald-700">All refunds are issued as platform vouchers with no expiration date.</p>
+              <h3 className="font-semibold text-emerald-900">Refund Options</h3>
+              <p className="text-sm text-emerald-700">Refunds may be issued as platform vouchers, subject to your statutory rights to monetary refunds where required by law.</p>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
               <ShieldCheck className="h-6 w-6 text-amber-600 mb-2" />
@@ -130,16 +130,34 @@ export default function ReturnsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold mb-4">4. Refund Method: Platform Vouchers</h2>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 not-prose mb-6">
-              <h3 className="font-bold text-blue-900 text-lg mb-3">Important Notice</h3>
-              <p className="text-blue-800 mb-4">
-                All approved refunds are issued exclusively as <strong>platform vouchers</strong>. Cash refunds, bank transfers, or refunds to
-                original payment methods are <strong>not available</strong>.
-              </p>
-              <p className="text-blue-700 text-sm">
-                This policy is disclosed prior to purchase and is part of the terms and conditions you agreed to when placing your order.
-              </p>
+            <h2 className="text-2xl font-semibold mb-4">4. Refund Method</h2>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-6 not-prose mb-6">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                <div>
+                  <h3 className="font-bold text-blue-900 text-lg mb-3">Consumer Rights and Refund Policy</h3>
+                  <p className="text-blue-800 mb-4">
+                    In accordance with the <strong>Consumer Act of the Philippines (R.A. 7394)</strong> and the{' '}
+                    <strong>Electronic Commerce Act (R.A. 8792)</strong>, consumers retain their statutory rights to monetary refunds where required by law.
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-blue-700 text-sm mb-4 ml-4">
+                    <li>
+                      <strong>Customer-initiated cancellations:</strong> Refunds may be issued as platform vouchers for convenience, subject to the
+                      consumer's statutory rights. Consumers retain the right to monetary refunds where required by applicable Philippine consumer
+                      protection laws, including but not limited to cases involving defective, damaged, or misrepresented products.
+                    </li>
+                    <li>
+                      <strong>Seller-initiated cancellations:</strong> Refunds will be processed promptly and in accordance with applicable Philippine
+                      consumer protection statutes. Monetary refunds will be issued immediately or as required by law, without undue delay.
+                    </li>
+                    <li>
+                      <strong>Statutory rights:</strong> These statutory consumer rights cannot be waived or limited by any policy, term, or condition.
+                      The Platform will process all refunds in compliance with applicable Philippine consumer protection statutes, including R.A. 7394
+                      and R.A. 8792.
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
             <h3 className="text-xl font-semibold mb-3">4.1 Voucher Features</h3>
@@ -167,11 +185,41 @@ export default function ReturnsPage() {
               </li>
             </ul>
 
-            <h3 className="text-xl font-semibold mb-3 mt-6">4.2 Legal Basis</h3>
+            <h3 className="text-xl font-semibold mb-3 mt-6">4.2 Monetary Refund Requests</h3>
+            <p className="text-slate-700 leading-relaxed mb-4">
+              Consumers have the right to request monetary refunds in accordance with applicable Philippine consumer protection laws. For seller-initiated cancellations, monetary refunds will be processed immediately or as required by law. To request a monetary refund:
+            </p>
+            <ol className="list-decimal list-inside space-y-2 text-slate-700 ml-4 mb-4">
+              <li>Navigate to your Vouchers page or Order details</li>
+              <li>Find the eligible refund request</li>
+              <li>Click "Request Monetary Refund" or contact support</li>
+              <li>Your request will be reviewed by our support team</li>
+              <li>Once approved, the refund will be processed to your original payment method promptly</li>
+            </ol>
+            <p className="text-slate-700 leading-relaxed mb-4">
+              <strong>Processing Time:</strong> Monetary refund requests are processed promptly in accordance with applicable laws, typically within 3-5 business days after approval. Refunds will be credited to your original payment method.
+            </p>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-blue-800 font-medium">Your Rights:</p>
+                  <p className="text-blue-700 text-sm mt-1">
+                    Under Philippine consumer protection laws, you retain the right to monetary refunds where required by statute, regardless of any voucher issuance. These statutory rights cannot be waived.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-semibold mb-3 mt-6">4.3 Legal Basis</h3>
+            <p className="text-slate-700 leading-relaxed mb-4">
+              This refund policy is designed to comply with Philippine consumer protection laws, including the <strong>Consumer Act of the Philippines (R.A. 7394)</strong> and the <strong>Electronic Commerce Act (R.A. 8792)</strong>. Under these statutes, consumers have the right to monetary refunds, repairs, or replacements for defective, damaged, or misrepresented products.
+            </p>
+            <p className="text-slate-700 leading-relaxed mb-4">
+              Platform vouchers may be offered as a convenient refund option, but they do not limit or replace your statutory rights to monetary refunds where required by law. For seller-initiated cancellations, refunds will be processed promptly and in accordance with applicable consumer protection statutes, without undue delay.
+            </p>
             <p className="text-slate-700 leading-relaxed">
-              This voucher-only refund policy is compliant with Philippine law. Under the Consumer Act (RA 7394), sellers are required to provide
-              appropriate remedies for consumer complaints. Platform vouchers constitute a valid form of compensation that preserves the full value of
-              your purchase and provides flexibility in future transactions.
+              <strong>Important:</strong> Your statutory consumer rights cannot be waived or limited by any policy, term, or condition. The Platform is committed to processing all refunds in full compliance with applicable Philippine consumer protection laws.
             </p>
           </section>
 
@@ -267,19 +315,29 @@ export default function ReturnsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   <tr>
-                    <td className="px-4 py-3 text-sm text-slate-700">Cancellation (within 24 hours)</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">Customer-initiated Cancellation (within 24 hours)</td>
                     <td className="px-4 py-3 text-sm text-slate-700">1-3 business days</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">Upon approval</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">Voucher issued upon approval</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-sm text-slate-700">Seller-initiated Cancellation</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">Immediate</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">Monetary refund processed immediately or as required by law; voucher may be offered as alternative</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-3 text-sm text-slate-700">Monetary Refund Request</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">3-5 business days</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">Processed promptly to original payment method in accordance with applicable laws</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-sm text-slate-700">Defective/Damaged Product</td>
                     <td className="px-4 py-3 text-sm text-slate-700">3-5 business days</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">Upon verification</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">Voucher issued upon verification</td>
                   </tr>
                   <tr>
                     <td className="px-4 py-3 text-sm text-slate-700">Wrong Item Received</td>
                     <td className="px-4 py-3 text-sm text-slate-700">3-5 business days</td>
-                    <td className="px-4 py-3 text-sm text-slate-700">Upon verification</td>
+                    <td className="px-4 py-3 text-sm text-slate-700">Voucher issued upon verification</td>
                   </tr>
                 </tbody>
               </table>

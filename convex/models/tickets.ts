@@ -81,7 +81,9 @@ export const tickets = defineTable({
   .index('by_escalated', ['escalated'])
   .index('by_due_date', ['dueDate'])
   .index('by_status_priority', ['status', 'priority'])
-  .index('by_assignee_status', ['assignedToId', 'status']);
+  .index('by_assignee_status', ['assignedToId', 'status'])
+  .index('by_organization_and_status', ['organizationId', 'status'])
+  .index('by_creator_and_status', ['createdById', 'status']);
 
 // Enhanced ticket updates with embedded user info
 export const ticketUpdates = defineTable({

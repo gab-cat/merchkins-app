@@ -6,6 +6,22 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Formats a number as currency
+ */
+export function formatCurrency(amount?: number, currency?: string) {
+  if (typeof amount !== 'number') return '—';
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: currency || 'PHP',
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${currency || 'PHP'} ${amount.toFixed(2)}`;
+  }
+}
+
+/**
  * Computes the effective price for a product variant, considering size-specific pricing.
  * Returns size.price if available, otherwise falls back to variant.price.
  */

@@ -70,6 +70,12 @@ export const updateItemQuantityHandler = async (
     throw new Error('Item not found in cart');
   }
 
+  // Validate that the matched item corresponds to the expected product/variant/size
+  const matchedItem = items[index];
+  if (matchedItem.productInfo.productId !== args.productId || matchedItem.variantId !== args.variantId || matchedItem.size?.id !== args.sizeId) {
+    throw new Error('Item mismatch: addedAt does not match the specified product/variant/size');
+  }
+
   // If quantity is 0, remove item
   if (args.quantity === 0) {
     return await removeItemHandler(ctx, {

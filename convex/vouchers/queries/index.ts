@@ -3,6 +3,7 @@ import { getVouchersArgs, getVouchersHandler } from './getVouchers';
 import { getVoucherByIdArgs, getVoucherByIdHandler } from './getVoucherById';
 import { getVoucherByCodeArgs, getVoucherByCodeHandler } from './getVoucherByCode';
 import { validateVoucherArgs, validateVoucherHandler } from './validateVoucher';
+import { getVouchersByUser } from './getVouchersByUser';
 
 export const getVouchers = query({
   args: getVouchersArgs,
@@ -23,3 +24,5 @@ export const validateVoucher = query({
   args: validateVoucherArgs,
   handler: validateVoucherHandler,
 });
+
+export { getVouchersByUser };

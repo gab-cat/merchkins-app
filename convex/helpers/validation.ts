@@ -120,6 +120,28 @@ export function validatePositiveNumber(value: number, fieldName: string): void {
 }
 
 /**
+ * Validate that a number is a positive finite number (not NaN, Infinity, or negative)
+ * This is stricter than validatePositiveNumber and ensures the value is a valid, finite, positive number
+ */
+export function validatePositiveFiniteNumber(value: number, fieldName: string): void {
+  if (typeof value !== 'number') {
+    throw new Error(`${fieldName} must be a number`);
+  }
+
+  if (Number.isNaN(value)) {
+    throw new Error(`${fieldName} cannot be NaN`);
+  }
+
+  if (!Number.isFinite(value)) {
+    throw new Error(`${fieldName} must be a finite number`);
+  }
+
+  if (value <= 0) {
+    throw new Error(`${fieldName} must be a positive number greater than 0`);
+  }
+}
+
+/**
  * Validate that a number is non-negative
  */
 export function validateNonNegativeNumber(value: number, fieldName: string): void {
