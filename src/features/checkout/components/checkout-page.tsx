@@ -1187,12 +1187,7 @@ export function CheckoutPage() {
                           <Link href="/privacy" className="text-[#1d43d8] hover:underline font-medium">
                             Privacy Policy
                           </Link>
-                          . Refunds may be issued as platform vouchers for convenience, subject to your statutory rights to monetary refunds where
-                          required by Philippine consumer protection laws (R.A. 7394 and R.A. 8792). Seller-initiated cancellations are processed
-                          promptly with immediate monetary refunds as required by law.{' '}
-                          <Link href="/returns" className="text-[#1d43d8] hover:underline font-medium">
-                            Learn more
-                          </Link>
+                          .
                         </label>
                       </div>
 
@@ -1237,6 +1232,16 @@ export function CheckoutPage() {
                           </motion.p>
                         )}
                       </AnimatePresence>
+
+                      {/* Fine print */}
+                      <p className="text-[10px] text-slate-400 leading-relaxed mt-2">
+                        Refunds may be issued as platform vouchers for convenience, subject to your statutory rights to monetary refunds where
+                        required by Philippine consumer protection laws (R.A. 7394 and R.A. 8792). Seller-initiated cancellations are processed
+                        promptly with immediate monetary refunds as required by law.{' '}
+                        <Link href="/returns" className="text-[#1d43d8] hover:underline">
+                          Learn more
+                        </Link>
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
