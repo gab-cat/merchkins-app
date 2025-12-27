@@ -29,7 +29,7 @@ import { useThemeExclusionAuto, getOrgSlugFromSubdomain } from '../../../stores/
 import { useOrgLink } from '@/src/hooks/use-org-link';
 import { BlurFade } from '@/src/components/ui/animations';
 import { GoogleReviewsBadge } from '@/src/components/google';
-import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_SHORT_NAME, BUSINESS_DTI_NUMBER } from '@/src/constants/business-info';
+import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_SHORT_NAME, BUSINESS_DTI_NUMBER, BUSINESS_TIN_NUMBER } from '@/src/constants/business-info';
 
 export function SiteFooter() {
   const pathname = usePathname();
@@ -168,7 +168,8 @@ export function SiteFooter() {
               <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">{BUSINESS_NAME}</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">{BUSINESS_DESCRIPTION}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                DTI No.: <span className="font-semibold text-primary">{BUSINESS_DTI_NUMBER}</span>
+                DTI No.: <span className="font-semibold text-primary">{BUSINESS_DTI_NUMBER}</span> | TIN:{' '}
+                <span className="font-semibold text-primary">{BUSINESS_TIN_NUMBER}</span>
               </p>
               <p className="text-sm text-muted-foreground leading-relaxed mt-2">
                 The all-in-one platform for sellers, freelancers, and SMEs. Unified ordering, payments, fulfillment, and omni-channel customer
@@ -304,7 +305,9 @@ export function SiteFooter() {
                 &copy; {new Date().getFullYear()} {organization?.name || BUSINESS_NAME}. All rights reserved.
               </p>
               <p className="text-xs text-muted-foreground">{BUSINESS_DESCRIPTION}</p>
-              <p className="text-xs text-muted-foreground">DTI Registration No.: {BUSINESS_DTI_NUMBER}</p>
+              <p className="text-xs text-muted-foreground">
+                DTI Registration No.: {BUSINESS_DTI_NUMBER} | TIN: {BUSINESS_TIN_NUMBER}
+              </p>
             </div>
             <div className="flex items-center gap-4">
               {footerLinks.legal.map((link, index) => (

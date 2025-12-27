@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowUpRight, Sparkles, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LandingNavbar as Navbar, NavBody, useNavbarScroll } from '@/src/components/ui/resizable-navbar';
-import { BUSINESS_NAME, BUSINESS_CURRENCY, BUSINESS_DTI_NUMBER } from '@/src/constants/business-info';
+import { BUSINESS_NAME, BUSINESS_CURRENCY, BUSINESS_DTI_NUMBER, BUSINESS_TIN_NUMBER } from '@/src/constants/business-info';
 import { useTranslation } from '@/src/utils/translations';
 
 const navLinks = [
@@ -150,7 +150,7 @@ function LandingHeaderContent({ mobileMenuOpen, setMobileMenuOpen }: { mobileMen
             <span>{BUSINESS_CURRENCY}</span>
           </div>
           <div className="text-[11px]">
-            {t('business.dti_label')}: {BUSINESS_DTI_NUMBER}
+            {t('business.dti_label')}: {BUSINESS_DTI_NUMBER} | TIN: {BUSINESS_TIN_NUMBER}
           </div>
         </div>
 

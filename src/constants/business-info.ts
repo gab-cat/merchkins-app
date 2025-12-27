@@ -7,6 +7,7 @@ export const BUSINESS_NAME = 'MERCHKINS INFORMATION TECHNOLOGY SOLUTIONS';
 export const BUSINESS_CURRENCY = 'PHP';
 export const BUSINESS_DESCRIPTION = 'Other Information Technology and Computer Service Activities';
 export const BUSINESS_DTI_NUMBER = '7594515';
+export const BUSINESS_TIN_NUMBER = '655-639-496-00000';
 
 // Short name for display purposes (used in headers, etc.)
 export const BUSINESS_SHORT_NAME = 'Merchkins';

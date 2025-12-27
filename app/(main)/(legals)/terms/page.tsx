@@ -546,7 +546,7 @@ export default function TermsPage() {
             </p>
             <ol className="list-decimal list-inside space-y-2 text-slate-700 ml-4 mb-4">
               <li>
-                <strong>Mediation:</strong> Through the DTI or other recognized mediation body in the Philippines
+                <strong>Mediation:</strong> Through the DTI, BIR, or other recognized mediation body in the Philippines
               </li>
               <li>
                 <strong>Arbitration:</strong> In accordance with the Alternative Dispute Resolution Act of 2004 (R.A. 9285)
@@ -558,8 +558,8 @@ export default function TermsPage() {
 
             <h3 className="text-xl font-semibold mb-3 mt-6">13.3 Consumer Complaints</h3>
             <p className="text-slate-700 leading-relaxed">
-              For consumer-related complaints, you may also file a complaint directly with the Department of Trade and Industry (DTI) or the
-              appropriate government agency.
+              For consumer-related complaints, you may also file a complaint directly with the Department of Trade and Industry (DTI), the Bureau of
+              Internal Revenue (BIR), or the appropriate government agency.
             </p>
           </section>
 

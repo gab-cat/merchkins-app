@@ -48,7 +48,7 @@ export default function ReturnsPage() {
               all returns, refunds, and cancellations on the Merchkins platform, in accordance with the
               <strong> Consumer Act of the Philippines (Republic Act No. 7394)</strong>,
               <strong> Electronic Commerce Act (Republic Act No. 8792)</strong>, and relevant regulations issued by the Department of Trade and
-              Industry (DTI).
+              Industry (DTI) and the Bureau of Internal Revenue (BIR).
             </p>
             <p className="text-slate-700 leading-relaxed">
               By making a purchase on our platform, you acknowledge and agree to the terms outlined in this policy.

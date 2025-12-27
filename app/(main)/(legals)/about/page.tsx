@@ -15,7 +15,7 @@ import {
   Store,
   MessageSquare,
 } from 'lucide-react';
-import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_CURRENCY, BUSINESS_DTI_NUMBER } from '@/src/constants/business-info';
+import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_CURRENCY, BUSINESS_DTI_NUMBER, BUSINESS_TIN_NUMBER } from '@/src/constants/business-info';
 
 export const metadata: Metadata = {
   title: `About Us — ${BUSINESS_NAME}`,
@@ -163,13 +163,13 @@ export default function AboutPage() {
                     Currency: <span className="font-semibold text-[#1d43d8]">{BUSINESS_CURRENCY}</span>
                   </p>
                   <p className="text-sm text-slate-500 mt-1">
-                    DTI Registration No.: <span className="font-semibold text-[#1d43d8]">{BUSINESS_DTI_NUMBER}</span>
+                    DTI Registration No.: <span className="font-semibold text-[#1d43d8]">{BUSINESS_DTI_NUMBER}</span> | TIN: <span className="font-semibold text-[#1d43d8]">{BUSINESS_TIN_NUMBER}</span>
                   </p>
                   <div className="mt-3 p-3 bg-[#1d43d8]/5 border border-[#1d43d8]/20 rounded-lg">
                     <p className="text-sm text-slate-700 leading-relaxed">
                       <ShieldCheck className="h-4 w-4 inline mr-1.5 text-[#1d43d8]" />
                       <strong>{BUSINESS_NAME}</strong> is registered with the <strong>Bureau of Internal Revenue (BIR)</strong> and the{' '}
-                      <strong>Department of Trade and Industry (DTI)</strong>. DTI Registration Number: <strong>{BUSINESS_DTI_NUMBER}</strong>
+                      <strong>Department of Trade and Industry (DTI)</strong>. DTI Registration Number: <strong>{BUSINESS_DTI_NUMBER}</strong>, TIN: <strong>{BUSINESS_TIN_NUMBER}</strong>
                     </p>
                   </div>
                   <p className="text-sm text-slate-500 mt-3">A Magis TBI Incubated Startup</p>
