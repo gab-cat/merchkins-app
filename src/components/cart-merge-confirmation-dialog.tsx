@@ -24,13 +24,7 @@ interface CartMergeConfirmationDialogProps {
   isMerging?: boolean;
 }
 
-export function CartMergeConfirmationDialog({
-  open,
-  onOpenChange,
-  items,
-  onConfirm,
-  isMerging = false,
-}: CartMergeConfirmationDialogProps) {
+export function CartMergeConfirmationDialog({ open, onOpenChange, items, onConfirm, isMerging = false }: CartMergeConfirmationDialogProps) {
   const totals = useMemo(() => {
     let totalItems = 0;
     let totalValue = 0;
@@ -76,7 +70,8 @@ export function CartMergeConfirmationDialog({
             Merge Cart Items
           </DialogTitle>
           <DialogDescription>
-            You have {totals.totalItems} item{totals.totalItems !== 1 ? 's' : ''} in your guest cart. Review the items below and confirm to add them to your account cart.
+            You have {totals.totalItems} item{totals.totalItems !== 1 ? 's' : ''} in your guest cart. Review the items below and confirm to add them
+            to your account cart.
           </DialogDescription>
         </DialogHeader>
 
@@ -102,7 +97,7 @@ export function CartMergeConfirmationDialog({
                         className="flex gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors"
                       >
                         {/* Product image */}
-                        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 border border-slate-200">
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 border border-slate-200">
                           {item.productInfo.imageUrl?.[0] ? (
                             <R2Image fileKey={item.productInfo.imageUrl[0]} alt={item.productInfo.title} fill sizes="80px" className="object-cover" />
                           ) : (
@@ -116,13 +111,9 @@ export function CartMergeConfirmationDialog({
                         <div className="flex-1 min-w-0 space-y-1">
                           <h3 className="font-semibold text-sm text-slate-900 leading-tight">{item.productInfo.title}</h3>
 
-                          {item.productInfo.variantName && (
-                            <p className="text-xs text-slate-600">Variant: {item.productInfo.variantName}</p>
-                          )}
+                          {item.productInfo.variantName && <p className="text-xs text-slate-600">Variant: {item.productInfo.variantName}</p>}
 
-                          {item.size && (
-                            <p className="text-xs text-slate-600">Size: {item.size.label}</p>
-                          )}
+                          {item.size && <p className="text-xs text-slate-600">Size: {item.size.label}</p>}
 
                           <div className="flex items-center justify-between pt-2">
                             <div className="text-xs text-slate-500">

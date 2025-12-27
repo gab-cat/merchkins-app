@@ -1,6 +1,7 @@
 import { mutation } from '../../_generated/server';
 import { v } from 'convex/values';
 import { internal } from '../../_generated/api';
+import { logAction } from '../../helpers/utils';
 
 // Generate 6-digit OTP
 function generateOTP(): string {
@@ -9,6 +10,12 @@ function generateOTP(): string {
 
 // OTP expiry: 10 minutes
 const OTP_EXPIRY_MS = 10 * 60 * 1000;
+
+// Rate limiting constants
+// Rate window: 15 minutes (900000 ms)
+const RATE_WINDOW_MS = 15 * 60 * 1000;
+// Maximum OTP requests per rate window
+const MAX_OTPS_PER_WINDOW = 3;
 
 export const sendOTP = mutation({
   args: {
@@ -28,9 +35,45 @@ export const sendOTP = mutation({
       return { success: false, reason: 'Invalid email format' };
     }
 
+    // Rate limiting check: query recent OTP requests for this email
+    const now = Date.now();
+    const rateWindowStart = now - RATE_WINDOW_MS;
+
+    // Query recent codes using the composite index for performance
+    const recentCodes = await ctx.db
+      .query('emailVerificationCodes')
+      .withIndex('by_email_createdAt', (q) => q.eq('email', email).gte('createdAt', rateWindowStart))
+      .collect();
+
+    const recentCount = recentCodes.length;
+
+    // Enforce rate limit
+    if (recentCount >= MAX_OTPS_PER_WINDOW) {
+      // Log rate-limit event for monitoring
+      await logAction(
+        ctx,
+        'OTP_RATE_LIMIT_EXCEEDED',
+        'SECURITY_EVENT',
+        'MEDIUM',
+        `Rate limit exceeded for email: ${email}. ${recentCount} requests in the last ${RATE_WINDOW_MS / 1000 / 60} minutes`,
+        undefined, // userId
+        undefined, // organizationId
+        {
+          email,
+          recentCount,
+          rateWindowMs: RATE_WINDOW_MS,
+          maxOtpsPerWindow: MAX_OTPS_PER_WINDOW,
+        }
+      );
+
+      return {
+        success: false,
+        reason: 'Too many requests, try again later',
+      };
+    }
+
     // Generate OTP
     const code = generateOTP();
-    const now = Date.now();
 
     // Store OTP in database (reuse emailVerificationCodes table)
     await ctx.runMutation(internal.chatwoot.orderFlow.emailVerification.createVerificationCode, {

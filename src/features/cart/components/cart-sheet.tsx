@@ -21,6 +21,7 @@ import { ShoppingCart, Trash2, Plus, Minus, CreditCard, Sparkles, ArrowRight, Pa
 import { R2Image } from '@/src/components/ui/r2-image';
 import { showToast, promiseToast } from '@/lib/toast';
 import { BlurFade } from '@/src/components/ui/animations/effects';
+import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_CURRENCY } from '@/src/constants/business-info';
 
 type CartItem = {
   variantId?: string;
@@ -200,21 +201,33 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span>Subtotal ({totals.totalItems} items)</span>
                   <span className="font-medium">
-                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.totalValue)}
+                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: BUSINESS_CURRENCY }).format(totals.totalValue)}
                   </span>
                 </div>
                 <div className="h-px bg-border" />
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-foreground">Selected total</span>
                   <span className="text-xl font-bold text-primary font-heading">
-                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(totals.selectedValue)}
+                    {new Intl.NumberFormat(undefined, { style: 'currency', currency: BUSINESS_CURRENCY }).format(totals.selectedValue)}
                   </span>
+                </div>
+                <div className="pt-2 border-t border-border/50">
+                  <p className="text-xs text-muted-foreground">
+                    Currency: <span className="font-semibold text-primary">{BUSINESS_CURRENCY}</span>
+                  </p>
                 </div>
               </div>
             </div>
 
-            <SheetFooter className="shrink-0 gap-3 p-5 border-t bg-white">
-              <div className="flex w-full items-center gap-3">
+            <SheetFooter className="shrink-0 gap-3 p-5 border-t bg-white flex-col">
+              <div className="w-full px-1 pb-2 border-b border-border/50">
+                <p className="text-[10px] text-muted-foreground leading-tight">
+                  <span className="font-semibold">{BUSINESS_NAME}</span>
+                  <br />
+                  {BUSINESS_DESCRIPTION}
+                </p>
+              </div>
+              <div className="flex w-full items-center gap-3 pt-2">
                 <Button
                   variant="ghost"
                   size="sm"

@@ -46,6 +46,7 @@ import { showToast, promiseToast } from '@/lib/toast';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { BlurFade } from '@/src/components/ui/animations/effects';
 import { cn } from '@/lib/utils';
+import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_CURRENCY } from '@/src/constants/business-info';
 
 // Animation variants matching orders page
 const containerVariants = {
@@ -67,7 +68,7 @@ const itemVariants = {
 
 function formatCurrency(amount: number) {
   try {
-    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
+    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: BUSINESS_CURRENCY }).format(amount);
   } catch {
     return `₱${amount.toFixed(2)}`;
   }
@@ -362,6 +363,7 @@ export function CheckoutPage() {
   const me = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip');
   const guestCart = useGuestCartStore();
   const [guestUserId, setGuestUserId] = useState<string | null>(null);
+  const [guestEmail, setGuestEmail] = useState<string | null>(null);
   const [showGuestDialog, setShowGuestDialog] = useState(false);
 
   const [notes, setNotes] = useState('');
@@ -531,12 +533,10 @@ export function CheckoutPage() {
   // Email verification (guestUserId) is only required when placing the order
   const canCheckout = selectedItems.length > 0;
 
-  // Generate unique checkout ID for unified payment
+  // Generate unique checkout ID for unified payment using UUIDv4 (cryptographically secure)
   const generateCheckoutId = () => {
-    const d = new Date();
-    const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-    const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
-    return `CHK-${dateStr}-${rand}`;
+    // Use crypto.randomUUID() for cryptographically secure UUIDv4 generation
+    return crypto.randomUUID();
   };
 
   async function handlePlaceOrder() {
@@ -647,7 +647,25 @@ export function CheckoutPage() {
               voucherCode: shouldUseVoucher ? voucherCodeArg : undefined,
               voucherProportionalShare: voucherShareArg,
               checkoutId,
-            })
+            }).then(
+              (
+                result
+              ): {
+                orderId: Id<'orders'>;
+                orderNumber: string | undefined;
+                xenditInvoiceUrl: string | undefined;
+                xenditInvoiceId: string | undefined;
+                totalAmount: number;
+                checkoutId?: string;
+              } => ({
+                orderId: result.orderId,
+                orderNumber: result.orderNumber,
+                xenditInvoiceUrl: result.xenditInvoiceUrl,
+                xenditInvoiceId: result.xenditInvoiceId,
+                totalAmount: result.totalAmount,
+                checkoutId: result.checkoutId,
+              })
+            )
           );
         } else if (!isAuthenticated && guestUserId) {
           promises.push(
@@ -659,7 +677,25 @@ export function CheckoutPage() {
               voucherCode: shouldUseVoucher ? voucherCodeArg : undefined,
               voucherProportionalShare: voucherShareArg,
               checkoutId,
-            })
+            }).then(
+              (
+                result
+              ): {
+                orderId: Id<'orders'>;
+                orderNumber: string | undefined;
+                xenditInvoiceUrl: string | undefined;
+                xenditInvoiceId: string | undefined;
+                totalAmount: number;
+                checkoutId?: string;
+              } => ({
+                orderId: result.orderId,
+                orderNumber: result.orderNumber,
+                xenditInvoiceUrl: undefined,
+                xenditInvoiceId: undefined,
+                totalAmount: result.totalAmount,
+                checkoutId: result.checkoutId,
+              })
+            )
           );
         }
       }
@@ -714,12 +750,38 @@ export function CheckoutPage() {
 
       // Create unified Xendit invoice for all orders
       try {
-        const invoice = await createGroupedXenditInvoice({ checkoutId });
+        // For guest users, pass email for verification
+        const invoiceArgs: { checkoutId: string; email?: string } = { checkoutId };
+        if (!isAuthenticated && guestEmail) {
+          invoiceArgs.email = guestEmail;
+        }
+
+        const invoice = await createGroupedXenditInvoice(invoiceArgs);
         router.push(`/orders/payment/success?checkoutId=${checkoutId}`);
         // Redirect to Xendit payment page
         window.location.href = invoice.invoiceUrl;
       } catch (invoiceError) {
         console.error('Failed to create payment invoice:', invoiceError);
+
+        // Handle specific error types with user-friendly messages
+        const errorMessage = invoiceError instanceof Error ? invoiceError.message : 'Failed to create payment invoice';
+
+        let userMessage = errorMessage;
+        if (errorMessage.includes('expired')) {
+          userMessage = 'This checkout session has expired. Please start a new checkout.';
+        } else if (errorMessage.includes('Rate limit')) {
+          userMessage = 'Too many attempts. Please wait a few minutes before trying again.';
+        } else if (errorMessage.includes('already created')) {
+          userMessage = 'Payment link already created. Please check your email or try again later.';
+        } else if (errorMessage.includes('Email')) {
+          userMessage = 'Email verification failed. Please use the email associated with this checkout.';
+        } else if (errorMessage.includes('Invalid checkout')) {
+          userMessage = 'Invalid checkout session. Please start a new checkout.';
+        }
+
+        setError(userMessage);
+        showToast({ type: 'error', title: userMessage });
+
         // If invoice creation fails, redirect to success page with checkoutId
         // User can retry payment from there
         router.push(`/orders/payment/success?checkoutId=${checkoutId}`);
@@ -749,8 +811,9 @@ export function CheckoutPage() {
       <GuestCheckoutDialog
         open={showGuestDialog}
         onOpenChange={setShowGuestDialog}
-        onVerified={(userId) => {
+        onVerified={(userId, email) => {
           setGuestUserId(userId);
+          setGuestEmail(email);
           setShowGuestDialog(false);
         }}
       />
@@ -764,320 +827,336 @@ export function CheckoutPage() {
             </Link>
           </BlurFade>
 
-        {/* Header */}
-        <BlurFade delay={0.1}>
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2.5 rounded-xl bg-[#1d43d8]/10">
-                <Receipt className="h-6 w-6 text-[#1d43d8]" />
+          {/* Header */}
+          <BlurFade delay={0.1}>
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2.5 rounded-xl bg-[#1d43d8]/10">
+                  <Receipt className="h-6 w-6 text-[#1d43d8]" />
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold font-heading tracking-tight text-slate-900">Checkout</h1>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold font-heading tracking-tight text-slate-900">Checkout</h1>
+              <p className="text-slate-500">Review your order and complete your purchase</p>
             </div>
-            <p className="text-slate-500">Review your order and complete your purchase</p>
-          </div>
-        </BlurFade>
+          </BlurFade>
 
-        {/* Progress indicator */}
-        <BlurFade delay={0.15}>
-          <CheckoutProgress currentStep={1} />
-        </BlurFade>
+          {/* Progress indicator */}
+          <BlurFade delay={0.15}>
+            <CheckoutProgress currentStep={1} />
+          </BlurFade>
 
-        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid gap-8 lg:grid-cols-3">
-          {/* Left column - Order items */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Review items */}
-            <motion.div variants={itemVariants}>
-              <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                {/* Section header */}
-                <div className="px-4 py-3 sm:px-5 sm:py-4 bg-slate-50/80 border-b border-slate-100">
-                  <div className="flex items-center justify-between">
+          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid gap-8 lg:grid-cols-3">
+            {/* Left column - Order items */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Review items */}
+              <motion.div variants={itemVariants}>
+                <div className="rounded-2xl border border-slate-100 overflow-hidden">
+                  {/* Section header */}
+                  <div className="px-4 py-3 sm:px-5 sm:py-4 bg-slate-50/80 border-b border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
+                          <ListChecks className="h-4 w-4 text-[#1d43d8]" />
+                        </div>
+                        <h2 className="font-bold text-slate-900">Review Items</h2>
+                      </div>
+                      <span className="text-sm text-slate-500 bg-white px-2.5 py-1 rounded-full border border-slate-100">
+                        {totals.quantity} item{totals.quantity !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Items by organization */}
+                  <div className="p-4 sm:p-5 space-y-6">
+                    {Object.entries(selectedByOrg).map(([orgId, group]) => (
+                      <motion.div key={orgId} variants={itemVariants} className="space-y-3">
+                        {/* Store header */}
+                        <div className="flex items-center gap-2">
+                          <Store className="h-4 w-4 text-[#1d43d8]" />
+                          <span className="text-sm font-semibold text-slate-700">{group.name}</span>
+                          <div className="h-px flex-1 bg-slate-100" />
+                          <span className="text-xs text-slate-400">
+                            {group.items.length} item{group.items.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+
+                        {/* Items */}
+                        <div className="space-y-2">
+                          {group.items.map((item) => (
+                            <CheckoutItem
+                              key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
+                              item={item as CheckoutItemProps['item']}
+                            />
+                          ))}
+                        </div>
+
+                        {/* Store subtotal */}
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                          <span className="text-sm text-slate-500">Store subtotal</span>
+                          <span className="font-semibold text-slate-900">
+                            {formatCurrency(group.items.reduce((s, i) => s + i.quantity * i.productInfo.price, 0))}
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Voucher code */}
+              <motion.div variants={itemVariants}>
+                <div className="rounded-2xl border border-slate-100 overflow-hidden">
+                  <div className="px-4 py-3 sm:px-5 sm:py-4 bg-slate-50/80 border-b border-slate-100">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
-                        <ListChecks className="h-4 w-4 text-[#1d43d8]" />
+                        <Ticket className="h-4 w-4 text-[#1d43d8]" />
                       </div>
-                      <h2 className="font-bold text-slate-900">Review Items</h2>
-                    </div>
-                    <span className="text-sm text-slate-500 bg-white px-2.5 py-1 rounded-full border border-slate-100">
-                      {totals.quantity} item{totals.quantity !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Items by organization */}
-                <div className="p-4 sm:p-5 space-y-6">
-                  {Object.entries(selectedByOrg).map(([orgId, group]) => (
-                    <motion.div key={orgId} variants={itemVariants} className="space-y-3">
-                      {/* Store header */}
-                      <div className="flex items-center gap-2">
-                        <Store className="h-4 w-4 text-[#1d43d8]" />
-                        <span className="text-sm font-semibold text-slate-700">{group.name}</span>
-                        <div className="h-px flex-1 bg-slate-100" />
-                        <span className="text-xs text-slate-400">
-                          {group.items.length} item{group.items.length !== 1 ? 's' : ''}
-                        </span>
+                      <div>
+                        <h2 className="font-bold text-slate-900">Voucher Code</h2>
+                        <p className="text-xs text-slate-500">Have a promo code? Apply it here</p>
                       </div>
-
-                      {/* Items */}
-                      <div className="space-y-2">
-                        {group.items.map((item) => (
-                          <CheckoutItem
-                            key={`${String(item.productInfo.productId)}::${item.productInfo.variantName ?? 'default'}`}
-                            item={item as CheckoutItemProps['item']}
-                          />
-                        ))}
-                      </div>
-
-                      {/* Store subtotal */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <span className="text-sm text-slate-500">Store subtotal</span>
-                        <span className="font-semibold text-slate-900">
-                          {formatCurrency(group.items.reduce((s, i) => s + i.quantity * i.productInfo.price, 0))}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Voucher code */}
-            <motion.div variants={itemVariants}>
-              <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                <div className="px-4 py-3 sm:px-5 sm:py-4 bg-slate-50/80 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
-                      <Ticket className="h-4 w-4 text-[#1d43d8]" />
-                    </div>
-                    <div>
-                      <h2 className="font-bold text-slate-900">Voucher Code</h2>
-                      <p className="text-xs text-slate-500">Have a promo code? Apply it here</p>
                     </div>
                   </div>
-                </div>
-                <div className="p-4 sm:p-5 space-y-4">
-                  {/* Applied voucher display */}
-                  <AnimatePresence mode="wait">
-                    {appliedVoucher ? (
-                      <motion.div
-                        key="applied"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-[#adfc04]/10 border border-emerald-200"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-emerald-100">
-                            {appliedVoucher.discountType === 'PERCENTAGE' ? (
-                              <Percent className="h-4 w-4 text-emerald-600" />
-                            ) : appliedVoucher.discountType === 'FREE_ITEM' ? (
-                              <Gift className="h-4 w-4 text-emerald-600" />
-                            ) : appliedVoucher.discountType === 'FREE_SHIPPING' ? (
-                              <Truck className="h-4 w-4 text-emerald-600" />
-                            ) : (
-                              <Tag className="h-4 w-4 text-emerald-600" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-emerald-700">{appliedVoucher.code}</span>
-                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                            </div>
-                            <p className="text-xs text-emerald-600">{appliedVoucher.name}</p>
-                            {appliedVoucher.discountAmount > 0 && (
-                              <p className="text-sm font-medium text-emerald-700 mt-1">-{formatCurrency(appliedVoucher.discountAmount)} off</p>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleRemoveVoucher}
-                          className="h-8 w-8 p-0 rounded-full hover:bg-red-100 hover:text-red-600 transition-colors"
+                  <div className="p-4 sm:p-5 space-y-4">
+                    {/* Applied voucher display */}
+                    <AnimatePresence mode="wait">
+                      {appliedVoucher ? (
+                        <motion.div
+                          key="applied"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-[#adfc04]/10 border border-emerald-200"
                         >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="input"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="space-y-3"
-                      >
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
-                            <Input
-                              placeholder="Enter voucher code"
-                              value={voucherInput}
-                              onChange={(e) => {
-                                setVoucherInput(e.target.value.toUpperCase());
-                                if (voucherError) setVoucherError(null);
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  handleApplyVoucher();
-                                }
-                              }}
-                              className={cn(
-                                'uppercase font-mono text-sm tracking-wider rounded-xl border-slate-200 focus:border-[#1d43d8]/30 focus:ring-[#1d43d8]/10',
-                                voucherError && 'border-red-300 focus:border-red-300 focus:ring-red-100'
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-emerald-100">
+                              {appliedVoucher.discountType === 'PERCENTAGE' ? (
+                                <Percent className="h-4 w-4 text-emerald-600" />
+                              ) : appliedVoucher.discountType === 'FREE_ITEM' ? (
+                                <Gift className="h-4 w-4 text-emerald-600" />
+                              ) : appliedVoucher.discountType === 'FREE_SHIPPING' ? (
+                                <Truck className="h-4 w-4 text-emerald-600" />
+                              ) : (
+                                <Tag className="h-4 w-4 text-emerald-600" />
                               )}
-                              disabled={isValidatingVoucher}
-                            />
-                            {voucherInput && !isValidatingVoucher && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setVoucherInput('');
-                                  setVoucherError(null);
-                                }}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                            )}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-emerald-700">{appliedVoucher.code}</span>
+                                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                              </div>
+                              <p className="text-xs text-emerald-600">{appliedVoucher.name}</p>
+                              {appliedVoucher.discountAmount > 0 && (
+                                <p className="text-sm font-medium text-emerald-700 mt-1">-{formatCurrency(appliedVoucher.discountAmount)} off</p>
+                              )}
+                            </div>
                           </div>
                           <Button
-                            onClick={handleApplyVoucher}
-                            disabled={!voucherInput.trim() || isValidatingVoucher}
-                            className="rounded-full bg-[#1d43d8] hover:bg-[#1d43d8]/90 px-5 disabled:bg-slate-200 disabled:text-slate-500"
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRemoveVoucher}
+                            className="h-8 w-8 p-0 rounded-full hover:bg-red-100 hover:text-red-600 transition-colors"
                           >
-                            {isValidatingVoucher ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+                            <X className="h-4 w-4" />
                           </Button>
-                        </div>
-
-                        {/* Voucher error */}
-                        <AnimatePresence>
-                          {voucherError && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="flex items-center gap-2 text-sm text-red-600"
-                            >
-                              <AlertCircle className="h-4 w-4 shrink-0" />
-                              <span>{voucherError}</span>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Order notes */}
-            <motion.div variants={itemVariants}>
-              <div className="rounded-2xl border border-slate-100 overflow-hidden">
-                <div className="px-4 py-3 sm:px-5 sm:py-4 bg-slate-50/80 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
-                      <StickyNote className="h-4 w-4 text-[#1d43d8]" />
-                    </div>
-                    <div>
-                      <h2 className="font-bold text-slate-900">Order Notes</h2>
-                      <p className="text-xs text-slate-500">Add special instructions (optional)</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 sm:p-5">
-                  <Textarea
-                    placeholder="Any special requests or delivery instructions..."
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="min-h-24 rounded-xl border-slate-200 focus:border-[#1d43d8]/30 focus:ring-[#1d43d8]/10 resize-none"
-                  />
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Right column - Order summary */}
-          <div className="space-y-6">
-            {/* Summary card */}
-            <motion.div variants={itemVariants}>
-              <Card className="sticky top-24 rounded-2xl pt-0 border border-slate-100 overflow-hidden shadow-sm">
-                {/* Header */}
-                <div className="px-4 py-3 sm:px-5 sm:py-4 bg-gradient-to-br from-[#1d43d8]/5 to-[#adfc04]/5 border-b border-slate-100">
-                  <div className="flex items-center gap-2 text-[#1d43d8]">
-                    <Sparkles className="h-5 w-5" />
-                    <h2 className="font-bold">Order Summary</h2>
-                  </div>
-                </div>
-
-                <CardContent className="p-4 sm:p-5">
-                  <div className="space-y-4">
-                    {/* Shop subtotals */}
-                    {shopSubtotals.map((shop) => (
-                      <div key={shop.orgId} className="flex items-center justify-between text-sm gap-3">
-                        <span className="flex items-center gap-2 text-slate-600 min-w-0 flex-1">
-                          <Store className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                          <span className="truncate">{shop.name}</span>
-                          <span className="text-slate-400 shrink-0">({shop.quantity})</span>
-                        </span>
-                        <span className="font-medium text-slate-900 shrink-0">{formatCurrency(shop.amount)}</span>
-                      </div>
-                    ))}
-
-                    <div className="h-px bg-slate-100" />
-
-                    {/* Shipping estimate */}
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-slate-600">
-                        <Truck className="h-3.5 w-3.5 text-slate-400" />
-                        Shipping
-                      </span>
-                      <span className="text-slate-500 text-xs">Calculated at payment</span>
-                    </div>
-
-                    {/* Voucher discount */}
-                    <AnimatePresence>
-                      {appliedVoucher && appliedVoucher.discountAmount > 0 && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-                          <div className="flex items-center justify-between text-sm gap-3">
-                            <span className="flex items-center gap-2 text-emerald-600 min-w-0 flex-1">
-                              <Ticket className="h-3.5 w-3.5 shrink-0" />
-                              <span className="truncate">Voucher ({appliedVoucher.code})</span>
-                            </span>
-                            <span className="font-medium text-emerald-600 shrink-0">-{formatCurrency(appliedVoucher.discountAmount)}</span>
-                          </div>
                         </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    <div className="h-px bg-slate-100" />
-
-                    {/* Total */}
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="font-semibold text-slate-900">Total</span>
-                      <div className="text-right">
-                        {appliedVoucher && appliedVoucher.discountAmount > 0 && (
-                          <p className="text-sm text-slate-400 line-through">{formatCurrency(totals.amount)}</p>
-                        )}
-                        <span className="text-2xl font-bold text-[#1d43d8]">{formatCurrency(totalsWithDiscount.total)}</span>
-                      </div>
-                    </div>
-
-                    {/* Error message */}
-                    <AnimatePresence>
-                      {error && (
+                      ) : (
                         <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="flex items-start gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-xl border border-red-100"
+                          key="input"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          className="space-y-3"
                         >
-                          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                          <span>{error}</span>
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <Input
+                                placeholder="Enter voucher code"
+                                value={voucherInput}
+                                onChange={(e) => {
+                                  setVoucherInput(e.target.value.toUpperCase());
+                                  if (voucherError) setVoucherError(null);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleApplyVoucher();
+                                  }
+                                }}
+                                className={cn(
+                                  'uppercase font-mono text-sm tracking-wider rounded-xl border-slate-200 focus:border-[#1d43d8]/30 focus:ring-[#1d43d8]/10',
+                                  voucherError && 'border-red-300 focus:border-red-300 focus:ring-red-100'
+                                )}
+                                disabled={isValidatingVoucher}
+                              />
+                              {voucherInput && !isValidatingVoucher && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setVoucherInput('');
+                                    setVoucherError(null);
+                                  }}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              )}
+                            </div>
+                            <Button
+                              onClick={handleApplyVoucher}
+                              disabled={!voucherInput.trim() || isValidatingVoucher}
+                              className="rounded-full bg-[#1d43d8] hover:bg-[#1d43d8]/90 px-5 disabled:bg-slate-200 disabled:text-slate-500"
+                            >
+                              {isValidatingVoucher ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+                            </Button>
+                          </div>
+
+                          {/* Voucher error */}
+                          <AnimatePresence>
+                            {voucherError && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="flex items-center gap-2 text-sm text-red-600"
+                              >
+                                <AlertCircle className="h-4 w-4 shrink-0" />
+                                <span>{voucherError}</span>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </motion.div>
                       )}
                     </AnimatePresence>
+                  </div>
+                </div>
+              </motion.div>
 
-                    {/* Refund Policy Notice */}
-                    {/* <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-100">
+              {/* Order notes */}
+              <motion.div variants={itemVariants}>
+                <div className="rounded-2xl border border-slate-100 overflow-hidden">
+                  <div className="px-4 py-3 sm:px-5 sm:py-4 bg-slate-50/80 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-white shadow-sm border border-slate-100">
+                        <StickyNote className="h-4 w-4 text-[#1d43d8]" />
+                      </div>
+                      <div>
+                        <h2 className="font-bold text-slate-900">Order Notes</h2>
+                        <p className="text-xs text-slate-500">Add special instructions (optional)</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4 sm:p-5">
+                    <Textarea
+                      placeholder="Any special requests or delivery instructions..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="min-h-24 rounded-xl border-slate-200 focus:border-[#1d43d8]/30 focus:ring-[#1d43d8]/10 resize-none"
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Right column - Order summary */}
+            <div className="space-y-6">
+              {/* Summary card */}
+              <motion.div variants={itemVariants}>
+                <Card className="sticky top-24 rounded-2xl pt-0 border border-slate-100 overflow-hidden shadow-sm">
+                  {/* Header */}
+                  <div className="px-4 py-3 sm:px-5 sm:py-4 bg-gradient-to-br from-[#1d43d8]/5 to-[#adfc04]/5 border-b border-slate-100">
+                    <div className="flex items-center gap-2 text-[#1d43d8]">
+                      <Sparkles className="h-5 w-5" />
+                      <h2 className="font-bold">Order Summary</h2>
+                    </div>
+                  </div>
+
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="space-y-4">
+                      {/* Shop subtotals */}
+                      {shopSubtotals.map((shop) => (
+                        <div key={shop.orgId} className="flex items-center justify-between text-sm gap-3">
+                          <span className="flex items-center gap-2 text-slate-600 min-w-0 flex-1">
+                            <Store className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                            <span className="truncate">{shop.name}</span>
+                            <span className="text-slate-400 shrink-0">({shop.quantity})</span>
+                          </span>
+                          <span className="font-medium text-slate-900 shrink-0">{formatCurrency(shop.amount)}</span>
+                        </div>
+                      ))}
+
+                      <div className="h-px bg-slate-100" />
+
+                      {/* Shipping estimate */}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-2 text-slate-600">
+                          <Truck className="h-3.5 w-3.5 text-slate-400" />
+                          Shipping
+                        </span>
+                        <span className="text-slate-500 text-xs">Calculated at payment</span>
+                      </div>
+
+                      {/* Voucher discount */}
+                      <AnimatePresence>
+                        {appliedVoucher && appliedVoucher.discountAmount > 0 && (
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                            <div className="flex items-center justify-between text-sm gap-3">
+                              <span className="flex items-center gap-2 text-emerald-600 min-w-0 flex-1">
+                                <Ticket className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">Voucher ({appliedVoucher.code})</span>
+                              </span>
+                              <span className="font-medium text-emerald-600 shrink-0">-{formatCurrency(appliedVoucher.discountAmount)}</span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <div className="h-px bg-slate-100" />
+
+                      {/* Total */}
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="font-semibold text-slate-900">Total</span>
+                        <div className="text-right">
+                          {appliedVoucher && appliedVoucher.discountAmount > 0 && (
+                            <p className="text-sm text-slate-400 line-through">{formatCurrency(totals.amount)}</p>
+                          )}
+                          <span className="text-2xl font-bold text-[#1d43d8]">{formatCurrency(totalsWithDiscount.total)}</span>
+                        </div>
+                      </div>
+
+                      {/* Currency indicator */}
+                      <div className="pt-2 border-t border-slate-100">
+                        <p className="text-xs text-slate-500">
+                          Currency: <span className="font-semibold text-[#1d43d8]">{BUSINESS_CURRENCY}</span>
+                        </p>
+                      </div>
+
+                      {/* Business info */}
+                      <div className="pt-2 border-t border-slate-100">
+                        <p className="text-[10px] text-slate-500 leading-tight">
+                          <span className="font-semibold">{BUSINESS_NAME}</span>
+                          <br />
+                          {BUSINESS_DESCRIPTION}
+                        </p>
+                      </div>
+
+                      {/* Error message */}
+                      <AnimatePresence>
+                        {error && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="flex items-start gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-xl border border-red-100"
+                          >
+                            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                            <span>{error}</span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* Refund Policy Notice */}
+                      {/* <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-100">
                       <Gift className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                       <div>
                         <span className="font-medium">Voucher-Only Refunds:</span>{' '}
@@ -1088,118 +1167,118 @@ export function CheckoutPage() {
                       </div>
                     </div> */}
 
-                    {/* Terms agreement */}
-                    <div className="flex items-start gap-3 pt-2">
-                      <Checkbox
-                        id="terms-agreement"
-                        checked={agreeToTerms}
-                        onCheckedChange={(checked) => setAgreeToTerms(checked === true)}
+                      {/* Terms agreement */}
+                      <div className="flex items-start gap-3 pt-2">
+                        <Checkbox
+                          id="terms-agreement"
+                          checked={agreeToTerms}
+                          onCheckedChange={(checked) => setAgreeToTerms(checked === true)}
+                          className={cn(
+                            'mt-0.5 h-5 w-5 rounded-md border-2 transition-colors',
+                            !agreeToTerms ? 'border-slate-300' : 'border-[#1d43d8] data-[state=checked]:bg-[#1d43d8]'
+                          )}
+                        />
+                        <label htmlFor="terms-agreement" className="text-sm text-slate-600 leading-relaxed cursor-pointer">
+                          I agree to the{' '}
+                          <Link href="/terms" className="text-[#1d43d8] hover:underline font-medium">
+                            Terms of Service
+                          </Link>{' '}
+                          and{' '}
+                          <Link href="/privacy" className="text-[#1d43d8] hover:underline font-medium">
+                            Privacy Policy
+                          </Link>
+                          . Refunds may be issued as platform vouchers for convenience, subject to your statutory rights to monetary refunds where
+                          required by Philippine consumer protection laws (R.A. 7394 and R.A. 8792). Seller-initiated cancellations are processed
+                          promptly with immediate monetary refunds as required by law.{' '}
+                          <Link href="/returns" className="text-[#1d43d8] hover:underline font-medium">
+                            Learn more
+                          </Link>
+                        </label>
+                      </div>
+
+                      {/* Place order button */}
+                      <Button
                         className={cn(
-                          'mt-0.5 h-5 w-5 rounded-md border-2 transition-colors',
-                          !agreeToTerms ? 'border-slate-300' : 'border-[#1d43d8] data-[state=checked]:bg-[#1d43d8]'
+                          'group relative w-full h-12 rounded-full text-base font-semibold transition-all duration-300 overflow-hidden mt-2',
+                          agreeToTerms
+                            ? 'bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-lg shadow-[#1d43d8]/25 hover:shadow-xl hover:shadow-[#1d43d8]/30'
+                            : 'bg-slate-200 text-slate-500 cursor-not-allowed'
                         )}
-                      />
-                      <label htmlFor="terms-agreement" className="text-sm text-slate-600 leading-relaxed cursor-pointer">
-                        I agree to the{' '}
-                        <Link href="/terms" className="text-[#1d43d8] hover:underline font-medium">
-                          Terms of Service
-                        </Link>{' '}
-                        and{' '}
-                        <Link href="/privacy" className="text-[#1d43d8] hover:underline font-medium">
-                          Privacy Policy
-                        </Link>
-                        . Refunds may be issued as platform vouchers for convenience, subject to your statutory rights to monetary refunds where
-                        required by Philippine consumer protection laws (R.A. 7394 and R.A. 8792). Seller-initiated cancellations are processed
-                        promptly with immediate monetary refunds as required by law.{' '}
-                        <Link href="/returns" className="text-[#1d43d8] hover:underline font-medium">
-                          Learn more
-                        </Link>
-                      </label>
+                        onClick={handlePlaceOrder}
+                        disabled={isPlacing || !agreeToTerms}
+                      >
+                        {isPlacing ? (
+                          <>
+                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingBag className="h-4 w-4 mr-2" />
+                            Place Order
+                            <ChevronRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
+                            {/* Shimmer effect */}
+                            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                          </>
+                        )}
+                      </Button>
+
+                      {/* Terms warning */}
+                      <AnimatePresence>
+                        {!agreeToTerms && (
+                          <motion.p
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="text-xs text-amber-600 text-center flex items-center justify-center gap-1"
+                          >
+                            <Clock className="h-3 w-3" />
+                            Please agree to the terms to continue
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Trust badges */}
+              <motion.div variants={itemVariants}>
+                <Card className="rounded-2xl border border-slate-100 overflow-hidden">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-lg bg-emerald-50">
+                        <Shield className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm text-slate-900">Secure Checkout</h3>
+                        <p className="text-xs text-slate-500">Your data is protected</p>
+                      </div>
                     </div>
 
-                    {/* Place order button */}
-                    <Button
-                      className={cn(
-                        'group relative w-full h-12 rounded-full text-base font-semibold transition-all duration-300 overflow-hidden mt-2',
-                        agreeToTerms
-                          ? 'bg-[#1d43d8] hover:bg-[#1d43d8]/90 shadow-lg shadow-[#1d43d8]/25 hover:shadow-xl hover:shadow-[#1d43d8]/30'
-                          : 'bg-slate-200 text-slate-500 cursor-not-allowed'
-                      )}
-                      onClick={handlePlaceOrder}
-                      disabled={isPlacing || !agreeToTerms}
-                    >
-                      {isPlacing ? (
-                        <>
-                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingBag className="h-4 w-4 mr-2" />
-                          Place Order
-                          <ChevronRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
-                          {/* Shimmer effect */}
-                          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                        </>
-                      )}
-                    </Button>
-
-                    {/* Terms warning */}
-                    <AnimatePresence>
-                      {!agreeToTerms && (
-                        <motion.p
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="text-xs text-amber-600 text-center flex items-center justify-center gap-1"
-                        >
-                          <Clock className="h-3 w-3" />
-                          Please agree to the terms to continue
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Trust badges */}
-            <motion.div variants={itemVariants}>
-              <Card className="rounded-2xl border border-slate-100 overflow-hidden">
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-emerald-50">
-                      <Shield className="h-5 w-5 text-emerald-600" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        <span className="text-xs text-slate-600">SSL Encrypted</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        <span className="text-xs text-slate-600">Safe Payment</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        <span className="text-xs text-slate-600">Money Back</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        <span className="text-xs text-slate-600">24/7 Support</span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-sm text-slate-900">Secure Checkout</h3>
-                      <p className="text-xs text-slate-500">Your data is protected</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span className="text-xs text-slate-600">SSL Encrypted</span>
-                    </div>
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span className="text-xs text-slate-600">Safe Payment</span>
-                    </div>
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span className="text-xs text-slate-600">Money Back</span>
-                    </div>
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      <span className="text-xs text-slate-600">24/7 Support</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-        </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </>

@@ -14,7 +14,7 @@ import { Mail, CheckCircle2, Loader2, ArrowRight, Shield, Clock, Package } from 
 interface GuestCheckoutDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onVerified: (userId: string) => void;
+  onVerified: (userId: string, email: string) => void;
 }
 
 type Step = 'email' | 'otp';
@@ -107,7 +107,7 @@ export function GuestCheckoutDialog({ open, onOpenChange, onVerified }: GuestChe
 
         if (result.userId) {
           showToast({ type: 'success', title: 'Email verified!' });
-          onVerified(result.userId);
+          onVerified(result.userId, email.trim());
           onOpenChange(false);
           // Reset state
           setStep('email');

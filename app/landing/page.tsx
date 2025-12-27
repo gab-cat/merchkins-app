@@ -7,6 +7,7 @@ import { StatsSection } from '@/src/components/landing/StatsSection';
 import { ProcessSection } from '@/src/components/landing/ProcessSection';
 import { ServicesSection } from '@/src/components/landing/ServicesSection';
 import Head from 'next/head';
+import { BUSINESS_NAME, BUSINESS_DESCRIPTION } from '@/src/constants/business-info';
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://merchkins.com';
 
@@ -15,9 +16,9 @@ export default function LandingPage() {
   const websiteJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Merchkins',
+    name: BUSINESS_NAME,
     url: baseUrl,
-    description: 'Create, manage, and fulfill custom merchandise for your organization.',
+    description: BUSINESS_DESCRIPTION,
     potentialAction: {
       '@type': 'SearchAction',
       target: {
@@ -31,10 +32,10 @@ export default function LandingPage() {
   const organizationJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Merchkins',
+    name: BUSINESS_NAME,
     url: baseUrl,
     logo: `${baseUrl}/favicon.ico`,
-    description: 'Custom merch made easy — create, manage, and fulfill merchandise for your organization.',
+    description: BUSINESS_DESCRIPTION,
     sameAs: [
       // Add social media URLs when available
     ],

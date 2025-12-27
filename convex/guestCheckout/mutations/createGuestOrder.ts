@@ -109,7 +109,7 @@ export const createGuestOrder = mutation({
       orderId,
       orderNumber: createdOrder.orderNumber,
       totalAmount: createdOrder.totalAmount,
-      voucherApplied: !!args.voucherCode,
+      voucherApplied: Boolean(createdOrder.voucherDiscount),
       voucherDiscount: createdOrder.voucherDiscount,
       checkoutId: createdOrder.checkoutId,
     };

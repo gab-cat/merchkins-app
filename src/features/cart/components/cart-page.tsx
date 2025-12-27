@@ -35,6 +35,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BlurFade } from '@/src/components/ui/animations/effects';
+import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_CURRENCY } from '@/src/constants/business-info';
 
 // Animation variants
 const containerVariants = {
@@ -56,7 +57,7 @@ const itemVariants = {
 
 function formatCurrency(amount: number) {
   try {
-    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
+    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: BUSINESS_CURRENCY }).format(amount);
   } catch {
     return `₱${amount.toFixed(2)}`;
   }
@@ -400,6 +401,13 @@ export function CartPage() {
                       <span className="text-2xl font-bold text-[#1d43d8]">{formatCurrency(totals.selectedValue)}</span>
                     </div>
 
+                    {/* Currency indicator */}
+                    <div className="pt-2 border-t border-slate-100">
+                      <p className="text-xs text-slate-500">
+                        Currency: <span className="font-semibold text-[#1d43d8]">{BUSINESS_CURRENCY}</span>
+                      </p>
+                    </div>
+
                     {/* Selection info */}
                     {totals.selectedItems > 0 && (
                       <p className="text-xs text-slate-500 flex items-center gap-1">
@@ -439,6 +447,15 @@ export function CartPage() {
                         )}
                       </Button>
                     </Link>
+
+                    {/* Business info */}
+                    <div className="pt-2 border-t border-slate-100">
+                      <p className="text-[10px] text-slate-500 leading-tight">
+                        <span className="font-semibold">{BUSINESS_NAME}</span>
+                        <br />
+                        {BUSINESS_DESCRIPTION}
+                      </p>
+                    </div>
 
                     {/* Warning when nothing selected */}
                     <AnimatePresence>

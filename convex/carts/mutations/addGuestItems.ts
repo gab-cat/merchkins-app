@@ -64,6 +64,9 @@ export const addGuestItems = mutation({
       let variantInventory = product.inventory;
 
       if (item.variantId) {
+        if (!product.variants || product.variants.length === 0) {
+          continue; // Skip if product has no variants defined
+        }
         const variant = product.variants.find((v) => v.variantId === item.variantId);
         if (!variant || !variant.isActive) {
           continue; // Skip invalid/inactive variants
@@ -94,12 +97,13 @@ export const addGuestItems = mutation({
       }
 
       // Only check inventory for STOCK items
-      if (product.inventoryType === 'STOCK' && variantInventory <= 0) {
+      if (product.inventoryType === 'STOCK' && (variantInventory === undefined || variantInventory <= 0)) {
         continue; // Skip out of stock items
       }
 
       // Only limit quantity for STOCK items
-      const quantityToAdd = product.inventoryType === 'STOCK' ? Math.min(item.quantity, variantInventory) : item.quantity;
+      const quantityToAdd =
+        product.inventoryType === 'STOCK' && variantInventory !== undefined ? Math.min(item.quantity, variantInventory) : item.quantity;
 
       // Add item to cart
       newItems.push({
@@ -139,11 +143,14 @@ export const addGuestItems = mutation({
     let selectedValue = 0;
 
     for (const item of newItems) {
+      const price = typeof item.size?.price === 'number' ? item.size.price : item.productInfo.price;
+      const itemValue = price * item.quantity;
+
       totalItems += item.quantity;
-      totalValue += item.productInfo.price * item.quantity;
+      totalValue += itemValue;
       if (item.selected) {
         selectedItems += item.quantity;
-        selectedValue += item.productInfo.price * item.quantity;
+        selectedValue += itemValue;
       }
     }
 

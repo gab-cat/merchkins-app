@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ShoppingCart, Search, Building2, Package, User as UserIcon, ArrowRight, ArrowLeft, Sparkles, LogIn } from 'lucide-react';
+import { ShoppingCart, Search, Building2, Package, User as UserIcon, ArrowRight, ArrowLeft, Sparkles, LogIn, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,7 @@ import {
   useNavbarScroll,
 } from '@/src/components/ui/resizable-navbar';
 import { useOrgLink } from '@/src/hooks/use-org-link';
+import { BUSINESS_NAME, BUSINESS_CURRENCY, BUSINESS_DTI_NUMBER } from '@/src/constants/business-info';
 
 export function SiteHeader() {
   const router = useRouter();
@@ -229,13 +230,14 @@ function SiteHeaderContent({
       )}
 
       <NavBody>
-        {/* Logo with enhanced styling */}
-        <div className="flex items-center gap-4">
+        {/* Left side: Logo with Business Info */}
+        <div className="flex items-center gap-3 md:gap-4">
           <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
             <Link
               href={buildOrgLink('/')}
               className="flex items-center gap-2 font-bold tracking-tight transition-all duration-300 group relative"
               style={{ color: isScrolled ? 'white' : shouldApplyTheme ? 'var(--foreground)' : 'var(--foreground)' }}
+              title={BUSINESS_NAME}
             >
               {!shouldApplyTheme && !isScrolled && (
                 <>
@@ -284,34 +286,55 @@ function SiteHeaderContent({
               </span>
             </Link>
           </motion.div>
+          
+          {/* Business name and DTI number - displayed prominently */}
+          {!shouldApplyTheme && !isScrolled && (
+            <div className="hidden md:flex flex-col gap-0.5 max-w-[220px]">
+              <p className={cn('text-[10px] leading-tight text-muted-foreground break-words')}>
+                {BUSINESS_NAME}
+              </p>
+              <p className={cn('text-[10px] leading-tight text-muted-foreground')}>
+                DTI No.: <span className="font-semibold text-foreground">{BUSINESS_DTI_NUMBER}</span>
+              </p>
+            </div>
+          )}
 
-          {/* Home button - shown when on storefront or using another store's theme, hidden when compressed */}
+          {/* Center: Navigation Items - less prominent, smaller text links */}
+          {!isScrolled && (
+            <div className="hidden lg:flex items-center gap-1 ml-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.link}
+                  className={cn(
+                    'px-2 py-1 text-xs font-medium transition-colors rounded-md',
+                    shouldApplyTheme
+                      ? 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                      : 'text-muted-foreground/80 hover:text-foreground hover:bg-white/5'
+                  )}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* Home button - shown when on storefront, less prominent */}
           {showHomeButton && !isScrolled && (
-            <Button
-              asChild
-              variant="ghost"
-              size="sm"
+            <Link
+              href={process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.merchkins.com'}
               className={cn(
-                'gap-1.5 text-xs px-2.5 h-9 hover:opacity-80 transition-all',
-                shouldApplyTheme ? 'text-primary' : 'text-white hover:text-brand-neon'
+                'hidden lg:flex items-center gap-1 px-2 py-1 text-xs font-medium transition-colors rounded-md',
+                shouldApplyTheme
+                  ? 'text-muted-foreground hover:text-primary hover:bg-primary/5'
+                  : 'text-muted-foreground/80 hover:text-foreground hover:bg-white/5'
               )}
               aria-label="Go back home"
             >
-              <Link className="text-xs!" href={process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.merchkins.com'}>
-                <ArrowLeft className="h-2 w-2" />
-                <span className="hidden sm:inline text-xs">Go back home</span>
-              </Link>
-            </Button>
-          )}
-
-          {/* Navigation Items - hidden when compressed */}
-          {!isScrolled && (
-            <NavItems
-              items={navItems}
-              onItemClick={() => setMobileMenuOpen(false)}
-              textColor={shouldApplyTheme ? 'text-foreground' : 'text-foreground'}
-              hoverColor={shouldApplyTheme ? 'hover:text-primary' : 'hover:text-primary'}
-            />
+              <ArrowLeft className="h-3 w-3" />
+              <span>Home</span>
+            </Link>
           )}
         </div>
 
@@ -410,6 +433,22 @@ function SiteHeaderContent({
               </motion.div>
             )}
           </SignedIn>
+
+          {/* Currency Indicator - shown beside cart */}
+          {!shouldApplyTheme && (
+            <div className={cn(
+              'hidden md:flex items-center gap-1.5 px-2.5 h-9 rounded-lg text-xs font-medium transition-colors',
+              isScrolled
+                ? 'text-white/80'
+                : 'text-muted-foreground'
+            )}>
+              <DollarSign className={cn(
+                'h-3.5 w-3.5',
+                isScrolled ? 'text-white/80' : 'text-muted-foreground'
+              )} />
+              <span>{BUSINESS_CURRENCY}</span>
+            </div>
+          )}
 
           {/* Cart Sheet - Show for both authenticated and unauthenticated users */}
           <CartSheet initialCount={totalItems}>

@@ -93,6 +93,7 @@ import type * as chatwoot_types from "../chatwoot/types.js";
 import type * as checkoutSessions_index from "../checkoutSessions/index.js";
 import type * as checkoutSessions_mutations_createCheckoutSession from "../checkoutSessions/mutations/createCheckoutSession.js";
 import type * as checkoutSessions_mutations_index from "../checkoutSessions/mutations/index.js";
+import type * as checkoutSessions_mutations_markInvoiceCreated from "../checkoutSessions/mutations/markInvoiceCreated.js";
 import type * as checkoutSessions_mutations_updateCheckoutSessionInvoice from "../checkoutSessions/mutations/updateCheckoutSessionInvoice.js";
 import type * as checkoutSessions_queries_getCheckoutSessionById from "../checkoutSessions/queries/getCheckoutSessionById.js";
 import type * as checkoutSessions_queries_index from "../checkoutSessions/queries/index.js";
@@ -142,6 +143,7 @@ import type * as logs_index from "../logs/index.js";
 import type * as logs_mutations_index from "../logs/mutations/index.js";
 import type * as logs_mutations_logArchive from "../logs/mutations/logArchive.js";
 import type * as logs_mutations_logCreate from "../logs/mutations/logCreate.js";
+import type * as logs_mutations_logCreateInternal from "../logs/mutations/logCreateInternal.js";
 import type * as logs_mutations_logDelete from "../logs/mutations/logDelete.js";
 import type * as logs_mutations_logRestore from "../logs/mutations/logRestore.js";
 import type * as logs_queries_index from "../logs/queries/index.js";
@@ -163,6 +165,7 @@ import type * as messages_queries_getMessages from "../messages/queries/getMessa
 import type * as messages_queries_getMessagesByEmail from "../messages/queries/getMessagesByEmail.js";
 import type * as messages_queries_index from "../messages/queries/index.js";
 import type * as messages_queries_searchMessages from "../messages/queries/searchMessages.js";
+import type * as migrations_backfillCheckoutSessionExpiresAt from "../migrations/backfillCheckoutSessionExpiresAt.js";
 import type * as migrations_backfillImageUrls from "../migrations/backfillImageUrls.js";
 import type * as migrations_backfillOrderLogs from "../migrations/backfillOrderLogs.js";
 import type * as migrations_backfillPaidAt from "../migrations/backfillPaidAt.js";
@@ -552,6 +555,7 @@ declare const fullApi: ApiFromModules<{
   "checkoutSessions/index": typeof checkoutSessions_index;
   "checkoutSessions/mutations/createCheckoutSession": typeof checkoutSessions_mutations_createCheckoutSession;
   "checkoutSessions/mutations/index": typeof checkoutSessions_mutations_index;
+  "checkoutSessions/mutations/markInvoiceCreated": typeof checkoutSessions_mutations_markInvoiceCreated;
   "checkoutSessions/mutations/updateCheckoutSessionInvoice": typeof checkoutSessions_mutations_updateCheckoutSessionInvoice;
   "checkoutSessions/queries/getCheckoutSessionById": typeof checkoutSessions_queries_getCheckoutSessionById;
   "checkoutSessions/queries/index": typeof checkoutSessions_queries_index;
@@ -601,6 +605,7 @@ declare const fullApi: ApiFromModules<{
   "logs/mutations/index": typeof logs_mutations_index;
   "logs/mutations/logArchive": typeof logs_mutations_logArchive;
   "logs/mutations/logCreate": typeof logs_mutations_logCreate;
+  "logs/mutations/logCreateInternal": typeof logs_mutations_logCreateInternal;
   "logs/mutations/logDelete": typeof logs_mutations_logDelete;
   "logs/mutations/logRestore": typeof logs_mutations_logRestore;
   "logs/queries/index": typeof logs_queries_index;
@@ -622,6 +627,7 @@ declare const fullApi: ApiFromModules<{
   "messages/queries/getMessagesByEmail": typeof messages_queries_getMessagesByEmail;
   "messages/queries/index": typeof messages_queries_index;
   "messages/queries/searchMessages": typeof messages_queries_searchMessages;
+  "migrations/backfillCheckoutSessionExpiresAt": typeof migrations_backfillCheckoutSessionExpiresAt;
   "migrations/backfillImageUrls": typeof migrations_backfillImageUrls;
   "migrations/backfillOrderLogs": typeof migrations_backfillOrderLogs;
   "migrations/backfillPaidAt": typeof migrations_backfillPaidAt;

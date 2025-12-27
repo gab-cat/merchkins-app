@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ArrowUpRight, Sparkles } from 'lucide-react';
+import { Menu, X, ArrowUpRight, Sparkles, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LandingNavbar as Navbar, NavBody, useNavbarScroll } from '@/src/components/ui/resizable-navbar';
+import { BUSINESS_NAME, BUSINESS_CURRENCY, BUSINESS_DTI_NUMBER } from '@/src/constants/business-info';
 
 const navLinks = [
   { name: 'About Us', link: '#about' },
@@ -89,7 +90,11 @@ function LandingHeaderContent({ mobileMenuOpen, setMobileMenuOpen }: { mobileMen
     <NavBody>
       {/* Logo */}
       <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
-        <Link href="/landing" className="flex items-center gap-2 font-bold tracking-tight transition-all duration-300 group relative">
+        <Link 
+          href="/landing" 
+          className="flex items-center gap-2 font-bold tracking-tight transition-all duration-300 group relative"
+          title={BUSINESS_NAME}
+        >
           {!isScrolled && (
             <>
               {/* Decorative sparkle near logo */}
@@ -136,6 +141,17 @@ function LandingHeaderContent({ mobileMenuOpen, setMobileMenuOpen }: { mobileMen
 
       {/* Right side - CTA and Mobile Toggle */}
       <div className="flex items-center gap-4">
+        {/* Currency and DTI Indicator */}
+        <div className="hidden md:flex flex-col items-end gap-0.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium text-white/80">
+          <div className="flex items-center gap-1.5">
+            <DollarSign className="h-3 w-3" />
+            <span>{BUSINESS_CURRENCY}</span>
+          </div>
+          <div className="text-[9px]">
+            DTI No.: {BUSINESS_DTI_NUMBER}
+          </div>
+        </div>
+
         {/* CTA Button */}
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4, duration: 0.4 }}>
           <Link

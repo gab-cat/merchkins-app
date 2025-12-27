@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import { PopularOrganizations } from '@/src/features/organizations/components/popular-organizations';
 import { preloadQuery } from 'convex/nextjs';
 import { api } from '@/convex/_generated/api';
+import { BUSINESS_NAME, BUSINESS_DESCRIPTION } from '@/src/constants/business-info';
 
 export default async function Page() {
   const preloadedPopularProducts = await preloadQuery(api.products.queries.index.getPopularProducts, { limit: 8 });
@@ -51,8 +52,8 @@ export default async function Page() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'Organization',
-            name: 'Merchkins',
-            description: 'Custom merch made easy — shop, manage, and fulfill with Merchkins',
+            name: BUSINESS_NAME,
+            description: BUSINESS_DESCRIPTION,
             url: process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com',
             logo: 'https://app.merchkins.com/favicon.ico',
             sameAs: [

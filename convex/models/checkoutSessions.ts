@@ -12,6 +12,11 @@ export const checkoutSessions = defineTable({
   xenditInvoiceExpiryDate: v.optional(v.number()),
   xenditInvoiceCreatedAt: v.optional(v.number()),
   status: v.union(v.literal('PENDING'), v.literal('PAID'), v.literal('EXPIRED'), v.literal('CANCELLED')),
+  // Security fields
+  expiresAt: v.optional(v.number()), // Session expiry timestamp (24 hours from creation)
+  invoiceCreated: v.boolean(), // One-time-use flag to prevent duplicate invoice creation
+  invoiceCreationAttempts: v.number(), // Counter for rate limiting
+  lastInvoiceAttemptAt: v.optional(v.number()), // Timestamp of last attempt for rate limiting window
   createdAt: v.number(),
   updatedAt: v.number(),
 })

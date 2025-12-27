@@ -64,9 +64,34 @@ export const useGuestCartStore = create<GuestCartState>()(
       items: [],
 
       addItem: (item) => {
-        set((state) => ({
-          items: [...state.items, item],
-        }));
+        if (item.quantity <= 0) {
+          return;
+        }
+        set((state) => {
+          const existingIndex = state.items.findIndex((existingItem) => {
+            if (String(existingItem.productInfo.productId) !== String(item.productInfo.productId)) {
+              return false;
+            }
+            if ((existingItem.variantId ?? null) !== (item.variantId ?? null)) {
+              return false;
+            }
+            const existingSizeId = existingItem.size?.id ?? null;
+            const newSizeId = item.size?.id ?? null;
+            return existingSizeId === newSizeId;
+          });
+
+          if (existingIndex !== -1) {
+            return {
+              items: state.items.map((existingItem, i) =>
+                i === existingIndex ? { ...existingItem, quantity: existingItem.quantity + item.quantity } : existingItem
+              ),
+            };
+          }
+
+          return {
+            items: [...state.items, item],
+          };
+        });
       },
 
       removeItem: (index) => {
@@ -167,7 +192,6 @@ export const useGuestCartStore = create<GuestCartState>()(
             return itemSizeId === oldSizeId;
           });
           if (itemIndex === -1) return state;
-          const item = state.items[itemIndex];
           return {
             items: state.items.map((item, i) => {
               if (i !== itemIndex) return item;
@@ -198,11 +222,14 @@ export const useGuestCartStore = create<GuestCartState>()(
         let selectedValue = 0;
 
         for (const item of items) {
+          const price = typeof item.size?.price === 'number' ? item.size.price : item.productInfo.price;
+          const itemValue = price * item.quantity;
+
           totalItems += item.quantity;
-          totalValue += item.productInfo.price * item.quantity;
+          totalValue += itemValue;
           if (item.selected) {
             selectedItems += item.quantity;
-            selectedValue += item.productInfo.price * item.quantity;
+            selectedValue += itemValue;
           }
         }
 

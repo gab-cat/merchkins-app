@@ -142,6 +142,68 @@ export function generateInviteCode(length: number = 8): string {
 }
 
 /**
+ * Security constants for checkout sessions
+ */
+export const CHECKOUT_SESSION_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+export const INVOICE_CREATION_RATE_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+export const MAX_INVOICE_CREATION_ATTEMPTS = 5; // Maximum attempts per rate window
+
+/**
+ * Validate UUIDv4 format
+ * UUIDv4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+ * where x is any hexadecimal digit and y is one of 8, 9, A, or B
+ */
+export function validateUUIDv4(uuid: string): boolean {
+  const uuidv4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidv4Regex.test(uuid);
+}
+
+/**
+ * Check rate limiting for invoice creation attempts
+ * @param attempts Current number of attempts
+ * @param lastAttempt Timestamp of last attempt (optional)
+ * @param windowMs Rate limiting window in milliseconds
+ * @param maxAttempts Maximum allowed attempts per window
+ * @returns Object with allowed status and remaining attempts
+ */
+export function checkRateLimit(
+  attempts: number,
+  lastAttempt: number | undefined,
+  windowMs: number,
+  maxAttempts: number
+): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+
+  // If no previous attempt, allow
+  if (!lastAttempt) {
+    return { allowed: true, remaining: maxAttempts - 1 };
+  }
+
+  // If last attempt was outside the window, reset
+  if (now - lastAttempt >= windowMs) {
+    return { allowed: true, remaining: maxAttempts - 1 };
+  }
+
+  // Check if within rate limit
+  if (attempts >= maxAttempts) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  return { allowed: true, remaining: maxAttempts - attempts - 1 };
+}
+
+/**
+ * Mask checkoutId for logging (show first 8 chars + ... + last 4 chars)
+ * Prevents exposing full token in logs
+ */
+export function maskCheckoutId(checkoutId: string): string {
+  if (checkoutId.length <= 12) {
+    return '***';
+  }
+  return `${checkoutId.substring(0, 8)}...${checkoutId.substring(checkoutId.length - 4)}`;
+}
+
+/**
  * Check if a slug is unique for organizations
  */
 export async function isOrganizationSlugUnique(ctx: QueryCtx | MutationCtx, slug: string, excludeId?: string): Promise<boolean> {
@@ -392,10 +454,7 @@ export function validateMonetaryRefundEligibility(
 /**
  * Calculate monetary refund eligible timestamp for seller-initiated vouchers
  */
-export function calculateMonetaryRefundEligibleAt(
-  cancellationInitiator: 'CUSTOMER' | 'SELLER' | undefined,
-  createdAt: number
-): number | undefined {
+export function calculateMonetaryRefundEligibleAt(cancellationInitiator: 'CUSTOMER' | 'SELLER' | undefined, createdAt: number): number | undefined {
   if (cancellationInitiator === 'SELLER') {
     return createdAt + MONETARY_REFUND_DELAY_MS;
   }

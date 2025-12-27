@@ -15,10 +15,11 @@ import {
   Store,
   MessageSquare,
 } from 'lucide-react';
+import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_CURRENCY, BUSINESS_DTI_NUMBER } from '@/src/constants/business-info';
 
 export const metadata: Metadata = {
-  title: 'About Us — Merchkins',
-  description: 'Learn about Merchkins, the all-in-one commerce platform for independent sellers, artists, freelancers, and SMEs in the Philippines.',
+  title: `About Us — ${BUSINESS_NAME}`,
+  description: `Learn about ${BUSINESS_NAME}, the all-in-one commerce platform for independent sellers, artists, freelancers, and SMEs in the Philippines. ${BUSINESS_DESCRIPTION}`,
   keywords: ['about Merchkins', 'company', 'e-commerce platform', 'Philippines', 'SME platform'],
 };
 
@@ -156,8 +157,22 @@ export default function AboutPage() {
             <div className="bg-slate-50 rounded-xl p-6 not-prose">
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">Merchkins</h3>
-                  <p className="text-sm text-slate-500">A Magis TBI Incubated Startup</p>
+                  <h3 className="font-bold text-slate-900 text-lg">{BUSINESS_NAME}</h3>
+                  <p className="text-sm text-slate-500">{BUSINESS_DESCRIPTION}</p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Currency: <span className="font-semibold text-[#1d43d8]">{BUSINESS_CURRENCY}</span>
+                  </p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    DTI Registration No.: <span className="font-semibold text-[#1d43d8]">{BUSINESS_DTI_NUMBER}</span>
+                  </p>
+                  <div className="mt-3 p-3 bg-[#1d43d8]/5 border border-[#1d43d8]/20 rounded-lg">
+                    <p className="text-sm text-slate-700 leading-relaxed">
+                      <ShieldCheck className="h-4 w-4 inline mr-1.5 text-[#1d43d8]" />
+                      <strong>{BUSINESS_NAME}</strong> is registered with the <strong>Bureau of Internal Revenue (BIR)</strong> and the{' '}
+                      <strong>Department of Trade and Industry (DTI)</strong>. DTI Registration Number: <strong>{BUSINESS_DTI_NUMBER}</strong>
+                    </p>
+                  </div>
+                  <p className="text-sm text-slate-500 mt-3">A Magis TBI Incubated Startup</p>
                 </div>
                 <div className="space-y-3 text-slate-700">
                   <div className="flex items-start gap-3">

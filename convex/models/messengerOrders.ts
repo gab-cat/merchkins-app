@@ -63,4 +63,5 @@ export const emailVerificationCodes = defineTable({
   createdAt: v.number(),
 })
   .index('by_email', ['email'])
-  .index('by_expires', ['expiresAt']);
+  .index('by_expires', ['expiresAt'])
+  .index('by_email_createdAt', ['email', 'createdAt']);

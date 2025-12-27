@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_CURRENCY } from '@/src/constants/business-info';
 
 export function LandingFooter() {
   return (
@@ -16,15 +17,22 @@ export function LandingFooter() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo & Copyright */}
-          <div className="flex items-center gap-4">
-            <Link href="/landing" className="flex items-center gap-2 group">
-              <div className="h-9 w-9 rounded-xl bg-[#1d43d8] flex items-center justify-center shadow-lg shadow-[#1d43d8]/25">
-                <span className="font-genty text-brand-neon text-lg">M</span>
-              </div>
-              <span className="font-heading font-bold text-xl text-slate-900">Merchkins</span>
-            </Link>
-            <span className="hidden md:inline text-slate-400">•</span>
-            <span className="text-sm text-slate-500">© {new Date().getFullYear()} Merchkins. All rights reserved.</span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-4">
+              <Link href="/landing" className="flex items-center gap-2 group">
+                <div className="h-9 w-9 rounded-xl bg-[#1d43d8] flex items-center justify-center shadow-lg shadow-[#1d43d8]/25">
+                  <span className="font-genty text-brand-neon text-lg">M</span>
+                </div>
+                <span className="font-heading font-bold text-xl text-slate-900">{BUSINESS_NAME}</span>
+              </Link>
+            </div>
+            <div className="flex flex-col gap-1">
+              <p className="text-xs text-slate-500">{BUSINESS_DESCRIPTION}</p>
+              <p className="text-xs text-slate-500">
+                Currency: <span className="font-semibold text-[#1d43d8]">{BUSINESS_CURRENCY}</span>
+              </p>
+              <p className="text-sm text-slate-500">© {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.</p>
+            </div>
           </div>
 
           {/* Links */}

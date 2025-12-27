@@ -4,14 +4,10 @@ import React, { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { useMutation, useQuery, usePreloadedQuery } from 'convex/react';
+import { usePreloadedQuery, useQuery } from 'convex/react';
 import { useAuth } from '@clerk/nextjs';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Combobox } from '@/components/ui/combobox';
-import { Badge } from '@/components/ui/badge';
-import { R2Image } from '@/src/components/ui/r2-image';
 import {
   Star,
   Share2,
@@ -57,8 +53,7 @@ import { useUnifiedCart } from '@/src/hooks/use-unified-cart';
 function formatCount(count: number): string {
   if (count < 5) return count.toString();
   if (count < 10) return '5+';
-  if (count < 10) return '10+';
-  if (count < 50) return '50+';
+  if (count < 50) return '10+';
   if (count < 100) return '50+';
   if (count < 1000) {
     const hundreds = Math.floor(count / 100) * 100;
@@ -85,11 +80,8 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
   if (slug === '_error_test_') {
     throw new Error('Intentional test error for error boundary validation');
   }
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const { userId: clerkId } = useAuth();
-  const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip');
+  const { user: currentUser } = useCurrentUser();
+  const clerkId = currentUser?.clerkId;
   const { requireAuth, dialogOpen, setDialogOpen } = useRequireAuth();
   const product = preloadedProduct ? usePreloadedQuery(preloadedProduct) : useQuery(api.products.queries.index.getProductBySlug, { slug });
   const organization = useQuery(
@@ -683,12 +675,15 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                   }
                 : undefined;
 
-            await addItem({
-              productId: product!._id,
-              variantId: selectedVariantId,
-              size,
-              quantity: 1,
-            });
+            await addItemToCart(
+              {
+                productId: product!._id,
+                variantId: selectedVariantId,
+                size,
+                quantity: 1,
+              },
+              undefined // User is authenticated after joining, so no productData needed
+            );
             openCartSheet();
           } catch {
             showToast({ type: 'error', title: 'Failed to add to cart' });
@@ -986,6 +981,9 @@ function ImageDialog({
 
 // Small error boundary wrapper for client-side rendering issues
 import type { Preloaded } from 'convex/react';
+import { useCurrentUser } from '../../auth/hooks/use-current-user';
+import { Badge } from '@/components/ui/badge';
+import { R2Image } from '@/src/components/ui/r2-image';
 
 interface ProductDetailBoundaryProps {
   slug: string;

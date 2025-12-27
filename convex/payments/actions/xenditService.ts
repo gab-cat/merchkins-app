@@ -18,6 +18,10 @@ export function checkInvoiceExpiry(createdAt: number): boolean {
 /**
  * Create a Xendit invoice for payment
  * Supports both single orders and grouped orders (checkout sessions)
+ *
+ * Note: merchant_name is set in the Xendit dashboard account settings, not via API.
+ * Ensure the merchant_name in Xendit dashboard matches BUSINESS_NAME constant
+ * for Xendit verification requirements.
  */
 export const createXenditInvoice = internalAction({
   args: {
