@@ -247,18 +247,28 @@ export const createGroupedXenditInvoice = action({
         throw new Error('Email verification required for guest checkout');
       }
 
-      // 7. Get customer user to verify email matches
-      const customerUser = await ctx.runQuery(api.users.queries.index.getUserById, {
-        userId: session.customerId,
+      // 7. Get orders from checkout session to extract customer email
+      const orders = await Promise.all(
+        session.orderIds.map((orderId: Id<'orders'>) => ctx.runQuery(api.orders.queries.index.getOrderById, { orderId }))
+      );
+
+      const validOrders = orders.filter((order: Doc<'orders'> | null): order is Doc<'orders'> => {
+        return order !== null && !order.isDeleted;
       });
 
-      if (!customerUser) {
-        throw new Error('Customer not found');
+      if (validOrders.length === 0) {
+        throw new Error('No valid orders found in checkout session');
       }
 
-      // 8. Verify email matches session customer email (case-insensitive)
+      // 8. Get customer email from first order's embedded customerInfo
+      const customerEmailFromOrder = validOrders[0]?.customerInfo?.email;
+      if (!customerEmailFromOrder) {
+        throw new Error('Customer email not found in order');
+      }
+
+      // 9. Verify email matches session customer email (case-insensitive)
       const providedEmail = args.email.trim().toLowerCase();
-      const customerEmail = customerUser.email.toLowerCase();
+      const customerEmail = customerEmailFromOrder.toLowerCase();
 
       if (providedEmail !== customerEmail) {
         // Log security event
@@ -279,7 +289,7 @@ export const createGroupedXenditInvoice = action({
         throw new Error('Email does not match the checkout session. Please use the email associated with this checkout.');
       }
 
-      // 9. Call atomic guard mutation (checks one-time-use and rate limiting)
+      // 10. Call atomic guard mutation (checks one-time-use and rate limiting)
       const guardResult = await ctx.runMutation(internal.checkoutSessions.mutations.index.markInvoiceCreated, {
         checkoutId: args.checkoutId,
       });
