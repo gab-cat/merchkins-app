@@ -165,14 +165,21 @@ export function useUnifiedCart() {
   const removeItem = useCallback(
     async (productId: Id<'products'>, variantId?: string, sizeId?: string) => {
       if (isAuthenticated && serverCart?._id) {
-        await removeItemMutation({
-          cartId: serverCart._id,
-          productId,
-          variantId,
-          sizeId,
-        });
+        // Find the item to get addedAt
+        const item = serverCart.embeddedItems?.find(
+          (i) => i.productInfo.productId === productId && i.variantId === variantId && i.size?.id === sizeId
+        );
+        if (item) {
+          await removeItemMutation({
+            cartId: serverCart._id,
+            productId,
+            ...(variantId !== undefined && { variantId }),
+            ...(sizeId !== undefined && { sizeId }),
+            addedAt: item.addedAt,
+          });
+        }
       } else {
-        guestCart.removeItem(productId, variantId, sizeId);
+        guestCart.removeItemByProduct(String(productId), variantId, sizeId);
       }
     },
     [isAuthenticated, serverCart, removeItemMutation, guestCart]
