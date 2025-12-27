@@ -1,10 +1,6 @@
 import { internalMutation, MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
-import {
-  INVOICE_CREATION_RATE_WINDOW_MS,
-  MAX_INVOICE_CREATION_ATTEMPTS,
-  checkRateLimit,
-} from '../../helpers/utils';
+import { INVOICE_CREATION_RATE_WINDOW_MS, MAX_INVOICE_CREATION_ATTEMPTS, checkRateLimit } from '../../helpers/utils';
 
 /**
  * Atomic mutation to mark invoice as created and enforce security checks
@@ -15,10 +11,7 @@ export const markInvoiceCreatedArgs = {
   checkoutId: v.string(),
 };
 
-export const markInvoiceCreatedHandler = async (
-  ctx: MutationCtx,
-  args: { checkoutId: string }
-): Promise<{ success: boolean; reason?: string }> => {
+export const markInvoiceCreatedHandler = async (ctx: MutationCtx, args: { checkoutId: string }): Promise<{ success: boolean; reason?: string }> => {
   const session = await ctx.db
     .query('checkoutSessions')
     .withIndex('by_checkout_id', (q) => q.eq('checkoutId', args.checkoutId))
@@ -31,7 +24,7 @@ export const markInvoiceCreatedHandler = async (
   const now = Date.now();
 
   // Check if session has expired (handle optional field during migration)
-  if (session.expiresAt === undefined || session.expiresAt === null || session.expiresAt < now) {
+  if (session.expiresAt !== undefined && session.expiresAt !== null && session.expiresAt < now) {
     return { success: false, reason: 'Checkout session has expired' };
   }
 

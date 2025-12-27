@@ -131,6 +131,8 @@ export const createGroupedXenditInvoice = action({
         logType: 'SECURITY_EVENT',
         severity: 'HIGH',
         reason: `Invalid checkoutId format attempted: ${maskedCheckoutId}`,
+        resourceType: 'checkout_session',
+        resourceId: maskedCheckoutId,
         metadata: { checkoutId: maskedCheckoutId },
       });
       throw new Error('Invalid checkout session identifier');
@@ -148,6 +150,8 @@ export const createGroupedXenditInvoice = action({
         logType: 'SECURITY_EVENT',
         severity: 'MEDIUM',
         reason: `Checkout session not found: ${maskedCheckoutId}`,
+        resourceType: 'checkout_session',
+        resourceId: maskedCheckoutId,
         metadata: { checkoutId: maskedCheckoutId },
       });
       throw new Error('Checkout session not found');
@@ -163,6 +167,8 @@ export const createGroupedXenditInvoice = action({
         severity: 'MEDIUM',
         reason: `Attempted to create invoice for expired session: ${maskedCheckoutId}`,
         userId: session.customerId,
+        resourceType: 'checkout_session',
+        resourceId: maskedCheckoutId,
         metadata: { checkoutId: maskedCheckoutId, expiresAt: session.expiresAt },
       });
       throw new Error('This checkout session has expired. Please start a new checkout.');
@@ -190,6 +196,8 @@ export const createGroupedXenditInvoice = action({
           severity: 'HIGH',
           reason: `User ${currentUser.email} attempted to create invoice for session owned by different user`,
           userId: currentUser._id,
+          resourceType: 'checkout_session',
+          resourceId: maskedCheckoutId,
           metadata: { checkoutId: maskedCheckoutId, sessionCustomerId: session.customerId },
         });
         throw new Error('You can only create payment links for your own checkout sessions');
@@ -211,9 +219,11 @@ export const createGroupedXenditInvoice = action({
         await ctx.runMutation(internal.logs.mutations.index.createLogInternal, {
           action: logReason,
           logType: 'SECURITY_EVENT',
-          severity: guardResult.reason?.includes('Rate limit') ? 'HIGH' : 'HIGH',
+          severity: 'HIGH',
           reason: `Invoice creation blocked: ${guardResult.reason} for ${maskedCheckoutId}`,
           userId: currentUser._id,
+          resourceType: 'checkout_session',
+          resourceId: maskedCheckoutId,
           metadata: { checkoutId: maskedCheckoutId, reason: guardResult.reason },
         });
 
@@ -230,6 +240,8 @@ export const createGroupedXenditInvoice = action({
           severity: 'MEDIUM',
           reason: `Guest attempted to create invoice without providing email for ${maskedCheckoutId}`,
           userId: session.customerId,
+          resourceType: 'checkout_session',
+          resourceId: maskedCheckoutId,
           metadata: { checkoutId: maskedCheckoutId },
         });
         throw new Error('Email verification required for guest checkout');
@@ -254,8 +266,10 @@ export const createGroupedXenditInvoice = action({
           action: 'create_invoice_email_mismatch',
           logType: 'SECURITY_EVENT',
           severity: 'MEDIUM',
-          reason: `Guest provided email ${providedEmail} does not match session customer email for ${maskedCheckoutId}`,
+          reason: `Guest provided email does not match session customer email for ${maskedCheckoutId}`,
           userId: session.customerId,
+          resourceType: 'checkout_session',
+          resourceId: maskedCheckoutId,
           metadata: {
             checkoutId: maskedCheckoutId,
             providedEmail: providedEmail.substring(0, 3) + '***', // Mask email in logs
@@ -281,9 +295,11 @@ export const createGroupedXenditInvoice = action({
         await ctx.runMutation(internal.logs.mutations.index.createLogInternal, {
           action: logReason,
           logType: 'SECURITY_EVENT',
-          severity: guardResult.reason?.includes('Rate limit') ? 'HIGH' : 'HIGH',
+          severity: 'HIGH',
           reason: `Guest invoice creation blocked: ${guardResult.reason} for ${maskedCheckoutId}`,
           userId: session.customerId,
+          resourceType: 'checkout_session',
+          resourceId: maskedCheckoutId,
           metadata: { checkoutId: maskedCheckoutId, reason: guardResult.reason },
         });
 
@@ -303,6 +319,8 @@ export const createGroupedXenditInvoice = action({
       severity: 'LOW',
       reason: `Invoice created successfully for checkout session ${maskedCheckoutId}`,
       userId: session.customerId,
+      resourceType: 'checkout_session',
+      resourceId: maskedCheckoutId,
       metadata: {
         checkoutId: maskedCheckoutId,
         invoiceId: invoice.invoiceId,

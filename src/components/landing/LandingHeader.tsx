@@ -7,6 +7,7 @@ import { Menu, X, ArrowUpRight, Sparkles, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LandingNavbar as Navbar, NavBody, useNavbarScroll } from '@/src/components/ui/resizable-navbar';
 import { BUSINESS_NAME, BUSINESS_CURRENCY, BUSINESS_DTI_NUMBER } from '@/src/constants/business-info';
+import { useTranslation } from '@/src/utils/translations';
 
 const navLinks = [
   { name: 'About Us', link: '#about' },
@@ -85,13 +86,14 @@ export function LandingHeader() {
 
 function LandingHeaderContent({ mobileMenuOpen, setMobileMenuOpen }: { mobileMenuOpen: boolean; setMobileMenuOpen: (open: boolean) => void }) {
   const { isScrolled } = useNavbarScroll();
+  const { t } = useTranslation();
 
   return (
     <NavBody>
       {/* Logo */}
       <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
-        <Link 
-          href="/landing" 
+        <Link
+          href="/landing"
           className="flex items-center gap-2 font-bold tracking-tight transition-all duration-300 group relative"
           title={BUSINESS_NAME}
         >
@@ -142,13 +144,13 @@ function LandingHeaderContent({ mobileMenuOpen, setMobileMenuOpen }: { mobileMen
       {/* Right side - CTA and Mobile Toggle */}
       <div className="flex items-center gap-4">
         {/* Currency and DTI Indicator */}
-        <div className="hidden md:flex flex-col items-end gap-0.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium text-white/80">
+        <div className="hidden md:flex flex-col items-end gap-0.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-white/80">
           <div className="flex items-center gap-1.5">
             <DollarSign className="h-3 w-3" />
             <span>{BUSINESS_CURRENCY}</span>
           </div>
-          <div className="text-[9px]">
-            DTI No.: {BUSINESS_DTI_NUMBER}
+          <div className="text-[11px]">
+            {t('business.dti_label')}: {BUSINESS_DTI_NUMBER}
           </div>
         </div>
 

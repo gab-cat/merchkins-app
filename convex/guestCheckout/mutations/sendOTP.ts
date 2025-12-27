@@ -47,6 +47,11 @@ export const sendOTP = mutation({
 
     const recentCount = recentCodes.length;
 
+    const maskEmail = (email: string) => {
+      const [local, domain] = email.split('@');
+      return `${local[0]}***@${domain}`;
+    };
+
     // Enforce rate limit
     if (recentCount >= MAX_OTPS_PER_WINDOW) {
       // Log rate-limit event for monitoring
@@ -55,11 +60,11 @@ export const sendOTP = mutation({
         'OTP_RATE_LIMIT_EXCEEDED',
         'SECURITY_EVENT',
         'MEDIUM',
-        `Rate limit exceeded for email: ${email}. ${recentCount} requests in the last ${RATE_WINDOW_MS / 1000 / 60} minutes`,
+        `Rate limit exceeded for email: ${maskEmail(email)}. ${recentCount} requests in the last ${RATE_WINDOW_MS / 1000 / 60} minutes`,
         undefined, // userId
         undefined, // organizationId
         {
-          email,
+          email: maskEmail(email),
           recentCount,
           rateWindowMs: RATE_WINDOW_MS,
           maxOtpsPerWindow: MAX_OTPS_PER_WINDOW,

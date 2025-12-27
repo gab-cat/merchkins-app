@@ -21,7 +21,7 @@ export function LandingFooter() {
             <div className="flex items-center gap-4">
               <Link href="/landing" className="flex items-center gap-2 group">
                 <div className="h-9 w-9 rounded-xl bg-[#1d43d8] flex items-center justify-center shadow-lg shadow-[#1d43d8]/25">
-                  <span className="font-genty text-brand-neon text-lg">M</span>
+                  <span className="font-genty text-brand-neon text-lg">{BUSINESS_NAME.charAt(0).toUpperCase()}</span>
                 </div>
                 <span className="font-heading font-bold text-xl text-slate-900">{BUSINESS_NAME}</span>
               </Link>
@@ -31,7 +31,9 @@ export function LandingFooter() {
               <p className="text-xs text-slate-500">
                 Currency: <span className="font-semibold text-[#1d43d8]">{BUSINESS_CURRENCY}</span>
               </p>
-              <p className="text-sm text-slate-500">© {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.</p>
+              <p className="text-sm text-slate-500">
+                © {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.
+              </p>
             </div>
           </div>
 

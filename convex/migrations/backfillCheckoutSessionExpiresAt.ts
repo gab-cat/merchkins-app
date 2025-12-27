@@ -28,18 +28,13 @@ export const backfillExpiresAtBatch = internalMutation({
     let hasMore = false;
     let nextCursor: string | undefined;
 
-    if (cursor) {
-      const result = (await ctx.db
-        .query('checkoutSessions')
-        .order('asc')
-        .paginate({ numItems: limit, cursor })) as any;
-      sessions = result.page;
-      hasMore = result.hasMore;
-      nextCursor = result.continueCursor;
-    } else {
-      sessions = await ctx.db.query('checkoutSessions').order('asc').take(limit);
-      hasMore = sessions.length === limit;
-    }
+    const result = await ctx.db
+      .query('checkoutSessions')
+      .order('asc')
+      .paginate({ numItems: limit, cursor: cursor || null });
+    sessions = result.page;
+    hasMore = !result.isDone;
+    nextCursor = result.continueCursor;
 
     const now = Date.now();
 
@@ -154,6 +149,7 @@ export const runBackfillExpiresAt = internalMutation({
 });
 
 // Public query to check migration status
+// Uses pagination to avoid OOM for large datasets
 export const checkExpiresAtMigrationStatus = query({
   args: {},
   returns: v.object({
@@ -162,30 +158,48 @@ export const checkExpiresAtMigrationStatus = query({
     sessionsWithExpiresAt: v.number(),
   }),
   handler: async (ctx) => {
-    const allSessions = await ctx.db.query('checkoutSessions').collect();
-    const needingMigration = allSessions.filter(
-      (session) =>
-        session.expiresAt === undefined ||
-        session.expiresAt === null ||
-        session.invoiceCreated === undefined ||
-        session.invoiceCreated === null ||
-        session.invoiceCreationAttempts === undefined ||
-        session.invoiceCreationAttempts === null
-    ).length;
-    const withAllFields = allSessions.filter(
-      (session) =>
-        session.expiresAt !== undefined &&
-        session.expiresAt !== null &&
-        session.invoiceCreated !== undefined &&
-        session.invoiceCreated !== null &&
-        session.invoiceCreationAttempts !== undefined &&
-        session.invoiceCreationAttempts !== null
-    ).length;
+    const PAGE_SIZE = 1000; // Process 1000 rows per page to balance memory and performance
+    let totalSessions = 0;
+    let sessionsNeedingMigration = 0;
+    let sessionsWithExpiresAt = 0;
+    let cursor: string | null = null;
+    let hasMore = true;
+
+    // Paginate through all checkoutSessions to avoid loading entire table into memory
+    while (hasMore) {
+      const result = await ctx.db.query('checkoutSessions').order('asc').paginate({ numItems: PAGE_SIZE, cursor });
+
+      const page = result.page;
+      totalSessions += page.length;
+
+      // Process each session in the current page
+      for (const session of page) {
+        const needsMigration =
+          session.expiresAt === undefined ||
+          session.expiresAt === null ||
+          session.invoiceCreated === undefined ||
+          session.invoiceCreated === null ||
+          session.invoiceCreationAttempts === undefined ||
+          session.invoiceCreationAttempts === null;
+
+        if (needsMigration) {
+          sessionsNeedingMigration++;
+        } else {
+          sessionsWithExpiresAt++;
+        }
+      }
+
+      // Check if there are more pages
+      hasMore = !result.isDone;
+      cursor = result.continueCursor;
+
+      // Memory is freed between iterations as page goes out of scope
+    }
 
     return {
-      totalSessions: allSessions.length,
-      sessionsNeedingMigration: needingMigration,
-      sessionsWithExpiresAt: withAllFields,
+      totalSessions,
+      sessionsNeedingMigration,
+      sessionsWithExpiresAt,
     };
   },
 });

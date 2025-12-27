@@ -286,13 +286,11 @@ function SiteHeaderContent({
               </span>
             </Link>
           </motion.div>
-          
+
           {/* Business name and DTI number - displayed prominently */}
           {!shouldApplyTheme && !isScrolled && (
             <div className="hidden md:flex flex-col gap-0.5 max-w-[220px]">
-              <p className={cn('text-[10px] leading-tight text-muted-foreground break-words')}>
-                {BUSINESS_NAME}
-              </p>
+              <p className={cn('text-[10px] leading-tight text-muted-foreground break-words')}>{BUSINESS_NAME}</p>
               <p className={cn('text-[10px] leading-tight text-muted-foreground')}>
                 DTI No.: <span className="font-semibold text-foreground">{BUSINESS_DTI_NUMBER}</span>
               </p>
@@ -436,17 +434,31 @@ function SiteHeaderContent({
 
           {/* Currency Indicator - shown beside cart */}
           {!shouldApplyTheme && (
-            <div className={cn(
-              'hidden md:flex items-center gap-1.5 px-2.5 h-9 rounded-lg text-xs font-medium transition-colors',
-              isScrolled
-                ? 'text-white/80'
-                : 'text-muted-foreground'
-            )}>
-              <DollarSign className={cn(
-                'h-3.5 w-3.5',
+            <div
+              className={cn(
+                'hidden md:flex items-center gap-1.5 px-2.5 h-9 rounded-lg text-xs font-medium transition-colors',
                 isScrolled ? 'text-white/80' : 'text-muted-foreground'
-              )} />
-              <span>{BUSINESS_CURRENCY}</span>
+              )}
+              aria-label={`Currency: ${BUSINESS_CURRENCY}`}
+            >
+              {BUSINESS_CURRENCY === 'PHP' ? (
+                <>
+                  <span
+                    className={cn('text-base font-semibold leading-none', isScrolled ? 'text-white/80' : 'text-muted-foreground')}
+                    aria-hidden="true"
+                  >
+                    ₱
+                  </span>
+                  <span>{BUSINESS_CURRENCY}</span>
+                </>
+              ) : BUSINESS_CURRENCY === 'USD' ? (
+                <>
+                  <DollarSign className={cn('h-3.5 w-3.5', isScrolled ? 'text-white/80' : 'text-muted-foreground')} aria-hidden="true" />
+                  <span>{BUSINESS_CURRENCY}</span>
+                </>
+              ) : (
+                <span>{BUSINESS_CURRENCY}</span>
+              )}
             </div>
           )}
 

@@ -29,7 +29,7 @@ import { useThemeExclusionAuto, getOrgSlugFromSubdomain } from '../../../stores/
 import { useOrgLink } from '@/src/hooks/use-org-link';
 import { BlurFade } from '@/src/components/ui/animations';
 import { GoogleReviewsBadge } from '@/src/components/google';
-import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_CURRENCY, BUSINESS_SHORT_NAME, BUSINESS_DTI_NUMBER } from '@/src/constants/business-info';
+import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_SHORT_NAME, BUSINESS_DTI_NUMBER } from '@/src/constants/business-info';
 
 export function SiteFooter() {
   const pathname = usePathname();

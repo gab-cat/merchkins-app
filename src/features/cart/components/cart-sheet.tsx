@@ -221,7 +221,7 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
 
             <SheetFooter className="shrink-0 gap-3 p-5 border-t bg-white flex-col">
               <div className="w-full px-1 pb-2 border-b border-border/50">
-                <p className="text-[10px] text-muted-foreground leading-tight">
+                <p className="text-xs text-muted-foreground leading-tight">
                   <span className="font-semibold">{BUSINESS_NAME}</span>
                   <br />
                   {BUSINESS_DESCRIPTION}
@@ -371,10 +371,11 @@ function MiniCartLineItem({
         );
       } else {
         // Use unified cart for guest users
-        await promiseToast(
-          removeItem(item.productInfo.productId, item.variantId, sizeId),
-          { loading: 'Removing item…', success: 'Item removed', error: () => 'Failed to remove item' }
-        );
+        await promiseToast(removeItem(item.productInfo.productId, item.variantId, sizeId), {
+          loading: 'Removing item…',
+          success: 'Item removed',
+          error: () => 'Failed to remove item',
+        });
       }
     } catch {
       // no-op
@@ -434,15 +435,7 @@ function MiniCartLineItem({
         }
         const newPrice = newVariant.price;
         const newVariantName = newVariant.variantName;
-        guestCart.updateItemVariant(
-          item.productInfo.productId,
-          item.variantId,
-          newVariantId,
-          item.size,
-          undefined,
-          newPrice,
-          newVariantName
-        );
+        guestCart.updateItemVariant(item.productInfo.productId, item.variantId, newVariantId, item.size, undefined, newPrice, newVariantName);
         showToast({ type: 'success', title: 'Variant updated' });
       }
     } catch {
@@ -485,15 +478,7 @@ function MiniCartLineItem({
           return;
         }
         const newPrice = newSize?.price ?? variant.price;
-        guestCart.updateItemVariant(
-          item.productInfo.productId,
-          item.variantId,
-          item.variantId,
-          item.size,
-          newSize,
-          newPrice,
-          variant.variantName
-        );
+        guestCart.updateItemVariant(item.productInfo.productId, item.variantId, item.variantId, item.size, newSize, newPrice, variant.variantName);
         showToast({ type: 'success', title: 'Size updated' });
       }
     } catch {
@@ -569,7 +554,7 @@ function MiniCartLineItem({
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-semibold leading-tight text-foreground">{item.productInfo.title}</div>
               <div className="text-xs text-muted-foreground mt-0.5">
-                {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price)} each
+                {new Intl.NumberFormat(undefined, { style: 'currency', currency: BUSINESS_CURRENCY }).format(item.productInfo.price)} each
               </div>
               <div className="space-x-2 flex flex-row mt-2">
                 {product && (product.variants?.length ?? 0) > 0 && (
@@ -598,7 +583,7 @@ function MiniCartLineItem({
                               <div className="flex items-center justify-between w-full">
                                 <span>{v.variantName}</span>
                                 <span className="ml-2 font-medium text-primary">
-                                  {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(v.price)}
+                                  {new Intl.NumberFormat(undefined, { style: 'currency', currency: BUSINESS_CURRENCY }).format(v.price)}
                                 </span>
                               </div>
                             </DropdownMenuRadioItem>
@@ -644,7 +629,7 @@ function MiniCartLineItem({
                                   <span>{size.label}</span>
                                   {size.price !== undefined && (
                                     <span className="ml-2 font-medium text-primary">
-                                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(size.price)}
+                                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: BUSINESS_CURRENCY }).format(size.price)}
                                     </span>
                                   )}
                                 </div>
@@ -659,7 +644,7 @@ function MiniCartLineItem({
             </div>
             <div className="text-right">
               <div className="text-sm font-bold text-primary">
-                {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'PHP' }).format(item.productInfo.price * optimisticQty)}
+                {new Intl.NumberFormat(undefined, { style: 'currency', currency: BUSINESS_CURRENCY }).format(item.productInfo.price * optimisticQty)}
               </div>
             </div>
           </div>
