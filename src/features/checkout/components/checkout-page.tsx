@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQuery, useAction } from 'convex/react';
 import { useAuth } from '@clerk/nextjs';
+import { useUnifiedCart } from '@/src/hooks/use-unified-cart';
+import { useGuestCartStore } from '@/src/stores/guest-cart';
+import { GuestCheckoutDialog } from './guest-checkout-dialog';
 import { api } from '@/convex/_generated/api';
 import { anyApi } from 'convex/server';
 import { Button } from '@/components/ui/button';
@@ -348,13 +351,18 @@ function CheckoutItem({ item }: CheckoutItemProps) {
 // Main checkout component
 export function CheckoutPage() {
   const router = useRouter();
-  const { userId: clerkId } = useAuth();
-  const cart = useQuery(api.carts.queries.index.getCartByUser, {});
+  const { userId: clerkId, isSignedIn } = useAuth();
+  const { items, totals: unifiedTotals, isAuthenticated } = useUnifiedCart();
+  const serverCart = useQuery(api.carts.queries.index.getCartByUser, isAuthenticated ? {} : 'skip');
   const createOrder = useMutation(api.orders.mutations.index.createOrder);
+  const createGuestOrder = useMutation(api.guestCheckout.index.createGuestOrder);
   const removeMultipleCartItems = useMutation(api.carts.mutations.index.removeMultipleItems);
   const createCheckoutSession = useMutation(api.checkoutSessions.mutations.index.createCheckoutSession);
   const createGroupedXenditInvoice = useAction(api.payments.actions.index.createGroupedXenditInvoice);
   const me = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : 'skip');
+  const guestCart = useGuestCartStore();
+  const [guestUserId, setGuestUserId] = useState<string | null>(null);
+  const [showGuestDialog, setShowGuestDialog] = useState(false);
 
   const [notes, setNotes] = useState('');
   const [isPlacing, setIsPlacing] = useState(false);
@@ -377,9 +385,8 @@ export function CheckoutPage() {
   const [voucherError, setVoucherError] = useState<string | null>(null);
 
   const selectedItems = useMemo(() => {
-    const items = cart?.embeddedItems ?? [];
     return items.filter((i) => i.selected && i.quantity > 0);
-  }, [cart]);
+  }, [items]);
 
   const selectedByOrg = useMemo(() => {
     type Line = (typeof selectedItems)[number] & { productInfo: { organizationId?: string; organizationName?: string } };
@@ -399,6 +406,8 @@ export function CheckoutPage() {
       amount: selectedItems.reduce((s, i) => s + i.quantity * i.productInfo.price, 0),
     };
   }, [selectedItems]);
+
+  // Guest dialog will be shown when user tries to place order (handled in handlePlaceOrder)
 
   // Calculate totals with voucher discount
   const totalsWithDiscount = useMemo(() => {
@@ -429,12 +438,13 @@ export function CheckoutPage() {
 
   // Voucher validation query (only run when we have a voucher code to validate)
   // Note: Type assertion needed until `bunx convex dev` regenerates types
+  const customerId = isAuthenticated && me ? me._id : guestUserId;
   const voucherValidation = useQuery(
     anyApi.vouchers.queries.index.validateVoucher,
-    voucherCode && me
+    voucherCode && customerId
       ? {
           code: voucherCode,
-          userId: me._id,
+          userId: customerId as Id<'users'>,
           organizationId: organizationIds.length === 1 ? (organizationIds[0] as Id<'organizations'>) : undefined,
           orderAmount: totals.amount,
           productIds: productIds as Id<'products'>[],
@@ -517,7 +527,9 @@ export function CheckoutPage() {
     });
   }, [selectedByOrg]);
 
-  const canCheckout = !!cart && selectedItems.length > 0 && !!me;
+  // Allow checkout page to be shown if there are selected items
+  // Email verification (guestUserId) is only required when placing the order
+  const canCheckout = selectedItems.length > 0;
 
   // Generate unique checkout ID for unified payment
   const generateCheckoutId = () => {
@@ -528,7 +540,12 @@ export function CheckoutPage() {
   };
 
   async function handlePlaceOrder() {
-    if (!canCheckout || !me) return;
+    if (!canCheckout) return;
+    if (isAuthenticated && !me) return;
+    if (!isAuthenticated && !guestUserId) {
+      setShowGuestDialog(true);
+      return;
+    }
     setIsPlacing(true);
     setError(null);
     try {
@@ -620,17 +637,31 @@ export function CheckoutPage() {
             // Case 2: No specific share (e.g. Free Shipping), only apply to first org to avoid double counting
             (!appliedVoucher.discountAmount && Object.keys(selectedByOrg).indexOf(orgId) === 0));
 
-        promises.push(
-          createOrder({
-            customerId: me._id,
-            organizationId: orgIdArg,
-            items,
-            customerNotes: notes || undefined,
-            voucherCode: shouldUseVoucher ? voucherCodeArg : undefined,
-            voucherProportionalShare: voucherShareArg,
-            checkoutId,
-          })
-        );
+        if (isAuthenticated && me) {
+          promises.push(
+            createOrder({
+              customerId: me._id,
+              organizationId: orgIdArg,
+              items,
+              customerNotes: notes || undefined,
+              voucherCode: shouldUseVoucher ? voucherCodeArg : undefined,
+              voucherProportionalShare: voucherShareArg,
+              checkoutId,
+            })
+          );
+        } else if (!isAuthenticated && guestUserId) {
+          promises.push(
+            createGuestOrder({
+              userId: guestUserId as Id<'users'>,
+              organizationId: orgIdArg,
+              items,
+              customerNotes: notes || undefined,
+              voucherCode: shouldUseVoucher ? voucherCodeArg : undefined,
+              voucherProportionalShare: voucherShareArg,
+              checkoutId,
+            })
+          );
+        }
       }
 
       // Determine if order is fully covered by voucher
@@ -643,7 +674,7 @@ export function CheckoutPage() {
       });
 
       // Remove the ordered items from cart
-      if (cart?._id) {
+      if (isAuthenticated && serverCart?._id) {
         try {
           const itemsToRemove = selectedItems.map((item) => ({
             productId: item.productInfo.productId,
@@ -652,7 +683,7 @@ export function CheckoutPage() {
 
           if (itemsToRemove.length > 0) {
             await removeMultipleCartItems({
-              cartId: cart._id,
+              cartId: serverCart._id,
               items: itemsToRemove,
             });
           }
@@ -660,6 +691,9 @@ export function CheckoutPage() {
           console.error('Failed to remove items from cart:', cartError);
           // Don't fail the order placement if cart removal fails
         }
+      } else if (!isAuthenticated) {
+        // Clear guest cart
+        guestCart.clear();
       }
 
       // For zero-cost orders (paid by voucher), redirect to success page with checkoutId
@@ -670,9 +704,10 @@ export function CheckoutPage() {
 
       // Create checkout session to link all orders together
       const orderIds = results.map((r) => r.orderId);
+      const customerId = isAuthenticated && me ? me._id : (guestUserId as Id<'users'>);
       await createCheckoutSession({
         checkoutId,
-        customerId: me._id,
+        customerId,
         orderIds,
         totalAmount: totalsWithDiscount.total,
       });
@@ -698,8 +733,9 @@ export function CheckoutPage() {
     }
   }
 
-  // Loading state
-  if (cart === undefined || me === undefined) {
+  // Loading state - only show skeleton when loading authenticated user data
+  // Guest cart is immediately available, so no skeleton needed for unauthenticated users
+  if (isAuthenticated && (serverCart === undefined || me === undefined)) {
     return <CheckoutSkeleton />;
   }
 
@@ -709,15 +745,24 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        {/* Back link */}
-        <BlurFade delay={0.05}>
-          <Link href="/cart" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#1d43d8] mb-6 transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Cart
-          </Link>
-        </BlurFade>
+    <>
+      <GuestCheckoutDialog
+        open={showGuestDialog}
+        onOpenChange={setShowGuestDialog}
+        onVerified={(userId) => {
+          setGuestUserId(userId);
+          setShowGuestDialog(false);
+        }}
+      />
+      <div className="min-h-screen bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+          {/* Back link */}
+          <BlurFade delay={0.05}>
+            <Link href="/cart" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#1d43d8] mb-6 transition-colors">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Cart
+            </Link>
+          </BlurFade>
 
         {/* Header */}
         <BlurFade delay={0.1}>
@@ -1155,7 +1200,8 @@ export function CheckoutPage() {
             </motion.div>
           </div>
         </motion.div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

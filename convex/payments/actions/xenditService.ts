@@ -3,7 +3,7 @@
 import { internalAction } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Xendit } from 'xendit-node';
-import { Id } from '../../_generated/dataModel';
+import { Doc, Id } from '../../_generated/dataModel';
 import { api } from '../../_generated/api';
 
 /**
@@ -58,7 +58,7 @@ export const createXenditInvoice = internalAction({
     }
 
     // Build items array if orderIds provided but items not provided
-    let invoiceItems = args.items;
+    let invoiceItems: Array<{ name: string; quantity: number; price: number; category?: string; url?: string }> | undefined = args.items;
     const ordersByStore: Map<
       string,
       { name: string; items: Array<{ name: string; quantity: number; price: number; category?: string; url?: string }>; subtotal: number }
@@ -69,9 +69,9 @@ export const createXenditInvoice = internalAction({
 
     if (!invoiceItems && args.orderIds && args.orderIds.length > 0) {
       // Fetch all orders and build items array with store grouping
-      const orders = await Promise.all(
+      const orders = (await Promise.all(
         args.orderIds.map((orderId) => ctx.runQuery(api.orders.queries.index.getOrderById, { orderId, includeItems: true }))
-      );
+      )) as Array<Doc<'orders'> | null>;
 
       invoiceItems = [];
       for (const order of orders) {
@@ -155,7 +155,7 @@ export const createXenditInvoice = internalAction({
       // Add voucher discount if applicable
       if (totalVoucherDiscount > 0) {
         // Find voucher code from orders
-        const voucherCode = orders.find((o) => o?.voucherCode)?.voucherCode || 'VOUCHER';
+        const voucherCode = orders.find((o: import('../../_generated/dataModel').Doc<'orders'> | null) => o?.voucherCode)?.voucherCode || 'VOUCHER';
         finalItems.push({
           name: `Voucher Discount (${voucherCode})`,
           quantity: 1,
@@ -200,23 +200,30 @@ export const createXenditInvoice = internalAction({
         };
         const orderItems = order.embeddedItems || (order as OrderWithItems).items || [];
 
-        invoiceItems = orderItems.map((item) => {
-          const variantName = 'variantName' in item ? item.variantName : item.productInfo.variantName;
-          const itemName = variantName ? `${item.productInfo.title} - ${variantName}` : item.productInfo.title;
-          const category = ('categoryName' in item.productInfo ? item.productInfo.categoryName : undefined) || 'General';
-          const productUrl = `${appUrl}/products/${item.productInfo.slug}`;
+        invoiceItems = orderItems.map(
+          (item: {
+            productInfo: { title: string; slug: string; variantName?: string; categoryName?: string };
+            quantity: number;
+            price: number;
+            variantName?: string;
+          }) => {
+            const variantName = 'variantName' in item ? item.variantName : item.productInfo.variantName;
+            const itemName = variantName ? `${item.productInfo.title} - ${variantName}` : item.productInfo.title;
+            const category = ('categoryName' in item.productInfo ? item.productInfo.categoryName : undefined) || 'General';
+            const productUrl = `${appUrl}/products/${item.productInfo.slug}`;
 
-          return {
-            name: itemName,
-            quantity: item.quantity,
-            price: item.price,
-            category,
-            url: productUrl,
-          };
-        });
+            return {
+              name: itemName,
+              quantity: item.quantity,
+              price: item.price,
+              category,
+              url: productUrl,
+            };
+          }
+        );
 
         // Add voucher discount if applicable
-        if (totalVoucherDiscount > 0 && order.voucherCode) {
+        if (totalVoucherDiscount > 0 && order.voucherCode && invoiceItems) {
           invoiceItems.push({
             name: `Voucher Discount (${order.voucherCode})`,
             quantity: 1,

@@ -13,6 +13,7 @@ import { setItemNoteArgs, setItemNoteHandler } from './setItemNote';
 import { mergeCartsArgs, mergeCartsHandler } from './mergeCarts';
 import { updateCartStatsArgs, updateCartStatsHandler } from './updateCartStats';
 import { markAbandonedArgs, markAbandonedHandler } from './markAbandoned';
+import { addGuestItems } from './addGuestItems';
 
 // Export mutation functions
 export const createOrGetCart = mutation({
@@ -64,6 +65,8 @@ export const mergeCarts = mutation({
   args: mergeCartsArgs,
   handler: mergeCartsHandler,
 });
+
+export { addGuestItems };
 
 export const updateCartStats = internalMutation({
   args: updateCartStatsArgs,

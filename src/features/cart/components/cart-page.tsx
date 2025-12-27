@@ -12,6 +12,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { showToast, promiseToast } from '@/lib/toast';
+import { useUnifiedCart } from '@/src/hooks/use-unified-cart';
+import { useGuestCartStore } from '@/src/stores/guest-cart';
 import {
   Trash2,
   Plus,
@@ -254,23 +256,16 @@ function EmptyCart() {
 }
 
 export function CartPage() {
-  const cart = useQuery(api.carts.queries.index.getCartByUser, {});
+  const { items, totals, isAuthenticated } = useUnifiedCart();
+  const serverCart = useQuery(api.carts.queries.index.getCartByUser, isAuthenticated ? {} : 'skip');
   const clearCart = useMutation(api.carts.mutations.index.clearCart);
+  const guestCart = useGuestCartStore();
 
-  const hasItems = (cart?.embeddedItems?.length ?? 0) > 0;
-
-  const totals = useMemo(() => {
-    return {
-      totalItems: cart?.totalItems ?? 0,
-      totalValue: cart?.totalValue ?? 0,
-      selectedItems: cart?.selectedItems ?? 0,
-      selectedValue: cart?.selectedValue ?? 0,
-    };
-  }, [cart]);
+  const hasItems = items.length > 0;
 
   const groupedByOrg = useMemo(() => {
     const groups: Record<string, { name: string; items: Array<CartItem> }> = {};
-    for (const raw of cart?.embeddedItems ?? []) {
+    for (const raw of items) {
       const item = raw as CartItem;
       const orgId = String(item.productInfo.organizationId ?? 'global');
       const orgName = item.productInfo.organizationName ?? 'Merchkins Store';
@@ -278,28 +273,32 @@ export function CartPage() {
       groups[orgId].items.push(item);
     }
     return groups;
-  }, [cart]);
+  }, [items]);
 
   async function handleClear() {
-    if (!cart) return;
-    try {
-      await promiseToast(clearCart({ cartId: cart._id }), {
-        loading: 'Clearing cart…',
-        success: 'Cart cleared',
-        error: () => 'Failed to clear cart',
-      });
-    } catch {
-      // no-op
+    if (isAuthenticated && serverCart) {
+      try {
+        await promiseToast(clearCart({ cartId: serverCart._id }), {
+          loading: 'Clearing cart…',
+          success: 'Cart cleared',
+          error: () => 'Failed to clear cart',
+        });
+      } catch {
+        // no-op
+      }
+    } else {
+      guestCart.clear();
+      showToast({ type: 'success', title: 'Cart cleared' });
     }
   }
 
-  // Loading state
-  if (cart === undefined) {
+  // Loading state (only for authenticated users)
+  if (isAuthenticated && serverCart === undefined) {
     return <CartSkeleton />;
   }
 
   // Empty state
-  if (!cart || !hasItems) {
+  if (!hasItems) {
     return <EmptyCart />;
   }
 
@@ -344,7 +343,14 @@ export function CartPage() {
 
                   {/* Items */}
                   {group.items.map((item, itemIndex) => (
-                    <CartLineItem key={item.addedAt} cartId={cart._id} item={item} addedAt={item.addedAt} index={itemIndex} />
+                    <CartLineItem
+                      key={item.addedAt}
+                      cartId={isAuthenticated && serverCart ? serverCart._id : undefined}
+                      item={item}
+                      addedAt={item.addedAt}
+                      index={itemIndex}
+                      isAuthenticated={isAuthenticated}
+                    />
                   ))}
                 </motion.div>
               ))}
@@ -507,12 +513,25 @@ type CartItem = {
   addedAt: number;
 };
 
-function CartLineItem({ cartId, item, addedAt, index = 0 }: { cartId: Id<'carts'>; item: CartItem; addedAt: number; index?: number }) {
+function CartLineItem({
+  cartId,
+  item,
+  addedAt,
+  index = 0,
+  isAuthenticated = true,
+}: {
+  cartId?: Id<'carts'>;
+  item: CartItem;
+  addedAt: number;
+  index?: number;
+  isAuthenticated?: boolean;
+}) {
   const setSelected = useMutation(api.carts.mutations.index.setItemSelected);
   const updateQty = useMutation(api.carts.mutations.index.updateItemQuantity);
   const setItemNote = useMutation(api.carts.mutations.index.setItemNote);
   const updateItemVariant = useMutation(api.carts.mutations.index.updateItemVariant);
   const product = useQuery(api.products.queries.index.getProductById, { productId: item.productInfo.productId });
+  const guestCart = useGuestCartStore();
 
   // Optimistic quantity state
   const [optimisticQty, setOptimisticQty] = useState(item.quantity);
@@ -538,6 +557,12 @@ function CartLineItem({ cartId, item, addedAt, index = 0 }: { cartId: Id<'carts'
       // Optimistic update
       setOptimisticQty(clampedQty);
 
+      if (!isAuthenticated || !cartId) {
+        // Guest cart - update directly
+        guestCart.updateQuantityByProduct(String(item.productInfo.productId), item.variantId, sizeId, clampedQty);
+        return;
+      }
+
       // Debounce the actual mutation
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(async () => {
@@ -558,7 +583,7 @@ function CartLineItem({ cartId, item, addedAt, index = 0 }: { cartId: Id<'carts'
         }
       }, 300);
     },
-    [cartId, item.productInfo.productId, item.productInfo.inventory, item.variantId, sizeId, updateQty]
+    [cartId, item.productInfo.productId, item.productInfo.inventory, item.variantId, sizeId, updateQty, isAuthenticated, guestCart]
   );
 
   async function handleDec() {
@@ -570,6 +595,13 @@ function CartLineItem({ cartId, item, addedAt, index = 0 }: { cartId: Id<'carts'
   }
 
   async function handleRemove() {
+    if (!isAuthenticated || !cartId) {
+      // Guest cart - remove directly
+      guestCart.removeItemByProduct(String(item.productInfo.productId), item.variantId, sizeId);
+      showToast({ type: 'success', title: 'Item removed' });
+      return;
+    }
+
     try {
       await promiseToast(
         updateQty({
@@ -589,6 +621,31 @@ function CartLineItem({ cartId, item, addedAt, index = 0 }: { cartId: Id<'carts'
 
   async function handleVariantChange(newVariantId?: string) {
     if ((newVariantId ?? null) === (item.variantId ?? null)) return;
+    if (!isAuthenticated || !cartId) {
+      // Guest cart - update locally
+      if (!product) {
+        showToast({ type: 'error', title: 'Product data not available' });
+        return;
+      }
+      const newVariant = product.variants?.find((v) => v.variantId === newVariantId);
+      if (!newVariant) {
+        showToast({ type: 'error', title: 'Variant not found' });
+        return;
+      }
+      const newPrice = newVariant.price;
+      const newVariantName = newVariant.variantName;
+      guestCart.updateItemVariant(
+        item.productInfo.productId,
+        item.variantId,
+        newVariantId,
+        item.size,
+        undefined,
+        newPrice,
+        newVariantName
+      );
+      showToast({ type: 'success', title: 'Variant updated' });
+      return;
+    }
     try {
       await promiseToast(
         updateItemVariant({
@@ -611,6 +668,31 @@ function CartLineItem({ cartId, item, addedAt, index = 0 }: { cartId: Id<'carts'
     const currentSizeId = item.size?.id ?? null;
     const newSizeId = newSize?.id ?? null;
     if (currentSizeId === newSizeId) return;
+
+    if (!isAuthenticated || !cartId) {
+      // Guest cart - update locally
+      if (!product) {
+        showToast({ type: 'error', title: 'Product data not available' });
+        return;
+      }
+      const variant = product.variants?.find((v) => v.variantId === item.variantId);
+      if (!variant) {
+        showToast({ type: 'error', title: 'Variant not found' });
+        return;
+      }
+      const newPrice = newSize?.price ?? variant.price;
+      guestCart.updateItemVariant(
+        item.productInfo.productId,
+        item.variantId,
+        item.variantId,
+        item.size,
+        newSize,
+        newPrice,
+        variant.variantName
+      );
+      showToast({ type: 'success', title: 'Size updated' });
+      return;
+    }
 
     try {
       await promiseToast(
@@ -659,6 +741,11 @@ function CartLineItem({ cartId, item, addedAt, index = 0 }: { cartId: Id<'carts'
               <Checkbox
                 checked={item.selected}
                 onCheckedChange={async (checked) => {
+                  if (!isAuthenticated || !cartId) {
+                    // Guest cart - update directly
+                    guestCart.updateSelectedByProduct(String(item.productInfo.productId), item.variantId, sizeId, Boolean(checked));
+                    return;
+                  }
                   await setSelected({
                     cartId: cartId,
                     productId: item.productInfo.productId,
@@ -834,6 +921,19 @@ function CartLineItem({ cartId, item, addedAt, index = 0 }: { cartId: Id<'carts'
                 placeholder="Add a note for this item..."
                 className="h-9 text-sm rounded-lg border-slate-200 focus:border-[#1d43d8]/30 focus:ring-[#1d43d8]/10"
                 onBlur={async (e) => {
+                  if (!isAuthenticated || !cartId) {
+                    // Guest cart - update note directly
+                    const itemIndex = guestCart.items.findIndex(
+                      (i) =>
+                        String(i.productInfo.productId) === String(item.productInfo.productId) &&
+                        i.variantId === item.variantId &&
+                        i.size?.id === sizeId
+                    );
+                    if (itemIndex >= 0) {
+                      guestCart.updateNote(itemIndex, e.target.value.trim() || undefined);
+                    }
+                    return;
+                  }
                   try {
                     await setItemNote({
                       cartId: cartId,

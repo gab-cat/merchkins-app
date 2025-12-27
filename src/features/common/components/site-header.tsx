@@ -17,6 +17,7 @@ import { CartSheet } from '@/src/features/cart/components/cart-sheet';
 import { cn } from '@/lib/utils';
 import { OrganizationsPage, AccountPage } from '@/src/features/common/components/user-profile-pages';
 import { useThemeExclusionAuto } from '../../../stores/theme-exclusion';
+import { useUnifiedCart } from '@/src/hooks/use-unified-cart';
 import { BeamsBackground, GradientBackground, GridPattern } from '@/src/components/ui/backgrounds';
 import { Float, PulseGlow } from '@/src/components/ui/animations';
 import {
@@ -93,8 +94,9 @@ export function SiteHeader() {
     orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
   );
 
-  const cart = useQuery(api.carts.queries.index.getCartByUser, {});
-  const totalItems = useMemo(() => cart?.totalItems ?? 0, [cart]);
+  // Use unified cart to support both authenticated and guest users
+  const { totals } = useUnifiedCart();
+  const totalItems = useMemo(() => totals.totalItems ?? 0, [totals.totalItems]);
 
   // Get current user and their organizations to check membership
   const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }));
@@ -409,42 +411,41 @@ function SiteHeaderContent({
             )}
           </SignedIn>
 
-          <SignedIn>
-            <CartSheet initialCount={totalItems}>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant="ghost"
-                  aria-label="Cart"
-                  size="sm"
+          {/* Cart Sheet - Show for both authenticated and unauthenticated users */}
+          <CartSheet initialCount={totalItems}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="ghost"
+                aria-label="Cart"
+                size="sm"
+                className={cn(
+                  'gap-1.5 px-2.5 h-9 relative transition-all duration-300 rounded-lg',
+                  isScrolled
+                    ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
+                    : shouldApplyTheme
+                      ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                      : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                )}
+              >
+                <ShoppingCart
                   className={cn(
-                    'gap-1.5 px-2.5 h-9 relative transition-all duration-300 rounded-lg',
-                    isScrolled
-                      ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
-                      : shouldApplyTheme
-                        ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
-                        : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                    'h-4 w-4 transition-transform duration-300 group-hover:scale-110',
+                    isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
                   )}
-                >
-                  <ShoppingCart
-                    className={cn(
-                      'h-4 w-4 transition-transform duration-300 group-hover:scale-110',
-                      isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
-                    )}
-                  />
-                  {totalItems > 0 && (
-                    <motion.span
-                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-brand-neon text-black text-xs flex items-center justify-center font-bold shadow-lg"
-                      animate={{ scale: [1, 1.15, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      {totalItems > 9 ? '9+' : totalItems}
-                    </motion.span>
-                  )}
-                  <span className="sr-only">Cart</span>
-                </Button>
-              </motion.div>
-            </CartSheet>
-          </SignedIn>
+                />
+                {totalItems > 0 && (
+                  <motion.span
+                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-brand-neon text-black text-xs flex items-center justify-center font-bold shadow-lg"
+                    animate={{ scale: [1, 1.15, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    {totalItems > 9 ? '9+' : totalItems}
+                  </motion.span>
+                )}
+                <span className="sr-only">Cart</span>
+              </Button>
+            </motion.div>
+          </CartSheet>
 
           <SignedOut>
             <div className="flex items-center gap-2">

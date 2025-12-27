@@ -22,6 +22,7 @@ import type * as announcements_queries_getAnnouncements from "../announcements/q
 import type * as announcements_queries_getPinnedAnnouncements from "../announcements/queries/getPinnedAnnouncements.js";
 import type * as announcements_queries_index from "../announcements/queries/index.js";
 import type * as announcements_queries_searchAnnouncements from "../announcements/queries/searchAnnouncements.js";
+import type * as carts_mutations_addGuestItems from "../carts/mutations/addGuestItems.js";
 import type * as carts_mutations_addItem from "../carts/mutations/addItem.js";
 import type * as carts_mutations_clearCart from "../carts/mutations/clearCart.js";
 import type * as carts_mutations_createOrGetCart from "../carts/mutations/createOrGetCart.js";
@@ -106,6 +107,10 @@ import type * as files_queries_getFilesByUser from "../files/queries/getFilesByU
 import type * as files_queries_getPublicUrl from "../files/queries/getPublicUrl.js";
 import type * as files_queries_index from "../files/queries/index.js";
 import type * as files_r2 from "../files/r2.js";
+import type * as guestCheckout_index from "../guestCheckout/index.js";
+import type * as guestCheckout_mutations_createGuestOrder from "../guestCheckout/mutations/createGuestOrder.js";
+import type * as guestCheckout_mutations_sendOTP from "../guestCheckout/mutations/sendOTP.js";
+import type * as guestCheckout_mutations_verifyOTP from "../guestCheckout/mutations/verifyOTP.js";
 import type * as helpers_auth from "../helpers/auth.js";
 import type * as helpers_emailTemplates_builders from "../helpers/emailTemplates/builders.js";
 import type * as helpers_emailTemplates_constants from "../helpers/emailTemplates/constants.js";
@@ -476,6 +481,7 @@ declare const fullApi: ApiFromModules<{
   "announcements/queries/getPinnedAnnouncements": typeof announcements_queries_getPinnedAnnouncements;
   "announcements/queries/index": typeof announcements_queries_index;
   "announcements/queries/searchAnnouncements": typeof announcements_queries_searchAnnouncements;
+  "carts/mutations/addGuestItems": typeof carts_mutations_addGuestItems;
   "carts/mutations/addItem": typeof carts_mutations_addItem;
   "carts/mutations/clearCart": typeof carts_mutations_clearCart;
   "carts/mutations/createOrGetCart": typeof carts_mutations_createOrGetCart;
@@ -560,6 +566,10 @@ declare const fullApi: ApiFromModules<{
   "files/queries/getPublicUrl": typeof files_queries_getPublicUrl;
   "files/queries/index": typeof files_queries_index;
   "files/r2": typeof files_r2;
+  "guestCheckout/index": typeof guestCheckout_index;
+  "guestCheckout/mutations/createGuestOrder": typeof guestCheckout_mutations_createGuestOrder;
+  "guestCheckout/mutations/sendOTP": typeof guestCheckout_mutations_sendOTP;
+  "guestCheckout/mutations/verifyOTP": typeof guestCheckout_mutations_verifyOTP;
   "helpers/auth": typeof helpers_auth;
   "helpers/emailTemplates/builders": typeof helpers_emailTemplates_builders;
   "helpers/emailTemplates/constants": typeof helpers_emailTemplates_constants;

@@ -170,8 +170,13 @@ export function HomeHero() {
         </BlurFade>
 
         <BlurFade delay={0.3}>
-          <p className="mt-4 text-lg md:text-xl text-muted-foreground/70 max-w-xl mx-auto leading-relaxed">
-            {user ? 'Ready to explore your merch.' : 'Custom merchandise, made easy.'}
+          <p className="mt-4 text-sm md:text-base text-muted-foreground/70 max-w-xl mx-auto leading-relaxed">
+            {user
+              ? 'Your one-stop shop for custom merch from your favorite orgs and creators.'
+              : 'Create, sell, and ship custom merchandise — all in one place.'}
+            <Link href="/about" className="ml-1.5 inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors">
+              Learn more →
+            </Link>
           </p>
         </BlurFade>
 

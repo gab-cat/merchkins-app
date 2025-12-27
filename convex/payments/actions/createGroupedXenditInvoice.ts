@@ -35,7 +35,7 @@ export const createGroupedXenditInvoiceInternal = internalAction({
       session.orderIds.map((orderId: Id<'orders'>) => ctx.runQuery(api.orders.queries.index.getOrderById, { orderId }))
     );
 
-    const validOrders = orders.filter((order): order is Doc<'orders'> => {
+    const validOrders = orders.filter((order: Doc<'orders'> | null): order is Doc<'orders'> => {
       return order !== null && !order.isDeleted;
     });
 
@@ -95,21 +95,7 @@ export const createGroupedXenditInvoice = action({
     expiryDate: v.number(),
   }),
   handler: async (ctx: ActionCtx, args: { checkoutId: string }): Promise<{ invoiceId: string; invoiceUrl: string; expiryDate: number }> => {
-    // Get current user
-    const userId = await ctx.auth.getUserIdentity();
-    if (!userId) {
-      throw new Error('Not authenticated');
-    }
-
-    // Get current user data
-    const currentUser = await ctx.runQuery(api.users.queries.index.getCurrentUser, {
-      clerkId: userId.subject,
-    });
-    if (!currentUser) {
-      throw new Error('User not found');
-    }
-
-    // Get checkout session
+    // Get checkout session first to verify it exists
     const session = await ctx.runQuery(api.checkoutSessions.queries.index.getCheckoutSessionById, {
       checkoutId: args.checkoutId,
     });
@@ -118,9 +104,27 @@ export const createGroupedXenditInvoice = action({
       throw new Error('Checkout session not found');
     }
 
-    // Check permissions - user can create invoices for their own sessions, staff/admin can create for any
-    if (currentUser._id !== session.customerId && !currentUser.isStaff && !currentUser.isAdmin) {
-      throw new Error('You can only create payment links for your own checkout sessions');
+    // Get current user (if authenticated)
+    const userId = await ctx.auth.getUserIdentity();
+    
+    if (userId) {
+      // Authenticated user - verify they match the session's customerId or are staff/admin
+      const currentUser = await ctx.runQuery(api.users.queries.index.getCurrentUser, {
+        clerkId: userId.subject,
+      });
+      
+      if (!currentUser) {
+        throw new Error('User not found');
+      }
+
+      // Check permissions - user can create invoices for their own sessions, staff/admin can create for any
+      if (currentUser._id !== session.customerId && !currentUser.isStaff && !currentUser.isAdmin) {
+        throw new Error('You can only create payment links for your own checkout sessions');
+      }
+    } else {
+      // Guest user - allow them to create invoices since they have the checkoutId
+      // The checkoutId acts as a secret token that proves ownership
+      // Guest users can only create invoices for their own sessions (they wouldn't know other checkoutIds)
     }
 
     // Call the internal action

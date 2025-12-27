@@ -103,6 +103,7 @@ const isPublicRoute = createRouteMatcher([
 
   '/apply(.*)',
   '/code(.*)',
+  '/orders/payment/success(.*)',
 ]);
 
 const skipPaths = [
@@ -139,6 +140,7 @@ const skipPaths = [
   '/checkout',
   '/cart',
   '/orders',
+  '/orders/payment/success',
 
   // Other platform pages
   '/apply',

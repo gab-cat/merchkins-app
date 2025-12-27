@@ -42,6 +42,7 @@ import { useRequireAuth } from '@/src/features/auth/hooks/use-require-auth';
 import { SignInRequiredDialog } from '@/src/features/auth/components/sign-in-required-dialog';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { BlurFade } from '@/src/components/ui/animations/effects';
+import { useUnifiedCart } from '@/src/hooks/use-unified-cart';
 
 /**
  * Formats a count to display friendly ranges like "10+", "50+", "100+", etc.
@@ -112,7 +113,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
     discountLabel?: string;
   };
   const recommended: RecommendedProduct[] = (recommendations?.products as unknown as RecommendedProduct[]) || [];
-  const addItem = useMutation(api.carts.mutations.index.addItem);
+  const { addItem: addItemToCart } = useUnifiedCart();
   const openCartSheet = useCartSheetStore((s) => s.open);
 
   // Organization membership check for PUBLIC org products
@@ -165,60 +166,77 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
   const inStock = product?.inventoryType === 'PREORDER' || (selectedVariant?.inventory ?? product?.inventory ?? 0) > 0;
 
   function handleAddToCart() {
-    requireAuth(async () => {
-      if (!product) return;
+    if (!product) return;
 
-      // Check if variant selection is required
-      if (activeVariants.length > 0 && !selectedVariantId) {
-        showToast({ type: 'warning', title: 'Please select a variant first' });
-        return;
-      }
+    // Check if variant selection is required
+    if (activeVariants.length > 0 && !selectedVariantId) {
+      showToast({ type: 'warning', title: 'Please select a variant first' });
+      return;
+    }
 
-      // Check if size selection is required for the selected variant
-      const variantHasSizes = selectedVariant?.sizes && selectedVariant.sizes.length > 0;
-      if (selectedVariantId && variantHasSizes && !selectedSizeId) {
-        showToast({ type: 'warning', title: 'Please select a size for this variant' });
-        return;
-      }
+    // Check if size selection is required for the selected variant
+    const variantHasSizes = selectedVariant?.sizes && selectedVariant.sizes.length > 0;
+    if (selectedVariantId && variantHasSizes && !selectedSizeId) {
+      showToast({ type: 'warning', title: 'Please select a size for this variant' });
+      return;
+    }
 
-      // Check organization membership for PUBLIC org products
-      if (organization?.organizationType === 'PUBLIC' && !isMember) {
-        if (!isAuthenticated) {
-          // Redirect to sign-in with return URL
-          const currentUrl =
-            typeof window !== 'undefined'
-              ? `${window.location.origin}${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
-              : '';
-          const signInUrl = `/sign-in?redirectUrl=${encodeURIComponent(currentUrl)}`;
-          router.push(signInUrl);
-          return;
-        }
-        setJoinDialogOpen(true);
-        return;
-      }
+    // For authenticated users: check organization membership for PUBLIC org products
+    if (isAuthenticated && organization?.organizationType === 'PUBLIC' && !isMember) {
+      setJoinDialogOpen(true);
+      return;
+    }
 
-      startAddingToCart(async () => {
-        try {
-          const size =
-            selectedSizeId && selectedSize
-              ? {
-                  id: selectedSize.id,
-                  label: selectedSize.label,
-                  price: selectedSize.price,
-                }
-              : undefined;
+    // For PRIVATE/SECRET orgs: require authentication
+    if (!isAuthenticated && organization && organization.organizationType !== 'PUBLIC') {
+      requireAuth(() => {
+        // Will redirect to sign-in
+      });
+      return;
+    }
 
-          await addItem({
+    startAddingToCart(async () => {
+      try {
+        const size =
+          selectedSizeId && selectedSize
+            ? {
+                id: selectedSize.id,
+                label: selectedSize.label,
+                price: selectedSize.price,
+              }
+            : undefined;
+
+        // Prepare product data for guest cart
+        const productData = isAuthenticated
+          ? undefined
+          : {
+              _id: product._id,
+              title: product.title,
+              slug: product.slug,
+              imageUrl: product.imageUrl,
+              organizationId: product.organizationId,
+              organizationInfo: product.organizationInfo,
+              variants: product.variants,
+              minPrice: product.minPrice,
+              maxPrice: product.maxPrice,
+              supposedPrice: product.supposedPrice,
+              inventory: selectedVariant?.inventory ?? product.inventory ?? 0,
+              inventoryType: product.inventoryType,
+            };
+
+        await addItemToCart(
+          {
             productId: product._id,
             variantId: selectedVariantId,
             size,
             quantity: 1,
-          });
-          openCartSheet();
-        } catch {
-          showToast({ type: 'error', title: 'Failed to add to cart' });
-        }
-      });
+          },
+          productData
+        );
+        openCartSheet();
+      } catch {
+        // Error already handled in hook
+      }
     });
   }
 
