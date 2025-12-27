@@ -118,10 +118,10 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
         </div>
       </SheetTrigger>
 
-      <SheetContent side="right" className="p-0 bg-white border-none text-foreground w-full sm:max-w-md">
+      <SheetContent side="right" className="p-0 bg-white gap-0 border-none text-foreground w-full sm:max-w-md">
         {/* Header */}
-        <SheetHeader className="relative border-b bg-white">
-          <SheetTitle className="relative z-10 px-4 py-3 inline-flex items-center gap-3 text-lg font-bold text-primary font-heading">
+        <SheetHeader className="relative border-b py-2 mb-0 bg-white no-scrollbar">
+          <SheetTitle className="relative z-10 px-4 py-2 inline-flex items-center gap-2 text-lg font-bold text-primary font-heading">
             <div className="p-2 rounded-xl bg-primary/10">
               <ShoppingCart className="h-5 w-5 text-primary" />
             </div>
@@ -163,14 +163,14 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
             </SheetClose>
           </div>
         ) : (
-          <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-            <ScrollArea className="flex-1 min-h-0 px-4 py-4">
+          <div className="flex flex-1 min-h-0 flex-col overflow-hidden no-scrollbar">
+            <ScrollArea className="flex-1 min-h-0 px-4 py-2 no-scrollbar">
               <AnimatePresence>
-                <div className="space-y-4">
+                <div className="space-y-0 no-scrollbar">
                   {Object.entries(groupedByOrg).map(([orgId, group], groupIndex) => (
                     <motion.div
                       key={orgId}
-                      className="space-y-3"
+                      className="space-y-3 py-2"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: groupIndex * 0.1 }}
@@ -206,27 +206,17 @@ export function CartSheet({ children, initialCount }: { children?: React.ReactNo
                 </div>
                 <div className="h-px bg-border" />
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-foreground">Selected total</span>
+                  <span className="font-semibold text-foreground">
+                    Selected total <span className="text-xs font-normal text-muted-foreground">({BUSINESS_CURRENCY})</span>
+                  </span>
                   <span className="text-xl font-bold text-primary font-heading">
                     {new Intl.NumberFormat(undefined, { style: 'currency', currency: BUSINESS_CURRENCY }).format(totals.selectedValue)}
                   </span>
-                </div>
-                <div className="pt-2 border-t border-border/50">
-                  <p className="text-xs text-muted-foreground">
-                    Currency: <span className="font-semibold text-primary">{BUSINESS_CURRENCY}</span>
-                  </p>
                 </div>
               </div>
             </div>
 
             <SheetFooter className="shrink-0 gap-3 p-5 border-t bg-white flex-col">
-              <div className="w-full px-1 pb-2 border-b border-border/50">
-                <p className="text-xs text-muted-foreground leading-tight">
-                  <span className="font-semibold">{BUSINESS_NAME}</span>
-                  <br />
-                  {BUSINESS_DESCRIPTION}
-                </p>
-              </div>
               <div className="flex w-full items-center gap-3 pt-2">
                 <Button
                   variant="ghost"
@@ -512,7 +502,7 @@ function MiniCartLineItem({
       once={false}
       className={cn(
         'rounded-2xl border-2 p-4 transition-all duration-300',
-        item.selected ? 'border-primary/30 bg-primary/3 shadow-md' : 'border-transparent bg-muted/30 hover:bg-muted/50'
+        item.selected ? 'border-primary/30 bg-primary/3' : 'border-transparent bg-muted/30 hover:bg-muted/50'
       )}
     >
       <div className="flex items-start gap-3">
