@@ -54,7 +54,7 @@ function getPreviousWeekPeriod(): { periodStart: number; periodEnd: number } {
  */
 export const triggerWeeklyPayoutGeneration = internalAction({
   args: {},
-  handler: async (ctx): Promise<{ success: boolean; invoicesCreated: number; periodStart: number; periodEnd: number }> => {
+  handler: async (ctx): Promise<{ success: boolean; invoicesCreated: string[]; periodStart: number; periodEnd: number }> => {
     // Calculate the previous week's period
     const { periodStart, periodEnd } = getPreviousWeekPeriod();
 
@@ -78,7 +78,7 @@ export const triggerPayoutGenerationManual = action({
     periodStart: v.number(),
     periodEnd: v.number(),
   },
-  handler: async (ctx, args): Promise<{ success: boolean; invoicesCreated: number; periodStart: number; periodEnd: number }> => {
+  handler: async (ctx, args): Promise<{ success: boolean; invoicesCreated: string[]; periodStart: number; periodEnd: number }> => {
     console.log(
       `Manually generating payout invoices for period: ${new Date(args.periodStart).toISOString()} to ${new Date(args.periodEnd).toISOString()}`
     );

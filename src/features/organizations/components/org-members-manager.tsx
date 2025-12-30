@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id, Doc } from '@/convex/_generated/dataModel';
@@ -14,8 +14,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@clerk/nextjs';
 import {
   Users,
@@ -37,7 +38,11 @@ import {
   UserCheck,
   UserX,
   Plus,
+  Calendar,
+  ArrowRight,
+  Loader2,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Props {
   organizationId: Id<'organizations'>;
@@ -47,14 +52,19 @@ interface Props {
 type RoleType = 'ADMIN' | 'STAFF' | 'MEMBER';
 
 const ROLE_CONFIG: Record<RoleType, { icon: React.ElementType; color: string; bgColor: string; label: string }> = {
-  ADMIN: { icon: Crown, color: 'text-amber-600', bgColor: 'bg-amber-100 dark:bg-amber-950/30', label: 'Admin' },
-  STAFF: { icon: UserCog, color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-950/30', label: 'Staff' },
-  MEMBER: { icon: User, color: 'text-slate-600', bgColor: 'bg-slate-100 dark:bg-slate-950/30', label: 'Member' },
+  ADMIN: {
+    icon: Crown,
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-100 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800',
+    label: 'Admin',
+  },
+  STAFF: { icon: UserCog, color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800', label: 'Staff' },
+  MEMBER: { icon: User, color: 'text-slate-600', bgColor: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700', label: 'Member' },
 };
 
 export function OrgMembersManager({ organizationId, orgSlug }: Props) {
   const { userId: clerkId } = useAuth();
-  const [activeTab, setActiveTab] = useState<'members' | 'invites' | 'requests'>('members');
+  const [activeTab, setActiveTab] = useState('members');
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'STAFF' | 'MEMBER'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -88,7 +98,7 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
 
   const joinRequests = useQuery(
     api.organizations.queries.index.listJoinRequests,
-    activeTab === 'requests' ? { organizationId, status: 'PENDING' } : 'skip'
+    activeTab === 'requests' || activeTab === 'members' ? { organizationId, status: 'PENDING' } : 'skip'
   );
 
   const updateRole = useMutation(api.organizations.mutations.index.updateMemberRole);
@@ -133,6 +143,7 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
   }
 
   async function handleRemove(memberId: Id<'users'>) {
+    if (!confirm('Are you sure you want to remove this member?')) return;
     try {
       await removeMember({ organizationId, userId: memberId });
       showToast({ type: 'success', title: 'Member removed' });
@@ -188,470 +199,358 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
   }
 
   const selectedCount = useMemo(() => Object.values(selected).filter(Boolean).length, [selected]);
-
   const slug = orgSlug || organization?.slug;
-
-  const tabs = [
-    { id: 'members' as const, label: 'Members', icon: Users, count: filteredItems.length },
-    { id: 'invites' as const, label: 'Invites', icon: Link2, count: inviteLinks?.length || 0 },
-    { id: 'requests' as const, label: 'Requests', icon: UserPlus, count: joinRequests?.page?.length || 0 },
-  ];
+  const requestsCount = joinRequests?.page?.length || 0;
 
   return (
-    <div className="space-y-6">
-      {/* Tab Navigation */}
-      <div className="flex items-center gap-2 p-1 bg-muted/50 rounded-lg w-fit">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all',
-                isActive ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {tab.label}
-              {tab.count > 0 && (
-                <span
-                  className={cn(
-                    'text-xs px-1.5 py-0.5 rounded-full',
-                    isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted-foreground/20'
-                  )}
-                >
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 border-b pb-6">
+        <div>
+          <Button onClick={() => setActiveTab('invites')} className="gap-2">
+            <UserPlus className="h-4 w-4" /> Invite People
+          </Button>
+        </div>
       </div>
 
-      {activeTab === 'members' && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-          {/* Filters & Actions */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="bg-muted/30 border p-1 rounded-xl mb-6">
+          <TabsTrigger value="members" className="gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <Users className="h-4 w-4" /> Members
+            <Badge variant="secondary" className="px-1.5 h-5 min-w-5">
+              {filteredItems.length}
+            </Badge>
+          </TabsTrigger>
+          <TabsTrigger value="invites" className="gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <Link2 className="h-4 w-4" /> Invites
+            {inviteLinks && inviteLinks.length > 0 && (
+              <Badge variant="secondary" className="px-1.5 h-5 min-w-5">
+                {inviteLinks.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="requests" className="gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm relative">
+            <UserCheck className="h-4 w-4" /> Requests
+            {requestsCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white animate-pulse">
+                {requestsCount}
+              </span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="members" className="space-y-4 focus-visible:outline-none">
+          {/* Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-3 items-center bg-card border rounded-xl p-2 shadow-sm">
+            <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search members..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
+              <Input
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9 border-none bg-transparent focus-visible:ring-0"
+              />
             </div>
-            <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as 'ALL' | RoleType)}>
-              <SelectTrigger className="w-[160px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Roles</SelectItem>
-                <SelectItem value="ADMIN">Admin</SelectItem>
-                <SelectItem value="STAFF">Staff</SelectItem>
-                <SelectItem value="MEMBER">Member</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={toggleSelectAll}>
-              Select All
-            </Button>
-            <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
-              <DialogTrigger asChild>
-                <Button disabled={selectedCount === 0}>
-                  <Shield className="h-4 w-4 mr-2" />
-                  Permissions ({selectedCount})
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Assign Permissions</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="max-h-64 overflow-auto rounded-lg border p-3">
-                    {permissionItems.length === 0 ? (
-                      <div className="text-sm text-muted-foreground text-center py-4">No permissions found.</div>
-                    ) : (
-                      <div className="space-y-2">
-                        {permissionItems.map((p) => (
-                          <label key={p._id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
-                            <Checkbox
-                              checked={!!selectedPermissionCodes[p.code]}
-                              onCheckedChange={() => setSelectedPermissionCodes((prev) => ({ ...prev, [p.code]: !prev[p.code] }))}
-                            />
-                            <div>
-                              <div className="text-sm font-medium">{p.name}</div>
-                              <div className="text-xs text-muted-foreground">{p.code}</div>
-                            </div>
-                          </label>
-                        ))}
+            <div className="h-6 w-px bg-border hidden sm:block" />
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as any)}>
+                <SelectTrigger className="h-9 w-[130px] border-none bg-muted/30 focus:bg-muted/50 transition-colors">
+                  <SelectValue placeholder="All Roles" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Roles</SelectItem>
+                  <SelectItem value="ADMIN">Admins</SelectItem>
+                  <SelectItem value="STAFF">Staff</SelectItem>
+                  <SelectItem value="MEMBER">Members</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {selectedCount > 0 && (
+                <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="secondary" className="h-9 gap-2">
+                      <Shield className="h-3.5 w-3.5" />
+                      Assign Permission ({selectedCount})
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Assign Permissions</DialogTitle>
+                      <DialogDescription>Apply permissions to {selectedCount} selected members.</DialogDescription>
+                    </DialogHeader>
+                    {/* Permission assignment logic reused from original but simplified structure */}
+                    <div className="space-y-4">
+                      <div className="max-h-64 overflow-auto rounded-lg border p-1 bg-muted/10">
+                        {permissionItems.length === 0 ? (
+                          <div className="text-sm text-muted-foreground text-center py-8">No specific permissions available.</div>
+                        ) : (
+                          <div className="space-y-1">
+                            {permissionItems.map((p) => (
+                              <label
+                                key={p._id}
+                                className="flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
+                              >
+                                <Checkbox
+                                  checked={!!selectedPermissionCodes[p.code]}
+                                  onCheckedChange={() => setSelectedPermissionCodes((prev) => ({ ...prev, [p.code]: !prev[p.code] }))}
+                                />
+                                <div className="flex-1">
+                                  <div className="text-sm font-medium leading-none">{p.name}</div>
+                                  <div className="text-xs text-muted-foreground mt-1 font-mono">{p.code}</div>
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Access Level</label>
-                    <div className="flex flex-wrap gap-3">
-                      {[
-                        { key: 'canCreate', label: 'Create' },
-                        { key: 'canRead', label: 'Read' },
-                        { key: 'canUpdate', label: 'Update' },
-                        { key: 'canDelete', label: 'Delete' },
-                      ].map(({ key, label }) => (
-                        <label key={key} className="flex items-center gap-2 text-sm">
-                          <Checkbox
-                            checked={permCRUDE[key as keyof typeof permCRUDE]}
-                            onCheckedChange={(checked) => setPermCRUDE((s) => ({ ...s, [key]: !!checked }))}
-                          />
-                          {label}
-                        </label>
-                      ))}
+                      <div className="space-y-3">
+                        <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Access Level</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { key: 'canCreate', label: 'Create' },
+                            { key: 'canRead', label: 'Read' },
+                            { key: 'canUpdate', label: 'Update' },
+                            { key: 'canDelete', label: 'Delete' },
+                          ].map(({ key, label }) => (
+                            <label
+                              key={key}
+                              className="flex items-center gap-2 text-sm border p-2 rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
+                            >
+                              <Checkbox
+                                checked={permCRUDE[key as keyof typeof permCRUDE]}
+                                onCheckedChange={(checked) => setPermCRUDE((s) => ({ ...s, [key]: !!checked }))}
+                              />
+                              {label}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setAssignOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleAssignPermissions} disabled={Object.values(selectedPermissionCodes).every((v) => !v)}>
-                    Assign
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                    <DialogFooter>
+                      <Button variant="ghost" onClick={() => setAssignOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleAssignPermissions} disabled={Object.values(selectedPermissionCodes).every((v) => !v)}>
+                        Confirm Assignment
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
           </div>
 
           {/* Member List */}
-          {filteredItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center rounded-xl border bg-muted/30">
-              <Users className="h-10 w-10 text-muted-foreground mb-3" />
-              <h3 className="font-semibold">No Members Found</h3>
-              <p className="text-sm text-muted-foreground">{searchQuery ? 'Try adjusting your search query.' : 'Invite members to get started.'}</p>
+          <div className="grid gap-3">
+            <AnimatePresence initial={false}>
+              {filteredItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-xl bg-muted/5">
+                  <Users className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                  <h3 className="font-semibold text-lg">No members found</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mt-1">
+                    {searchQuery ? 'No members match your search.' : 'Your organization has no members yet.'}
+                  </p>
+                </div>
+              ) : (
+                filteredItems.map((m, i) => (
+                  <motion.div
+                    key={m._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: i * 0.05 }}
+                    className={cn(
+                      'group flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border bg-card transition-all hover:border-primary/20 hover:shadow-md',
+                      selected[m.userId] && 'bg-muted/30 border-primary/40 ring-1 ring-primary/40'
+                    )}
+                  >
+                    <div className="flex items-center gap-4 flex-1">
+                      <Checkbox checked={selected[m.userId] || false} onCheckedChange={() => toggleSelect(m.userId)} />
+                      <Avatar className="h-10 w-10 border">
+                        <AvatarImage src={buildR2PublicUrl(m.userInfo?.imageUrl || null) || undefined} />
+                        <AvatarFallback>{m.userInfo?.firstName?.[0] || 'U'}</AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-0.5">
+                        <div className="font-medium text-sm flex items-center gap-2">
+                          {[m.userInfo?.firstName, m.userInfo?.lastName].filter(Boolean).join(' ') || 'Unknown User'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{m.userInfo?.email}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pl-8 sm:pl-0">
+                      <RoleBadge role={m.role as RoleType} />
+                      <div className="text-xs text-muted-foreground hidden lg:block">Joined {new Date(m.joinedAt).toLocaleDateString()}</div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleRoleChange(m.userId, 'ADMIN')}>
+                            <Crown className="h-4 w-4 mr-2" /> Make Admin
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleRoleChange(m.userId, 'STAFF')}>
+                            <UserCog className="h-4 w-4 mr-2" /> Make Staff
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleRoleChange(m.userId, 'MEMBER')}>
+                            <User className="h-4 w-4 mr-2" /> Make Member
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleRemove(m.userId)}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Remove
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="invites" className="space-y-6 focus-visible:outline-none">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card className="lg:col-span-1 h-fit border-border/60 shadow-md">
+              <CardHeader className="pb-3 bg-muted/20 border-b">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Link2 className="h-4 w-4" /> Create Invite Link
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium">Expiration</label>
+                  <Select value={expiresInDays} onValueChange={setExpiresInDays}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 Day</SelectItem>
+                      <SelectItem value="7">7 Days</SelectItem>
+                      <SelectItem value="30">30 Days</SelectItem>
+                      <SelectItem value="0">Never</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium">Usage Limit</label>
+                  <Input type="number" value={usageLimit} onChange={(e) => setUsageLimit(e.target.value)} placeholder="e.g. 10" />
+                  <p className="text-[10px] text-muted-foreground">Empty for unlimited.</p>
+                </div>
+                <Button className="w-full" onClick={handleCreateInvite} disabled={creatingInvite}>
+                  {creatingInvite ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                  Create Link
+                </Button>
+              </CardContent>
+            </Card>
+
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-muted-foreground">Active Links</h3>
+              </div>
+              {!inviteLinks || inviteLinks.length === 0 ? (
+                <div className="bg-muted/5 border-2 border-dashed rounded-xl p-8 text-center text-sm text-muted-foreground">
+                  No invite links active. Create one to get started.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {inviteLinks.map((inv) => (
+                    <InviteCard key={inv._id} invite={inv} onDelete={() => deactivateInvite({ inviteLinkId: inv._id })} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="requests" className="space-y-4 focus-visible:outline-none">
+          {!joinRequests || joinRequests.page?.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center border rounded-xl bg-muted/5">
+              <UserCheck className="h-10 w-10 text-muted-foreground/30 mb-3" />
+              <h3 className="font-semibold text-lg">No pending requests</h3>
+              <p className="text-sm text-muted-foreground mt-1">When users request to join, they will appear here.</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {filteredItems.map((m, index) => (
-                <MemberCard
-                  key={m._id}
-                  member={m}
-                  orgSlug={slug}
-                  selected={!!selected[m.userId]}
-                  onSelect={() => toggleSelect(m.userId)}
-                  onRoleChange={(role) => handleRoleChange(m.userId, role)}
-                  onRemove={() => handleRemove(m.userId)}
-                  index={index}
-                />
+            <div className="grid gap-3">
+              {joinRequests.page?.map((req: any) => (
+                <Card key={req._id}>
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div>
+                      <div className="font-medium">User ID: {req.userId}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">Requested {new Date(req.createdAt).toLocaleDateString()}</div>
+                      {req.note && <div className="mt-2 text-sm bg-muted/50 p-2 rounded italic">"{req.note}"</div>}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => reviewJoinRequest({ organizationId, requestId: req._id, approve: false })}>
+                        Reject
+                      </Button>
+                      <Button size="sm" onClick={() => reviewJoinRequest({ organizationId, requestId: req._id, approve: true })}>
+                        Approve
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
-        </motion.div>
-      )}
-
-      {activeTab === 'invites' && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-          {/* Create Invite */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Plus className="h-4 w-4" />
-                Create Invite Link
-              </CardTitle>
-              <CardDescription>Generate a shareable link for new members</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Expires In (days)</label>
-                  <Input value={expiresInDays} onChange={(e) => setExpiresInDays(e.target.value)} placeholder="e.g. 7" type="number" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Usage Limit</label>
-                  <Input value={usageLimit} onChange={(e) => setUsageLimit(e.target.value)} placeholder="e.g. 10" type="number" />
-                </div>
-                <div className="flex items-end">
-                  <Button className="w-full" onClick={handleCreateInvite} disabled={!currentUser || creatingInvite}>
-                    <LinkIcon className="h-4 w-4 mr-2" />
-                    {creatingInvite ? 'Creating...' : 'Create Link'}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Active Invites */}
-          <div className="space-y-3">
-            <h3 className="font-semibold font-admin-heading">Active Invite Links</h3>
-            {!inviteLinks || inviteLinks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center rounded-xl border bg-muted/30">
-                <Link2 className="h-10 w-10 text-muted-foreground mb-3" />
-                <h3 className="font-semibold">No Active Invites</h3>
-                <p className="text-sm text-muted-foreground">Create an invite link to share with potential members.</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {inviteLinks.map((inv: InviteLink, index: number) => (
-                  <InviteLinkCard
-                    key={inv._id}
-                    invite={inv}
-                    onDeactivate={() => {
-                      deactivateInvite({ inviteLinkId: inv._id });
-                      showToast({ type: 'success', title: 'Invite deactivated' });
-                    }}
-                    onCopy={() => {
-                      // Using window.location.origin for URL construction (needed for invite link)
-                      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-                      const fullUrl = `${baseUrl}/invite/${inv.code}`;
-                      navigator.clipboard.writeText(fullUrl);
-                      showToast({ type: 'success', title: 'Invite URL copied to clipboard' });
-                    }}
-                    index={index}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
-
-      {activeTab === 'requests' && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-          <h3 className="font-semibold font-admin-heading">Pending Join Requests</h3>
-          {!joinRequests || joinRequests.page?.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center rounded-xl border bg-muted/30">
-              <UserPlus className="h-10 w-10 text-muted-foreground mb-3" />
-              <h3 className="font-semibold">No Pending Requests</h3>
-              <p className="text-sm text-muted-foreground">New join requests will appear here.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {joinRequests.page?.map(
-                (req: { _id: Id<'organizationJoinRequests'>; userId: string; createdAt: number; note?: string }, index: number) => (
-                  <JoinRequestCard
-                    key={req._id}
-                    request={req}
-                    onApprove={() => {
-                      reviewJoinRequest({ organizationId, requestId: req._id, approve: true });
-                      showToast({ type: 'success', title: 'Request approved' });
-                    }}
-                    onReject={() => {
-                      reviewJoinRequest({ organizationId, requestId: req._id, approve: false });
-                      showToast({ type: 'success', title: 'Request rejected' });
-                    }}
-                    index={index}
-                  />
-                )
-              )}
-            </div>
-          )}
-        </motion.div>
-      )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
 
-// Role badge component
 function RoleBadge({ role }: { role: RoleType }) {
-  const config = ROLE_CONFIG[role];
+  const config = ROLE_CONFIG[role] || ROLE_CONFIG.MEMBER;
   const Icon = config.icon;
   return (
-    <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium', config.bgColor, config.color)}>
+    <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border', config.bgColor, config.color)}>
       <Icon className="h-3 w-3" />
       {config.label}
-    </span>
+    </div>
   );
 }
 
-// Member card component
-function MemberCard({
-  member,
-  orgSlug,
-  selected,
-  onSelect,
-  onRoleChange,
-  onRemove,
-  index,
-}: {
-  member: Doc<'organizationMembers'>;
-  orgSlug?: string;
-  selected: boolean;
-  onSelect: () => void;
-  onRoleChange: (role: RoleType) => void;
-  onRemove: () => void;
-  index: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className={cn(
-        'group flex items-center gap-4 p-4 rounded-xl border bg-card transition-all',
-        selected && 'ring-2 ring-primary border-primary',
-        'hover:shadow-sm'
-      )}
-    >
-      <Checkbox checked={selected} onCheckedChange={onSelect} className="shrink-0" />
-
-      <MemberAvatar imageUrl={member.userInfo?.imageUrl} firstName={member.userInfo?.firstName} lastName={member.userInfo?.lastName} />
-
-      <div className="flex-1 min-w-0">
-        <Link
-          href={`/admin/org-members/${member.userId}${orgSlug ? `?org=${orgSlug}` : ''}`}
-          className="font-medium text-sm hover:text-primary transition-colors"
-        >
-          {[member.userInfo?.firstName, member.userInfo?.lastName].filter(Boolean).join(' ') || 'Unknown User'}
-        </Link>
-        <div className="flex items-center gap-2 mt-0.5">
-          <Mail className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground truncate">{member.userInfo?.email || 'No email'}</span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <RoleBadge role={member.role as RoleType} />
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => onRoleChange('ADMIN')}>
-              <Crown className="h-4 w-4 mr-2 text-amber-600" />
-              Make Admin
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onRoleChange('STAFF')}>
-              <UserCog className="h-4 w-4 mr-2 text-blue-600" />
-              Make Staff
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onRoleChange('MEMBER')}>
-              <User className="h-4 w-4 mr-2 text-slate-600" />
-              Make Member
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onRemove} className="text-destructive focus:text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Remove Member
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </motion.div>
-  );
-}
-
-// Invite link card
-function InviteLinkCard({
-  invite,
-  onDeactivate,
-  onCopy,
-  index,
-}: {
-  invite: Doc<'organizationInviteLinks'>;
-  onDeactivate: () => void;
-  onCopy: () => void;
-  index: number;
-}) {
-  const expiresAt = invite.expiresAt ? new Date(invite.expiresAt) : null;
-  const isExpired = expiresAt && expiresAt < new Date();
-  // Using window.location.origin for URL construction (needed for invite link)
+function InviteCard({ invite, onDelete }: { invite: any; onDelete: () => void }) {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const fullInviteUrl = `${baseUrl}/invite/${invite.code}`;
+  const fullUrl = `${baseUrl}/invite/${invite.code}`;
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(fullUrl);
+    showToast({ title: 'Copied to clipboard', type: 'success' });
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className="flex items-center justify-between gap-4 p-4 rounded-xl border bg-card"
-    >
-      <div className="flex items-center gap-3 min-w-0">
-        <div className={cn('h-10 w-10 rounded-lg flex items-center justify-center', isExpired ? 'bg-red-100 dark:bg-red-950/30' : 'bg-primary/10')}>
-          <Link2 className={cn('h-5 w-5', isExpired ? 'text-red-600' : 'text-primary')} />
+    <Card className="group overflow-hidden transition-all hover:border-primary/20 hover:shadow-sm">
+      <CardContent className="p-4 flex items-center gap-4">
+        <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 flex items-center justify-center">
+          <Link2 className="h-5 w-5" />
         </div>
-        <div className="min-w-0">
-          <div className="font-mono text-xs text-muted-foreground truncate max-w-[280px]" title={fullInviteUrl}>
-            {fullInviteUrl}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <code className="text-xs bg-muted px-1.5 py-0.5 rounded border font-mono truncate">{fullUrl}</code>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={copyToClipboard}>
+              <Copy className="h-3 w-3" />
+            </Button>
           </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-              <Users className="h-3 w-3" />
-              {invite.usedCount}/{invite.usageLimit || '∞'}
+              <Users className="h-3 w-3" /> {invite.usedCount} / {invite.usageLimit || '∞'}
             </span>
-            {expiresAt && (
+            {invite.expiresAt && (
               <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {isExpired ? 'Expired' : `Expires ${expiresAt.toLocaleDateString()}`}
+                <Clock className="h-3 w-3" /> {new Date(invite.expiresAt).toLocaleDateString()}
               </span>
             )}
           </div>
         </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Button size="sm" variant="outline" onClick={onCopy}>
-          <Copy className="h-3.5 w-3.5 mr-1.5" />
-          Copy URL
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={onDelete}>
+          <Trash2 className="h-4 w-4" />
         </Button>
-        <Button size="sm" variant="destructive" onClick={onDeactivate}>
-          <XCircle className="h-3.5 w-3.5 mr-1.5" />
-          Deactivate
-        </Button>
-      </div>
-    </motion.div>
-  );
-}
-
-// Join request card
-function JoinRequestCard({
-  request,
-  onApprove,
-  onReject,
-  index,
-}: {
-  request: { _id: Id<'organizationJoinRequests'>; userId: string; createdAt: number; note?: string };
-  onApprove: () => void;
-  onReject: () => void;
-  index: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03 }}
-      className="flex items-center justify-between gap-4 p-4 rounded-xl border bg-card"
-    >
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-950/30 flex items-center justify-center">
-          <UserPlus className="h-5 w-5 text-amber-600" />
-        </div>
-        <div className="min-w-0">
-          <div className="font-medium text-sm">{request.userId}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">Requested {new Date(request.createdAt).toLocaleDateString()}</div>
-          {request.note && <div className="text-xs text-muted-foreground mt-1 line-clamp-1">&quot;{request.note}&quot;</div>}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Button size="sm" variant="outline" onClick={onReject}>
-          <UserX className="h-3.5 w-3.5 mr-1.5" />
-          Reject
-        </Button>
-        <Button size="sm" onClick={onApprove}>
-          <UserCheck className="h-3.5 w-3.5 mr-1.5" />
-          Approve
-        </Button>
-      </div>
-    </motion.div>
-  );
-}
-
-function MemberAvatar({ imageUrl, firstName, lastName }: { imageUrl?: string; firstName?: string; lastName?: string }) {
-  const displayUrl = buildR2PublicUrl(imageUrl || null);
-  const initials = [firstName?.[0], lastName?.[0]].filter(Boolean).join('').toUpperCase() || 'U';
-
-  return (
-    <Avatar className="h-10 w-10">
-      {displayUrl && <AvatarImage src={displayUrl} alt={`${firstName} ${lastName}`} />}
-      <AvatarFallback className="bg-primary/10 text-primary font-medium text-sm">{initials}</AvatarFallback>
-    </Avatar>
+      </CardContent>
+    </Card>
   );
 }

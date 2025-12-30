@@ -12,6 +12,16 @@ import { compressToWebP } from '@/lib/compress';
 import { buildR2PublicUrl } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Loader2, Save, Upload, Info, Palette, Globe, Layout, Type, MousePointerClick, Check, AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const INDUSTRIES: Array<string> = [
   'Retail',
@@ -82,21 +92,22 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
   const [website, setWebsite] = useState(organization.website || '');
   const [industry, setIndustry] = useState(organization.industry || '');
   const [size, setSize] = useState(organization.size || '');
-  const [primaryColor, setPrimaryColor] = useState(organization.themeSettings?.primaryColor || '');
-  const [secondaryColor, setSecondaryColor] = useState(organization.themeSettings?.secondaryColor || '');
-  const [headerBg, setHeaderBg] = useState(organization.themeSettings?.headerBackgroundColor || '');
-  const [headerFg, setHeaderFg] = useState(organization.themeSettings?.headerForegroundColor || '');
-  const [headerTitle, setHeaderTitle] = useState(organization.themeSettings?.headerTitleColor || '');
-  const [footerBg, setFooterBg] = useState(organization.themeSettings?.footerBackgroundColor || '');
-  const [footerFg, setFooterFg] = useState(organization.themeSettings?.footerForegroundColor || '');
+  const [primaryColor, setPrimaryColor] = useState(organization.themeSettings?.primaryColor || '#1d43d8');
+  const [secondaryColor, setSecondaryColor] = useState(organization.themeSettings?.secondaryColor || '#1d43d8');
+  const [headerBg, setHeaderBg] = useState(organization.themeSettings?.headerBackgroundColor || '#ffffff');
+  const [headerFg, setHeaderFg] = useState(organization.themeSettings?.headerForegroundColor || '#111111');
+  const [headerTitle, setHeaderTitle] = useState(organization.themeSettings?.headerTitleColor || '#111111');
+  const [footerBg, setFooterBg] = useState(organization.themeSettings?.footerBackgroundColor || '#ffffff');
+  const [footerFg, setFooterFg] = useState(organization.themeSettings?.footerForegroundColor || '#111111');
   const [mode, setMode] = useState<'light' | 'dark' | 'auto'>(organization.themeSettings?.mode || 'auto');
-  const [fontFamily, setFontFamily] = useState(organization.themeSettings?.fontFamily || '');
+  const [fontFamily, setFontFamily] = useState(organization.themeSettings?.fontFamily || FONT_STACKS[1].value);
   const [borderRadius, setBorderRadius] = useState<'none' | 'small' | 'medium' | 'large'>(organization.themeSettings?.borderRadius || 'medium');
   const [organizationType, setOrganizationType] = useState<'PUBLIC' | 'PRIVATE' | 'SECRET'>(organization.organizationType);
   const [saving, setSaving] = useState(false);
   const uploadFile = useUploadFile(api.files.r2);
   const deleteFile = useMutation(api.files.mutations.index.deleteFile);
   const [pendingDeleteKeys, setPendingDeleteKeys] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('general');
 
   function scheduleDeleteKey(key?: string) {
     if (!key) return;
@@ -209,374 +220,467 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
   }
 
   return (
-    <form className="space-y-4 animate-in fade-in slide-in-from-bottom-2" onSubmit={handleSubmit}>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-name">
-            Name
-          </label>
-          <Input id="org-name" value={name} onChange={(e) => setName(e.target.value)} />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-slug">
-            Slug
-          </label>
-          <Input id="org-slug" value={slug} onChange={(e) => setSlug(toSlug(e.target.value))} placeholder="your-org" />
-          <p className="mt-1 text-xs text-muted-foreground">Used in URLs like /o/{slug || 'your-org'}</p>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-website">
-            Website
-          </label>
-          <Input id="org-website" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-industry">
-            Industry
-          </label>
-          <select
-            id="org-industry"
-            className="h-9 w-full rounded-md border px-3 text-sm"
-            value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
+    <form onSubmit={handleSubmit} className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 border-b pb-6">
+        <div className="flex items-center gap-3">
+          <Button
+            type="submit"
+            size="lg"
+            disabled={!canSubmit || saving}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
           >
-            <option value="">Select industry</option>
-            {INDUSTRIES.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-            {industry && !INDUSTRIES.includes(industry) && <option value={industry}>{industry}</option>}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-size">
-            Size
-          </label>
-          <select id="org-size" className="h-9 w-full rounded-md border  px-3 text-sm" value={size} onChange={(e) => setSize(e.target.value)}>
-            <option value="">Select size</option>
-            {SIZES.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-            {size && !SIZES.includes(size) && <option value={size}>{size}</option>}
-          </select>
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+            Save Changes
+          </Button>
         </div>
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium" htmlFor="org-desc">
-          Description
-        </label>
-        <textarea
-          id="org-desc"
-          className="h-24 w-full rounded-md border  px-3 py-2 text-sm"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full justify-start h-auto p-1 bg-muted/30 border rounded-xl mb-6 flex-wrap">
+          <TabsTrigger
+            value="general"
+            className="rounded-lg px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all gap-2"
+          >
+            <Globe className="h-4 w-4" />
+            General Info
+          </TabsTrigger>
+          <TabsTrigger
+            value="branding"
+            className="rounded-lg px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all gap-2"
+          >
+            <Palette className="h-4 w-4" />
+            Branding & Theme
+          </TabsTrigger>
+          <TabsTrigger
+            value="visibility"
+            className="rounded-lg px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all gap-2"
+          >
+            <Layout className="h-4 w-4" />
+            Visibility
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Visibility Settings */}
-      <div className="rounded-lg border p-4 space-y-3">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Organization Visibility</label>
-          <p className="text-xs text-muted-foreground mb-3">Control how users can discover and join your organization</p>
-        </div>
-        <div className="grid gap-2 sm:grid-cols-3">
-          <label
-            className={`flex cursor-pointer flex-col rounded-lg border-2 p-3 transition-all ${
-              organizationType === 'PUBLIC' ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/50'
-            }`}
-          >
-            <input
-              type="radio"
-              name="orgType"
-              value="PUBLIC"
-              checked={organizationType === 'PUBLIC'}
-              onChange={() => setOrganizationType('PUBLIC')}
-              className="sr-only"
-            />
-            <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${organizationType === 'PUBLIC' ? 'bg-green-500' : 'bg-muted-foreground/30'}`} />
-              <span className="font-medium text-sm">Public</span>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">Anyone can find and join directly</p>
-          </label>
-          <label
-            className={`flex cursor-pointer flex-col rounded-lg border-2 p-3 transition-all ${
-              organizationType === 'PRIVATE' ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/50'
-            }`}
-          >
-            <input
-              type="radio"
-              name="orgType"
-              value="PRIVATE"
-              checked={organizationType === 'PRIVATE'}
-              onChange={() => setOrganizationType('PRIVATE')}
-              className="sr-only"
-            />
-            <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${organizationType === 'PRIVATE' ? 'bg-amber-500' : 'bg-muted-foreground/30'}`} />
-              <span className="font-medium text-sm">Private</span>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">Searchable, but joining requires approval</p>
-          </label>
-          <label
-            className={`flex cursor-pointer flex-col rounded-lg border-2 p-3 transition-all ${
-              organizationType === 'SECRET' ? 'border-primary bg-primary/5' : 'border-muted hover:border-primary/50'
-            }`}
-          >
-            <input
-              type="radio"
-              name="orgType"
-              value="SECRET"
-              checked={organizationType === 'SECRET'}
-              onChange={() => setOrganizationType('SECRET')}
-              className="sr-only"
-            />
-            <div className="flex items-center gap-2">
-              <div className={`h-3 w-3 rounded-full ${organizationType === 'SECRET' ? 'bg-red-500' : 'bg-muted-foreground/30'}`} />
-              <span className="font-medium text-sm">Secret</span>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">Hidden from search, invite links only</p>
-          </label>
-        </div>
-        {organizationType === 'SECRET' && (
-          <div className="mt-2 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
-            <p className="text-xs text-amber-800 dark:text-amber-200">
-              <strong>Note:</strong> Secret organizations cannot be found via search. Users can only join through invite links.
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-logo">
-            Logo
-          </label>
-          <div className="flex items-center gap-4">
-            <div className="relative h-20 w-20 overflow-hidden rounded-lg border bg-secondary shadow-modern">
-              {logoSrc ? (
-                <Image src={logoSrc} alt="Logo preview" fill className="object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">No logo</div>
-              )}
-            </div>
-            <div className="flex flex-1 flex-col gap-2">
-              <div className="flex gap-2">
-                <Input id="org-logo" value={logo} onChange={(e) => setLogo(e.target.value)} placeholder="Key or https://..." />
-                <Button type="button" variant="secondary" onClick={() => (document.getElementById('org-logo-file') as HTMLInputElement)?.click()}>
-                  Change
-                </Button>
+        {/* General Settings */}
+        <TabsContent value="general" className="space-y-6 focus-visible:outline-none">
+          <Card className="overflow-hidden border-border/50 shadow-sm transition-all hover:shadow-md">
+            <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+              <CardTitle>Basic Information</CardTitle>
+              <CardDescription>Core details about your organization.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="org-name">Organization Name</Label>
+                <Input id="org-name" value={name} onChange={(e) => setName(e.target.value)} className="h-10 bg-background/50" />
               </div>
-              <input id="org-logo-file" className="sr-only" type="file" accept="image/*" onChange={handleLogoFileChange} />
-              <p className="text-xs text-muted-foreground">Recommended: square PNG/JPG/WebP. We compress to WebP (80%).</p>
-            </div>
-          </div>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="org-banner">
-            Banner
-          </label>
-          <div className="flex items-center gap-4">
-            <div className="relative h-24 w-44 overflow-hidden rounded-lg border bg-secondary shadow-modern">
-              {bannerSrc ? (
-                <Image src={bannerSrc} alt="Banner preview" fill className="object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">No banner</div>
-              )}
-            </div>
-            <div className="flex flex-1 flex-col gap-2">
-              <div className="flex gap-2">
-                <Input id="org-banner" value={bannerImage} onChange={(e) => setBannerImage(e.target.value)} placeholder="Key or https://..." />
-                <Button type="button" variant="secondary" onClick={() => (document.getElementById('org-banner-file') as HTMLInputElement)?.click()}>
-                  Change
-                </Button>
+              <div className="space-y-2">
+                <Label htmlFor="org-slug">URL Slug</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-muted-foreground text-sm font-medium">/o/</span>
+                  <Input
+                    id="org-slug"
+                    value={slug}
+                    onChange={(e) => setSlug(toSlug(e.target.value))}
+                    className="pl-9 h-10 bg-background/50 font-mono"
+                    placeholder="your-org"
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">Public URL: merchkins.com/o/{slug || 'your-org'}</p>
               </div>
-              <input id="org-banner-file" className="sr-only" type="file" accept="image/*" onChange={handleBannerFileChange} />
-              <p className="text-xs text-muted-foreground">Recommended: 1600×600 JPG/PNG/WebP. We compress to WebP (80%).</p>
-            </div>
-          </div>
-        </div>
-      </div>
+              <div className="space-y-2">
+                <Label htmlFor="org-website">Website URL</Label>
+                <Input
+                  id="org-website"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="https://example.com"
+                  className="h-10 bg-background/50"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="org-industry">Industry</Label>
+                <Select value={industry} onValueChange={setIndustry}>
+                  <SelectTrigger id="org-industry" className="h-10 bg-background/50">
+                    <SelectValue placeholder="Select industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INDUSTRIES.map((opt) => (
+                      <SelectItem key={opt} value={opt}>
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="org-size">Company Size</Label>
+                <Select value={size} onValueChange={setSize}>
+                  <SelectTrigger id="org-size" className="h-10 bg-background/50">
+                    <SelectValue placeholder="Select size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SIZES.map((opt) => (
+                      <SelectItem key={opt} value={opt}>
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="org-desc">Description</Label>
+                <Textarea
+                  id="org-desc"
+                  className="min-h-[120px] bg-background/50 resize-y"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Tell us about your organization..."
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <Separator />
+        {/* Branding Settings */}
+        <TabsContent value="branding" className="focus-visible:outline-none">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-7 space-y-6">
+              <Card className="overflow-hidden border-border/50 shadow-sm">
+                <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+                  <CardTitle>Logos & Assets</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <div className="space-y-3">
+                      <Label>Organization Logo</Label>
+                      <div className="group relative h-32 w-32 overflow-hidden rounded-xl border-2 border-dashed border-muted-foreground/20 bg-muted/5 transition-all hover:border-primary/50 hover:bg-muted/10">
+                        {logoSrc ? (
+                          <Image src={logoSrc} alt="Logo" fill className="object-cover transition-transform group-hover:scale-105" />
+                        ) : (
+                          <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                            <Upload className="h-6 w-6" />
+                            <span className="text-xs font-medium">Upload Logo</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity flex items-center justify-center group-hover:opacity-100">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => (document.getElementById('org-logo-file') as HTMLInputElement)?.click()}
+                          >
+                            Change
+                          </Button>
+                        </div>
+                      </div>
+                      <input id="org-logo-file" className="hidden" type="file" accept="image/*" onChange={handleLogoFileChange} />
+                      <p className="text-[11px] text-muted-foreground">Square image, PNG/JPG</p>
+                    </div>
+                    <div className="space-y-3">
+                      <Label>Banner Image</Label>
+                      <div className="group relative h-32 w-full overflow-hidden rounded-xl border-2 border-dashed border-muted-foreground/20 bg-muted/5 transition-all hover:border-primary/50 hover:bg-muted/10">
+                        {bannerSrc ? (
+                          <Image src={bannerSrc} alt="Banner" fill className="object-cover transition-transform group-hover:scale-105" />
+                        ) : (
+                          <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                            <Upload className="h-6 w-6" />
+                            <span className="text-xs font-medium">Upload Banner</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity flex items-center justify-center group-hover:opacity-100">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => (document.getElementById('org-banner-file') as HTMLInputElement)?.click()}
+                          >
+                            Change
+                          </Button>
+                        </div>
+                      </div>
+                      <input id="org-banner-file" className="hidden" type="file" accept="image/*" onChange={handleBannerFileChange} />
+                      <p className="text-[11px] text-muted-foreground">Recommended 1600x400px</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="primary">
-            Primary Color
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              id="primary"
-              type="color"
-              className="h-9 w-12 cursor-pointer rounded border "
-              value={primaryColor || '#1d43d8'}
-              onChange={(e) => setPrimaryColor(e.target.value)}
-              aria-label="Primary color"
-            />
-            <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} placeholder="#1d43d8" />
-          </div>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="secondary">
-            Secondary Color
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              id="secondary"
-              type="color"
-              className="h-9 w-12 cursor-pointer rounded border "
-              value={secondaryColor || '#1d43d8'}
-              onChange={(e) => setSecondaryColor(e.target.value)}
-              aria-label="Secondary color"
-            />
-            <Input value={secondaryColor} onChange={(e) => setSecondaryColor(e.target.value)} placeholder="#1d43d8" />
-          </div>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="font">
-            Font
-          </label>
-          <select id="font" className="h-9 w-full rounded-md border  px-3 text-sm" value={fontFamily} onChange={(e) => setFontFamily(e.target.value)}>
-            {FONT_STACKS.map((f) => (
-              <option key={f.label} value={f.value}>
-                {f.label}
-              </option>
-            ))}
-            {fontFamily && !FONT_STACKS.some((f) => f.value === fontFamily) && <option value={fontFamily}>{fontFamily}</option>}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="mode">
-            Mode
-          </label>
-          <select
-            id="mode"
-            className="h-9 w-full rounded-md border  px-3 text-sm"
-            value={mode}
-            onChange={(e) => setMode(e.target.value as 'light' | 'dark' | 'auto')}
-          >
-            <option value="auto">Auto</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium" htmlFor="radius">
-            Border Radius
-          </label>
-          <select
-            id="radius"
-            className="h-9 w-full rounded-md border  px-3 text-sm"
-            value={borderRadius}
-            onChange={(e) => setBorderRadius(e.target.value as 'none' | 'small' | 'medium' | 'large')}
-          >
-            <option value="none">None</option>
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large">Large</option>
-          </select>
-        </div>
-      </div>
+              <Card className="overflow-hidden border-border/50 shadow-sm">
+                <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+                  <CardTitle>Colors & Typography</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-8">
+                  <div className="space-y-4">
+                    <Label className="text-base">Brand Colors</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <ColorPicker label="Primary Color" value={primaryColor} onChange={setPrimaryColor} />
+                      <ColorPicker label="Secondary Color" value={secondaryColor} onChange={setSecondaryColor} />
+                    </div>
+                  </div>
 
-      <Separator />
+                  <Separator />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="header-bg">
-              Header Background
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                id="header-bg"
-                type="color"
-                className="h-9 w-12 cursor-pointer rounded border "
-                value={headerBg || '#ffffff'}
-                onChange={(e) => setHeaderBg(e.target.value)}
-                aria-label="Header background color"
-              />
-              <Input value={headerBg} onChange={(e) => setHeaderBg(e.target.value)} placeholder="#ffffff" />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="header-fg">
-              Header Text
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                id="header-fg"
-                type="color"
-                className="h-9 w-12 cursor-pointer rounded border "
-                value={headerFg || '#111111'}
-                onChange={(e) => setHeaderFg(e.target.value)}
-                aria-label="Header text color"
-              />
-              <Input value={headerFg} onChange={(e) => setHeaderFg(e.target.value)} placeholder="#111111" />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="header-title">
-              Header Title Text
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                id="header-title"
-                type="color"
-                className="h-9 w-12 cursor-pointer rounded border "
-                value={headerTitle || headerFg || '#111111'}
-                onChange={(e) => setHeaderTitle(e.target.value)}
-                aria-label="Header title color"
-              />
-              <Input value={headerTitle} onChange={(e) => setHeaderTitle(e.target.value)} placeholder="#111111" />
-            </div>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="footer-bg">
-              Footer Background
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                id="footer-bg"
-                type="color"
-                className="h-9 w-12 cursor-pointer rounded border "
-                value={footerBg || '#ffffff'}
-                onChange={(e) => setFooterBg(e.target.value)}
-                aria-label="Footer background color"
-              />
-              <Input value={footerBg} onChange={(e) => setFooterBg(e.target.value)} placeholder="#ffffff" />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium" htmlFor="footer-fg">
-              Footer Text
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                id="footer-fg"
-                type="color"
-                className="h-9 w-12 cursor-pointer rounded border "
-                value={footerFg || '#111111'}
-                onChange={(e) => setFooterFg(e.target.value)}
-                aria-label="Footer text color"
-              />
-              <Input value={footerFg} onChange={(e) => setFooterFg(e.target.value)} placeholder="#111111" />
-            </div>
-          </div>
-        </div>
-      </div>
+                  <div className="space-y-4">
+                    <Label className="text-base">Header Colors</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <ColorPicker label="Header Background" value={headerBg} onChange={setHeaderBg} />
+                      <ColorPicker label="Header Text" value={headerFg} onChange={setHeaderFg} />
+                      <ColorPicker label="Header Title" value={headerTitle} onChange={setHeaderTitle} />
+                    </div>
+                  </div>
 
-      <div>
-        <Button type="submit" disabled={!canSubmit || saving}>
-          {saving ? 'Saving...' : 'Save changes'}
-        </Button>
-      </div>
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <Label className="text-base">Footer Colors</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <ColorPicker label="Footer Background" value={footerBg} onChange={setFooterBg} />
+                      <ColorPicker label="Footer Text" value={footerFg} onChange={setFooterFg} />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <Label>Font Family</Label>
+                      <Select value={fontFamily} onValueChange={setFontFamily}>
+                        <SelectTrigger className="w-full bg-background/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FONT_STACKS.map((f) => (
+                            <SelectItem key={f.label} value={f.value} style={{ fontFamily: f.value }}>
+                              {f.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-3">
+                      <Label>Border Radius</Label>
+                      <Select value={borderRadius} onValueChange={(v: any) => setBorderRadius(v)}>
+                        <SelectTrigger className="w-full bg-background/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None (0px)</SelectItem>
+                          <SelectItem value="small">Small (6px)</SelectItem>
+                          <SelectItem value="medium">Medium (12px)</SelectItem>
+                          <SelectItem value="large">Large (16px)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="lg:col-span-5">
+              <div className="sticky top-6">
+                <Card className="overflow-hidden border-border shadow-lg">
+                  <CardHeader className="bg-muted/20 border-b py-3">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <MousePointerClick className="h-4 w-4" /> Live Preview
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <ThemePreview
+                      config={{
+                        name: name || 'Your Organization',
+                        logo: logoSrc,
+                        primaryColor,
+                        secondaryColor,
+                        headerBg,
+                        headerFg,
+                        footerBg,
+                        footerFg,
+                        fontFamily,
+                        borderRadius,
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Visibility Settings */}
+        <TabsContent value="visibility" className="focus-visible:outline-none">
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader>
+              <CardTitle>Visibility & Access</CardTitle>
+              <CardDescription>Control who can see and join your organization.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup
+                value={organizationType}
+                onValueChange={(v: any) => setOrganizationType(v)}
+                className="grid grid-cols-1 md:grid-cols-3 gap-4"
+              >
+                <Label
+                  className={cn(
+                    'cursor-pointer rounded-xl border-2 p-4 transition-all hover:bg-accent/50',
+                    organizationType === 'PUBLIC' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-muted'
+                  )}
+                >
+                  <RadioGroupItem value="PUBLIC" className="sr-only" />
+                  <div className="flex flex-col gap-2">
+                    <div className="p-2 w-fit rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                      <Globe className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="font-semibold block">Public</span>
+                      <span className="text-xs text-muted-foreground leading-snug">
+                        Visible to everyone. Anyone can find and join your organization directly.
+                      </span>
+                    </div>
+                  </div>
+                </Label>
+                <Label
+                  className={cn(
+                    'cursor-pointer rounded-xl border-2 p-4 transition-all hover:bg-accent/50',
+                    organizationType === 'PRIVATE' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-muted'
+                  )}
+                >
+                  <RadioGroupItem value="PRIVATE" className="sr-only" />
+                  <div className="flex flex-col gap-2">
+                    <div className="p-2 w-fit rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                      <Check className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="font-semibold block">Private</span>
+                      <span className="text-xs text-muted-foreground leading-snug">
+                        Visible in search, but new members must request access or be invited.
+                      </span>
+                    </div>
+                  </div>
+                </Label>
+                <Label
+                  className={cn(
+                    'cursor-pointer rounded-xl border-2 p-4 transition-all hover:bg-accent/50',
+                    organizationType === 'SECRET' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-muted'
+                  )}
+                >
+                  <RadioGroupItem value="SECRET" className="sr-only" />
+                  <div className="flex flex-col gap-2">
+                    <div className="p-2 w-fit rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                      <AlertCircle className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="font-semibold block">Secret</span>
+                      <span className="text-xs text-muted-foreground leading-snug">Hidden from everything. Invite-only access.</span>
+                    </div>
+                  </div>
+                </Label>
+              </RadioGroup>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </form>
+  );
+}
+
+function ColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs text-muted-foreground font-normal">{label}</Label>
+      <div className="flex items-center gap-2">
+        <div className="relative h-9 w-9 overflow-hidden rounded-md border shadow-sm transition-transform hover:scale-105">
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute -top-1/2 -left-1/2 h-[200%] w-[200%] cursor-pointer p-0 border-0"
+          />
+        </div>
+        <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-9 font-mono text-xs uppercase" maxLength={7} />
+      </div>
+    </div>
+  );
+}
+
+function ThemePreview({ config }: { config: any }) {
+  const radiusMap: Record<string, string> = {
+    none: '0rem',
+    small: '0.375rem',
+    medium: '0.75rem',
+    large: '1rem',
+  };
+  const radius = radiusMap[config.borderRadius] || '0.75rem';
+
+  // Simulated style object
+  const previewStyle = {
+    '--preview-primary': config.primaryColor,
+    '--preview-secondary': config.secondaryColor,
+    '--preview-header-bg': config.headerBg,
+    '--preview-header-fg': config.headerFg,
+    '--preview-footer-bg': config.footerBg,
+    '--preview-footer-fg': config.footerFg,
+    '--preview-font': config.fontFamily.split(',')[0],
+    '--preview-radius': radius,
+  } as React.CSSProperties;
+
+  return (
+    <div className="w-full bg-[#f8fafc] dark:bg-[#0f0f0f] border-x border-b overflow-hidden text-sm" style={previewStyle}>
+      {/* Preview Header */}
+      <div
+        className="px-4 py-3 flex items-center justify-between border-b"
+        style={{ backgroundColor: 'var(--preview-header-bg)', color: 'var(--preview-header-fg)' }}
+      >
+        <div className="flex items-center gap-2 font-bold">
+          <div className="h-6 w-6 rounded-md bg-white/20 flex items-center justify-center overflow-hidden">
+            {config.logo ? <img src={config.logo} className="h-full w-full object-cover" /> : <div className="h-full w-full bg-current opacity-20" />}
+          </div>
+          <span style={{ fontFamily: 'var(--preview-font)' }}>{config.name}</span>
+        </div>
+        <div className="flex gap-2 text-[10px] opacity-80">
+          <div className="h-2 w-12 rounded-full bg-current opacity-20" />
+          <div className="h-2 w-8 rounded-full bg-current opacity-20" />
+        </div>
+      </div>
+
+      {/* Preview Body */}
+      <div className="p-4 space-y-4 min-h-[200px]" style={{ fontFamily: 'var(--preview-font)' }}>
+        <div
+          className="h-32 rounded-lg bg-gray-200 dark:bg-gray-800 w-full overflow-hidden flex items-center justify-center text-muted-foreground/50 relative"
+          style={{ borderRadius: 'var(--preview-radius)' }}
+        >
+          <div className="absolute inset-0 bg-linear-to-br from-(--preview-primary) to-(--preview-secondary) opacity-10" />
+          <span className="text-xs">Banner Area</span>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            className="px-4 py-2 rounded-md font-medium text-white text-xs shadow-sm"
+            style={{ backgroundColor: 'var(--preview-primary)', borderRadius: 'var(--preview-radius)' }}
+          >
+            Primary Action
+          </button>
+          <button
+            className="px-4 py-2 rounded-md font-medium border text-xs bg-background"
+            style={{ borderColor: 'var(--preview-primary)', color: 'var(--preview-primary)', borderRadius: 'var(--preview-radius)' }}
+          >
+            Secondary
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          <div className="h-2 w-3/4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+          <div className="h-2 w-1/2 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+        </div>
+      </div>
+
+      {/* Preview Footer */}
+      <div className="px-4 py-6 border-t mt-auto" style={{ backgroundColor: 'var(--preview-footer-bg)', color: 'var(--preview-footer-fg)' }}>
+        <div className="flex justify-between items-center opacity-80">
+          <span className="font-bold text-xs" style={{ fontFamily: 'var(--preview-font)' }}>
+            {config.name}
+          </span>
+          <div className="text-[10px]">&copy; 2024</div>
+        </div>
+      </div>
+    </div>
   );
 }

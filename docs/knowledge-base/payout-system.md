@@ -31,6 +31,7 @@ Your payout is simple:
 
 - **Platform Fee:** The standard fee is **15%** of the order total. This covers payment processing and platform maintenance.
 - **Refunds:** If an order is refunded _before_ payout, it's removed from the calculation. If it's refunded _after_ you've already been paid, the amount will be deducted (adjusted) from your _next_ payout.
+- **Zero Balance:** If your Net Payout is **$0** (either due to no sales or adjustments balancing out sales), the invoice will be marked as **PAID** immediately.
 
 ### Viewing Your Invoices
 
@@ -61,6 +62,7 @@ To receive payments, you need to provide your bank information.
 Sometimes, plans change. If an order is refunded after we've already paid you for it, you'll see an **Adjustment** on your next invoice.
 
 - **Why does this happen?** To ensure fair accounting. Since you received money for an order that was later cancelled/refunded, we simply deduct that amount from your upcoming earnings.
+- **What if the adjustment is larger than my payout?** If your adjustments exceed your earnings for the week, your payout will be **$0**. The remaining negative balance will be **carried over** to the next week's payout as a new adjustment.
 - **Where to see it:** Check the **Adjustments** tab in the Payouts page to see a history of any deductions.
 
 ---

@@ -10,12 +10,12 @@ import { v } from 'convex/values';
 export const payoutAdjustments = defineTable({
   // Reference
   organizationId: v.id('organizations'),
-  orderId: v.id('orders'),
+  orderId: v.optional(v.id('orders')), // Optional for carry-over adjustments
   originalInvoiceId: v.id('payoutInvoices'), // The invoice that originally included this order
   adjustmentInvoiceId: v.optional(v.id('payoutInvoices')), // The invoice where this adjustment was applied
 
   // Adjustment details
-  type: v.union(v.literal('REFUND'), v.literal('CANCELLATION')),
+  type: v.union(v.literal('REFUND'), v.literal('CANCELLATION'), v.literal('CARRY_OVER')),
   amount: v.number(), // Negative amount to deduct (e.g., -1000.00)
   reason: v.string(), // Human-readable reason for the adjustment
 

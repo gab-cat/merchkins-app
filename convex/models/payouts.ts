@@ -46,9 +46,9 @@ export const payoutInvoices = defineTable({
     v.array(
       v.object({
         adjustmentId: v.id('payoutAdjustments'),
-        orderId: v.id('orders'),
+        orderId: v.optional(v.id('orders')),
         orderNumber: v.string(),
-        type: v.union(v.literal('REFUND'), v.literal('CANCELLATION')),
+        type: v.union(v.literal('REFUND'), v.literal('CANCELLATION'), v.literal('CARRY_OVER')),
         amount: v.number(), // Negative
         reason: v.string(),
       })

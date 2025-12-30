@@ -39,7 +39,7 @@ export const getPayoutAdjustmentsHandler = async (
   // Enrich with order and invoice details
   const enriched = await Promise.all(
     limited.map(async (adjustment) => {
-      const order = await ctx.db.get(adjustment.orderId);
+      const order = adjustment.orderId ? await ctx.db.get(adjustment.orderId) : null;
       const originalInvoice = await ctx.db.get(adjustment.originalInvoiceId);
       const appliedInvoice = adjustment.adjustmentInvoiceId ? await ctx.db.get(adjustment.adjustmentInvoiceId) : null;
 

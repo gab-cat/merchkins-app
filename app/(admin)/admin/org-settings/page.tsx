@@ -39,10 +39,7 @@ export default function Page() {
   const orgSlug = searchParams.get('org');
   const suffix = orgSlug ? `?org=${orgSlug}` : '';
 
-  const organization = useQuery(
-    api.organizations.queries.index.getOrganizationBySlug,
-    orgSlug ? { slug: orgSlug } : 'skip'
-  );
+  const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
 
   if (organization === undefined) {
     return (
@@ -76,8 +73,6 @@ export default function Page() {
       <Suspense fallback={<SettingsSkeleton />}>
         <OrgSettingsForm organization={organization} />
       </Suspense>
-
-      <AnnouncementsPanel />
     </div>
   );
 }
