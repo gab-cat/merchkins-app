@@ -388,6 +388,7 @@ import type * as surveys_queries_index from "../surveys/queries/index.js";
 import type * as surveys_queries_surveyAnalytics from "../surveys/queries/surveyAnalytics.js";
 import type * as surveys_queries_surveyCategories from "../surveys/queries/surveyCategories.js";
 import type * as surveys_queries_surveyResponses from "../surveys/queries/surveyResponses.js";
+import type * as testHelpers from "../testHelpers.js";
 import type * as tickets_constants from "../tickets/constants.js";
 import type * as tickets_index from "../tickets/index.js";
 import type * as tickets_mutations_createTicket from "../tickets/mutations/createTicket.js";
@@ -850,6 +851,7 @@ declare const fullApi: ApiFromModules<{
   "surveys/queries/surveyAnalytics": typeof surveys_queries_surveyAnalytics;
   "surveys/queries/surveyCategories": typeof surveys_queries_surveyCategories;
   "surveys/queries/surveyResponses": typeof surveys_queries_surveyResponses;
+  testHelpers: typeof testHelpers;
   "tickets/constants": typeof tickets_constants;
   "tickets/index": typeof tickets_index;
   "tickets/mutations/createTicket": typeof tickets_mutations_createTicket;

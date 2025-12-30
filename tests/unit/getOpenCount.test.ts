@@ -3,7 +3,7 @@
  * Tests both branches: forAssignee true (filters by assigneeId) and false/undefined (filters by createdById)
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TICKET_STATUS } from '../../convex/tickets/constants';
 import type { QueryCtx } from '../../convex/_generated/server';
 import type { Id } from '../../convex/_generated/dataModel';
@@ -60,11 +60,11 @@ describe('getOpenCountHandler', () => {
   beforeEach(() => {
     // Reset mocks
     mockDb = {
-      query: mock(() => ({
-        withIndex: mock(() => ({
-          eq: mock(() => ({
-            eq: mock(() => ({
-              collect: mock(() => []),
+      query: vi.fn(() => ({
+        withIndex: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              collect: vi.fn(() => []),
             })),
           })),
         })),
@@ -74,7 +74,7 @@ describe('getOpenCountHandler', () => {
     _mockCtx = {
       db: mockDb,
       auth: {
-        getUserIdentity: mock(async () => ({
+        getUserIdentity: vi.fn(async () => ({
           subject: 'user_123',
           email: 'test@example.com',
         })),
@@ -89,24 +89,24 @@ describe('getOpenCountHandler', () => {
 
       // Mock the query chain to capture calls
       let currentQuery: any = null;
-      mockDb.query = mock(() => {
+      mockDb.query = vi.fn(() => {
         currentQuery = {
-          withIndex: mock((indexName: string) => {
+          withIndex: vi.fn((indexName: string) => {
             expect(indexName).toBe('by_creator_and_status');
             return {
-              eq: mock((field: string, value: any) => {
+              eq: vi.fn((field: string, value: any) => {
                 if (field === 'createdById') {
                   expect(value).toBe(mockUserId);
                 } else if (field === 'status') {
                   expect([TICKET_STATUS.OPEN, TICKET_STATUS.IN_PROGRESS]).toContain(value);
                 }
                 return {
-                  eq: mock((field2: string, value2: any) => {
+                  eq: vi.fn((field2: string, value2: any) => {
                     if (field2 === 'status') {
                       expect([TICKET_STATUS.OPEN, TICKET_STATUS.IN_PROGRESS]).toContain(value2);
                     }
                     return {
-                      collect: mock(async () => {
+                      collect: vi.fn(async () => {
                         // Return empty array for this test
                         return [];
                       }),

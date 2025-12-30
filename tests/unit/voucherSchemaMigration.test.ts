@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { calculateMonetaryRefundEligibleAt, validateMonetaryRefundEligibility, MONETARY_REFUND_DELAY_MS } from '../../convex/helpers/utils';
 
 describe('Voucher Schema Migration - 14-Day Eligibility Logic', () => {
@@ -121,4 +121,3 @@ describe('Voucher Schema Migration - 14-Day Eligibility Logic', () => {
     });
   });
 });
-

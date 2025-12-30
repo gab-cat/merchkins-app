@@ -8,6 +8,15 @@ type QueryCtx = GenericQueryCtx<DataModel>;
 type MutationCtx = GenericMutationCtx<DataModel>;
 
 /**
+ * Check if we're running in test mode.
+ * When in test mode, scheduled functions are skipped to prevent
+ * "Write outside of transaction" errors in convex-test.
+ */
+export function isTestMode(): boolean {
+  return process.env.IS_TEST_MODE === 'true';
+}
+
+/**
  * Log an action for audit purposes
  */
 export async function logAction(

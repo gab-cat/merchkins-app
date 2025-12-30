@@ -2,8 +2,7 @@
  * Unit tests for validatePositiveFiniteNumber validation function
  * Tests both positive validation path and error paths (NaN, Infinity, negative, zero)
  */
-// @ts-expect-error Bun test is not supported
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { validatePositiveFiniteNumber } from '../../convex/helpers/validation';
 
 describe('validatePositiveFiniteNumber', () => {

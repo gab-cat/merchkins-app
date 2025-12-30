@@ -12,13 +12,18 @@
     "start": "next start",
     "lint": "oxlint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "vitest",
+    "test:once": "vitest run",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism",
+    "test:coverage": "vitest run --coverage --coverage.reporter=text"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
     "@convex-dev/aggregate": "^0.2.0",
     "@convex-dev/eslint-plugin": "^1.1.0",
     "@convex-dev/r2": "^0.7.0",
+    "@edge-runtime/vm": "^5.0.0",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.10",
@@ -47,6 +52,7 @@
     "cmdk": "^1.1.1",
     "convex": "^1.31.2",
     "convex-helpers": "^0.1.108",
+    "convex-test": "^0.0.41",
     "form-data": "^4.0.4",
     "framer-motion": "^12.23.24",
     "gray-matter": "^4.0.3",
@@ -70,6 +76,7 @@
     "svix": "^1.70.0",
     "tailwind-merge": "^3.3.1",
     "use-debounce": "^10.0.6",
+    "vitest": "^4.0.16",
     "xendit-node": "^7.0.0",
     "zod": "^3.23.8",
     "zustand": "^5.0.7"

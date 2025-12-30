@@ -2,7 +2,7 @@ import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 import { internal } from '../../_generated/api';
-import { requireAuthentication, validateOrderExists, validateUserExists, logAction, requireOrganizationPermission } from '../../helpers';
+import { requireAuthentication, validateOrderExists, validateUserExists, logAction, requireOrganizationPermission, isTestMode } from '../../helpers';
 
 export const updateOrderArgs = {
   orderId: v.id('orders'),
@@ -115,7 +115,8 @@ export const updateOrderHandler = async (
   await ctx.db.patch(args.orderId, updates);
 
   // Schedule status notification email for READY and DELIVERED statuses (non-blocking)
-  if (args.status && (args.status === 'READY' || args.status === 'DELIVERED')) {
+  // Skip scheduling in test mode to prevent convex-test transaction errors
+  if (args.status && (args.status === 'READY' || args.status === 'DELIVERED') && !isTestMode()) {
     await ctx.scheduler.runAfter(0, internal.orders.actions.sendOrderStatusEmail.sendOrderStatusEmail, {
       orderId: args.orderId,
       newStatus: args.status,
