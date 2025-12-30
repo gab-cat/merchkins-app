@@ -13,6 +13,9 @@ const FONT_URLS = {
     400: 'https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPQ.ttf',
     700: 'https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8L6tjPQ.ttf',
   },
+  Genty: {
+    400: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com'}/fonts/genty.woff`,
+  },
 };
 
 // Cache for font registration to avoid re-fetching on every request
@@ -95,6 +98,22 @@ export async function registerFonts(): Promise<void> {
       ],
     });
 
+    // Register Genty font (fetch from public URL)
+    try {
+      const gentyFontDataUrl = await fetchFontAsDataUrl(FONT_URLS.Genty[400]);
+      Font.register({
+        family: 'Genty',
+        fonts: [
+          {
+            src: gentyFontDataUrl,
+            fontWeight: 400,
+          },
+        ],
+      });
+    } catch (gentyError) {
+      console.warn('Failed to load Genty font, brand name will use fallback:', gentyError);
+    }
+
     // Disable hyphenation for cleaner text
     Font.registerHyphenationCallback((word) => [word]);
 
@@ -133,6 +152,7 @@ const COLORS = {
 const getFontFamily = {
   sans: () => (useCustomFonts ? 'Plus Jakarta Sans' : 'Helvetica'),
   mono: () => (useCustomFonts ? 'JetBrains Mono' : 'Courier'),
+  genty: () => (useCustomFonts ? 'Genty' : 'Helvetica'),
 };
 
 /**
@@ -174,18 +194,18 @@ const createStyles = () =>
       flexDirection: 'row',
     },
     brandNameWhite: {
-      fontFamily: getFontFamily.sans(),
-      fontWeight: 700,
+      fontFamily: getFontFamily.genty(),
+      fontWeight: 400,
       fontSize: 24,
       color: COLORS.white,
-      letterSpacing: -0.5,
+      letterSpacing: 0,
     },
     brandNameAccent: {
-      fontFamily: getFontFamily.sans(),
-      fontWeight: 700,
+      fontFamily: getFontFamily.genty(),
+      fontWeight: 400,
       fontSize: 24,
       color: COLORS.accent,
-      letterSpacing: -0.5,
+      letterSpacing: 0,
     },
     brandTagline: {
       fontFamily: getFontFamily.sans(),
@@ -515,9 +535,9 @@ const createStyles = () =>
       alignItems: 'center',
     },
     footerLogo: {
-      fontFamily: getFontFamily.sans(),
-      fontWeight: 700,
-      fontSize: 10,
+      fontFamily: getFontFamily.genty(),
+      fontWeight: 400,
+      fontSize: 12,
       color: COLORS.primary,
       marginRight: 8,
     },
@@ -724,9 +744,9 @@ const createStyles = () =>
       borderBottomColor: COLORS.paleGray,
     },
     pageHeaderBrand: {
-      fontFamily: getFontFamily.sans(),
-      fontWeight: 700,
-      fontSize: 14,
+      fontFamily: getFontFamily.genty(),
+      fontWeight: 400,
+      fontSize: 16,
       color: COLORS.primary,
     },
     pageHeaderInvoice: {
@@ -906,7 +926,7 @@ export const formatShortDate = (timestamp: number) =>
   });
 
 // SVG Components
-const HeaderPattern = () => (
+const _HeaderPattern = () => (
   <Svg viewBox="0 0 200 120" style={styles.headerPattern}>
     <Circle cx="180" cy="20" r="60" fill="white" />
     <Circle cx="150" cy="80" r="40" fill="white" />

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -10,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, TrendingUp, Star, TrendingDown, Search, Package, Sparkles } from 'lucide-react';
+import { Clock, TrendingUp, Star, TrendingDown, Search, Package } from 'lucide-react';
 import { ProductCard } from './product-card';
 import { BlurFade } from '@/src/components/ui/animations';
 import { Doc } from '@/convex/_generated/dataModel';
@@ -184,7 +183,7 @@ export function SearchResults({ orgSlug }: { orgSlug?: string } = {}) {
                 transition={{ delay: i * 0.03, duration: 0.3 }}
               >
                 <Card className="overflow-hidden rounded-2xl border bg-card shadow-sm py-0">
-                  <div className="aspect-[4/3] bg-gradient-to-br from-secondary to-secondary/50 skeleton" />
+                  <div className="aspect-4/3 bg-linear-to-br from-secondary to-secondary/50 skeleton" />
                   <CardHeader className="p-4 space-y-3">
                     <CardTitle className="h-5 w-2/3 rounded-lg bg-secondary skeleton" />
                     <div className="h-3 w-full rounded-lg bg-secondary skeleton" />

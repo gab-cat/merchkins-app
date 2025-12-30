@@ -15,7 +15,7 @@ export const getBatchesHandler = async (
     includeDeleted?: boolean;
   }
 ) => {
-  const currentUser = await requireAuthentication(ctx);
+  await requireAuthentication(ctx);
   await requireOrganizationPermission(ctx, args.organizationId, 'MANAGE_ORDERS', 'read');
 
   let query = ctx.db.query('orderBatches').withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId));

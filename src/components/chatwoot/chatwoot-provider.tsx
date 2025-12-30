@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useAction, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -105,14 +105,14 @@ export function ChatwootProvider({
    * Destroy existing Chatwoot widget completely
    * This removes the iframe, bubble, script, and resets SDK state
    */
-  const destroyChatwootWidget = (removeScript = false) => {
+  const destroyChatwootWidget = useCallback((removeScript = false) => {
     console.log('[Chatwoot] Destroying widget', { removeScript });
 
     // Reset the $chatwoot session
     if (window.$chatwoot) {
       try {
         window.$chatwoot.reset();
-      } catch (e) {
+      } catch {
         // Ignore errors during reset
       }
     }
@@ -148,7 +148,7 @@ export function ChatwootProvider({
 
     initializedRef.current = false;
     setSdkReady(false);
-  };
+  }, []);
 
   // Reset user initialization when organization changes
   useEffect(() => {
@@ -173,7 +173,7 @@ export function ChatwootProvider({
     }
 
     lastTokenRef.current = websiteToken;
-  }, [websiteToken]);
+  }, [websiteToken, destroyChatwootWidget]);
 
   // Load Chatwoot SDK script and initialize widget
   useEffect(() => {
@@ -251,7 +251,7 @@ export function ChatwootProvider({
       console.log('[Chatwoot] Provider unmounting, destroying widget');
       destroyChatwootWidget(true);
     };
-  }, [websiteToken, baseUrl]);
+  }, [websiteToken, baseUrl, launcherTitle, destroyChatwootWidget]);
 
   // Initialize user when SDK is ready and user is authenticated
   useEffect(() => {

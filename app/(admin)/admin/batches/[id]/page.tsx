@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useQuery } from 'convex-helpers/react/cache';
 import { api } from '@/convex/_generated/api';
 import { PageHeader } from '@/src/components/admin';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Package, Calendar, Archive, Edit } from 'lucide-react';
+import { ArrowLeft, Package, Calendar, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { BatchOrderTable } from '@/src/features/admin/components/batches/batch-order-table';
 import { BatchBulkActions } from '@/src/features/admin/components/batches/batch-bulk-actions';
@@ -24,7 +24,6 @@ function formatDate(timestamp: number) {
 
 export default function BatchDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const batchId = params.id as Id<'orderBatches'>;
   const orgSlug = searchParams.get('org') || null;
@@ -121,7 +120,7 @@ export default function BatchDetailPage() {
           { label: 'Processing', value: batch.stats.processing, color: 'text-blue-600' },
           { label: 'Ready', value: batch.stats.ready, color: 'text-emerald-600' },
           { label: 'Delivered', value: batch.stats.delivered, color: 'text-emerald-700' },
-        ].map((stat, index) => (
+        ].map((stat, _index) => (
           <div key={stat.label} className="rounded-lg border bg-card p-3">
             <p className="text-xs text-muted-foreground">{stat.label}</p>
             <p className={`text-2xl font-bold font-admin-heading ${stat.color}`}>{stat.value}</p>

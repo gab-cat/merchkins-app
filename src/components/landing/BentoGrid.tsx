@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Building2, Palette, ShoppingCart, Truck, Zap, Users, TrendingUp, Star, Bell, Paintbrush } from 'lucide-react';
+import { Building2, ShoppingCart, Truck, Zap, Users, TrendingUp, Star, Bell, Paintbrush } from 'lucide-react';
 import Image from 'next/image';
 import Lottie from 'lottie-react';
 import sparkleAnimation from '@/public/lotties/sparkle.json';

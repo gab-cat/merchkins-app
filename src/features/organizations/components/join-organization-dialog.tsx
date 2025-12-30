@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { R2Image } from '@/src/components/ui/r2-image';
 
 import { api } from '@/convex/_generated/api';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 
 import { showToast } from '@/lib/toast';
 import { fadeInUp } from '@/lib/animations';
@@ -40,9 +40,6 @@ export const JoinOrganizationDialog: React.FC<JoinOrganizationDialogProps> = ({
   onJoined,
 }) => {
   const joinOrganization = useMutation(api.organizations.mutations.index.joinPublicOrganization);
-
-  // Helper function to check if value is a file key (not a URL)
-  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
 
   // Use public URL builder for logo and banner
   const finalLogoUrl = buildR2PublicUrl(organizationLogoUrl || null);
@@ -74,18 +71,18 @@ export const JoinOrganizationDialog: React.FC<JoinOrganizationDialogProps> = ({
         <DialogHeader className="space-y-0 pb-4">
           <div className="relative -mx-6 -mt-6 mb-4">
             {organizationBannerUrl && finalBannerUrl ? (
-              <div className="aspect-[4/1] rounded-t-lg overflow-hidden">
+              <div className="aspect-4/1 rounded-t-lg overflow-hidden">
                 <R2Image fileKey={organizationBannerUrl || undefined} alt={`${organizationName} banner`} fill className="object-cover" />
                 <div className="absolute inset-0 bg-black/10" />
               </div>
             ) : (
-              <div className="aspect-[4/1] bg-gradient-to-r from-blue-100 to-purple-100 rounded-t-lg" />
+              <div className="aspect-4/1 bg-linear-to-r from-blue-100 to-purple-100 rounded-t-lg" />
             )}
             <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
               <motion.div {...fadeInUp} className="flex size-22 items-center justify-center rounded-full bg-white border-4 border-white shadow-lg">
                 <Avatar className="size-20">
                   <AvatarImage className="object-cover" src={finalLogoUrl || '/favicon.ico'} alt={organizationName} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-100 to-purple-100 text-blue-700 text-lg">
+                  <AvatarFallback className="bg-linear-to-br from-blue-100 to-purple-100 text-blue-700 text-lg">
                     {organizationName.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -102,15 +99,15 @@ export const JoinOrganizationDialog: React.FC<JoinOrganizationDialogProps> = ({
         <motion.div {...fadeInUp} className="space-y-2 py-2 mx-auto">
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs">
-              <Heart className="size-4 text-red-500 flex-shrink-0" />
+              <Heart className="size-4 text-red-500 shrink-0" />
               <span>Get exclusive access to amazing products</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <Users className="size-4 text-green-600 flex-shrink-0" />
+              <Users className="size-4 text-green-600 shrink-0" />
               <span>Join the community of fellow fans</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <Sparkles className="size-4 text-orange-500 flex-shrink-0" />
+              <Sparkles className="size-4 text-orange-500 shrink-0" />
               <span>Support creativity and help bring ideas to life</span>
             </div>
           </div>

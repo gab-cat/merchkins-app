@@ -12,12 +12,11 @@ import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
 import { R2Image } from '@/src/components/ui/r2-image';
 import Link from 'next/link';
 import { Doc, Id } from '@/convex/_generated/dataModel';
-import { Package, Plus, Search, Grid3X3, List, Star, ShoppingCart, Eye, ExternalLink, Edit, MoreHorizontal, Filter, ArrowUpDown } from 'lucide-react';
+import { Package, Plus, Search, Grid3X3, List, Star, ShoppingCart, Eye, ExternalLink, Edit, MoreHorizontal, ArrowUpDown } from 'lucide-react';
 import { PageHeader, ProductsEmptyState, StatusBadge } from '@/src/components/admin';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 
 type Product = Doc<'products'>;
 

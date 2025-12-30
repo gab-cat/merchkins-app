@@ -98,11 +98,10 @@ export function OrgMembersManager({ organizationId, orgSlug }: Props) {
   const deactivateInvite = useMutation(api.organizations.mutations.index.deactivateInviteLink);
   const reviewJoinRequest = useMutation(api.organizations.mutations.index.reviewJoinRequest);
 
-  type OrgMember = Doc<'organizationMembers'>;
   type Permission = Doc<'permissions'>;
   type InviteLink = Doc<'organizationInviteLinks'>;
 
-  const items: OrgMember[] = members?.page ?? [];
+  const items = useMemo(() => members?.page ?? [], [members?.page]);
   const permissionItems: Permission[] = permissions?.page ?? [];
 
   // Search filtering

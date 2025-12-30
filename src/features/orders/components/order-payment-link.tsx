@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { useAction, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,6 @@ export function OrderPaymentLink({
   compact = false,
   short = false,
 }: OrderPaymentLinkProps) {
-  const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const refreshInvoice = useAction(api.orders.mutations.index.refreshXenditInvoice);
@@ -78,7 +77,7 @@ export function OrderPaymentLink({
   const handlePayNow = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // If payment link exists, redirect immediately (external Xendit URL)
     if (xenditInvoiceUrl) {
       window.location.href = xenditInvoiceUrl;
@@ -198,7 +197,7 @@ export function OrderPaymentLink({
   if (isExpired) {
     return (
       <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-xl">
-        <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
+        <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
         <div className="flex-1">
           <p className="text-sm font-medium text-red-700">Payment link expired</p>
           <p className="text-xs text-red-600/80">Click refresh to get a new payment link.</p>
@@ -208,7 +207,7 @@ export function OrderPaymentLink({
           variant="outline"
           onClick={handleRefreshInvoice}
           disabled={isRefreshing}
-          className="flex-shrink-0 border-red-200 text-red-600 hover:bg-red-100"
+          className="shrink-0 border-red-200 text-red-600 hover:bg-red-100"
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
           Refresh
@@ -219,17 +218,12 @@ export function OrderPaymentLink({
 
   return (
     <div className="flex items-center gap-3 p-4 bg-[#1d43d8]/5 border border-[#1d43d8]/10 rounded-xl">
-      <CreditCard className="h-5 w-5 text-[#1d43d8] flex-shrink-0" />
+      <CreditCard className="h-5 w-5 text-[#1d43d8] shrink-0" />
       <div className="flex-1">
         <p className="text-sm font-medium text-[#1d43d8]">Complete your payment</p>
         <p className="text-xs text-slate-500">Pay securely with e-wallets, cards, or bank transfer</p>
       </div>
-      <Button 
-        size="sm" 
-        onClick={handlePayNow} 
-        disabled={isCreating}
-        className="flex-shrink-0 bg-[#1d43d8] hover:bg-[#1d43d8]/90"
-      >
+      <Button size="sm" onClick={handlePayNow} disabled={isCreating} className="shrink-0 bg-[#1d43d8] hover:bg-[#1d43d8]/90">
         <CreditCard className={`h-4 w-4 mr-2 ${isCreating ? 'animate-pulse' : ''}`} />
         {isCreating ? 'Creating...' : 'Pay Now'}
       </Button>

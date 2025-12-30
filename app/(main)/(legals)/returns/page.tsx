@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowLeft, Clock, CheckCircle, XCircle, AlertTriangle, Gift, ShieldCheck, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle, XCircle, AlertTriangle, Gift, ShieldCheck } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Returns & Refund Policy — Merchkins',

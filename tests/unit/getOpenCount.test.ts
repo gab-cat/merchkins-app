@@ -4,7 +4,6 @@
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { getOpenCountHandler, getOpenCountArgs } from '../../convex/tickets/queries/getOpenCount';
 import { TICKET_STATUS } from '../../convex/tickets/constants';
 import type { QueryCtx } from '../../convex/_generated/server';
 import type { Id } from '../../convex/_generated/dataModel';
@@ -14,7 +13,7 @@ const mockUserId = 'user_123' as Id<'users'>;
 const mockOtherUserId = 'user_456' as Id<'users'>;
 const mockOrgId = 'org_123' as Id<'organizations'>;
 
-const mockUser = {
+const _mockUser = {
   _id: mockUserId,
   email: 'test@example.com',
   isAdmin: false,
@@ -22,7 +21,7 @@ const mockUser = {
   isMerchant: false,
 };
 
-const mockTicket1 = {
+const _mockTicket1 = {
   _id: 'ticket_1' as Id<'tickets'>,
   createdById: mockUserId,
   assignedToId: undefined as Id<'users'> | undefined,
@@ -30,7 +29,7 @@ const mockTicket1 = {
   organizationId: undefined as Id<'organizations'> | undefined,
 };
 
-const mockTicket2 = {
+const _mockTicket2 = {
   _id: 'ticket_2' as Id<'tickets'>,
   createdById: mockUserId,
   assignedToId: mockUserId,
@@ -38,7 +37,7 @@ const mockTicket2 = {
   organizationId: undefined as Id<'organizations'> | undefined,
 };
 
-const mockTicket3 = {
+const _mockTicket3 = {
   _id: 'ticket_3' as Id<'tickets'>,
   createdById: mockOtherUserId,
   assignedToId: mockUserId,
@@ -46,7 +45,7 @@ const mockTicket3 = {
   organizationId: undefined as Id<'organizations'> | undefined,
 };
 
-const mockTicket4 = {
+const _mockTicket4 = {
   _id: 'ticket_4' as Id<'tickets'>,
   createdById: mockUserId,
   assignedToId: mockOtherUserId,
@@ -55,7 +54,7 @@ const mockTicket4 = {
 };
 
 describe('getOpenCountHandler', () => {
-  let mockCtx: QueryCtx;
+  let _mockCtx: QueryCtx;
   let mockDb: any;
 
   beforeEach(() => {
@@ -72,7 +71,7 @@ describe('getOpenCountHandler', () => {
       })),
     };
 
-    mockCtx = {
+    _mockCtx = {
       db: mockDb,
       auth: {
         getUserIdentity: mock(async () => ({
@@ -86,7 +85,7 @@ describe('getOpenCountHandler', () => {
   describe('User scope - forAssignee false/undefined (default behavior)', () => {
     it('should filter by createdById when forAssignee is not provided', async () => {
       const args = {};
-      const queryChain: any[] = [];
+      const _queryChain: any[] = [];
 
       // Mock the query chain to capture calls
       let currentQuery: any = null;
@@ -204,4 +203,3 @@ describe('getOpenCountHandler', () => {
     });
   });
 });
-

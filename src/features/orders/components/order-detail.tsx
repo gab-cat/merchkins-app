@@ -4,7 +4,6 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from 'convex-helpers/react/cache/hooks';
-import { useMutation } from 'convex/react';
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { OrderPaymentLink } from './order-payment-link';
@@ -33,7 +32,6 @@ import {
   Gift,
   X,
   RotateCcw,
-  AlertCircle,
   Store,
   ExternalLink,
   MessageCircle,

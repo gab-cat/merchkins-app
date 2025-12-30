@@ -53,7 +53,7 @@ export const searchPaymentsHandler = async (
     if (args.minAmount !== undefined) cond.push(q.gte(q.field('amount'), args.minAmount));
     if (args.maxAmount !== undefined) cond.push(q.lte(q.field('amount'), args.maxAmount));
     if (args.query) {
-      const qstr = args.query.toLowerCase();
+      const _qstr = args.query.toLowerCase();
       cond.push(
         q.or(
           q.eq(q.field('referenceNo'), args.query),

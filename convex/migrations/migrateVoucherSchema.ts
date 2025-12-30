@@ -2,7 +2,7 @@ import { internalMutation, query } from '../_generated/server';
 import { v } from 'convex/values';
 import { internal } from '../_generated/api';
 import { Id } from '../_generated/dataModel';
-import { calculateMonetaryRefundEligibleAt, MONETARY_REFUND_DELAY_MS } from '../helpers/utils';
+import { calculateMonetaryRefundEligibleAt } from '../helpers/utils';
 
 /**
  * Internal mutation to migrate voucher schema changes:
@@ -37,10 +37,7 @@ export const migrateVoucherSchemaBatch = internalMutation({
 
     // Query all vouchers (we need to check each one for old fields)
     if (cursor) {
-      const result = (await ctx.db
-        .query('vouchers')
-        .order('asc')
-        .paginate({ numItems: limit, cursor })) as any;
+      const result = (await ctx.db.query('vouchers').order('asc').paginate({ numItems: limit, cursor })) as any;
       vouchers = result.page;
       hasMore = result.hasMore;
       nextCursor = result.continueCursor;
@@ -67,7 +64,12 @@ export const migrateVoucherSchemaBatch = internalMutation({
       const oldInitiatedBy = (voucher as any).initiatedBy;
       const currentCancellationInitiator = voucher.cancellationInitiator;
 
-      if (oldInitiatedBy || (currentCancellationInitiator && typeof currentCancellationInitiator === 'string' && currentCancellationInitiator.toLowerCase() === currentCancellationInitiator)) {
+      if (
+        oldInitiatedBy ||
+        (currentCancellationInitiator &&
+          typeof currentCancellationInitiator === 'string' &&
+          currentCancellationInitiator.toLowerCase() === currentCancellationInitiator)
+      ) {
         // Map old field or lowercase value to new uppercase field
         const value = oldInitiatedBy || currentCancellationInitiator;
         if (value === 'customer' || value === 'CUSTOMER') {
@@ -88,7 +90,12 @@ export const migrateVoucherSchemaBatch = internalMutation({
         // Status values might be: 'requested', 'pending', 'approved', 'rejected', etc.
         if (oldMonetaryRefundStatus && typeof oldMonetaryRefundStatus === 'string') {
           const statusLower = oldMonetaryRefundStatus.toLowerCase();
-          if (statusLower.includes('request') || statusLower.includes('pending') || statusLower.includes('approved') || statusLower.includes('rejected')) {
+          if (
+            statusLower.includes('request') ||
+            statusLower.includes('pending') ||
+            statusLower.includes('approved') ||
+            statusLower.includes('rejected')
+          ) {
             // Try to get timestamp from voucher refund request
             const refundRequest = await ctx.db
               .query('voucherRefundRequests')
@@ -99,11 +106,15 @@ export const migrateVoucherSchemaBatch = internalMutation({
 
             if (refundRequest) {
               updates.monetaryRefundRequestedAt = refundRequest.createdAt;
-              report.push(`vouchers/${voucher._id}: Set monetaryRefundRequestedAt from refund request (${new Date(refundRequest.createdAt).toISOString()})`);
+              report.push(
+                `vouchers/${voucher._id}: Set monetaryRefundRequestedAt from refund request (${new Date(refundRequest.createdAt).toISOString()})`
+              );
             } else {
               // Fallback: use voucher updatedAt if status indicates request was made
               updates.monetaryRefundRequestedAt = voucher.updatedAt;
-              report.push(`vouchers/${voucher._id}: Set monetaryRefundRequestedAt from updatedAt (fallback, ${new Date(voucher.updatedAt).toISOString()})`);
+              report.push(
+                `vouchers/${voucher._id}: Set monetaryRefundRequestedAt from updatedAt (fallback, ${new Date(voucher.updatedAt).toISOString()})`
+              );
             }
             needsUpdate = true;
           }
@@ -190,9 +201,7 @@ export const runMigrateVoucherSchema = internalMutation({
     } while (cursor);
 
     return {
-      message: dryRun
-        ? `Dry run completed: ${totalUpdated} vouchers would be updated`
-        : `Migration completed: ${totalUpdated} vouchers updated`,
+      message: dryRun ? `Dry run completed: ${totalUpdated} vouchers would be updated` : `Migration completed: ${totalUpdated} vouchers updated`,
       totalProcessed,
       totalUpdated,
       batches,
@@ -272,4 +281,3 @@ export const checkVoucherSchemaMigrationStatus = query({
     };
   },
 });
-

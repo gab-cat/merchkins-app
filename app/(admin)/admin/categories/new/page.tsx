@@ -27,7 +27,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 
 // Icons
 import {
@@ -138,7 +137,8 @@ export default function AdminCreateCategoryPage() {
         const compressed = await compressToWebP(file);
         const key = await uploadFile(compressed);
         setImageKey(key);
-      } catch (err) {
+      } catch (_err) {
+        console.error('Image upload error:', _err);
         showToast({ type: 'error', title: 'Failed to upload image' });
       } finally {
         setIsUploading(false);
@@ -169,7 +169,8 @@ export default function AdminCreateCategoryPage() {
       showToast({ type: 'success', title: 'Category created successfully' });
       const suffix = orgSlug ? `?org=${orgSlug}` : '';
       router.push(`/admin/categories${suffix}`);
-    } catch (err) {
+    } catch (_err) {
+      console.error('Category creation error:', _err);
       showToast({ type: 'error', title: 'Failed to create category' });
     } finally {
       setIsSubmitting(false);

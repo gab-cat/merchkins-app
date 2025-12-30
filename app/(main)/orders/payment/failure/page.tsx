@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -63,7 +63,6 @@ const pulseVariants = {
 };
 
 export default function PaymentFailurePage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
@@ -131,8 +130,8 @@ export default function PaymentFailurePage() {
     <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
       {/* Subtle ambient background effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-500/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#1d43d8]/[0.03] rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-500/3 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#1d43d8]/3 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
       </div>
 
       {/* Subtle dot pattern overlay */}
@@ -158,7 +157,7 @@ export default function PaymentFailurePage() {
             {/* Inner ring */}
             <div className="absolute inset-2 rounded-full bg-red-500/10"></div>
             {/* Core circle */}
-            <div className="absolute inset-3 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/40">
+            <div className="absolute inset-3 rounded-full bg-linear-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/40">
               <XCircle className="w-10 h-10 text-white drop-shadow-md" strokeWidth={2.5} />
             </div>
             {/* Sparkle decorations */}
@@ -182,7 +181,7 @@ export default function PaymentFailurePage() {
             className="relative rounded-xl border border-red-200 bg-white shadow-lg shadow-red-100/50 overflow-hidden"
           >
             {/* Failed banner */}
-            <div className="bg-gradient-to-r from-red-50 to-red-100 px-5 py-3 border-b border-red-200">
+            <div className="bg-linear-to-r from-red-50 to-red-100 px-5 py-3 border-b border-red-200">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-red-600" />
                 <span className="text-sm font-medium text-red-700">Payment could not be completed</span>
@@ -286,7 +285,7 @@ export default function PaymentFailurePage() {
           {/* Help section */}
           <motion.div variants={itemVariants} className="mt-4 rounded-xl bg-slate-50 border border-slate-100 p-4">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#1d43d8]/10 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-[#1d43d8]/10 flex items-center justify-center shrink-0">
                 <MessageCircle className="h-4 w-4 text-[#1d43d8]" />
               </div>
               <div>

@@ -20,9 +20,7 @@ import { EmptyState } from '@/src/components/admin/empty-state';
 // UI Components
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
@@ -52,7 +50,6 @@ import {
   Building,
   Smartphone,
   Hash,
-  User,
   Mail,
 } from 'lucide-react';
 

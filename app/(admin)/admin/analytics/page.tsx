@@ -11,11 +11,9 @@ import { BarChart3, TrendingUp, ShoppingCart, DollarSign, Eye, Package, Users, C
 import { PageHeader } from '@/src/components/admin/page-header';
 import { MetricCard, MetricGrid } from '@/src/components/admin/metric-card';
 import { ChartCard, AreaChartComponent, BarChartComponent, PieChartComponent, CHART_COLORS } from '@/src/components/admin/chart-card';
-import { StatusBadge, OrderStatusBadge, PaymentStatusBadge } from '@/src/components/admin/status-badge';
+import { OrderStatusBadge, PaymentStatusBadge } from '@/src/components/admin/status-badge';
 
 // UI Components
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -100,7 +98,7 @@ export default function AdminAnalyticsPage() {
     return <AnalyticsSkeleton />;
   }
 
-  const { summary, timeSeries, statusBreakdown, paymentBreakdown, categoryBreakdown, topProducts, recentOrders } = analytics;
+  const { summary, timeSeries, statusBreakdown, categoryBreakdown, topProducts, recentOrders } = analytics;
 
   // Prepare chart data
   const revenueChartData = timeSeries.map((point: any) => ({

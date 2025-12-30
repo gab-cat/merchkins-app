@@ -17,6 +17,7 @@ function getMarkdownContent(slug: string): { content: string; data: Record<strin
     const { content, data } = matter(fileContents);
     return { content, data };
   } catch (error) {
+    console.error('KB fetch error:', error);
     return null;
   }
 }
@@ -54,4 +55,3 @@ export default async function KnowledgeBaseArticlePage({ params }: KnowledgeBase
     </Suspense>
   );
 }
-

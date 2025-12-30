@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useQuery, useAction, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { showToast, promiseToast } from '@/lib/toast';
+import { showToast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import {
   CheckCircle,
@@ -240,8 +240,8 @@ export default function PaymentSuccessPage() {
 
           {/* Subtle ambient background effects */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1d43d8]/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#adfc04]/[0.05] rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1d43d8]/3 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-neon/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
           </div>
 
           {/* Subtle dot pattern overlay */}
@@ -267,12 +267,12 @@ export default function PaymentSuccessPage() {
                 {/* Inner ring */}
                 <div className="absolute inset-2 rounded-full bg-emerald-500/10"></div>
                 {/* Core circle */}
-                <div className="absolute inset-3 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/40">
+                <div className="absolute inset-3 rounded-full bg-linear-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/40">
                   <CheckCircle className="w-10 h-10 text-white drop-shadow-md" strokeWidth={2.5} />
                 </div>
                 {/* Sparkle decorations */}
                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' }} className="absolute inset-0">
-                  <Sparkles className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-[#adfc04]" />
+                  <Sparkles className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-brand-neon" />
                   <Sparkles className="absolute top-1/2 -right-1 -translate-y-1/2 w-3 h-3 text-emerald-400" />
                   <Sparkles className="absolute -bottom-0.5 left-1/4 w-3 h-3 text-amber-400" />
                 </motion.div>
@@ -351,7 +351,7 @@ export default function PaymentSuccessPage() {
 
                   {/* What's next */}
                   <div className="rounded-lg bg-slate-50 p-3 mb-4 flex items-center gap-3">
-                    <Rocket className="w-5 h-5 text-[#1d43d8] flex-shrink-0" />
+                    <Rocket className="w-5 h-5 text-[#1d43d8] shrink-0" />
                     <p className="text-slate-600 text-xs leading-relaxed">We&apos;ll send you updates about your order status via email.</p>
                   </div>
 
@@ -448,8 +448,8 @@ export default function PaymentSuccessPage() {
       <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
         {/* Subtle ambient background effects */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-amber-500/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#1d43d8]/[0.03] rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-amber-500/3 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#1d43d8]/3 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
         </div>
 
         {/* Subtle dot pattern overlay */}
@@ -475,7 +475,7 @@ export default function PaymentSuccessPage() {
               {/* Inner ring */}
               <div className="absolute inset-2 rounded-full bg-amber-500/10"></div>
               {/* Core circle */}
-              <div className="absolute inset-3 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/40">
+              <div className="absolute inset-3 rounded-full bg-linear-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/40">
                 <Clock className="w-10 h-10 text-white drop-shadow-md" strokeWidth={2.5} />
               </div>
               {/* Sparkle decorations */}
@@ -499,7 +499,7 @@ export default function PaymentSuccessPage() {
               className="relative rounded-xl border border-amber-200 bg-white shadow-lg shadow-amber-100/50 overflow-hidden"
             >
               {/* Pending banner */}
-              <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-5 py-3 border-b border-amber-200">
+              <div className="bg-linear-to-r from-amber-50 to-amber-100 px-5 py-3 border-b border-amber-200">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-amber-600" />
                   <span className="text-sm font-medium text-amber-700">Action Required: Complete your payment</span>
@@ -551,7 +551,7 @@ export default function PaymentSuccessPage() {
                 {/* Payment instructions */}
                 <div className="rounded-lg bg-amber-50 p-3 mb-4">
                   <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                     <div>
                       <p className="text-amber-800 text-sm font-medium mb-1">Complete your payment</p>
                       <p className="text-amber-700 text-xs leading-relaxed">
@@ -666,7 +666,7 @@ export default function PaymentSuccessPage() {
 
   // Derived values from checkout session and orders
   const sessionStatus = checkoutSession!.status;
-  const isPaid = sessionStatus === 'PAID';
+  const _isPaid = sessionStatus === 'PAID';
   const isPending = sessionStatus === 'PENDING';
   const isCancelled = sessionStatus === 'CANCELLED';
   const isExpired = sessionStatus === 'EXPIRED';
@@ -686,7 +686,7 @@ export default function PaymentSuccessPage() {
     {} as Record<string, typeof orders>
   );
 
-  const storeCount = Object.keys(ordersByStore).length;
+  const _storeCount = Object.keys(ordersByStore).length;
   const orderCount = orders!.length;
 
   // Helper function to format order number
@@ -700,8 +700,8 @@ export default function PaymentSuccessPage() {
       <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
         {/* Subtle ambient background effects */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-500/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#1d43d8]/[0.03] rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-500/3 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#1d43d8]/3 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
         </div>
 
         {/* Subtle dot pattern overlay */}
@@ -727,7 +727,7 @@ export default function PaymentSuccessPage() {
               {/* Inner ring */}
               <div className="absolute inset-2 rounded-full bg-red-500/10"></div>
               {/* Core circle */}
-              <div className="absolute inset-3 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/40">
+              <div className="absolute inset-3 rounded-full bg-linear-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/40">
                 <XCircle className="w-10 h-10 text-white drop-shadow-md" strokeWidth={2.5} />
               </div>
               {/* Sparkle decorations */}
@@ -751,7 +751,7 @@ export default function PaymentSuccessPage() {
               className="relative rounded-xl border border-red-200 bg-white shadow-lg shadow-red-100/50 overflow-hidden"
             >
               {/* Cancelled banner */}
-              <div className="bg-gradient-to-r from-red-50 to-red-100 px-5 py-3 border-b border-red-200">
+              <div className="bg-linear-to-r from-red-50 to-red-100 px-5 py-3 border-b border-red-200">
                 <div className="flex items-center gap-2">
                   <XCircle className="h-4 w-4 text-red-600" />
                   <span className="text-sm font-medium text-red-700">
@@ -824,7 +824,7 @@ export default function PaymentSuccessPage() {
                 {/* Information message */}
                 <div className="rounded-lg bg-slate-50 p-3 mb-4">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
                     <div>
                       <p className="text-slate-600 text-xs leading-relaxed">
                         If you have any questions about this cancellation, please contact our support team.
@@ -876,8 +876,8 @@ export default function PaymentSuccessPage() {
       <div className="min-h-screen bg-white relative overflow-hidden flex items-center justify-center">
         {/* Subtle ambient background effects */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-amber-500/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#1d43d8]/[0.03] rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-amber-500/3 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#1d43d8]/3 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
         </div>
 
         {/* Subtle dot pattern overlay */}
@@ -903,7 +903,7 @@ export default function PaymentSuccessPage() {
               {/* Inner ring */}
               <div className="absolute inset-2 rounded-full bg-amber-500/10"></div>
               {/* Core circle */}
-              <div className="absolute inset-3 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/40">
+              <div className="absolute inset-3 rounded-full bg-linear-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/40">
                 <Clock className="w-10 h-10 text-white drop-shadow-md" strokeWidth={2.5} />
               </div>
               {/* Sparkle decorations */}
@@ -927,7 +927,7 @@ export default function PaymentSuccessPage() {
               className="relative rounded-xl border border-amber-200 bg-white shadow-lg shadow-amber-100/50 overflow-hidden"
             >
               {/* Pending banner */}
-              <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-5 py-3 border-b border-amber-200">
+              <div className="bg-linear-to-r from-amber-50 to-amber-100 px-5 py-3 border-b border-amber-200">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-amber-600" />
                   <span className="text-sm font-medium text-amber-700">Action Required: Complete your payment</span>
@@ -998,7 +998,7 @@ export default function PaymentSuccessPage() {
                 {/* Payment instructions */}
                 <div className="rounded-lg bg-amber-50 p-3 mb-4">
                   <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                     <div>
                       <p className="text-amber-800 text-sm font-medium mb-1">Complete your payment</p>
                       <p className="text-amber-700 text-xs leading-relaxed">
@@ -1083,8 +1083,8 @@ export default function PaymentSuccessPage() {
 
       {/* Subtle ambient background effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1d43d8]/[0.03] rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#adfc04]/[0.05] rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1d43d8]/3 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-neon/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
       </div>
 
       {/* Subtle dot pattern overlay */}
@@ -1110,12 +1110,12 @@ export default function PaymentSuccessPage() {
             {/* Inner ring */}
             <div className="absolute inset-2 rounded-full bg-emerald-500/10"></div>
             {/* Core circle */}
-            <div className="absolute inset-3 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/40">
+            <div className="absolute inset-3 rounded-full bg-linear-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/40">
               <CheckCircle className="w-10 h-10 text-white drop-shadow-md" strokeWidth={2.5} />
             </div>
             {/* Sparkle decorations */}
             <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' }} className="absolute inset-0">
-              <Sparkles className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-[#adfc04]" />
+              <Sparkles className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-brand-neon" />
               <Sparkles className="absolute top-1/2 -right-1 -translate-y-1/2 w-3 h-3 text-emerald-400" />
               <Sparkles className="absolute -bottom-0.5 left-1/4 w-3 h-3 text-amber-400" />
             </motion.div>
@@ -1206,7 +1206,7 @@ export default function PaymentSuccessPage() {
 
               {/* Compact What's next */}
               <div className="rounded-lg bg-slate-50 p-3 mb-4 flex items-center gap-3">
-                <Rocket className="w-5 h-5 text-[#1d43d8] flex-shrink-0" />
+                <Rocket className="w-5 h-5 text-[#1d43d8] shrink-0" />
                 <p className="text-slate-600 text-xs leading-relaxed">We&apos;ll send you updates about your order status via email.</p>
               </div>
 

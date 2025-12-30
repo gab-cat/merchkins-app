@@ -2,7 +2,6 @@ import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 import { requireAuthentication, validateStringLength, sanitizeString, logAction, validatePositiveFiniteNumber } from '../../helpers';
-import { internal } from '../../_generated/api';
 
 export const approveVoucherRefundRequestArgs = {
   voucherRefundRequestId: v.id('voucherRefundRequests'),
@@ -40,7 +39,6 @@ export const approveVoucherRefundRequestHandler = async (
   const sanitizedMessage = sanitizeString(args.adminMessage);
 
   const now = Date.now();
-  const actorName = `${currentUser.firstName ?? ''} ${currentUser.lastName ?? ''}`.trim() || currentUser.email;
 
   // Get voucher
   const voucher = await ctx.db.get(request.voucherId);
@@ -94,4 +92,3 @@ export const approveVoucherRefundRequestHandler = async (
 
   return args.voucherRefundRequestId;
 };
-

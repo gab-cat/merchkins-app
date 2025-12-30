@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useCurrentUser } from './use-current-user';
-import { SignInRequiredDialog } from '../components/sign-in-required-dialog';
 
 export const useRequireAuth = () => {
   const { user, isLoading } = useCurrentUser();

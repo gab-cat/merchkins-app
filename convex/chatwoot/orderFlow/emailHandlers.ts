@@ -15,7 +15,6 @@ function generateOTP(): string {
 
 // OTP expiry: 10 minutes
 const OTP_EXPIRY_MS = 10 * 60 * 1000;
-const MAX_OTP_ATTEMPTS = 3;
 
 /**
  * Handle email input - validate email, generate OTP, send verification email

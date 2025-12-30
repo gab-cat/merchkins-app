@@ -2,14 +2,7 @@ import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 import { internal } from '../../_generated/api';
-import {
-  requireAuthentication,
-  validateOrderExists,
-  validateUserExists,
-  validateNonNegativeNumber,
-  logAction,
-  requireOrganizationPermission,
-} from '../../helpers';
+import { requireAuthentication, validateOrderExists, validateUserExists, logAction, requireOrganizationPermission } from '../../helpers';
 
 export const updateOrderArgs = {
   orderId: v.id('orders'),

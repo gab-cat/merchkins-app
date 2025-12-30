@@ -26,7 +26,6 @@ import {
   Bell,
   RefreshCw,
   Building,
-  UserCheck,
   Globe,
   Briefcase,
   ShieldCheck,
@@ -34,7 +33,6 @@ import {
 
 // Admin Components
 import { PageHeader } from '@/src/components/admin/page-header';
-import { StatusBadge } from '@/src/components/admin/status-badge';
 import { EmptyState } from '@/src/components/admin/empty-state';
 import { MetricCard, MetricGrid } from '@/src/components/admin/metric-card';
 
@@ -46,10 +44,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Card, CardContent } from '@/components/ui/card';
 
 import { showToast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
@@ -57,7 +54,6 @@ import { cn } from '@/lib/utils';
 type Announcement = Doc<'announcements'>;
 
 type AnnouncementLevel = 'INFO' | 'WARNING' | 'CRITICAL';
-type AnnouncementType = 'NORMAL' | 'SYSTEM';
 type TargetAudience = 'ALL' | 'STAFF' | 'CUSTOMERS' | 'MERCHANTS' | 'ADMINS';
 
 const levelConfig: Record<AnnouncementLevel, { icon: any; color: string; bg: string }> = {
@@ -295,8 +291,8 @@ function AnnouncementDialog({
         showToast({ type: 'success', title: 'Announcement created successfully' });
       }
       onOpenChange(false);
-    } catch (error) {
-      console.error(error);
+    } catch (_error) {
+      console.error(_error);
       showToast({ type: 'error', title: `Failed to ${isEdit ? 'update' : 'create'} announcement` });
     } finally {
       setIsSubmitting(false);
@@ -515,7 +511,8 @@ export default function AdminAnnouncementsPage() {
     try {
       await updateAnnouncement({ announcementId: id, isActive: !isActive });
       showToast({ type: 'success', title: isActive ? 'Announcement deactivated' : 'Announcement activated' });
-    } catch (error) {
+    } catch (_error) {
+      console.error('Update announcement error:', _error);
       showToast({ type: 'error', title: 'Failed to update announcement' });
     }
   };
@@ -524,7 +521,8 @@ export default function AdminAnnouncementsPage() {
     try {
       await updateAnnouncement({ announcementId: id, isPinned: !isPinned });
       showToast({ type: 'success', title: isPinned ? 'Announcement unpinned' : 'Announcement pinned' });
-    } catch (error) {
+    } catch (_error) {
+      console.error('Update announcement error:', _error);
       showToast({ type: 'error', title: 'Failed to update announcement' });
     }
   };
@@ -534,7 +532,8 @@ export default function AdminAnnouncementsPage() {
     try {
       await deleteAnnouncement({ announcementId: id });
       showToast({ type: 'success', title: 'Announcement deleted' });
-    } catch (error) {
+    } catch (_error) {
+      console.error('Delete announcement error:', _error);
       showToast({ type: 'error', title: 'Failed to delete announcement' });
     }
   };

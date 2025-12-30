@@ -1,43 +1,33 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ShoppingCart, Search, Building2, Package, User as UserIcon, ArrowRight, ArrowLeft, Sparkles, LogIn, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 import { Input } from '@/components/ui/input';
 import { useQuery } from 'convex-helpers/react/cache/hooks';
-import { SignedIn, SignedOut, UserButton, useAuth, SignInButton, SignUpButton } from '@clerk/nextjs';
+import { SignedIn, SignedOut, UserButton, useAuth, SignInButton } from '@clerk/nextjs';
 import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
+
 import { CartSheet } from '@/src/features/cart/components/cart-sheet';
 import { cn } from '@/lib/utils';
 import { OrganizationsPage, AccountPage } from '@/src/features/common/components/user-profile-pages';
 import { useThemeExclusionAuto } from '../../../stores/theme-exclusion';
 import { useUnifiedCart } from '@/src/hooks/use-unified-cart';
 import { BeamsBackground, GradientBackground, GridPattern } from '@/src/components/ui/backgrounds';
-import { Float, PulseGlow } from '@/src/components/ui/animations';
-import {
-  Navbar,
-  NavBody,
-  NavItems,
-  MobileNav,
-  MobileNavHeader,
-  MobileNavMenu,
-  MobileNavToggle,
-  useNavbarScroll,
-} from '@/src/components/ui/resizable-navbar';
+import { Float } from '@/src/components/ui/animations';
+import { Navbar, NavBody, useNavbarScroll } from '@/src/components/ui/resizable-navbar';
 import { useOrgLink } from '@/src/hooks/use-org-link';
 import { BUSINESS_NAME, BUSINESS_CURRENCY, BUSINESS_DTI_NUMBER, BUSINESS_TIN_NUMBER } from '@/src/constants/business-info';
 
 export function SiteHeader() {
   const router = useRouter();
   const pathname = usePathname();
-  const { userId: clerkId } = useAuth();
-  const isSignedIn = !!clerkId;
+  useAuth();
   const [search, setSearch] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { shouldApplyTheme } = useThemeExclusionAuto();
@@ -100,17 +90,6 @@ export function SiteHeader() {
   const totalItems = useMemo(() => totals.totalItems ?? 0, [totals.totalItems]);
 
   // Get current user and their organizations to check membership
-  const currentUser = useQuery(api.users.queries.index.getCurrentUser, clerkId ? { clerkId } : ('skip' as unknown as { clerkId: string }));
-  const userOrganizations = useQuery(
-    api.organizations.queries.index.getOrganizationsByUser,
-    currentUser?._id ? { userId: currentUser._id } : ('skip' as unknown as { userId: Id<'users'> })
-  );
-
-  // Check if user is a member of the current organization
-  const isMember = useMemo(() => {
-    if (!organization?._id || !userOrganizations) return false;
-    return userOrganizations.some((org) => org._id === organization._id);
-  }, [organization?._id, userOrganizations]);
 
   // Show home button if on storefront or using another store's theme
   const showHomeButton = useMemo(() => {
@@ -129,10 +108,6 @@ export function SiteHeader() {
       router.push(buildOrgLink('/search'));
     }
   }
-
-  const { scrollY } = useScroll();
-  const headerOpacity = useTransform(scrollY, [0, 100], [1, 0.98]);
-  const headerBlur = useTransform(scrollY, [0, 100], [0, 4]);
 
   // Navigation items for the resizable navbar
   const navItems = useMemo(() => {
@@ -185,10 +160,7 @@ function SiteHeaderContent({
   setSearch,
   handleSearchSubmit,
   totalItems,
-
-  mobileMenuOpen,
   setMobileMenuOpen,
-  router,
 }: {
   orgSlug: string | undefined;
   organization: any;
@@ -290,7 +262,7 @@ function SiteHeaderContent({
           {/* Business name and DTI number - displayed prominently */}
           {!shouldApplyTheme && !isScrolled && (
             <div className="hidden md:flex flex-col gap-0.5 max-w-[220px]">
-              <p className={cn('text-[10px] leading-tight text-muted-foreground break-words')}>{BUSINESS_NAME}</p>
+              <p className={cn('text-[10px] leading-tight text-muted-foreground wrap-break-word')}>{BUSINESS_NAME}</p>
               <p className={cn('text-[10px] leading-tight text-muted-foreground')}>
                 DTI No.: <span className="font-semibold text-foreground">{BUSINESS_DTI_NUMBER}</span> | TIN:{' '}
                 <span className="font-semibold text-foreground">{BUSINESS_TIN_NUMBER}</span>

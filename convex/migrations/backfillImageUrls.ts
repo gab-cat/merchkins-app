@@ -1,7 +1,6 @@
 import { internalMutation, internalQuery } from '../_generated/server';
 import { v } from 'convex/values';
 import { buildPublicUrl } from '../helpers';
-import { Id } from '../_generated/dataModel';
 import { internal } from '../_generated/api';
 
 // Internal mutation to backfill image URLs for a single batch of records

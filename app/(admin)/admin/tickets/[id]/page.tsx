@@ -1,29 +1,26 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { showToast } from '@/lib/toast';
 
 // Admin components
-import { PageHeader } from '@/src/components/admin/page-header';
 import { StatusBadge } from '@/src/components/admin/status-badge';
 
 // UI components
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Icons
 import {
@@ -33,22 +30,17 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-  User,
-  Calendar,
   MessageSquare,
   Send,
   Flag,
   UserPlus,
   History,
   RefreshCw,
-  MoreVertical,
-  Mail,
   Tag,
-  AlertTriangle,
   Info,
   Check,
-  ChevronDown,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH';
@@ -248,7 +240,8 @@ export default function AdminTicketDetailPage() {
         isInternal: false,
       });
       showToast({ type: 'success', title: 'Priority updated' });
-    } catch (err) {
+    } catch (_err) {
+      console.error('Priority update error:', _err);
       showToast({ type: 'error', title: 'Failed to update priority' });
     } finally {
       setIsBusy(false);
@@ -263,7 +256,8 @@ export default function AdminTicketDetailPage() {
         assigneeId: assigneeId as Id<'users'>,
       });
       showToast({ type: 'success', title: 'Ticket assigned' });
-    } catch (err) {
+    } catch (_err) {
+      console.error('Ticket assignment error:', _err);
       showToast({ type: 'error', title: 'Failed to assign ticket' });
     }
   };
@@ -306,9 +300,8 @@ export default function AdminTicketDetailPage() {
     );
   }
 
-  const statusConfig = STATUS_CONFIG[ticket.status as TicketStatus];
-  const priorityConfig = PRIORITY_CONFIG[ticket.priority as TicketPriority];
-  const StatusIcon = statusConfig?.icon || AlertCircle;
+  const _statusConfig = STATUS_CONFIG[ticket.status as TicketStatus];
+  const _priorityConfig = PRIORITY_CONFIG[ticket.priority as TicketPriority];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-10">

@@ -1,6 +1,5 @@
 import { mutation } from '../../_generated/server';
 import { v } from 'convex/values';
-import { Id } from '../../_generated/dataModel';
 import { requireAuthentication, validateCartExists, validateProductExists, validatePositiveNumber, logAction } from '../../helpers';
 import { createOrGetCartHandler } from './createOrGetCart';
 import { internal } from '../../_generated/api';

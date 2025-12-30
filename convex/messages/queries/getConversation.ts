@@ -1,6 +1,5 @@
 import { QueryCtx } from '../../_generated/server';
 import { v } from 'convex/values';
-import { Id } from '../../_generated/dataModel';
 import { requireAuthentication, requireOrganizationPermission } from '../../helpers';
 
 export const getConversationArgs = {

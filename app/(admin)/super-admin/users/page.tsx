@@ -8,7 +8,7 @@ import { api } from '@/convex/_generated/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Search, Shield, ShieldCheck, Store, User, Mail, Calendar, ShoppingBag, DollarSign, Building2, ExternalLink, X } from 'lucide-react';
+import { Users, Search, Shield, ShieldCheck, Store, User, Calendar, ShoppingBag, DollarSign, Building2, ExternalLink, X } from 'lucide-react';
 import { PageHeader, StatusBadge, EmptyState } from '@/src/components/admin';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -80,7 +80,7 @@ export default function SuperAdminUsersPage() {
       staff: usersList.filter((u) => u.isStaff).length,
       merchants: usersList.filter((u) => u.isMerchant).length,
     }),
-    [usersList]
+    [usersList] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   return (

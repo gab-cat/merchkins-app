@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle2, Building2, CreditCard, Calendar, Ticket, Package } from 'lucide-react';
+import { CheckCircle2, Building2, CreditCard, Ticket, Package } from 'lucide-react';
 import type { InvoiceData } from '@/lib/pdf/payout-invoice';
 
 interface InvoicePreviewProps {
@@ -36,7 +36,7 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/90 p-6 text-primary-foreground">
+      <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary via-primary to-primary/90 p-6 text-primary-foreground">
         <div className="relative flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold font-genty tracking-tight">
@@ -117,7 +117,7 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
       </div>
 
       {/* Financial Summary - Light Theme */}
-      <Card className="border border-border/50 bg-gradient-to-br from-muted/30 via-background to-muted/20 overflow-hidden">
+      <Card className="border border-border/50 bg-linear-to-br from-muted/30 via-background to-muted/20 overflow-hidden">
         <CardContent className="p-6">
           <div className="flex items-center gap-2 mb-6">
             <div className="w-1 h-5 bg-primary rounded-full" />
@@ -320,7 +320,7 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
       {/* Payment Confirmation (if paid) */}
       {isPaid && invoice.paidAt && (
         <Card className="border border-border/50 overflow-hidden pt-0">
-          <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-8 text-center text-white">
+          <div className="bg-linear-to-r from-emerald-500 to-emerald-600 p-8 text-center text-white">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 mb-4">
               <CheckCircle2 className="w-8 h-8" />
             </div>

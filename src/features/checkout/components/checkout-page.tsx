@@ -18,7 +18,6 @@ import {
   ListChecks,
   StickyNote,
   ShoppingBag,
-  ArrowRight,
   ArrowLeft,
   Shield,
   Package,
@@ -28,7 +27,6 @@ import {
   Loader2,
   AlertCircle,
   Clock,
-  Lock,
   Truck,
   Receipt,
   ChevronRight,
@@ -250,14 +248,14 @@ function EmptyCheckout() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           {/* Animated icon */}
           <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ delay: 0.1, duration: 0.4 }} className="relative mb-8">
-            <div className="absolute inset-0 h-28 w-28 mx-auto rounded-3xl bg-gradient-to-br from-[#1d43d8]/20 to-[#adfc04]/20 blur-xl" />
-            <div className="relative h-28 w-28 mx-auto rounded-3xl bg-gradient-to-br from-[#1d43d8]/10 to-[#adfc04]/10 flex items-center justify-center border border-[#1d43d8]/10">
+            <div className="absolute inset-0 h-28 w-28 mx-auto rounded-3xl bg-linear-to-br from-[#1d43d8]/20 to-brand-neon/20 blur-xl" />
+            <div className="relative h-28 w-28 mx-auto rounded-3xl bg-linear-to-br from-[#1d43d8]/10 to-brand-neon/10 flex items-center justify-center border border-[#1d43d8]/10">
               <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
                 <ShoppingBag className="h-12 w-12 text-[#1d43d8]/50" />
               </motion.div>
             </div>
             <motion.div
-              className="absolute -top-1 -right-4 h-4 w-4 rounded-full bg-[#adfc04]"
+              className="absolute -top-1 -right-4 h-4 w-4 rounded-full bg-brand-neon"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
@@ -352,8 +350,8 @@ function CheckoutItem({ item }: CheckoutItemProps) {
 // Main checkout component
 export function CheckoutPage() {
   const router = useRouter();
-  const { userId: clerkId, isSignedIn } = useAuth();
-  const { items, totals: unifiedTotals, isAuthenticated } = useUnifiedCart();
+  const { userId: clerkId } = useAuth();
+  const { items, isAuthenticated } = useUnifiedCart();
   const serverCart = useQuery(api.carts.queries.index.getCartByUser, isAuthenticated ? {} : 'skip');
   const createOrder = useMutation(api.orders.mutations.index.createOrder);
   const createGuestOrder = useMutation(api.guestCheckout.index.createGuestOrder);
@@ -558,10 +556,8 @@ export function CheckoutPage() {
 
       if (appliedVoucher && appliedVoucher.discountAmount > 0) {
         const totalCartAmount = totals.amount;
-        let remainingVoucher = appliedVoucher.discountAmount;
 
         // First pass: Calculate raw proportional shares
-        const orgs = Object.keys(selectedByOrg);
         const rawShares: Record<string, number> = {};
 
         // Calculate shares relative to store subtotal
@@ -926,7 +922,7 @@ export function CheckoutPage() {
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-[#adfc04]/10 border border-emerald-200"
+                          className="flex items-center justify-between p-4 rounded-xl bg-linear-to-r from-emerald-50 to-brand-neon/10 border border-emerald-200"
                         >
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-emerald-100">
@@ -1064,7 +1060,7 @@ export function CheckoutPage() {
               <motion.div variants={itemVariants}>
                 <Card className="sticky top-24 rounded-2xl pt-0 border border-slate-100 overflow-hidden shadow-sm">
                   {/* Header */}
-                  <div className="px-4 py-3 sm:px-5 sm:py-4 bg-gradient-to-br from-[#1d43d8]/5 to-[#adfc04]/5 border-b border-slate-100">
+                  <div className="px-4 py-3 sm:px-5 sm:py-4 bg-linear-to-br from-[#1d43d8]/5 to-brand-neon/5 border-b border-slate-100">
                     <div className="flex items-center gap-2 text-[#1d43d8]">
                       <Sparkles className="h-5 w-5" />
                       <h2 className="font-bold">Order Summary</h2>
@@ -1213,7 +1209,7 @@ export function CheckoutPage() {
                             Place Order
                             <ChevronRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-1" />
                             {/* Shimmer effect */}
-                            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-white/20 to-transparent" />
                           </>
                         )}
                       </Button>

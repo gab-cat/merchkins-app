@@ -2,6 +2,7 @@
 
 import { MacbookScroll } from '@/src/components/ui/macbook-scroll';
 import { BlurFade } from '@/src/components/ui/animations/effects';
+import Link from 'next/link';
 
 export function AboutSection() {
   return (
@@ -47,7 +48,7 @@ export function AboutSection() {
 
 const Badge = () => {
   return (
-    <a
+    <Link
       href="/"
       className="group relative flex items-center gap-2 rounded-full bg-black/80 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white transition-all hover:bg-black hover:scale-105"
     >
@@ -67,6 +68,6 @@ const Badge = () => {
           clipRule="evenodd"
         />
       </svg>
-    </a>
+    </Link>
   );
 };

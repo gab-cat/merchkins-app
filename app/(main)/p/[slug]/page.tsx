@@ -5,7 +5,6 @@ import { api } from '@/convex/_generated/api';
 import { ConvexHttpClient } from 'convex/browser';
 import type { Metadata } from 'next';
 import { buildR2PublicUrl } from '@/lib/utils';
-import { notFound } from 'next/navigation';
 
 // Enable ISR - regenerate page every 60 seconds
 export const revalidate = 60;
@@ -192,6 +191,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
     };
   } catch (error) {
+    console.error('Metadata error:', error);
     // If product not found or other error, return basic metadata
     return {
       title: 'Product — Merchkins Storefront',

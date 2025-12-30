@@ -16,21 +16,7 @@ import { BlurFade } from '@/src/components/ui/animations/effects';
 import { RoleBadge, OrgTypeBadge } from '@/src/components/ui/role-badge';
 import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
 import { showToast } from '@/lib/toast';
-import {
-  UserPlus,
-  ShoppingBag,
-  Users,
-  Building2,
-  Search,
-  ArrowRight,
-  Sparkles,
-  Globe,
-  Lock,
-  Mail,
-  ExternalLink,
-  Settings,
-  ChevronRight,
-} from 'lucide-react';
+import { UserPlus, ShoppingBag, Users, Building2, Search, ArrowRight, Sparkles, Globe, Lock, Mail, ExternalLink, Settings } from 'lucide-react';
 
 type Organization = Doc<'organizations'>;
 
@@ -66,7 +52,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
   if (loading) {
     return (
       <div className="min-h-screen">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-b from-primary/2 via-transparent to-transparent pointer-events-none" />
         <div className="container mx-auto px-4 sm:px-6 py-8 relative z-10">
           <div className="mb-8">
             <div className="h-10 w-64 rounded-lg bg-secondary animate-pulse mb-2" />
@@ -91,7 +77,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="container mx-auto px-4 py-16 text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}>
-            <div className="h-24 w-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+            <div className="h-24 w-24 mx-auto mb-6 rounded-full bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center">
               <Building2 className="h-12 w-12 text-primary/40" />
             </div>
             <h1 className="text-2xl font-bold mb-3 font-heading">Sign in required</h1>
@@ -105,7 +91,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
   return (
     <div className="min-h-screen">
       {/* Background pattern */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-b from-primary/2 via-transparent to-transparent pointer-events-none" />
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
 
       <div className="container mx-auto px-4 sm:px-6 py-8 relative z-10">
@@ -126,7 +112,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
           {/* My Organizations Card */}
           <BlurFade delay={0.2}>
             <Card className="rounded-3xl border-0 shadow-lg overflow-hidden">
-              <div className="relative p-5 bg-gradient-to-r from-muted/50 to-muted/30 border-b">
+              <div className="relative p-5 bg-linear-to-r from-muted/50 to-muted/30 border-b">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-white shadow-sm">
                     <Users className="h-5 w-5 text-primary" />
@@ -155,7 +141,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                             className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-muted/30 border border-muted/50 hover:bg-muted/50 hover:border-primary/20 transition-all duration-300 group"
                           >
                             <div className="flex items-center gap-4 min-w-0">
-                              <div className="h-14 w-14 overflow-hidden rounded-xl border-2 border-white shadow-md bg-secondary flex-shrink-0">
+                              <div className="h-14 w-14 overflow-hidden rounded-xl border-2 border-white shadow-md bg-secondary shrink-0">
                                 {org.logo ? (
                                   <R2Image
                                     fileKey={org.logo}
@@ -165,7 +151,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                                     className="h-full w-full object-cover"
                                   />
                                 ) : (
-                                  <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 text-primary text-lg font-bold">
+                                  <div className="h-full w-full flex items-center justify-center bg-linear-to-br from-primary/20 to-primary/5 text-primary text-lg font-bold">
                                     {org.name?.charAt(0) || 'O'}
                                   </div>
                                 )}
@@ -182,7 +168,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                                 {org.description && <p className="mt-1 line-clamp-1 text-sm text-muted-foreground max-w-prose">{org.description}</p>}
                               </div>
                             </div>
-                            <div className="flex flex-shrink-0 items-center gap-2">
+                            <div className="flex shrink-0 items-center gap-2">
                               <Link href={`/o/${org.slug}`} prefetch>
                                 <Button className="group/btn rounded-xl h-10 px-4 font-semibold shadow-sm hover:shadow-md transition-all duration-300">
                                   <ShoppingBag className="h-4 w-4 mr-2" />
@@ -209,7 +195,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                   </div>
                 ) : (
                   <div className="py-8 text-center">
-                    <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                    <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-linear-to-br from-muted to-muted/50 flex items-center justify-center">
                       <Building2 className="h-8 w-8 text-muted-foreground/50" />
                     </div>
                     <p className="text-muted-foreground">You are not a member of any organizations yet.</p>
@@ -223,7 +209,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
           {/* Explore Organizations Card */}
           <BlurFade delay={0.3}>
             <Card className="rounded-3xl border-0 shadow-lg overflow-hidden">
-              <div className="relative p-5 bg-gradient-to-r from-muted/50 to-muted/30 border-b">
+              <div className="relative p-5 bg-linear-to-r from-muted/50 to-muted/30 border-b">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-white shadow-sm">
                     <Search className="h-5 w-5 text-primary" />
@@ -270,7 +256,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
 
                 {search.trim().length < 2 ? (
                   <div className="py-8 text-center">
-                    <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                    <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center">
                       <Search className="h-8 w-8 text-primary/40" />
                     </div>
                     <p className="text-muted-foreground">Enter at least 2 characters to search</p>
@@ -293,7 +279,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                               <div className="text-sm text-muted-foreground truncate">/{org.slug}</div>
                             </div>
                             <Badge
-                              className={`flex-shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
+                              className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
                                 org.organizationType === 'PUBLIC'
                                   ? 'bg-green-100 text-green-700 border-green-200'
                                   : 'bg-amber-100 text-amber-700 border-amber-200'
@@ -318,7 +304,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                             </div>
                           </div>
 
-                          <div className="mt-3 line-clamp-2 text-sm text-muted-foreground min-h-[2.5rem]">
+                          <div className="mt-3 line-clamp-2 text-sm text-muted-foreground min-h-10">
                             {org.description || 'No description available'}
                           </div>
 
@@ -379,7 +365,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
                     </AnimatePresence>
                     {Array.isArray(searchResult) && searchResult.length === 0 && (
                       <div className="col-span-full py-8 text-center">
-                        <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                        <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-linear-to-br from-muted to-muted/50 flex items-center justify-center">
                           <Search className="h-8 w-8 text-muted-foreground/50" />
                         </div>
                         <p className="text-muted-foreground">No organizations found matching your search.</p>
@@ -394,7 +380,7 @@ export function OrganizationsPage({ clerkId }: OrganizationsPageProps) {
           {/* CTA Card */}
           <BlurFade delay={0.4}>
             <Card className="rounded-3xl border-0 shadow-xl overflow-hidden" data-testid="orgs-cta">
-              <div className="relative p-8 md:p-12 bg-gradient-to-br from-primary via-primary/95 to-primary/90">
+              <div className="relative p-8 md:p-12 bg-linear-to-br from-primary via-primary/95 to-primary/90">
                 <div className="absolute inset-0 bg-grid-pattern opacity-10" />
                 <div className="relative z-10 text-center text-white">
                   <div className="h-16 w-16 mx-auto mb-6 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">

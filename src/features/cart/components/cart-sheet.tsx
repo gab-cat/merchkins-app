@@ -17,11 +17,11 @@ import { cn } from '@/lib/utils';
 import { useCartSheetStore } from '@/src/stores/cart-sheet';
 import { useUnifiedCart } from '@/src/hooks/use-unified-cart';
 import { useGuestCartStore } from '@/src/stores/guest-cart';
-import { ShoppingCart, Trash2, Plus, Minus, CreditCard, Sparkles, ArrowRight, Package, Store, Loader2 } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, CreditCard, ArrowRight, Package, Store, Loader2 } from 'lucide-react';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { showToast, promiseToast } from '@/lib/toast';
 import { BlurFade } from '@/src/components/ui/animations/effects';
-import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_CURRENCY } from '@/src/constants/business-info';
+import { BUSINESS_CURRENCY } from '@/src/constants/business-info';
 
 type CartItem = {
   variantId?: string;

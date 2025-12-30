@@ -8,7 +8,7 @@ import { api } from '@/convex/_generated/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ShoppingBag, Plus, Search, Filter, Calendar, User, Package, Clock, ExternalLink, MoreHorizontal, RefreshCw, Tag } from 'lucide-react';
+import { ShoppingBag, Plus, Search, User, Package, ExternalLink, MoreHorizontal, RefreshCw, Tag } from 'lucide-react';
 import { PageHeader, OrderStatusBadge, PaymentStatusBadge, OrdersEmptyState } from '@/src/components/admin';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';

@@ -30,95 +30,6 @@ const CheckFilled = ({ className }: { className?: string }) => {
   );
 };
 
-// Floating geometric shapes component - Light mode version
-const GeometricShapes = () => {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Large blurred circle - primary/blue */}
-      <motion.div
-        className="absolute w-96 h-96 rounded-full bg-primary/40 blur-[100px]"
-        initial={{ x: -200, y: -100 }}
-        animate={{
-          x: [-200, -150, -200],
-          y: [-100, -50, -100],
-        }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ top: '10%', left: '5%' }}
-      />
-
-      {/* Medium blurred circle - neon green */}
-      <motion.div
-        className="absolute w-72 h-72 rounded-full bg-brand-neon/35 blur-[80px]"
-        initial={{ x: 0, y: 0 }}
-        animate={{
-          x: [0, 50, 0],
-          y: [0, -30, 0],
-        }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        style={{ top: '60%', right: '10%' }}
-      />
-
-      {/* Small blurred square - primary/blue */}
-      <motion.div
-        className="absolute w-48 h-48 rounded-3xl bg-primary/30 blur-[60px] rotate-45"
-        initial={{ rotate: 45 }}
-        animate={{
-          rotate: [45, 60, 45],
-          scale: [1, 1.1, 1],
-        }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        style={{ bottom: '20%', left: '15%' }}
-      />
-
-      {/* Extra large blurred circle - neon green */}
-      <motion.div
-        className="absolute w-[500px] h-[500px] rounded-full bg-brand-neon/20 blur-[120px]"
-        initial={{ x: 0, y: 0 }}
-        animate={{
-          x: [0, -40, 0],
-          y: [0, 40, 0],
-        }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-        style={{ top: '-10%', right: '-5%' }}
-      />
-
-      {/* Medium blurred hexagon-ish shape - primary */}
-      <motion.div
-        className="absolute w-64 h-64 rounded-[40px] bg-primary/35 blur-[70px] rotate-12"
-        initial={{ rotate: 12 }}
-        animate={{
-          rotate: [12, 25, 12],
-        }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-        style={{ bottom: '5%', right: '25%' }}
-      />
-
-      {/* Small floating circle - neon */}
-      <motion.div
-        className="absolute w-32 h-32 rounded-full bg-brand-neon/40 blur-[50px]"
-        initial={{ y: 0 }}
-        animate={{
-          y: [0, -20, 0],
-          x: [0, 15, 0],
-        }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-        style={{ top: '40%', left: '30%' }}
-      />
-
-      {/* Another primary shape */}
-      <motion.div
-        className="absolute w-56 h-56 rounded-full bg-primary/25 blur-[90px]"
-        initial={{ scale: 1 }}
-        animate={{
-          scale: [1, 1.15, 1],
-        }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
-        style={{ top: '25%', right: '35%' }}
-      />
-    </div>
-  );
-};
-
 type LoadingState = {
   text: string;
 };
@@ -190,7 +101,7 @@ export const MultiStepLoader = ({
           exit={{
             opacity: 0,
           }}
-          className="w-full h-full fixed inset-0 z-[100] flex items-center justify-center bg-white"
+          className="w-full h-full fixed inset-0 z-100 flex items-center justify-center bg-white"
         >
           {/* Geometric background shapes */}
           {/* <GeometricShapes /> */}

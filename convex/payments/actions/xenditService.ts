@@ -3,7 +3,7 @@
 import { internalAction } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Xendit } from 'xendit-node';
-import { Doc, Id } from '../../_generated/dataModel';
+import { Doc } from '../../_generated/dataModel';
 import { api } from '../../_generated/api';
 
 /**
@@ -149,7 +149,7 @@ export const createXenditInvoice = internalAction({
       const finalItems: Array<{ name: string; quantity: number; price: number; category?: string; url?: string }> = [];
 
       // Group items by store
-      for (const [storeKey, storeGroup] of ordersByStore.entries()) {
+      for (const [_storeKey, storeGroup] of ordersByStore.entries()) {
         // Add all items for this store
         for (const item of storeGroup.items) {
           finalItems.push(item);

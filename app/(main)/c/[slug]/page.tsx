@@ -155,6 +155,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       },
     };
   } catch (error) {
+    console.error('Metadata error:', error);
     // If category not found or other error, return basic metadata
     return {
       title: 'Category — Merchkins Storefront',

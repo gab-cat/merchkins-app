@@ -10,7 +10,7 @@ import { CartMergeConfirmationDialog } from '@/src/components/cart-merge-confirm
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 function CartMergeHandler() {
-  const { showDialog, items, isMerging, onConfirm, onCancel, onOpenChange } = useCartMergeOnSignIn();
+  const { showDialog, items, isMerging, onConfirm, onOpenChange } = useCartMergeOnSignIn();
 
   return <CartMergeConfirmationDialog open={showDialog} onOpenChange={onOpenChange} items={items} onConfirm={onConfirm} isMerging={isMerging} />;
 }

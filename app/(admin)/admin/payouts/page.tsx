@@ -10,7 +10,6 @@ import {
   DollarSign,
   Clock,
   CheckCircle2,
-  TrendingUp,
   Download,
   Eye,
   Calendar,
@@ -23,18 +22,17 @@ import {
   ExternalLink,
   Loader2,
   AlertTriangle,
-  ArrowRight,
 } from 'lucide-react';
 import { MetricCard, MetricGrid, PageHeader, DataTable, StatusBadge, DropdownMenuItem, EmptyState } from '@/src/components/admin';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
-import { InvoiceDetailDialog, BankCombobox, BankChannel } from '@/src/features/admin/payouts/components';
+import { InvoiceDetailDialog, BankCombobox } from '@/src/features/admin/payouts/components';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -110,7 +108,6 @@ export default function AdminPayoutsPage() {
   const [bankCode, setBankCode] = useState('');
   const [notificationEmail, setNotificationEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [activeTab, setActiveTab] = useState('invoices');
 
   // Get organization
@@ -168,7 +165,8 @@ export default function AdminPayoutsPage() {
       } else {
         toast.error(result.error || 'Failed to generate PDF');
       }
-    } catch (error) {
+    } catch (_error) {
+      console.error('PDF generation error:', _error);
       toast.error('Failed to generate PDF');
     }
   };
@@ -179,29 +177,6 @@ export default function AdminPayoutsPage() {
   };
 
   // Handle generate and upload PDF to R2
-  const handleGenerateAndUploadPdf = async (invoice: PayoutInvoice) => {
-    setIsGeneratingPdf(true);
-    try {
-      const result = await generatePdf({ invoiceId: invoice._id, uploadToR2: true });
-      if (result.success) {
-        if (result.invoiceUrl) {
-          toast.success('PDF generated and uploaded successfully');
-          // Update selected invoice if it's the same one
-          if (selectedInvoice?._id === invoice._id) {
-            setSelectedInvoice({ ...selectedInvoice, invoiceUrl: result.invoiceUrl });
-          }
-        } else {
-          toast.success('PDF generated');
-        }
-      } else {
-        toast.error(result.error || 'Failed to generate PDF');
-      }
-    } catch (error) {
-      toast.error('Failed to generate PDF');
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-  };
 
   // Handle bank details dialog open
   const handleOpenBankDetailsDialog = () => {
@@ -261,8 +236,8 @@ export default function AdminPayoutsPage() {
       });
       toast.success('Bank details updated successfully');
       setBankDetailsDialogOpen(false);
-    } catch (error) {
-      console.error('Error updating bank details:', error);
+    } catch (_error) {
+      console.error('Error updating bank details:', _error);
       toast.error('Failed to update bank details');
     } finally {
       setIsSubmitting(false);
@@ -432,10 +407,10 @@ export default function AdminPayoutsPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative rounded-xl border border-border/50 bg-gradient-to-br from-card via-card to-muted/20 overflow-hidden"
+              className="relative rounded-xl border border-border/50 bg-linear-to-br from-card via-card to-muted/20 overflow-hidden"
             >
               {/* Decorative accent */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary to-brand-neon" />
+              <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-primary via-primary to-brand-neon" />
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
 
               <div className="relative p-5">
@@ -678,7 +653,7 @@ export default function AdminPayoutsPage() {
       <Dialog open={bankDetailsDialogOpen} onOpenChange={setBankDetailsDialogOpen}>
         <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden border border-border/50">
           {/* Gradient Header */}
-          <div className="relative bg-gradient-to-br from-primary via-primary to-primary/90 px-6 py-5 overflow-hidden">
+          <div className="relative bg-linear-to-br from-primary via-primary to-primary/90 px-6 py-5 overflow-hidden">
             <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
             <div className="absolute top-1/2 right-1/4 w-12 h-12 bg-brand-neon/20 rounded-full blur-xl" />

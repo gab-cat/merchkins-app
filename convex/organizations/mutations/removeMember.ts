@@ -19,7 +19,7 @@ export const removeMemberHandler = async (
   const { organizationId, userId } = args;
 
   // Ensure actor has admin rights; also get actor for logging
-  const { user: actor } = await requireOrganizationAdmin(ctx, organizationId);
+  const { user: _actor } = await requireOrganizationAdmin(ctx, organizationId);
 
   // Get organization
   const organization = await ctx.db.get(organizationId);

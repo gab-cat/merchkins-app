@@ -204,7 +204,7 @@ export function BarChartComponent({
         )}
         <Tooltip content={<CustomTooltip />} />
         {showLegend && <Legend />}
-        {dataKeys.map((dk, index) => (
+        {dataKeys.map((dk, _index) => (
           <Bar
             key={dk.key}
             dataKey={dk.key}

@@ -2,10 +2,8 @@
 
 import React, { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { usePreloadedQuery, useQuery } from 'convex/react';
-import { useAuth } from '@clerk/nextjs';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,7 +25,6 @@ import {
 import { showToast } from '@/lib/toast';
 import { useCartSheetStore } from '@/src/stores/cart-sheet';
 import { computeEffectivePrice } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProductCard } from './product-card';
 import { ProductReviewForm } from './product-review-form';
 import { ProductReviewsList } from './product-reviews-list';
@@ -81,7 +78,6 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
     throw new Error('Intentional test error for error boundary validation');
   }
   const { user: currentUser } = useCurrentUser();
-  const clerkId = currentUser?.clerkId;
   const { requireAuth, dialogOpen, setDialogOpen } = useRequireAuth();
   const product = preloadedProduct ? usePreloadedQuery(preloadedProduct) : useQuery(api.products.queries.index.getProductBySlug, { slug });
   const organization = useQuery(
@@ -267,7 +263,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
     return (
       <div className="container mx-auto px-4 py-6">
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="aspect-[4/3] rounded-lg bg-secondary skeleton" />
+          <div className="aspect-4/3 rounded-lg bg-secondary skeleton" />
           <div className="space-y-3">
             <div className="h-6 w-2/3 rounded bg-secondary animate-pulse" />
             <div className="h-4 w-1/3 rounded bg-secondary animate-pulse" />
@@ -292,7 +288,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
       {/* Hero section with product */}
       <section className="relative overflow-hidden">
         {/* Subtle background pattern */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-b from-primary/2 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
 
         <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10">
@@ -387,7 +383,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                           className={`flex items-stretch gap-3 p-4 rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer ${
                             hasError
                               ? 'border-red-400 bg-red-50/50 hover:border-red-500 hover:bg-red-50'
-                              : 'border-primary/20 bg-primary/[0.02] hover:border-primary/40 hover:bg-primary/[0.04]'
+                              : 'border-primary/20 bg-primary/2 hover:border-primary/4 hover:bg-primary/4'
                           }`}
                           onClick={() => setVariantDialogOpen(true)}
                           whileHover={{ scale: 1.01 }}
@@ -494,7 +490,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                         {product.inventoryType === 'PREORDER' ? 'Preorder now' : 'Add to cart'}
                         <ArrowRight className="ml-2 h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                         {/* Shimmer effect */}
-                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-white/20 to-transparent" />
                       </>
                     ) : (
                       'Out of stock'
@@ -523,16 +519,16 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
                           alt={`${organization.name} logo`}
                           width={48}
                           height={48}
-                          className="h-12 w-12 flex-shrink-0 rounded-xl object-cover ring-2 ring-primary/10"
+                          className="h-12 w-12 shrink-0 rounded-xl object-cover ring-2 ring-primary/10"
                         />
                       ) : (
-                        <div className="h-12 w-12 flex-shrink-0 rounded-xl bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
+                        <div className="h-12 w-12 shrink-0 rounded-xl bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
                           {organization.name.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Store className="h-4 w-4 text-primary flex-shrink-0" />
+                          <Store className="h-4 w-4 text-primary shrink-0" />
                           <Link
                             href={`/o/${organization.slug}`}
                             className="font-bold text-foreground hover:text-primary transition-colors text-lg"
@@ -587,7 +583,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
 
       {/* Recommended products */}
       {recommended.length > 0 && (
-        <section className="py-8 md:py-10 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent">
+        <section className="py-8 md:py-10 bg-linear-to-b from-transparent via-primary/2 to-transparent">
           <div className="container mx-auto px-4 sm:px-6">
             <BlurFade delay={0.1}>
               <div className="flex items-center justify-between mb-5">
@@ -721,9 +717,9 @@ function ProductGallery({ imageKeys }: { imageKeys: string[] }) {
         transition={{ duration: 0.3 }}
       >
         {/* Gradient border effect */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/20 via-transparent to-brand-neon/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20" />
+        <div className="absolute inset-0 rounded-3xl bg-linear-to-br from-primary/20 via-transparent to-brand-neon/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20" />
 
-        <div className="h-[400px] md:h-[550px] mx-auto flex items-center justify-center bg-gradient-to-br from-secondary via-secondary/80 to-secondary/60 relative">
+        <div className="h-[400px] md:h-[550px] mx-auto flex items-center justify-center bg-linear-to-br from-secondary via-secondary/80 to-secondary/60 relative">
           <R2Image
             key={imageKeys[current]}
             fileKey={imageKeys[current]}
@@ -960,7 +956,7 @@ function ImageDialog({
                       type="button"
                       onClick={() => setCurrentIndex(idx)}
                       className={[
-                        'relative z-10 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation',
+                        'relative z-10 shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation',
                         idx === currentIndex ? 'border-primary shadow-lg scale-105' : 'border-primary/50 hover:border-primary/70',
                       ].join(' ')}
                     >

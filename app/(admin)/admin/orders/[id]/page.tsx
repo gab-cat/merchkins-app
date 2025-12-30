@@ -1,41 +1,28 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useMutation, useQuery } from 'convex/react';
+import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id, Doc } from '@/convex/_generated/dataModel';
 import { cn, buildR2PublicUrl } from '@/lib/utils';
-import { showToast } from '@/lib/toast';
 
 // Admin components
 import { PageHeader } from '@/src/components/admin/page-header';
-import { StatusBadge, OrderStatusBadge, PaymentStatusBadge } from '@/src/components/admin/status-badge';
+import { OrderStatusBadge, PaymentStatusBadge } from '@/src/components/admin/status-badge';
 
 // UI components
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { OrderLogsSection } from '@/src/features/orders/components/order-logs-section';
 import { AddOrderNoteDialog } from '@/src/features/orders/components/add-order-note-dialog';
 import { OrderStatusChangeDialog } from '@/src/features/orders/components/order-status-change-dialog';
 import { OrderBatchManager } from '@/src/features/admin/components/orders/order-batch-manager';
 import { XenditMetadataDisplay } from '@/src/features/admin/components/payments/xendit-metadata-display';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 
 // Icons
 import {
@@ -57,6 +44,7 @@ import {
   Ticket,
 } from 'lucide-react';
 
+import { Skeleton } from '@/components/ui/skeleton';
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 type PaymentStatus = 'PENDING' | 'DOWNPAYMENT' | 'PAID' | 'REFUNDED';
 type Order = Doc<'orders'>;
@@ -104,7 +92,7 @@ const ORDER_STATUS_CONFIG: Record<
   },
 };
 
-const PAYMENT_STATUS_CONFIG: Record<
+const _PAYMENT_STATUS_CONFIG: Record<
   PaymentStatus,
   {
     color: string;
@@ -231,7 +219,6 @@ function OrderDetailSkeleton() {
 
 export default function AdminOrderDetailPage() {
   const params = useParams();
-  const router = useRouter();
 
   // Safely extract orderId from params
   const orderId = typeof params?.id === 'string' ? (params.id as Id<'orders'>) : null;
@@ -260,11 +247,9 @@ export default function AdminOrderDetailPage() {
   );
 
   // Mutations
-  const updateOrder = useMutation(api.orders.mutations.index.updateOrder);
-  const cancelOrder = useMutation(api.orders.mutations.index.cancelOrder);
 
   // State
-  const [updating, setUpdating] = useState(false);
+  const [updating] = useState(false);
 
   // State for status change dialogs
   const [statusChangeDialog, setStatusChangeDialog] = useState<{
@@ -274,9 +259,6 @@ export default function AdminOrderDetailPage() {
   }>({ open: false, type: 'status', newValue: 'PENDING' });
 
   // State for cancel dialog with note
-  const [cancelDialog, setCancelDialog] = useState<{
-    open: boolean;
-  }>({ open: false });
 
   const loading = order === undefined;
   const items = useMemo(() => {
@@ -338,9 +320,6 @@ export default function AdminOrderDetailPage() {
       </div>
     );
   }
-
-  const statusConfig = ORDER_STATUS_CONFIG[order.status as OrderStatus];
-  const StatusIcon = statusConfig?.icon || Clock;
 
   const customerInitials = `${order.customerInfo?.firstName?.[0] || ''}${order.customerInfo?.lastName?.[0] || ''}`.toUpperCase() || 'U';
 

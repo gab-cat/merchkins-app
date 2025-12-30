@@ -224,14 +224,13 @@ function EmptyCart() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           {/* Animated icon */}
           <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ delay: 0.1, duration: 0.4 }} className="relative mb-8">
-            <div className="absolute inset-0 h-28 w-28 mx-auto rounded-3xl bg-gradient-to-br from-[#1d43d8]/20 to-[#adfc04]/20 blur-xl" />
-            <div className="relative h-28 w-28 mx-auto rounded-3xl bg-gradient-to-br from-[#1d43d8]/10 to-[#adfc04]/10 flex items-center justify-center border border-[#1d43d8]/10">
+            <div className="relative h-28 w-28 mx-auto rounded-3xl bg-linear-to-br from-[#1d43d8]/10 to-brand-neon/10 flex items-center justify-center border border-[#1d43d8]/10">
               <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
                 <ShoppingCart className="h-12 w-12 text-[#1d43d8]/50" />
               </motion.div>
             </div>
             <motion.div
-              className="absolute -top-1 -right-4 h-4 w-4 rounded-full bg-[#adfc04]"
+              className="absolute -top-1 -right-4 h-4 w-4 rounded-full bg-brand-neon"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
@@ -375,7 +374,7 @@ export function CartPage() {
             <motion.div variants={itemVariants}>
               <Card className="sticky top-24 rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
                 {/* Header */}
-                <div className="px-5 py-4 bg-gradient-to-br from-[#1d43d8]/5 to-[#adfc04]/5 border-b border-slate-100">
+                <div className="px-5 py-4 bg-linear-to-br from-[#1d43d8]/5 to-brand-neon/5 border-b border-slate-100">
                   <div className="flex items-center gap-2 text-[#1d43d8]">
                     <Sparkles className="h-5 w-5" />
                     <h2 className="font-bold">Order Summary</h2>
@@ -417,8 +416,8 @@ export function CartPage() {
                     )}
 
                     {/* Voucher info */}
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-[#adfc04]/10 to-[#1d43d8]/5 border border-[#adfc04]/20">
-                      <div className="p-2 rounded-lg bg-[#adfc04]/20">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-linear-to-r from-brand-neon/10 to-[#1d43d8]/5 border border-brand-neon/20">
+                      <div className="p-2 rounded-lg bg-brand-neon/20">
                         <Ticket className="h-4 w-4 text-[#1d43d8]" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -443,7 +442,7 @@ export function CartPage() {
                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                         {/* Shimmer effect */}
                         {totals.selectedItems > 0 && (
-                          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-linear-to-r from-transparent via-white/20 to-transparent" />
                         )}
                       </Button>
                     </Link>
@@ -534,7 +533,6 @@ function CartLineItem({
   cartId,
   item,
   addedAt,
-  index = 0,
   isAuthenticated = true,
 }: {
   cartId?: Id<'carts'>;
@@ -600,7 +598,7 @@ function CartLineItem({
         }
       }, 300);
     },
-    [cartId, item.productInfo.productId, item.productInfo.inventory, item.variantId, sizeId, updateQty, isAuthenticated, guestCart]
+    [cartId, item.productInfo.productId, item.productInfo.inventory, item.variantId, sizeId, updateQty, isAuthenticated, guestCart, addedAt]
   );
 
   async function handleDec() {
@@ -651,15 +649,7 @@ function CartLineItem({
       }
       const newPrice = newVariant.price;
       const newVariantName = newVariant.variantName;
-      guestCart.updateItemVariant(
-        item.productInfo.productId,
-        item.variantId,
-        newVariantId,
-        item.size,
-        undefined,
-        newPrice,
-        newVariantName
-      );
+      guestCart.updateItemVariant(item.productInfo.productId, item.variantId, newVariantId, item.size, undefined, newPrice, newVariantName);
       showToast({ type: 'success', title: 'Variant updated' });
       return;
     }
@@ -698,15 +688,7 @@ function CartLineItem({
         return;
       }
       const newPrice = newSize?.price ?? variant.price;
-      guestCart.updateItemVariant(
-        item.productInfo.productId,
-        item.variantId,
-        item.variantId,
-        item.size,
-        newSize,
-        newPrice,
-        variant.variantName
-      );
+      guestCart.updateItemVariant(item.productInfo.productId, item.variantId, item.variantId, item.size, newSize, newPrice, variant.variantName);
       showToast({ type: 'success', title: 'Size updated' });
       return;
     }
@@ -748,7 +730,7 @@ function CartLineItem({
       <Card
         className={cn(
           'rounded-xl border transition-all duration-200 overflow-hidden group',
-          item.selected ? 'border-[#1d43d8]/30 bg-[#1d43d8]/[0.02] shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm'
+          item.selected ? 'border-[#1d43d8]/30 bg-[#1d43d8]/2 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm'
         )}
       >
         <CardContent className="p-4">
@@ -817,7 +799,7 @@ function CartLineItem({
                             </span>
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="min-w-[12rem] rounded-xl shadow-xl border border-slate-100">
+                        <DropdownMenuContent align="start" className="min-w-48 rounded-xl shadow-xl border border-slate-100">
                           <DropdownMenuRadioGroup value={item.variantId ?? ''} onValueChange={(val) => handleVariantChange(val || undefined)}>
                             {product.variants
                               .filter((v) => v.isActive)
@@ -854,7 +836,7 @@ function CartLineItem({
                                 </span>
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="min-w-[10rem] rounded-xl shadow-xl border border-slate-100">
+                            <DropdownMenuContent align="start" className="min-w-40 rounded-xl shadow-xl border border-slate-100">
                               <DropdownMenuRadioGroup
                                 value={item.size?.id ?? ''}
                                 onValueChange={(val) => {

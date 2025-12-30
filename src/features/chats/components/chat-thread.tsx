@@ -7,7 +7,7 @@ import { MessageBubble } from './message-bubble';
 import { ChatEmptyState } from './chat-empty-state';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { cn } from '@/lib/utils';
+
 import { ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -155,7 +155,7 @@ export function ChatThread({ messages, currentUserId, chatRoomId, onReply }: Cha
   }
 
   return (
-    <div ref={ref} className="relative flex h-full flex-col overflow-y-auto bg-gradient-to-b from-slate-50/50 to-white">
+    <div ref={ref} className="relative flex h-full flex-col overflow-y-auto bg-linear-to-b from-slate-50/50 to-white">
       {/* Messages */}
       <div className="flex-1 p-4 space-y-6">
         <AnimatePresence mode="popLayout">

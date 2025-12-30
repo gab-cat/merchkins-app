@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@clerk/nextjs';
 import { useMutation, useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
@@ -11,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { R2Image } from '@/src/components/ui/r2-image';
 import { BlurFade } from '@/src/components/ui/animations/effects';
 import { Users, Mail, Clock, XCircle, CheckCircle2, Building2, LogIn, Sparkles, ArrowLeft, Store } from 'lucide-react';
-import { Id } from '@/convex/_generated/dataModel';
 import { useCurrentUser } from '../../auth/hooks/use-current-user';
 
 interface AcceptInvitePageProps {
@@ -192,13 +190,13 @@ export function AcceptInvitePage({ code }: AcceptInvitePageProps) {
 
           {/* Organization Card */}
           <motion.div variants={itemVariants} className="mb-4">
-            <div className="p-4 rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white">
+            <div className="p-4 rounded-xl border border-slate-200 bg-linear-to-br from-slate-50 to-white">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 overflow-hidden rounded-lg border-2 border-white shadow-md bg-white flex items-center justify-center shrink-0">
                   {logoKey ? (
                     <R2Image fileKey={logoKey} alt={`${orgName} logo`} width={48} height={48} className="h-full w-full object-cover" />
                   ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-[#1d43d8] to-[#4f6edb] flex items-center justify-center">
+                    <div className="h-full w-full bg-linear-to-br from-[#1d43d8] to-[#4f6edb] flex items-center justify-center">
                       <span className="text-lg font-bold text-white">{orgName.charAt(0).toUpperCase()}</span>
                     </div>
                   )}

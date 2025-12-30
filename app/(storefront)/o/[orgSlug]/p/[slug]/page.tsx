@@ -106,7 +106,7 @@ export default async function Page({ params }: PageProps) {
   }
 
   // Preload organization query
-  const preloadedOrganization = await preloadQuery(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug });
+  await preloadQuery(api.organizations.queries.index.getOrganizationBySlug, { slug: orgSlug });
 
   // Fetch product to get productId for recommendations query
   const product = await client.query(api.products.queries.index.getProductBySlug, {

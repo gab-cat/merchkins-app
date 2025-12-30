@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation } from 'convex/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,7 +17,6 @@ import {
   Copy,
   Edit,
   MoreHorizontal,
-  ArrowUpDown,
   Percent,
   DollarSign,
   Gift,
@@ -32,7 +31,7 @@ import {
   Clock,
   AlertCircle,
 } from 'lucide-react';
-import { PageHeader, StatusBadge } from '@/src/components/admin';
+import { PageHeader } from '@/src/components/admin';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -225,9 +224,7 @@ function VouchersEmptyState({ onCreate }: { onCreate: () => void }) {
         <Ticket className="h-8 w-8 text-primary" />
       </div>
       <h3 className="text-lg font-semibold mb-2">No vouchers yet</h3>
-      <p className="text-muted-foreground text-sm mb-6 max-w-sm">
-        Create your first voucher to offer discounts and promotions to your customers.
-      </p>
+      <p className="text-muted-foreground text-sm mb-6 max-w-sm">Create your first voucher to offer discounts and promotions to your customers.</p>
       <Button onClick={onCreate}>
         <Plus className="h-4 w-4 mr-1" />
         Create Voucher
@@ -247,18 +244,12 @@ export default function AdminVouchersPage() {
 
   const debouncedSearch = useDebouncedSearch(search, 300);
 
-  const organization = useQuery(
-    api.organizations.queries.index.getOrganizationBySlug,
-    orgSlug ? { slug: orgSlug } : 'skip'
-  );
+  const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
 
   const vouchersResult = useQuery(api.vouchers.queries.index.getVouchers, {
     organizationId: organization?._id,
     isActive: statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : undefined,
-    discountType:
-      typeFilter !== 'all'
-        ? (typeFilter as 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING')
-        : undefined,
+    discountType: typeFilter !== 'all' ? (typeFilter as 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING') : undefined,
     search: debouncedSearch || undefined,
     includeExpired: true,
     limit: 100,
@@ -295,7 +286,10 @@ export default function AdminVouchersPage() {
         title="Vouchers"
         description="Create and manage discount codes and promotions"
         icon={<Ticket className="h-5 w-5" />}
-        breadcrumbs={[{ label: 'Admin', href: `/admin/overview${suffix}` }, { label: 'Vouchers', href: `/admin/vouchers${suffix}` }]}
+        breadcrumbs={[
+          { label: 'Admin', href: `/admin/overview${suffix}` },
+          { label: 'Vouchers', href: `/admin/vouchers${suffix}` },
+        ]}
         actions={
           <Link href={`/admin/vouchers/new${suffix}`}>
             <Button>
@@ -348,7 +342,13 @@ export default function AdminVouchersPage() {
       {/* Vouchers List */}
       <AnimatePresence mode="wait">
         {loading ? (
-          <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="rounded-xl border overflow-hidden">
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="rounded-xl border overflow-hidden"
+          >
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex items-center gap-4 px-4 py-3 border-b last:border-b-0">
                 <div className="h-10 w-10 rounded-lg bg-muted animate-pulse" />

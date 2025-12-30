@@ -2,16 +2,16 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import * as Sentry from '@sentry/nextjs';
+import { init, replayIntegration, captureRouterTransitionStart } from '@sentry/nextjs';
 
 // Skip Sentry initialization in development mode
 if (process.env.NODE_ENV !== 'development') {
-  Sentry.init({
+  init({
     dsn: 'https://8edf1ffc089d6f663340ba467e277e56@o4508607314329600.ingest.us.sentry.io/4510514784894976',
 
     // Add optional integrations for additional features
     integrations: [
-      Sentry.replayIntegration({
+      replayIntegration({
         maskAllText: false,
         blockAllMedia: false,
       }),
@@ -36,4 +36,4 @@ if (process.env.NODE_ENV !== 'development') {
   });
 }
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+export const onRouterTransitionStart = captureRouterTransitionStart;

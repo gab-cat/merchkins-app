@@ -108,7 +108,7 @@ export function ScrollScale({ children, className, delay = 0, duration = 0.6, on
 /**
  * ParallaxSection - Creates a parallax scrolling effect
  */
-export function ParallaxSection({ children, className, speed = 0.5 }: { children: React.ReactNode; className?: string; speed?: number }) {
+export function ParallaxSection({ children, className, speed: _speed = 0.5 }: { children: React.ReactNode; className?: string; speed?: number }) {
   return (
     <motion.div
       className={cn(className)}

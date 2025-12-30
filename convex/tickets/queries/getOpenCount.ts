@@ -1,6 +1,5 @@
 import { QueryCtx } from '../../_generated/server';
 import { Infer, v } from 'convex/values';
-import { Id } from '../../_generated/dataModel';
 import { requireAuthentication, isOrganizationMember } from '../../helpers';
 import { TICKET_STATUS } from '../constants';
 

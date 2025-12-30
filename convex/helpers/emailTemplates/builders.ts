@@ -4,17 +4,7 @@
  * Features: White backgrounds, clean typography, subtle shadows
  */
 
-import {
-  EMAIL_COLORS,
-  EMAIL_FONTS,
-  EMAIL_FONT_SIZES,
-  EMAIL_SPACING,
-  EMAIL_RADIUS,
-  EMAIL_ASSETS,
-  EMAIL_LAYOUT,
-  EMAIL_GRADIENTS,
-  EMAIL_SHADOWS,
-} from './constants';
+import { EMAIL_COLORS, EMAIL_FONTS, EMAIL_FONT_SIZES, EMAIL_SPACING, EMAIL_RADIUS, EMAIL_ASSETS, EMAIL_LAYOUT, EMAIL_SHADOWS } from './constants';
 
 // =============================================================================
 // TYPE DEFINITIONS

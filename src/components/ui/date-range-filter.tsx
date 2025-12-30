@@ -67,7 +67,7 @@ function parseDateInput(value: string): number | undefined {
 }
 
 export function DateRangeFilter({ value, onChange, className }: DateRangeFilterProps) {
-  const [preset, setPreset] = useState<DateRangePreset>('all');
+  const [_preset, setPreset] = useState<DateRangePreset>('all');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
   const [isCustomOpen, setIsCustomOpen] = useState(false);
@@ -152,19 +152,11 @@ export function DateRangeFilter({ value, onChange, className }: DateRangeFilterP
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">From Date</label>
-                <Input
-                  type="date"
-                  value={customFrom || formatDateForInput(value?.dateFrom)}
-                  onChange={(e) => setCustomFrom(e.target.value)}
-                />
+                <Input type="date" value={customFrom || formatDateForInput(value?.dateFrom)} onChange={(e) => setCustomFrom(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">To Date</label>
-                <Input
-                  type="date"
-                  value={customTo || formatDateForInput(value?.dateTo)}
-                  onChange={(e) => setCustomTo(e.target.value)}
-                />
+                <Input type="date" value={customTo || formatDateForInput(value?.dateTo)} onChange={(e) => setCustomTo(e.target.value)} />
               </div>
               <div className="flex items-center justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => setIsCustomOpen(false)}>
@@ -187,4 +179,3 @@ export function DateRangeFilter({ value, onChange, className }: DateRangeFilterP
     </div>
   );
 }
-

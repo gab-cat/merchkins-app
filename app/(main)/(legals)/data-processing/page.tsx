@@ -356,14 +356,14 @@ export default function DataProcessingPage() {
                         {processor.location}
                       </p>
                     </div>
-                    <a
+                    <Link
                       href={processor.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 text-sm shrink-0"
                     >
                       Website <ExternalLink className="h-3 w-3" />
-                    </a>
+                    </Link>
                   </div>
 
                   <div className="mb-3">

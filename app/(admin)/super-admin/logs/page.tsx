@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { Input } from '@/components/ui/input';
@@ -54,11 +54,7 @@ function SeverityBadge({ severity }: { severity: string }) {
     CRITICAL: { className: 'bg-red-50 text-red-700 border-red-200', label: 'Critical' },
   }[severity] || { className: 'bg-muted text-muted-foreground', label: severity };
 
-  return (
-    <Badge className={cn('text-xs font-medium border px-2.5 py-1', config.className)}>
-      {config.label}
-    </Badge>
-  );
+  return <Badge className={cn('text-xs font-medium border px-2.5 py-1', config.className)}>{config.label}</Badge>;
 }
 
 export default function SuperAdminLogsPage() {
@@ -70,7 +66,7 @@ export default function SuperAdminLogsPage() {
 
   const baseArgs = useMemo(
     (): LogQueryArgs => ({
-    isArchived,
+      isArchived,
       dateFrom: dateRange.dateFrom,
       dateTo: dateRange.dateTo,
       search: debouncedSearch || undefined,
@@ -191,7 +187,11 @@ export default function SuperAdminLogsPage() {
                   <EmptyState
                     icon={<Inbox className="h-12 w-12 text-muted-foreground" />}
                     title="No logs found"
-                    description={search || isArchived !== undefined || dateRange.dateFrom || dateRange.dateTo ? 'Try adjusting your filters' : 'System logs will appear here'}
+                    description={
+                      search || isArchived !== undefined || dateRange.dateFrom || dateRange.dateTo
+                        ? 'Try adjusting your filters'
+                        : 'System logs will appear here'
+                    }
                   />
                 </TableCell>
               </TableRow>
@@ -207,10 +207,8 @@ export default function SuperAdminLogsPage() {
                   <TableCell className="font-medium">
                     <div className="max-w-md">
                       <p className="text-sm truncate">{log.reason}</p>
-                      {log.systemText && (
-                        <p className="text-xs text-muted-foreground mt-1 truncate">{log.systemText}</p>
-                      )}
-            </div>
+                      {log.systemText && <p className="text-xs text-muted-foreground mt-1 truncate">{log.systemText}</p>}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-xs">
@@ -244,7 +242,7 @@ export default function SuperAdminLogsPage() {
             )}
           </TableBody>
         </Table>
-                  </div>
+      </div>
 
       {/* Load More */}
       {hasMore && !loading && (
@@ -252,7 +250,7 @@ export default function SuperAdminLogsPage() {
           <Button variant="outline" onClick={loadMore}>
             Load More Logs
           </Button>
-                </div>
+        </div>
       )}
     </div>
   );

@@ -6,32 +6,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { useAuth } from '@clerk/nextjs';
 import { PageHeader, StatusBadge, EmptyState } from '@/src/components/admin';
-import { ScrollText, Search, Check, X, MoreHorizontal, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { ScrollText, Search, Check, X, MoreHorizontal, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { Id } from '@/convex/_generated/dataModel';
 import { toast } from 'sonner';
-
-interface Application {
-  _id: Id<'storefrontApplications'>;
-  businessName: string;
-  contactName: string;
-  email: string;
-  phone: string;
-  description?: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  createdAt: number;
-  reviewedAt?: number;
-  notes?: string;
-}
+import Link from 'next/link';
 
 export default function SuperAdminApplicationsPage() {
-  const { userId } = useAuth();
+  useAuth();
   const [statusFilter, setStatusFilter] = useState<'PENDING' | 'APPROVED' | 'REJECTED' | undefined>(undefined);
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -294,9 +281,9 @@ export default function SuperAdminApplicationsPage() {
                             <span className="text-muted-foreground">Phone:</span>
                             <span>{app.phone}</span>
                             <span className="text-muted-foreground">Email:</span>
-                            <a href={`mailto:${app.email}`} className="text-primary hover:underline">
+                            <Link href={`mailto:${app.email}`} className="text-primary hover:underline">
                               {app.email}
-                            </a>
+                            </Link>
                           </div>
                         </div>
                         {app.notes && (

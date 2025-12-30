@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import { usePreloadedQuery, Preloaded } from 'convex/react';
 import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { api } from '@/convex/_generated/api';
-import { Badge } from '@/components/ui/badge';
 import { BlurFade } from '@/src/components/ui/animations';
 import { ArrowRight, LayoutGrid, Sparkles, Shirt, Coffee, Laptop, Gift, Music, Camera, Palette, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';

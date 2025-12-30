@@ -91,7 +91,7 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
       variants={containerVariants}
     >
       {/* Base dark background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+      <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-slate-800 to-slate-900" />
 
       {/* Banner background image with parallax-like effect */}
       {bannerUrl && (
@@ -110,9 +110,9 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
             loading="eager"
           />
           {/* Multi-layer gradient overlay for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-slate-900/30" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-transparent to-slate-900/40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-900/90" />
+          <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-slate-900/60 to-slate-900/30" />
+          <div className="absolute inset-0 bg-linear-to-r from-slate-900/80 via-transparent to-slate-900/40" />
+          <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-slate-900/90" />
         </motion.div>
       )}
 
@@ -142,13 +142,13 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
 
       {/* Animated accent lines */}
       <motion.div
-        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1d43d8]/50 to-transparent"
+        className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-[#1d43d8]/50 to-transparent"
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ duration: 0.8, delay: 0.5 }}
       />
       <motion.div
-        className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#adfc04]/30 to-transparent"
+        className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-brand-neon/30 to-transparent"
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ duration: 0.8, delay: 0.6 }}
@@ -158,7 +158,7 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-10">
         <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6 lg:gap-8">
           {/* Logo with glow effect */}
-          <motion.div className="relative flex-shrink-0" variants={logoVariants}>
+          <motion.div className="relative shrink-0" variants={logoVariants}>
             {/* Glow behind logo */}
             <div className="absolute -inset-2 bg-[#1d43d8]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
 
@@ -193,7 +193,7 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
             <motion.div variants={itemVariants}>
               {organization.industry && (
                 <Badge className="bg-white/10 text-white border border-white/20 text-xs font-medium px-2.5 py-1 backdrop-blur-sm hover:bg-white/15 transition-colors">
-                  <Sparkles className="h-3 w-3 mr-1.5 text-[#adfc04]" />
+                  <Sparkles className="h-3 w-3 mr-1.5 text-brand-neon" />
                   {organization.industry}
                 </Badge>
               )}
@@ -213,7 +213,7 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
             {/* Metadata row */}
             <motion.div className="flex items-center gap-3 sm:gap-4 flex-wrap" variants={itemVariants}>
               {organization.website && (
-                <a
+                <Link
                   href={organization.website}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -222,7 +222,7 @@ export function AnimatedBanner({ bannerUrl, logoUrl, organization, orgSlug }: An
                   <Globe className="h-3.5 w-3.5" />
                   <span className="underline-offset-4 group-hover:underline">Website</span>
                   <ExternalLink className="h-3 w-3 opacity-50" />
-                </a>
+                </Link>
               )}
               {organization.memberCount && organization.memberCount > 0 && (
                 <div className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-white/60">

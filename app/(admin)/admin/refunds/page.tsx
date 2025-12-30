@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, DollarSign, Clock, CheckCircle2, XCircle, Receipt, Inbox } from 'lucide-react';
+import { Search, Clock, CheckCircle2, XCircle, Receipt, Inbox } from 'lucide-react';
 import { PageHeader } from '@/src/components/admin';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRangeFilter, DateRange } from '@/src/components/ui/date-range-filter';

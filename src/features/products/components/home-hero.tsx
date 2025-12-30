@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { BlurFade } from '@/src/components/ui/animations';
@@ -31,7 +31,7 @@ function JoinedOrgsCarousel() {
           <Skeleton className="h-4 w-36 rounded" />
           <div className="flex items-start gap-4 py-4 -my-4 px-1 -mx-1">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex-shrink-0">
+              <div key={i} className="shrink-0">
                 <Skeleton className="w-16 h-16 md:w-20 md:h-20 rounded-full" />
                 <Skeleton className="mt-2 mx-auto h-3 w-12 rounded" />
               </div>
@@ -64,7 +64,7 @@ function JoinedOrgsCarousel() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.35, delay: index * 0.06, ease: 'easeOut' }}
             >
-              <Link href={`/o/${org.slug}`} className="group flex-shrink-0 block">
+              <Link href={`/o/${org.slug}`} className="shrink-0 block">
                 <motion.div
                   className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden ring-2 ring-border/50 hover:ring-primary/50 transition-all duration-300 shadow-md hover:shadow-lg"
                   whileHover={{ scale: 1.1, y: -4 }}
@@ -76,7 +76,7 @@ function JoinedOrgsCarousel() {
                     fill
                     className="object-cover"
                     sizes="80px"
-                    fallbackClassName="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5"
+                    fallbackClassName="w-full h-full bg-linear-to-br from-primary/20 to-primary/5"
                   />
                   {/* Hover overlay */}
                   <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -97,7 +97,7 @@ function JoinedOrgsCarousel() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.35, delay: orgs.length * 0.06, ease: 'easeOut' }}
           >
-            <Link href="/orgs" className="group flex-shrink-0 block">
+            <Link href="/orgs" className="shrink-0 block">
               <motion.div
                 className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden ring-2 ring-dashed ring-border/50 hover:ring-primary/50 transition-all duration-300 flex items-center justify-center bg-muted/30 hover:bg-muted/50"
                 whileHover={{ scale: 1.1, y: -4 }}

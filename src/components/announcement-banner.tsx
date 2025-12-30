@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Megaphone, AlertTriangle, Info, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, AlertTriangle, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Announcement {
@@ -147,29 +147,25 @@ export function AnnouncementBanner({ announcements, className, autoRotateInterva
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/5 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/5 via-transparent to-black/5 pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 py-2.5">
           <div className="flex items-center justify-center gap-3">
             {/* Navigation - Left */}
             {visibleAnnouncements.length > 1 && (
-              <button
-                onClick={goToPrev}
-                className="p-1 rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
-                aria-label="Previous announcement"
-              >
+              <button onClick={goToPrev} className="p-1 rounded-full hover:bg-white/10 transition-colors shrink-0" aria-label="Previous announcement">
                 <ChevronLeft className="h-4 w-4" />
               </button>
             )}
 
             {/* Content */}
             <div className="flex items-center gap-3 min-w-0 flex-1 justify-center">
-              <Icon className="h-4 w-4 flex-shrink-0" />
+              <Icon className="h-4 w-4 shrink-0" />
 
               {current.category && (
                 <span
                   className={cn(
-                    'hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0',
+                    'hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shrink-0',
                     config.badgeBg,
                     config.badgeText
                   )}
@@ -185,18 +181,14 @@ export function AnnouncementBanner({ announcements, className, autoRotateInterva
 
             {/* Navigation - Right */}
             {visibleAnnouncements.length > 1 && (
-              <button
-                onClick={goToNext}
-                className="p-1 rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
-                aria-label="Next announcement"
-              >
+              <button onClick={goToNext} className="p-1 rounded-full hover:bg-white/10 transition-colors shrink-0" aria-label="Next announcement">
                 <ChevronRight className="h-4 w-4" />
               </button>
             )}
 
             {/* Counter */}
             {visibleAnnouncements.length > 1 && (
-              <div className="hidden sm:flex items-center gap-1 text-xs opacity-70 flex-shrink-0 ml-2">
+              <div className="hidden sm:flex items-center gap-1 text-xs opacity-70 shrink-0 ml-2">
                 <span>{currentIndex + 1}</span>
                 <span>/</span>
                 <span>{visibleAnnouncements.length}</span>
@@ -206,7 +198,7 @@ export function AnnouncementBanner({ announcements, className, autoRotateInterva
             {/* Dismiss button */}
             <button
               onClick={() => handleDismiss(current._id)}
-              className="p-1 rounded-full hover:bg-white/10 transition-colors flex-shrink-0 ml-2"
+              className="p-1 rounded-full hover:bg-white/10 transition-colors shrink-0 ml-2"
               aria-label="Dismiss announcement"
             >
               <X className="h-4 w-4" />

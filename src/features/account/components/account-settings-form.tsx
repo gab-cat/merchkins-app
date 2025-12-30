@@ -11,7 +11,6 @@ import { Switch } from '@/components/ui/switch';
 import { User, Shield, Bell, Phone, Eye, Mail, Smartphone, Package, Star, Save, CheckCircle2, Loader2 } from 'lucide-react';
 import { useAccountSettings } from '../hooks/use-account-settings';
 import { accountSettingsSchema, type AccountSettings } from '@/src/schema/account';
-import { BlurFade } from '@/src/components/ui/animations/effects';
 
 const containerVariants = {
   hidden: { opacity: 0 },

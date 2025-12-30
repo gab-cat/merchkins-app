@@ -55,7 +55,6 @@ import {
   Zap,
   Eye,
   Trash2,
-  ExternalLink,
   ArrowRight,
   Check,
   Briefcase,
@@ -124,7 +123,6 @@ function PriorityBadge({ priority }: { priority: TicketPriority }) {
 // Compact Ticket Card for "Assigned to Me"
 function CompactTicketCard({ ticket }: { ticket: TicketWithInfo }) {
   const statusConfig = STATUS_CONFIG[ticket.status as TicketStatus];
-  const priorityConfig = PRIORITY_CONFIG[ticket.priority as TicketPriority];
   const StatusIcon = statusConfig.icon;
 
   return (

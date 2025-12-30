@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -118,7 +119,14 @@ export function ChatInput({ onSend, disabled, placeholder = 'Type a message...',
                 >
                   {file.type.startsWith('image/') ? (
                     <div className="h-16 w-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
-                      <img src={URL.createObjectURL(file)} alt={file.name} className="h-full w-full object-cover" />
+                      <Image
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className="h-full w-full object-cover"
+                        width={64}
+                        height={64}
+                        unoptimized
+                      />
                     </div>
                   ) : (
                     <div className="h-16 px-3 rounded-lg border border-slate-200 bg-slate-50 flex items-center gap-2">

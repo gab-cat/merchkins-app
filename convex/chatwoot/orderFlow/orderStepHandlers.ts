@@ -108,7 +108,7 @@ export const handleVariantSelection = internalAction({
     } else {
       // Try to match by title format: "VariantName - ₱Price" or "VariantName — ₱Price"
       // Extract variant name by removing the price part (handle both dash types)
-      const nameMatch = selectedValue.match(/^(.+?)\s*[—\-]\s*₱[\d,.]+$/);
+      const nameMatch = selectedValue.match(/^(.+?)\s*[—-]\s*₱[\d,.]+$/);
       const variantName = nameMatch ? nameMatch[1].trim() : selectedValue.trim();
 
       // Try exact match first

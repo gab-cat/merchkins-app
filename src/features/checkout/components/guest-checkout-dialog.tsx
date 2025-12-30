@@ -58,7 +58,7 @@ export function GuestCheckoutDialog({ open, onOpenChange, onVerified }: GuestChe
 
         setStep('otp');
         showToast({ type: 'success', title: 'Verification code sent! Check your email.' });
-      } catch (error) {
+      } catch {
         showToast({ type: 'error', title: 'Failed to send verification code' });
       }
     });
@@ -115,7 +115,7 @@ export function GuestCheckoutDialog({ open, onOpenChange, onVerified }: GuestChe
           setOtp('');
           setDisplayedOtp(undefined);
         }
-      } catch (error) {
+      } catch {
         showToast({ type: 'error', title: 'Failed to verify code' });
       }
     });
@@ -145,15 +145,15 @@ export function GuestCheckoutDialog({ open, onOpenChange, onVerified }: GuestChe
               <p className="text-sm font-semibold text-foreground">Benefits of signing in:</p>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <div className="flex items-start gap-2">
-                  <Package className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                  <Package className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                   <span>Track your orders anytime</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Clock className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                  <Clock className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                   <span>Faster checkout next time</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Shield className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                  <Shield className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                   <span>Access order history and receipts</span>
                 </div>
               </div>

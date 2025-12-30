@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
   ChevronDown,
-  ChevronRight,
   Check,
   AlertCircle,
   Info,
@@ -23,7 +22,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -490,7 +488,14 @@ interface VariantBuilderProps {
   onUploadVariantImage?: (variantIndex: number, file: File) => Promise<string>;
 }
 
-export function VariantBuilder({ variants, onChange, errors, className, renderVariantImage, onUploadVariantImage }: VariantBuilderProps) {
+export function VariantBuilder({
+  variants,
+  onChange,
+  errors,
+  className,
+  renderVariantImage,
+  onUploadVariantImage: _onUploadVariantImage,
+}: VariantBuilderProps) {
   const [expandedSizes, setExpandedSizes] = useState<Set<string>>(new Set());
 
   const addVariant = () => {

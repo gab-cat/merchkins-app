@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Calendar, FileText, CheckCircle2, Clock, Loader2, TrendingUp, Package, CreditCard, ArrowRight } from 'lucide-react';
+import { ExternalLink, Calendar, FileText, CheckCircle2, Clock, Loader2, TrendingUp, Package, CreditCard } from 'lucide-react';
 import { Id } from '@/convex/_generated/dataModel';
 
 // Types
@@ -62,13 +62,6 @@ const formatDate = (timestamp: number) =>
     day: 'numeric',
   });
 
-const formatLongDate = (timestamp: number) =>
-  new Date(timestamp).toLocaleDateString('en-PH', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
 // Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -90,18 +83,6 @@ const itemVariants = {
       type: 'spring' as const,
       stiffness: 300,
       damping: 24,
-    },
-  },
-};
-
-const pulseVariants = {
-  initial: { scale: 1 },
-  animate: {
-    scale: [1, 1.02, 1] as number[],
-    transition: {
-      duration: 2,
-      repeat: Infinity,
-      ease: 'easeInOut' as const,
     },
   },
 };
@@ -193,7 +174,7 @@ export function InvoiceDetailDialog({ invoice, isOpen, onClose, onViewInvoice }:
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-xl max-h-[85vh] overflow-hidden p-0 gap-0 border border-border/50">
         {/* Header with gradient */}
-        <div className="relative bg-gradient-to-br from-primary via-primary to-primary/90 px-5 py-6 overflow-hidden">
+        <div className="relative bg-linear-to-br from-primary via-primary to-primary/90 px-5 py-6 overflow-hidden">
           {/* Decorative elements */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -265,7 +246,7 @@ export function InvoiceDetailDialog({ invoice, isOpen, onClose, onViewInvoice }:
               {/* Financial Summary - Light Theme Compact */}
               <motion.div
                 variants={itemVariants}
-                className="rounded-lg border border-border/50 bg-gradient-to-br from-muted/30 via-background to-muted/20 p-4 relative overflow-hidden"
+                className="rounded-lg border border-border/50 bg-linear-to-br from-muted/30 via-background to-muted/20 p-4 relative overflow-hidden"
               >
                 <div className="relative z-10 space-y-3">
                   <div className="flex items-center gap-2">

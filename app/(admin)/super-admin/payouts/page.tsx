@@ -7,9 +7,9 @@ import { Id } from '@/convex/_generated/dataModel';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useCurrentUser } from '@/src/features/auth/hooks/use-current-user';
+import Image from 'next/image';
 import {
   DollarSign,
-  FileText,
   Clock,
   CheckCircle2,
   Building2,
@@ -31,7 +31,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -223,6 +222,7 @@ export default function SuperAdminPayoutsPage() {
           await sendPaymentEmail({ invoiceId: selectedInvoice._id });
           toast.success('Payment confirmation email sent');
         } catch (err) {
+          console.error('Email failed:', err);
           toast.error('Failed to send email notification');
         }
       }
@@ -232,6 +232,7 @@ export default function SuperAdminPayoutsPage() {
       setPaymentReference('');
       setPaymentNotes('');
     } catch (error) {
+      console.error('Mark paid failed:', error);
       toast.error((error as Error).message || 'Failed to mark invoice as paid');
     } finally {
       setIsProcessing(false);
@@ -357,6 +358,7 @@ export default function SuperAdminPayoutsPage() {
       toast.success(`${fieldName} copied to clipboard`);
       setTimeout(() => setCopiedField(null), 2000);
     } catch (error) {
+      console.error('Copy failed:', error);
       toast.error('Failed to copy to clipboard');
     }
   };
@@ -382,7 +384,13 @@ export default function SuperAdminPayoutsPage() {
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
             {row.organizationInfo.logoUrl ? (
-              <img src={row.organizationInfo.logoUrl} alt={row.organizationInfo.name} className="h-8 w-8 rounded-lg object-cover" />
+              <Image
+                src={row.organizationInfo.logoUrl}
+                alt={row.organizationInfo.name}
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-lg object-cover"
+              />
             ) : (
               <Building2 className="h-4 w-4 text-primary" />
             )}

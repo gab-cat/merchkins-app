@@ -21,7 +21,7 @@ export const getBatchOrdersHandler = async (
     offset?: number;
   }
 ) => {
-  const currentUser = await requireAuthentication(ctx);
+  await requireAuthentication(ctx);
   const batch = await ctx.db.get(args.batchId);
 
   if (!batch) {

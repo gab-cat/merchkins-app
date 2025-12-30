@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Megaphone, AlertTriangle, Info, ChevronLeft, ChevronRight, Bell } from 'lucide-react';
+import { X, AlertTriangle, ChevronLeft, ChevronRight, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Announcement {
@@ -65,7 +65,7 @@ export function AnimatedAnnouncements({ announcements, className }: AnimatedAnno
   // Auto-rotate every 6 seconds
   useEffect(() => {
     if (visibleAnnouncements.length <= 1 || isPaused) return;
-    
+
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % visibleAnnouncements.length);
     }, 6000);
@@ -85,9 +85,7 @@ export function AnimatedAnnouncements({ announcements, className }: AnimatedAnno
   }, []);
 
   const goToPrev = useCallback(() => {
-    setCurrentIndex((prev) => 
-      prev === 0 ? visibleAnnouncements.length - 1 : prev - 1
-    );
+    setCurrentIndex((prev) => (prev === 0 ? visibleAnnouncements.length - 1 : prev - 1));
   }, [visibleAnnouncements.length]);
 
   const goToNext = useCallback(() => {
@@ -146,16 +144,13 @@ export function AnimatedAnnouncements({ announcements, className }: AnimatedAnno
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
-          className={cn(
-            'relative rounded-xl border p-3 sm:p-4',
-            config.containerBg
-          )}
+          className={cn('relative rounded-xl border p-3 sm:p-4', config.containerBg)}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
           <div className="flex items-start gap-3">
             {/* Icon */}
-            <div className={cn('p-2 rounded-lg flex-shrink-0', config.iconBg)}>
+            <div className={cn('p-2 rounded-lg shrink-0', config.iconBg)}>
               <Icon className={cn('h-4 w-4', config.iconColor)} />
             </div>
 
@@ -163,26 +158,17 @@ export function AnimatedAnnouncements({ announcements, className }: AnimatedAnno
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 {current.category && (
-                  <span className={cn(
-                    'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
-                    config.badgeBg
-                  )}>
+                  <span className={cn('inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium', config.badgeBg)}>
                     {current.category}
                   </span>
                 )}
-                <h3 className={cn('text-sm font-semibold', config.titleColor)}>
-                  {current.title}
-                </h3>
+                <h3 className={cn('text-sm font-semibold', config.titleColor)}>{current.title}</h3>
               </div>
-              {current.content && (
-                <p className={cn('text-sm line-clamp-2', config.contentColor)}>
-                  {current.content}
-                </p>
-              )}
+              {current.content && <p className={cn('text-sm line-clamp-2', config.contentColor)}>{current.content}</p>}
             </div>
 
             {/* Navigation & Actions */}
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               {visibleAnnouncements.length > 1 && (
                 <>
                   <button

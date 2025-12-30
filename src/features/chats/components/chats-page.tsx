@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Doc } from '@/convex/_generated/dataModel';
 import { BlurFade } from '@/src/components/ui/animations/effects';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Search, Plus, Users, ChevronRight, MessageCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { Search, Plus, Users, ChevronRight, MessageCircle, Sparkles } from 'lucide-react';
 import { showToast, promiseToast } from '@/lib/toast';
 import { useDebouncedSearch } from '@/src/hooks/use-debounced-search';
 
@@ -179,14 +179,14 @@ export function ChatsPage() {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="py-16 text-center">
                 <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ delay: 0.1 }}>
                   <div className="relative h-24 w-24 mx-auto mb-6">
-                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#1d43d8]/20 to-[#adfc04]/20 blur-xl" />
-                    <div className="relative h-24 w-24 rounded-3xl bg-gradient-to-br from-[#1d43d8]/10 to-[#adfc04]/10 flex items-center justify-center border border-[#1d43d8]/10">
+                    <div className="absolute inset-0 rounded-3xl bg-linear-to-br from-[#1d43d8]/20 to-brand-neon/20 blur-xl" />
+                    <div className="relative h-24 w-24 rounded-3xl bg-linear-to-br from-[#1d43d8]/10 to-brand-neon/10 flex items-center justify-center border border-[#1d43d8]/10">
                       <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
                         <MessageCircle className="h-10 w-10 text-[#1d43d8]" />
                       </motion.div>
                     </div>
                     <motion.div
-                      className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-[#adfc04]"
+                      className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-brand-neon"
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     />
@@ -240,7 +240,7 @@ export function ChatsPage() {
                               <div
                                 className={cn(
                                   'h-12 w-12 rounded-full flex items-center justify-center',
-                                  'bg-gradient-to-br from-[#1d43d8]/10 to-[#adfc04]/10'
+                                  'bg-linear-to-br from-[#1d43d8]/10 to-brand-neon/10'
                                 )}
                               >
                                 {isGroup ? (

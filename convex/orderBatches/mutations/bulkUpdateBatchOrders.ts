@@ -3,7 +3,6 @@ import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 import { internal } from '../../_generated/api';
 import { requireAuthentication, logAction, requireOrganizationPermission } from '../../helpers';
-import { createSystemOrderLog } from '../../orders/mutations/createOrderLog';
 
 export const bulkUpdateBatchOrdersArgs = {
   batchId: v.id('orderBatches'),

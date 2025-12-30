@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
@@ -30,7 +30,6 @@ import {
   CheckCircle,
   XCircle,
   Calendar,
-  Flag,
   Building2,
   MessageSquare,
   Sparkles,
@@ -246,7 +245,7 @@ function EmptyState({ orgSlug, search }: { orgSlug?: string; search: string }) {
   return (
     <div className="text-center py-16">
       <div className="relative mx-auto mb-6">
-        <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto">
+        <div className="h-20 w-20 rounded-2xl bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto">
           <Ticket className="h-10 w-10 text-primary" />
         </div>
         <Sparkles className="h-5 w-5 text-amber-500 absolute -top-1 -right-1" />
@@ -265,7 +264,6 @@ function EmptyState({ orgSlug, search }: { orgSlug?: string; search: string }) {
 
 export function TicketsPage() {
   const pathname = usePathname();
-  const router = useRouter();
 
   // Extract org slug from pathname
   const orgSlug = useMemo(() => {

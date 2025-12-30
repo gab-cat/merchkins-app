@@ -9,24 +9,10 @@ import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Home,
-  Search as SearchIcon,
-  RotateCcw,
-  HelpCircle,
-  Globe,
-  Mail,
-  MessageSquare,
-  Ticket,
-  FileText,
-  Shield,
-  ArrowRight,
-  Phone,
-  MapPin,
-} from 'lucide-react';
+import { Mail, ArrowRight, Phone, MapPin } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 import { useThemeExclusionAuto, getOrgSlugFromSubdomain } from '../../../stores/theme-exclusion';
-import { useOrgLink } from '@/src/hooks/use-org-link';
+
 import { BlurFade } from '@/src/components/ui/animations';
 import { GoogleReviewsBadge } from '@/src/components/google';
 import { BUSINESS_NAME, BUSINESS_DESCRIPTION, BUSINESS_SHORT_NAME, BUSINESS_DTI_NUMBER, BUSINESS_TIN_NUMBER } from '@/src/constants/business-info';
@@ -136,7 +122,6 @@ export function SiteFooter() {
   }, [organization?.name]);
 
   // Subdomain-aware link builder
-  const { buildOrgLink } = useOrgLink(orgSlug);
 
   const footerLinks = {
     support: [

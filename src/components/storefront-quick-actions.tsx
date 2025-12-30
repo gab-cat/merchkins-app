@@ -120,7 +120,7 @@ export function QuickActions({ orgSlug }: QuickActionsProps) {
 
       {/* Action cards grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        {actions.map((action, index) => {
+        {actions.map((action) => {
           const Icon = action.icon;
           return (
             <motion.div key={action.label} variants={itemVariants}>

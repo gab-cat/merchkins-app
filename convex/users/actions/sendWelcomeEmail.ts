@@ -2,7 +2,6 @@
 
 import { internalAction } from '../../_generated/server';
 import { v } from 'convex/values';
-import { internal } from '../../_generated/api';
 import { generateWelcomeEmail } from '../../helpers/emailTemplates/welcomeEmail';
 import { sendEmail, getSupportFromAddress } from '../../helpers/emailTemplates/mailgunClient';
 

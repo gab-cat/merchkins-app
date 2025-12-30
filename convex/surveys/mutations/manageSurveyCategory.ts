@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAdmin, requireAuthentication, logAction, validateNotEmpty, validateStringLength, sanitizeString } from '../../helpers';
+import { requireAdmin, logAction, validateNotEmpty, validateStringLength, sanitizeString } from '../../helpers';
 
 // Create
 export const createSurveyCategoryArgs = {

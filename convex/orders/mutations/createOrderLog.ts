@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Doc, Id } from '../../_generated/dataModel';
-import { requireAuthentication, validateOrderExists, validateUserExists, requireOrganizationPermission, sanitizeString } from '../../helpers';
+import { requireAuthentication, validateOrderExists, requireOrganizationPermission, sanitizeString } from '../../helpers';
 
 export type OrderLogType = Doc<'orderLogs'>['logType'];
 

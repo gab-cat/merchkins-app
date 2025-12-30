@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from 'convex/react';
@@ -19,12 +19,10 @@ import {
   MessageSquare,
   ArrowRight,
   Inbox,
-  Loader2,
   Building2,
   User,
-  Flag,
 } from 'lucide-react';
-import type { Id, Doc } from '@/convex/_generated/dataModel';
+import type { Doc } from '@/convex/_generated/dataModel';
 
 type TicketType = Doc<'tickets'>;
 type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
@@ -262,7 +260,7 @@ export function ConsolidatedTicketsPage() {
             <BlurFade delay={0.3}>
               <div className="py-12 text-center">
                 <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.4 }}>
-                  <div className="h-20 w-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-[#1d43d8]/10 to-[#adfc04]/10 flex items-center justify-center">
+                  <div className="h-20 w-20 mx-auto mb-5 rounded-2xl bg-linear-to-br from-[#1d43d8]/10 to-brand-neon/10 flex items-center justify-center">
                     <Ticket className="h-10 w-10 text-[#1d43d8]/50" />
                   </div>
                   <h2 className="text-lg font-bold mb-2 font-heading text-slate-900">No tickets yet</h2>

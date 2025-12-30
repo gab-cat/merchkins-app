@@ -4,7 +4,6 @@ import { action, ActionCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { api, internal } from '../../_generated/api';
 import { ChatwootWebhookEvent, ChatwootCreateMessagePayload } from '../types';
-import { findKeywordResponse } from '../keywordConfig';
 
 const CHATWOOT_BASE_URL = process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL || 'https://chat.merchkins.com';
 

@@ -1,7 +1,7 @@
 import { ActionCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { api, internal } from '../../_generated/api';
+import { internal } from '../../_generated/api';
 import { generateRefundRequestReceivedEmail } from '../../helpers/emailTemplates/refundRequestReceived';
 import { generateRefundApprovedEmail } from '../../helpers/emailTemplates/refundApproved';
 import { generateRefundRejectedEmail } from '../../helpers/emailTemplates/refundRejected';

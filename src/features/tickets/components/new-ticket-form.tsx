@@ -119,7 +119,7 @@ export function NewTicketForm() {
       setTimeout(() => {
         router.push(backUrl);
       }, 1500);
-    } catch (err) {
+    } catch {
       showToast({ type: 'error', title: 'Failed to create ticket' });
       setSubmitting(false);
     }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -289,14 +290,14 @@ export function XenditMetadataDisplay({ metadata, className }: XenditMetadataDis
                             <span className="font-semibold">{formatCurrency(item.price, metadata.currency)}</span>
                           </div>
                           {item.url && (
-                            <a
+                            <Link
                               href={item.url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-1"
                             >
                               View Product <ExternalLink className="h-3 w-3" />
-                            </a>
+                            </Link>
                           )}
                         </div>
                       ))}

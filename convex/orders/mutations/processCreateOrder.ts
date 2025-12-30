@@ -1,5 +1,4 @@
 import { MutationCtx } from '../../_generated/server';
-import { v } from 'convex/values';
 import { Doc, Id } from '../../_generated/dataModel';
 import {
   validateUserExists,

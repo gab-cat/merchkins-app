@@ -30,14 +30,6 @@ export const removeItemHandler = async (
 
   const product = await validateProductExists(ctx, args.productId);
   // No org visibility check needed for removal; allow removing inaccessible items gracefully
-  let variantName: string | undefined = undefined;
-  if (args.variantId) {
-    const variant = product.variants.find((v) => v.variantId === args.variantId);
-    if (!variant) {
-      throw new Error('Variant not found');
-    }
-    variantName = variant.variantName;
-  }
 
   const now = Date.now();
   const beforeLength = cart.embeddedItems.length;

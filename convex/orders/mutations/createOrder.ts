@@ -2,7 +2,6 @@ import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 import { requireAuthentication, validateArrayNotEmpty, validatePositiveNumber } from '../../helpers';
-import { internal } from '../../_generated/api';
 import { processCreateOrder, OrderItemInput } from './processCreateOrder';
 
 export const createOrderArgs = {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import Script from 'next/script';
 
 // Google Customer Reviews merchant ID
@@ -30,7 +30,7 @@ export function GoogleCustomerReviews({ orderId, email, estimatedDeliveryDate, o
   const hasRendered = useRef(false);
 
   // Calculate estimated delivery date in YYYY-MM-DD format
-  const getEstimatedDeliveryDate = (): string => {
+  const getEstimatedDeliveryDate = useCallback((): string => {
     if (estimatedDeliveryDate) {
       return new Date(estimatedDeliveryDate).toISOString().split('T')[0];
     }
@@ -39,7 +39,7 @@ export function GoogleCustomerReviews({ orderId, email, estimatedDeliveryDate, o
     const baseDate = orderDate ? new Date(orderDate) : new Date();
     baseDate.setDate(baseDate.getDate() + 14);
     return baseDate.toISOString().split('T')[0];
-  };
+  }, [estimatedDeliveryDate, orderDate]);
 
   useEffect(() => {
     // Initialize global set if it doesn't exist
@@ -100,7 +100,7 @@ export function GoogleCustomerReviews({ orderId, email, estimatedDeliveryDate, o
       // Only cleanup if this is the last order being tracked
       // The cleanup will happen naturally when the component unmounts
     };
-  }, [orderId, email, estimatedDeliveryDate, orderDate]);
+  }, [orderId, email, getEstimatedDeliveryDate]);
 
   return <Script src="https://apis.google.com/js/platform.js?onload=renderOptIn" strategy="afterInteractive" />;
 }

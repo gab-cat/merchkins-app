@@ -10,21 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useOffsetPagination } from '@/src/hooks/use-pagination';
-import {
-  Shapes,
-  Plus,
-  Search,
-  ChevronRight,
-  ChevronDown,
-  Edit,
-  Trash2,
-  GripVertical,
-  FolderTree,
-  MoreHorizontal,
-  Eye,
-  EyeOff,
-  Layers,
-} from 'lucide-react';
+import { Shapes, Plus, Search, ChevronRight, ChevronDown, Edit, Trash2, FolderTree, MoreHorizontal, Eye, EyeOff, Layers } from 'lucide-react';
 import { PageHeader, ActiveBadge, EmptyState } from '@/src/components/admin';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -144,15 +130,9 @@ function TreeNode({ category, children, childrenMap, depth, isExpanded, onToggle
             {children.map((child) => {
               const grandchildren = childrenMap.get(child._id as unknown as string) || [];
               return (
-                <TreeNode
-                  key={child._id}
-                  category={child}
-                  children={grandchildren}
-                  childrenMap={childrenMap}
-                  depth={depth + 1}
-                  isExpanded={true}
-                  onToggle={onToggle}
-                />
+                <TreeNode key={child._id} category={child} childrenMap={childrenMap} depth={depth + 1} isExpanded={true} onToggle={onToggle}>
+                  {grandchildren}
+                </TreeNode>
               );
             })}
           </motion.div>
@@ -352,12 +332,13 @@ export default function AdminCategoriesPage() {
                 <TreeNode
                   key={category._id}
                   category={category}
-                  children={children}
                   childrenMap={childrenMap}
                   depth={0}
                   isExpanded={expandedNodes.has(category._id as unknown as string)}
                   onToggle={toggleNode}
-                />
+                >
+                  {children}
+                </TreeNode>
               );
             })}
           </div>

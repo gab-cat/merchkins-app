@@ -6,8 +6,8 @@ import { internal } from '../../_generated/api';
 import { api } from '../../_generated/api';
 import { Id } from '../../_generated/dataModel';
 import { Doc } from '../../_generated/dataModel';
-import { validateUUIDv4, maskCheckoutId, CHECKOUT_SESSION_EXPIRY_MS } from '../../helpers/utils';
-import { logAction } from '../../helpers/utils';
+import { validateUUIDv4, maskCheckoutId } from '../../helpers/utils';
+// removed logAction
 
 /**
  * Internal action to create a grouped Xendit invoice for a checkout session

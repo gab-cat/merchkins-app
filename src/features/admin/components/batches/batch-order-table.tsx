@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -67,7 +67,7 @@ export function BatchOrderTable({ batchId, onSelectionChange }: BatchOrderTableP
     limit: 100,
   });
 
-  const orders = ordersResult?.orders || [];
+  const orders = useMemo(() => ordersResult?.orders || [], [ordersResult?.orders]);
   const loading = ordersResult === undefined;
 
   const filteredOrders = useMemo(() => {

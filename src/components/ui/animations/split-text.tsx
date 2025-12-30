@@ -14,7 +14,7 @@ interface SplitTextProps {
   once?: boolean;
 }
 
-export function SplitText({ text, className, delay = 0.05, duration = 0.5, tag: Tag = 'p', splitType = 'words', once = true }: SplitTextProps) {
+export function SplitText({ text, className, delay = 0.05, duration = 0.5, tag: _Tag = 'p', splitType = 'words', once = true }: SplitTextProps) {
   const items = splitType === 'chars' ? text.split('') : text.split(' ');
 
   const containerVariants: Variants = {

@@ -3,7 +3,7 @@
  * Premium dark mode design - First impression matters
  */
 
-import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_RADIUS, EMAIL_FONTS, EMAIL_FONT_SIZES } from './constants';
+import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_FONT_SIZES } from './constants';
 import {
   createEmailWrapper,
   createEmailHeader,

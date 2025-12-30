@@ -91,7 +91,7 @@ const createTrackingProgress = (status: ShippingStatus): string => {
   ];
 
   const stepsHtml = steps
-    .map((step, index) => {
+    .map((step, _index) => {
       const isActive = step.completed;
       const dotColor = isActive ? EMAIL_COLORS.accent : EMAIL_COLORS.surfaceElevated;
       const textColor = isActive ? EMAIL_COLORS.textPrimary : EMAIL_COLORS.textMuted;

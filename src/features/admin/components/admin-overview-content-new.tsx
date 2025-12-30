@@ -17,7 +17,6 @@ import {
   BarChart3,
   ArrowRight,
   ShoppingCart,
-  Eye,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -27,16 +26,11 @@ import {
   AreaChartComponent,
   BarChartComponent,
   PieChartComponent,
-  AdminBentoGrid,
   AdminBentoItem,
-  AdminBentoFeatured,
-  QuickActionCard,
   PageHeader,
-  StatusBadge,
 } from '@/src/components/admin';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 // Mock chart data - in production, this would come from your API
 const salesChartData = [
@@ -133,7 +127,6 @@ export function AdminOverviewContentNew() {
     ? Math.round((products.products.reduce((sum, p) => sum + p.rating, 0) / products.products.length) * 10) / 10
     : 0;
   const totalOrders = products?.products.reduce((count, p) => count + p.totalOrders, 0) ?? 0;
-  const totalViews = products?.products.reduce((count, p) => count + (p.views ?? 0), 0) ?? 0;
 
   return (
     <div className="space-y-6 font-admin-body">

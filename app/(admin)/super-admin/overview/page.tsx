@@ -3,7 +3,7 @@
 import { useQuery } from 'convex/react';
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
-import { Building2, Users, ShoppingBag, DollarSign, TrendingUp, Globe, Lock, EyeOff, UserCheck, ShieldCheck, Package, Activity } from 'lucide-react';
+import { Building2, Users, ShoppingBag, DollarSign, TrendingUp, Globe, Lock, EyeOff, UserCheck, ShieldCheck, Activity } from 'lucide-react';
 import { MetricCard, MetricGrid, ChartCard, AreaChartComponent, PieChartComponent, PageHeader } from '@/src/components/admin';
 
 // Chart colors using theme
@@ -218,9 +218,9 @@ export default function SuperAdminOverviewPage() {
 
             <div className="h-px bg-border" />
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-[#adfc04]/10">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-brand-neon/10">
               <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-[#adfc04]" />
+                <DollarSign className="h-4 w-4 text-brand-neon" />
                 <span className="text-sm">Total Platform Revenue</span>
               </div>
               <span className="font-bold font-admin-heading text-lg">₱{(userAnalytics?.totalRevenue ?? 0).toLocaleString()}</span>

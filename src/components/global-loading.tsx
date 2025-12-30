@@ -21,6 +21,6 @@ interface GlobalLoadingProps {
   className?: string;
 }
 
-export function GlobalLoading({ className }: GlobalLoadingProps) {
+export function GlobalLoading({ className: _className }: GlobalLoadingProps) {
   return <MultiStepLoader loadingStates={loadingStates} loading={true} duration={1500} loop={true} />;
 }

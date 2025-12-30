@@ -13,7 +13,7 @@ import { showToast } from '@/lib/toast';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle2, XCircle, Clock, User, DollarSign, FileText, Calendar } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, User, DollarSign, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Refund reason labels for display

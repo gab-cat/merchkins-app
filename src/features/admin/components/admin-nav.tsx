@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 
 import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
-import { cn, buildR2PublicUrl } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { R2Image } from '@/src/components/ui/r2-image';
 import {
   LayoutDashboard,
@@ -54,7 +54,7 @@ function NavItem({ href, icon: Icon, label, badge, isActive, index }: NavItemPro
         {isActive && (
           <motion.div
             layoutId="activeNav"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#adfc04] rounded-r-full"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-neon rounded-r-full"
             transition={{ type: 'spring', stiffness: 380, damping: 30 }}
           />
         )}
@@ -75,7 +75,7 @@ function NavItem({ href, icon: Icon, label, badge, isActive, index }: NavItemPro
             animate={{ scale: 1 }}
             className={cn(
               'ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] leading-none font-semibold',
-              isActive ? 'bg-[#adfc04] text-black' : 'bg-red-500 text-white animate-pulse'
+              isActive ? 'bg-brand-neon text-black' : 'bg-red-500 text-white animate-pulse'
             )}
           >
             {badge > 99 ? '99+' : badge}
@@ -152,9 +152,6 @@ export function AdminNav() {
     { href: `/admin/org-members${suffix}`, icon: Users, label: 'Members' },
     { href: `/admin/org-settings${suffix}`, icon: Settings, label: 'Settings' },
   ];
-
-  // Helper to check if a value is an R2 key
-  const isKey = (value?: string) => !!value && !/^https?:\/\//.test(value) && !value.startsWith('/');
 
   // Get logo key
   const logoKey = organization?.logo;

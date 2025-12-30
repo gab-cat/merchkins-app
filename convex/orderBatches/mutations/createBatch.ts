@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication, validateOrganizationExists, validateUserExists, logAction, requireOrganizationPermission } from '../../helpers';
+import { requireAuthentication, validateOrganizationExists, logAction, requireOrganizationPermission } from '../../helpers';
 
 export const createBatchArgs = {
   organizationId: v.id('organizations'),

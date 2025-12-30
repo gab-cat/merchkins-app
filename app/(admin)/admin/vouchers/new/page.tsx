@@ -7,37 +7,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import {
-  Ticket,
-  ArrowLeft,
-  Sparkles,
-  Info,
-  Percent,
-  DollarSign,
-  Gift,
-  Truck,
-  RefreshCw,
-  Calendar,
-  Users,
-  ShoppingBag,
-  Tag,
-} from 'lucide-react';
+import { Ticket, ArrowLeft, Sparkles, Info, Percent, DollarSign, Gift, Truck, RefreshCw, Calendar, Users, Tag } from 'lucide-react';
 
 // UI Components
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Admin Components
 import { PageHeader } from '@/src/components/admin/page-header';
 import { FormCard, FormField, FormActions, FormErrorBanner } from '@/src/components/admin/form-components';
 
 // Utils
-import { showToast, promiseToast } from '@/lib/toast';
+import { promiseToast } from '@/lib/toast';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -76,8 +59,6 @@ export default function AdminCreateVoucherPage() {
   // Convex queries and mutations
   const createVoucher = useMutation(api.vouchers.mutations.index.createVoucher);
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
-  const products = useQuery(api.products.queries.index.getProducts, organization?._id ? { organizationId: organization._id, limit: 100 } : { limit: 100 });
-  const categories = useQuery(api.categories.queries.index.getCategories, organization?._id ? { organizationId: organization._id } : 'skip');
 
   // State
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -117,7 +98,10 @@ export default function AdminCreateVoucherPage() {
   const generatePreviewCode = useCallback(() => {
     const prefix = watch('codePrefix') || 'VOUCHER';
     const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
-    const cleanPrefix = prefix.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+    const cleanPrefix = prefix
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 10);
     setGeneratedCode(`${cleanPrefix}-${randomPart}`);
   }, [watch]);
 
@@ -221,11 +205,7 @@ export default function AdminCreateVoucherPage() {
           </div>
 
           {codeMode === 'auto' ? (
-            <FormField
-              label="Code Prefix"
-              name="codePrefix"
-              hint="Optional prefix for the generated code (e.g., SAVE20 → SAVE20-X1Y2Z3)"
-            >
+            <FormField label="Code Prefix" name="codePrefix" hint="Optional prefix for the generated code (e.g., SAVE20 → SAVE20-X1Y2Z3)">
               <div className="flex gap-2">
                 <Input
                   {...register('codePrefix')}
@@ -247,7 +227,13 @@ export default function AdminCreateVoucherPage() {
               )}
             </FormField>
           ) : (
-            <FormField label="Voucher Code" name="code" required error={errors.code?.message} hint="Enter a unique code (letters, numbers, hyphens only)">
+            <FormField
+              label="Voucher Code"
+              name="code"
+              required
+              error={errors.code?.message}
+              hint="Enter a unique code (letters, numbers, hyphens only)"
+            >
               <Input {...register('code')} placeholder="e.g., SUMMER2024" className="font-mono uppercase" />
             </FormField>
           )}
@@ -295,12 +281,7 @@ export default function AdminCreateVoucherPage() {
               error={errors.discountValue?.message}
             >
               <div className="relative">
-                <Input
-                  type="number"
-                  {...register('discountValue')}
-                  placeholder={discountType === 'PERCENTAGE' ? '10' : '100'}
-                  className="pr-12"
-                />
+                <Input type="number" {...register('discountValue')} placeholder={discountType === 'PERCENTAGE' ? '10' : '100'} className="pr-12" />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                   {discountType === 'PERCENTAGE' ? '%' : '₱'}
                 </span>

@@ -1,12 +1,13 @@
 'use client';
 
 import React, { PropsWithChildren, useState } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BlurFade } from '@/src/components/ui/animations/effects';
-import { MessageSquare, Search, Menu, X, Users, MoreVertical, Phone, Video, Info, ChevronLeft } from 'lucide-react';
+import { MessageSquare, Search, Menu, X, Users, Phone, Video, Info, ChevronLeft } from 'lucide-react';
 
 interface ChatLayoutProps {
   title: string;
@@ -102,7 +103,7 @@ export function ChatLayout({
               )}
             >
               {/* Sidebar Header */}
-              <div className="p-4 border-b border-slate-100 space-y-3 bg-gradient-to-b from-slate-50/80 to-white">
+              <div className="p-4 border-b border-slate-100 space-y-3 bg-linear-to-b from-slate-50/80 to-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h2 className="font-semibold text-slate-900">Chats</h2>
@@ -150,9 +151,9 @@ export function ChatLayout({
 
                   {/* Avatar */}
                   <div className="relative">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#1d43d8]/10 to-[#adfc04]/10 flex items-center justify-center overflow-hidden">
+                    <div className="h-10 w-10 rounded-full bg-linear-to-br from-[#1d43d8]/10 to-brand-neon/10 flex items-center justify-center overflow-hidden">
                       {avatarUrl ? (
-                        <img src={avatarUrl} alt={title} className="h-full w-full object-cover" />
+                        <Image src={avatarUrl} alt={title} className="h-full w-full object-cover" width={40} height={40} />
                       ) : (
                         <Users className="h-5 w-5 text-[#1d43d8]" />
                       )}
@@ -198,7 +199,7 @@ export function ChatLayout({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[5] md:hidden"
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-5 md:hidden"
                 onClick={() => setSidebarOpen(false)}
               />
             )}

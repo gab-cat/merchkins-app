@@ -1,4 +1,4 @@
-import { internalMutation, MutationCtx } from '../../_generated/server';
+import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { INVOICE_CREATION_RATE_WINDOW_MS, MAX_INVOICE_CREATION_ATTEMPTS, checkRateLimit } from '../../helpers/utils';
 

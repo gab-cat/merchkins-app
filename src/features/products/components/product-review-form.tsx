@@ -11,7 +11,7 @@ import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, CheckCircle2, Edit2, X, Send, Pencil, LogIn } from 'lucide-react';
+import { Star, CheckCircle2, X, Send, Pencil, LogIn } from 'lucide-react';
 import { showToast } from '@/lib/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Id } from '@/convex/_generated/dataModel';
@@ -136,7 +136,7 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
     return (
       <div className="rounded-xl border border-slate-100 p-3">
         <div className="flex items-center gap-2.5">
-          <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+          <Skeleton className="h-8 w-8 rounded-full shrink-0" />
           <div className="flex-1 space-y-1.5">
             <Skeleton className="h-3.5 w-24" />
             <div className="flex gap-0.5">
@@ -153,9 +153,9 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
   // Show skeleton while checking for existing review
   if (existingReview === undefined && currentUser) {
     return (
-      <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3">
+      <div className="rounded-xl border border-primary/20 bg-primary/3 p-3">
         <div className="flex items-center gap-2.5">
-          <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
+          <Skeleton className="h-8 w-8 rounded-full shrink-0" />
           <div className="flex-1 space-y-1.5">
             <Skeleton className="h-3.5 w-24" />
             <div className="flex gap-0.5">
@@ -187,13 +187,9 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
   // If user has an existing review and not editing, show it inline
   if (existingReview && !isEditing) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-primary/20 bg-primary/3 p-3">
         <div className="flex gap-2.5">
-          <Avatar className="h-8 w-8 flex-shrink-0 ring-1 ring-primary/20">
+          <Avatar className="h-8 w-8 shrink-0 ring-1 ring-primary/20">
             <AvatarImage src={currentUser.imageUrl} alt={userName} />
             <AvatarFallback className="text-xs bg-primary/10 text-primary">{userName.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
@@ -204,7 +200,7 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
                 <span className="text-sm font-medium text-slate-900 truncate">{userName}</span>
                 <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">Your review</span>
                 {existingReview.isVerifiedPurchase && (
-                  <span title="Verified Purchase" className="flex-shrink-0">
+                  <span title="Verified Purchase" className="shrink-0">
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                   </span>
                 )}
@@ -246,7 +242,7 @@ export function ProductReviewForm({ productId }: ProductReviewFormProps) {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-slate-100 bg-white p-3">
       <div className="flex gap-2.5">
-        <Avatar className="h-8 w-8 flex-shrink-0 ring-1 ring-slate-100">
+        <Avatar className="h-8 w-8 shrink-0 ring-1 ring-slate-100">
           <AvatarImage src={currentUser.imageUrl} alt={userName} />
           <AvatarFallback className="text-xs bg-slate-100 text-slate-600">{userName.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>

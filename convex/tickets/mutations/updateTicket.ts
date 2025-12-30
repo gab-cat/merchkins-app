@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication, logAction, sanitizeString, validateStringLength, validateUserExists } from '../../helpers';
+import { requireAuthentication, logAction, sanitizeString, validateStringLength } from '../../helpers';
 
 export const updateTicketArgs = {
   ticketId: v.id('tickets'),

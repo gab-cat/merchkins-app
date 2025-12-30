@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Doc } from '@/convex/_generated/dataModel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Reply, Smile, MoreHorizontal, Pin, Copy, Trash2, Check, CheckCheck, Image as ImageIcon, FileText } from 'lucide-react';
+import { Reply, Smile, Pin, Copy, Trash2, Check, CheckCheck, FileText } from 'lucide-react';
 
 interface MessageBubbleProps {
   message: Doc<'chatMessages'>;
@@ -195,9 +197,16 @@ export function MessageBubble({ message, isMe, onReply, onReact, onPin, onDelete
                 {message.attachments!.map((attachment, idx) => (
                   <div key={idx} className={cn('rounded-lg overflow-hidden', isMe ? 'bg-white/10' : 'bg-white')}>
                     {attachment.mimeType?.startsWith('image/') ? (
-                      <img src={attachment.url} alt={attachment.name || 'Image'} className="max-w-full max-h-48 rounded-lg object-cover" />
+                      <Image
+                        src={attachment.url}
+                        alt={attachment.name || 'Image'}
+                        className="max-w-full max-h-48 rounded-lg object-cover"
+                        width={300}
+                        height={200}
+                        unoptimized
+                      />
                     ) : (
-                      <a
+                      <Link
                         href={attachment.url}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -209,7 +218,7 @@ export function MessageBubble({ message, isMe, onReply, onReact, onPin, onDelete
                         <FileText className="h-4 w-4" />
                         <span className="truncate max-w-32">{attachment.name || 'File'}</span>
                         <span className="text-[10px] opacity-60">{attachment.size ? `${Math.round(attachment.size / 1024)}KB` : ''}</span>
-                      </a>
+                      </Link>
                     )}
                   </div>
                 ))}
@@ -217,7 +226,7 @@ export function MessageBubble({ message, isMe, onReply, onReact, onPin, onDelete
             )}
 
             {/* Message text */}
-            {message.content && <div className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</div>}
+            {message.content && <div className="whitespace-pre-wrap wrap-break-word leading-relaxed">{message.content}</div>}
 
             {/* Message meta */}
             <div className={cn('flex items-center justify-end gap-1.5 mt-1 text-[10px]', isMe ? 'text-white/60' : 'text-slate-400')}>
@@ -227,7 +236,7 @@ export function MessageBubble({ message, isMe, onReply, onReact, onPin, onDelete
               {/* Read receipts */}
               {isMe && (
                 <span className="ml-0.5">
-                  {readBy.length > 0 ? <CheckCheck className="h-3 w-3 text-[#adfc04]" /> : <Check className="h-3 w-3" />}
+                  {readBy.length > 0 ? <CheckCheck className="h-3 w-3 text-brand-neon" /> : <Check className="h-3 w-3" />}
                 </span>
               )}
             </div>

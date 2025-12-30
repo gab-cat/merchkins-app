@@ -12,7 +12,7 @@ import { BlurFade } from '@/src/components/ui/animations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { X, Heart, Building2, Users, ChevronLeft, ChevronRight, Sparkles, Globe, Lock } from 'lucide-react';
+import { X, Heart, Building2, Users, Sparkles, Globe, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
 
@@ -79,14 +79,14 @@ function SwipeCard({
 
         {/* Join indicator */}
         <motion.div
-          className="absolute top-6 right-6 z-20 px-4 py-2 rounded-xl border-4 border-green-400 text-green-400 font-bold text-2xl rotate-[20deg]"
+          className="absolute top-6 right-6 z-20 px-4 py-2 rounded-xl border-4 border-green-400 text-green-400 font-bold text-2xl rotate-20"
           style={{ opacity: rightIndicatorOpacity }}
         >
           JOIN
         </motion.div>
 
         {/* Organization Logo */}
-        <div className="relative h-56 bg-gradient-to-br from-primary/10 to-primary/5">
+        <div className="relative h-56 bg-linear-to-br from-primary/10 to-primary/5">
           <R2Image
             fileKey={org.logo}
             alt={org.name}
@@ -95,7 +95,7 @@ function SwipeCard({
             sizes="400px"
             fallbackClassName="w-full h-full flex items-center justify-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-card via-transparent to-transparent" />
         </div>
 
         {/* Organization Info */}
@@ -135,7 +135,7 @@ function SwipeCard({
 // Swipe Discovery Section
 function SwipeDiscovery() {
   const { user } = useCurrentUser();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [_currentIndex, _setCurrentIndex] = useState(0);
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
 
   const joinOrg = useMutation(api.organizations.mutations.index.joinPublicOrganization);
@@ -163,12 +163,12 @@ function SwipeDiscovery() {
             icon: <Heart className="w-4 h-4 text-green-500" />,
           });
         } catch (error) {
+          console.error('Join org failed:', error);
           toast.error('Failed to join organization');
         }
       } else {
         setSkippedIds((prev) => new Set(prev).add(currentOrg.id));
       }
-      setCurrentIndex((i) => i + 1);
     },
     [availableOrgs, joinOrg]
   );
@@ -258,6 +258,7 @@ function OrganizationsGrid() {
       await joinOrg({ organizationId: orgId });
       toast.success(`Joined ${orgName}!`);
     } catch (error) {
+      console.error('Verify join failed:', error);
       toast.error('Failed to join organization');
     }
   };
@@ -278,7 +279,7 @@ function OrganizationsGrid() {
         const isJoined = userOrgIds.has(org.id);
         return (
           <Card key={org.id} className="group hover:shadow-lg pt-0 transition-all duration-300 overflow-hidden">
-            <div className="relative h-28 bg-gradient-to-br from-primary/10 to-primary/5">
+            <div className="relative h-28 bg-linear-to-br from-primary/10 to-primary/5">
               <R2Image
                 fileKey={org.logo}
                 alt={org.name}
@@ -340,7 +341,7 @@ export default function OrgsPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section with Swipe Discovery */}
-      <section className="relative py-12 md:py-16 border-b bg-gradient-to-b from-primary/5 to-background">
+      <section className="relative py-12 md:py-16 border-b bg-linear-to-b from-primary/5 to-background">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <BlurFade delay={0.1}>
             <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">Discover Organizations</h1>
