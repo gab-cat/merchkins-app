@@ -1,0 +1,13 @@
+{
+  "plugins": ["typescript", "react", "nextjs", "import"],
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "off",
+    "react/react-in-jsx-scope": "off"
+  },
+  "ignorePatterns": ["node_modules/**", ".next/**", "out/**", "dist/**", "build/**", "coverage/**", "*.config.*", ".env*"]
+}

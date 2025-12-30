@@ -61,14 +61,8 @@ export const createGuestOrder = mutation({
       if (!product.isActive) {
         throw new Error(`Product ${product.title} is not available`);
       }
-
-      // For guest checkout, only allow PUBLIC orgs
-      if (product.organizationId) {
-        const org = await ctx.db.get(product.organizationId);
-        if (org && !org.isDeleted && org.organizationType !== 'PUBLIC') {
-          throw new Error('This product is only available to organization members. Please sign in to purchase.');
-        }
-      }
+      // Note: Organization type validation is now handled in processCreateOrder
+      // for consistency across all checkout channels
     }
 
     // Use the existing processCreateOrder function which handles all the order creation logic

@@ -75,7 +75,13 @@ export const processCreateOrder = async (ctx: MutationCtx, args: ProcessCreateOr
   if (args.organizationId) {
     const organization = await validateOrganizationExists(ctx, args.organizationId);
 
-    // Logic for organization visibility/membership
+    // For guest checkout (no actingUser), restrict to PUBLIC orgs only
+    // This ensures users must sign up to access private/secret organizations
+    if (!actingUser && organization.organizationType !== 'PUBLIC') {
+      throw new Error('This product is only available to organization members. Please sign in to purchase.');
+    }
+
+    // For authenticated flows (WEB/MESSENGER), check membership for PRIVATE/SECRET orgs
     if (organization.organizationType !== 'PUBLIC' && actingUser) {
       const isPrivileged = actingUser.isAdmin || actingUser.isStaff;
       if (!isPrivileged) {

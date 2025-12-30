@@ -213,7 +213,7 @@ export default function AdminEditCategoryPage() {
         const compressed = await compressToWebP(file);
         const key = await uploadFile(compressed);
         setImageKey(key);
-      } catch (err) {
+      } catch {
         showToast({ type: 'error', title: 'Failed to upload image' });
       } finally {
         setIsUploading(false);
@@ -246,7 +246,7 @@ export default function AdminEditCategoryPage() {
       });
       showToast({ type: 'success', title: 'Category updated' });
       setHasChanges(false);
-    } catch (err) {
+    } catch {
       showToast({ type: 'error', title: 'Failed to update category' });
     } finally {
       setIsSaving(false);
@@ -260,7 +260,7 @@ export default function AdminEditCategoryPage() {
       await deleteCategory({ categoryId: category._id });
       showToast({ type: 'success', title: 'Category deleted' });
       router.push('/admin/categories');
-    } catch (err) {
+    } catch {
       showToast({ type: 'error', title: 'Failed to delete category' });
     }
   }
@@ -271,7 +271,7 @@ export default function AdminEditCategoryPage() {
     try {
       await restoreCategory({ categoryId: category._id });
       showToast({ type: 'success', title: 'Category restored' });
-    } catch (err) {
+    } catch {
       showToast({ type: 'error', title: 'Failed to restore category' });
     }
   }
