@@ -289,6 +289,7 @@ import type * as payments_mutations_refundPayment from "../payments/mutations/re
 import type * as payments_mutations_restorePayment from "../payments/mutations/restorePayment.js";
 import type * as payments_mutations_updatePayment from "../payments/mutations/updatePayment.js";
 import type * as payments_mutations_updatePaymentStats from "../payments/mutations/updatePaymentStats.js";
+import type * as payments_queries_getOrderPaymentPublic from "../payments/queries/getOrderPaymentPublic.js";
 import type * as payments_queries_getPaymentAnalytics from "../payments/queries/getPaymentAnalytics.js";
 import type * as payments_queries_getPaymentById from "../payments/queries/getPaymentById.js";
 import type * as payments_queries_getPayments from "../payments/queries/getPayments.js";
@@ -760,6 +761,7 @@ declare const fullApi: ApiFromModules<{
   "payments/mutations/restorePayment": typeof payments_mutations_restorePayment;
   "payments/mutations/updatePayment": typeof payments_mutations_updatePayment;
   "payments/mutations/updatePaymentStats": typeof payments_mutations_updatePaymentStats;
+  "payments/queries/getOrderPaymentPublic": typeof payments_queries_getOrderPaymentPublic;
   "payments/queries/getPaymentAnalytics": typeof payments_queries_getPaymentAnalytics;
   "payments/queries/getPaymentById": typeof payments_queries_getPaymentById;
   "payments/queries/getPayments": typeof payments_queries_getPayments;

@@ -22,7 +22,6 @@ import { OrderLogsSection } from '@/src/features/orders/components/order-logs-se
 import { AddOrderNoteDialog } from '@/src/features/orders/components/add-order-note-dialog';
 import { OrderStatusChangeDialog } from '@/src/features/orders/components/order-status-change-dialog';
 import { OrderBatchManager } from '@/src/features/admin/components/orders/order-batch-manager';
-import { XenditMetadataDisplay } from '@/src/features/admin/components/payments/xendit-metadata-display';
 
 // Icons
 import {
@@ -45,6 +44,7 @@ import {
 } from 'lucide-react';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import { PaymentMetadataDisplay } from '@/src/features/admin/components/payments/payment-metadata-display';
 type OrderStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 type PaymentStatus = 'PENDING' | 'DOWNPAYMENT' | 'PAID' | 'REFUNDED';
 type Order = Doc<'orders'>;
@@ -396,7 +396,7 @@ export default function AdminOrderDetailPage() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
               <div className="space-y-3">
                 {paymentsData.payments.map((payment) => (
-                  <XenditMetadataDisplay key={payment._id} metadata={payment.metadata as Record<string, unknown>} />
+                  <PaymentMetadataDisplay key={payment._id} metadata={payment.metadata as Record<string, unknown>} />
                 ))}
               </div>
             </motion.div>

@@ -10,6 +10,7 @@ import { OrderPaymentLink } from './order-payment-link';
 import { OrderLogsSection } from './order-logs-section';
 import { CancelOrderModal } from './cancel-order-modal';
 import { RefundRequestModal } from './refund-request-modal';
+import { PaymentMetadataDisplay } from '@/src/features/admin/components/payments/payment-metadata-display';
 import { ConfirmOrderReceivedModal } from './confirm-order-received-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -182,6 +183,12 @@ export function OrderDetail({ orderId }: { orderId: string }) {
   const refundRequest = useQuery(api.refundRequests.queries.index.getRefundRequestByOrder, {
     orderId: orderId as Id<'orders'>,
   });
+
+  // Fetch payment for this order to display payment metadata (public query, no auth required)
+  const paymentData = useQuery(
+    api.payments.queries.index.getOrderPaymentPublic,
+    order?.organizationId ? { orderId: orderId as Id<'orders'> } : 'skip'
+  );
 
   const loading = order === undefined;
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
@@ -551,6 +558,26 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                   </div>
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {/* Payment Details (Paymongo) */}
+          {paymentData && (
+            <motion.div
+              initial={{ opacity: 0.5, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+              className="mb-6"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Receipt className="h-4 w-4 text-slate-400" />
+                <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Payment Details</h2>
+              </div>
+              <PaymentMetadataDisplay
+                metadata={paymentData.metadata as Record<string, unknown>}
+                paymentProvider={paymentData.paymentProvider || 'PAYMONGO'}
+                hideAdminDetails
+              />
             </motion.div>
           )}
 

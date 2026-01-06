@@ -1,10 +1,16 @@
 'use client';
 
 import { useAuth } from '@clerk/nextjs';
-import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import type { Doc } from '@/convex/_generated/dataModel';
+import { useQuery } from 'convex-helpers/react/cache';
 
-export const useCurrentUser = () => {
+type CurrentUserResult = {
+  user: Doc<'users'> | null | undefined;
+  isLoading: boolean;
+};
+
+export const useCurrentUser = (): CurrentUserResult => {
   const { userId: clerkId, isLoaded } = useAuth();
 
   // Always call useQuery unconditionally to respect React's Rules of Hooks

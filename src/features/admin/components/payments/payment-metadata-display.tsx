@@ -9,7 +9,79 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { ChevronDown, CreditCard, Wallet, Building2, Clock, CheckCircle2, XCircle, AlertCircle, Copy, Check, Info, Smartphone } from 'lucide-react';
 
-// Paymongo Metadata structure (from webhook event)
+// Paymongo payment source structure
+interface PaymongoPaymentSource {
+  type?: string;
+  brand?: string;
+  last4?: string;
+  id?: string;
+}
+
+// Paymongo billing structure
+interface PaymongoBilling {
+  name?: string;
+  email?: string;
+  phone?: string;
+  address?: {
+    city?: string;
+    country?: string;
+    line1?: string;
+    line2?: string;
+    postal_code?: string;
+    state?: string;
+  };
+}
+
+// Paymongo payment attributes (from webhook data.attributes.data.attributes)
+interface PaymongoPaymentAttributes {
+  amount?: number;
+  currency?: string;
+  fee?: number;
+  net_amount?: number;
+  status?: string;
+  source?: PaymongoPaymentSource;
+  billing?: PaymongoBilling;
+  paid_at?: number;
+  created_at?: number;
+  updated_at?: number;
+  description?: string;
+  metadata?: Record<string, string>;
+  statement_descriptor?: string;
+  balance_transaction_id?: string;
+}
+
+// Paymongo checkout session attributes
+interface PaymongoCheckoutAttributes {
+  checkout_url?: string;
+  status?: string;
+  line_items?: Array<{
+    name?: string;
+    quantity?: number;
+    amount?: number;
+    currency?: string;
+    description?: string;
+  }>;
+  // For checkout_session.payment.paid events, payment data is in payments array
+  payments?: Array<{
+    id?: string;
+    type?: string;
+    attributes?: PaymongoPaymentAttributes;
+  }>;
+  reference_number?: string;
+  description?: string;
+  metadata?: Record<string, string>;
+  created_at?: number;
+  updated_at?: number;
+  // For payment.paid events, payment data is nested in 'data' field
+  data?: {
+    id?: string;
+    type?: string;
+    attributes?: PaymongoPaymentAttributes;
+  };
+  type?: string; // Event type like 'payment.paid'
+}
+
+// Paymongo Metadata structure (stores the full webhook event)
 interface PaymongoMetadata {
   id?: string;
   type?: string;
@@ -17,45 +89,7 @@ interface PaymongoMetadata {
   data?: {
     id?: string;
     type?: string;
-    attributes?: {
-      checkout_url?: string;
-      status?: string;
-      line_items?: Array<{
-        name?: string;
-        quantity?: number;
-        amount?: number;
-        currency?: string;
-        description?: string;
-      }>;
-      payments?: Array<{
-        id?: string;
-        type?: string;
-        attributes?: {
-          amount?: number;
-          currency?: string;
-          fee?: number;
-          net_amount?: number;
-          status?: string;
-          source?: {
-            type?: string;
-            brand?: string;
-            last4?: string;
-          };
-          billing?: {
-            name?: string;
-            email?: string;
-            phone?: string;
-          };
-          paid_at?: number;
-          created_at?: number;
-        };
-      }>;
-      reference_number?: string;
-      description?: string;
-      metadata?: Record<string, string>;
-      created_at?: number;
-      updated_at?: number;
-    };
+    attributes?: PaymongoCheckoutAttributes;
   };
   created_at?: number;
   updated_at?: number;
@@ -67,6 +101,8 @@ interface PaymentMetadataDisplayProps {
   metadata?: PaymongoMetadata | null;
   paymentProvider?: string;
   className?: string;
+  /** When true, hides admin-only details like fee breakdown and raw JSON. Use for customer-facing views. */
+  hideAdminDetails?: boolean;
 }
 
 function formatCurrency(amount: number | undefined, currency?: string) {
@@ -170,7 +206,7 @@ function InfoRow({ label, value, copyable }: { label: string; value?: string | n
   );
 }
 
-export function PaymentMetadataDisplay({ metadata, paymentProvider, className }: PaymentMetadataDisplayProps) {
+export function PaymentMetadataDisplay({ metadata, paymentProvider, className, hideAdminDetails = false }: PaymentMetadataDisplayProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showRawJson, setShowRawJson] = useState(false);
 
@@ -178,31 +214,53 @@ export function PaymentMetadataDisplay({ metadata, paymentProvider, className }:
     return null;
   }
 
-  // Extract data from nested Paymongo structure or flat structure
-  const checkoutData = metadata.data?.attributes;
-  const firstPayment = checkoutData?.payments?.[0];
-  const paymentAttrs = firstPayment?.attributes;
+  // Extract data from nested Paymongo webhook structure
+  // Two possible structures:
+  // 1. payment.paid event: data.attributes.data.attributes contains payment info
+  // 2. checkout_session.payment.paid event: data.attributes.payments[0].attributes contains payment info
+  const eventAttributes = metadata.data?.attributes;
+
+  // For payment.paid events, payment data is nested inside data.attributes.data.attributes
+  const nestedPaymentData = eventAttributes?.data?.attributes;
+
+  // For checkout_session.payment.paid events, payment data is in the payments array
+  const firstPayment = eventAttributes?.payments?.[0];
+  const firstPaymentAttrs = firstPayment?.attributes;
+
+  // Use nested payment data if available (payment.paid events), otherwise use payments array
+  const paymentAttrs = nestedPaymentData || firstPaymentAttrs;
 
   // Get key values from either nested or flat structure
-  const transactionId = metadata.data?.id || metadata.id || (metadata as Record<string, unknown>).payment_id;
-  const paymentId = firstPayment?.id || (metadata as Record<string, unknown>).payment_id;
-  const status = checkoutData?.status || paymentAttrs?.status || (metadata as Record<string, unknown>).status;
+  const nestedPaymentId = eventAttributes?.data?.id;
+  const transactionId = nestedPaymentId || firstPayment?.id || metadata.data?.id || metadata.id || (metadata as Record<string, unknown>).payment_id;
+  const paymentId = nestedPaymentId || firstPayment?.id || (metadata as Record<string, unknown>).payment_id;
+
+  // Status: for payment.paid events, use the payment status; for checkout events, use checkout status
+  const status = paymentAttrs?.status || eventAttributes?.status || (metadata as Record<string, unknown>).status;
+
   const amount = paymentAttrs?.amount || (metadata as Record<string, unknown>).amount;
   const fee = paymentAttrs?.fee || (metadata as Record<string, unknown>).fees_paid_amount;
   const netAmount = paymentAttrs?.net_amount || (metadata as Record<string, unknown>).adjusted_received_amount;
   const currency = paymentAttrs?.currency || (metadata as Record<string, unknown>).currency || 'PHP';
-  const referenceNumber = checkoutData?.reference_number || checkoutData?.metadata?.external_id || (metadata as Record<string, unknown>).external_id;
-  const description = checkoutData?.description || (metadata as Record<string, unknown>).description;
+
+  // Reference/external ID from metadata
+  const paymentMetadata = paymentAttrs?.metadata;
+  const referenceNumber =
+    paymentMetadata?.external_id ||
+    eventAttributes?.reference_number ||
+    eventAttributes?.metadata?.external_id ||
+    (metadata as Record<string, unknown>).external_id;
+
+  const description = paymentAttrs?.description || eventAttributes?.description || (metadata as Record<string, unknown>).description;
   const sourceType = paymentAttrs?.source?.type || (metadata as Record<string, unknown>).payment_channel;
   const sourceBrand = paymentAttrs?.source?.brand;
   const sourceLast4 = paymentAttrs?.source?.last4;
   const payerEmail = paymentAttrs?.billing?.email || (metadata as Record<string, unknown>).payer_email;
   const payerName = paymentAttrs?.billing?.name;
-  const createdAt = checkoutData?.created_at || metadata.created_at || (metadata as Record<string, unknown>).created;
+  const createdAt = paymentAttrs?.created_at || eventAttributes?.created_at || metadata.created_at || (metadata as Record<string, unknown>).created;
   const paidAt = paymentAttrs?.paid_at || (metadata as Record<string, unknown>).paid_at;
-  const lineItems = checkoutData?.line_items;
+  const lineItems = eventAttributes?.line_items;
 
-  const providerLabel = paymentProvider === 'PAYMONGO' ? 'Paymongo' : 'Xendit';
   const providerColor = paymentProvider === 'PAYMONGO' ? 'bg-green-100 dark:bg-green-950/40' : 'bg-blue-100 dark:bg-blue-950/40';
 
   return (
@@ -214,7 +272,7 @@ export function PaymentMetadataDisplay({ metadata, paymentProvider, className }:
               <PaymentMethodIcon sourceType={String(sourceType)} />
             </div>
             <div>
-              <CardTitle className="text-sm font-semibold">{providerLabel} Payment Details</CardTitle>
+              <CardTitle className="text-sm font-semibold">Payment Details</CardTitle>
               <CardDescription className="text-xs">Transaction: {String(transactionId || '-').slice(0, 24)}...</CardDescription>
             </div>
           </div>
@@ -284,8 +342,8 @@ export function PaymentMetadataDisplay({ metadata, paymentProvider, className }:
                 </div>
               </div>
 
-              {/* Fee Information */}
-              {(fee !== undefined || netAmount !== undefined) && (
+              {/* Fee Information - Admin only */}
+              {!hideAdminDetails && (fee !== undefined || netAmount !== undefined) && (
                 <>
                   <Separator />
                   <div>
@@ -324,28 +382,30 @@ export function PaymentMetadataDisplay({ metadata, paymentProvider, className }:
                 </>
               )}
 
-              {/* Raw JSON Toggle */}
-              <div className="pt-2">
-                <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => setShowRawJson(!showRawJson)}>
-                  <Info className="h-3 w-3 mr-1.5" />
-                  {showRawJson ? 'Hide' : 'Show'} Raw JSON
-                </Button>
+              {/* Raw JSON Toggle - Admin only */}
+              {!hideAdminDetails && (
+                <div className="pt-2">
+                  <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => setShowRawJson(!showRawJson)}>
+                    <Info className="h-3 w-3 mr-1.5" />
+                    {showRawJson ? 'Hide' : 'Show'} Raw JSON
+                  </Button>
 
-                <AnimatePresence>
-                  {showRawJson && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="mt-2"
-                    >
-                      <pre className="p-3 rounded-lg bg-slate-950 dark:bg-slate-900 text-slate-100 text-xs overflow-x-auto max-h-64 overflow-y-auto">
-                        {JSON.stringify(metadata, null, 2)}
-                      </pre>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                  <AnimatePresence>
+                    {showRawJson && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="mt-2"
+                      >
+                        <pre className="p-3 rounded-lg bg-slate-950 dark:bg-slate-900 text-slate-100 text-xs overflow-x-auto max-h-64 overflow-y-auto">
+                          {JSON.stringify(metadata, null, 2)}
+                        </pre>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
             </CardContent>
           </motion.div>
         )}

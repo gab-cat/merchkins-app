@@ -273,7 +273,7 @@ export function OrdersList() {
             <BlurFade delay={0.2}>
               <div className="py-16 text-center">
                 <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.4 }}>
-                  <div className="h-20 w-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-[#1d43d8]/10 to-[#adfc04]/10 flex items-center justify-center">
+                  <div className="h-20 w-20 mx-auto mb-5 rounded-2xl bg-linear-to-br from-[#1d43d8]/10 to-brand-neon/10 flex items-center justify-center">
                     <Package className="h-10 w-10 text-[#1d43d8]/50" />
                   </div>
                   <h2 className="text-lg font-bold mb-2 font-heading text-slate-900">No orders yet</h2>
@@ -330,7 +330,7 @@ export function OrdersList() {
                           <div className="p-4">
                             <div className="flex items-start gap-3">
                               {/* Product Image Thumbnail */}
-                              <div className="relative flex-shrink-0 h-16 w-16 rounded-lg overflow-hidden bg-slate-100">
+                              <div className="relative shrink-0 h-16 w-16 rounded-lg overflow-hidden bg-slate-100">
                                 {productImageUrl ? (
                                   <Image src={productImageUrl} alt="Product" fill className="object-cover" sizes="64px" />
                                 ) : (
@@ -360,17 +360,17 @@ export function OrdersList() {
                                     )}
                                     <ChevronRight className="h-3.5 w-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                                   </div>
-                                  <span className="font-bold text-[#1d43d8] text-sm flex-shrink-0">{formatCurrency(o.totalAmount)}</span>
+                                  <span className="font-bold text-[#1d43d8] text-sm shrink-0">{formatCurrency(o.totalAmount)}</span>
                                 </div>
 
                                 {/* Store Info Row */}
                                 <div className="flex items-center gap-1.5 mb-1.5">
                                   {storeLogo ? (
-                                    <div className="relative h-4 w-4 rounded-full overflow-hidden bg-slate-100 flex-shrink-0">
+                                    <div className="relative h-4 w-4 rounded-full overflow-hidden bg-slate-100 shrink-0">
                                       <Image src={storeLogo} alt={storeName || 'Store'} fill className="object-cover" sizes="16px" />
                                     </div>
                                   ) : (
-                                    <Store className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                                    <Store className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                                   )}
                                   <span className="text-xs text-slate-600 font-medium truncate">{storeName || 'Unknown Store'}</span>
                                 </div>
@@ -384,7 +384,7 @@ export function OrdersList() {
                                       {o.itemCount} {o.itemCount === 1 ? 'item' : 'items'}
                                     </span>
                                   </div>
-                                  <div className="flex-shrink-0">
+                                  <div className="shrink-0">
                                     {o.status === 'PENDING' && o.paymentStatus !== 'PAID' ? (
                                       <>
                                         {/* Short button for desktop - replaces badge */}

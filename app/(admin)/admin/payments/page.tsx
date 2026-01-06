@@ -52,8 +52,7 @@ import {
   Hash,
   Mail,
 } from 'lucide-react';
-
-import { XenditMetadataDisplay } from '@/src/features/admin/components/payments/xendit-metadata-display';
+import { PaymentMetadataDisplay } from '@/src/features/admin/components/payments/payment-metadata-display';
 
 type PaymentMethod = 'CASH' | 'BANK_TRANSFER' | 'GCASH' | 'MAYA' | 'OTHERS';
 type PaymentStatus = 'VERIFIED' | 'PENDING' | 'DECLINED' | 'PROCESSING' | 'FAILED' | 'REFUND_PENDING' | 'REFUNDED' | 'CANCELLED';
@@ -299,7 +298,7 @@ function PaymentCard({ payment, onVerify, onDecline, index }: { payment: Payment
             </div>
 
             {/* Xendit Metadata */}
-            {payment.metadata && <XenditMetadataDisplay metadata={payment.metadata as Record<string, unknown>} className="border-0 shadow-none" />}
+            {payment.metadata && <PaymentMetadataDisplay metadata={payment.metadata as Record<string, unknown>} className="border-0 shadow-none" />}
           </div>
 
           <AlertDialogFooter>
