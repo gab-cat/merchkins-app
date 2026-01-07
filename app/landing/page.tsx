@@ -9,7 +9,8 @@ import { ServicesSection } from '@/src/components/landing/ServicesSection';
 import Head from 'next/head';
 import { BUSINESS_NAME, BUSINESS_DESCRIPTION } from '@/src/constants/business-info';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://merchkins.com';
+// Always use merchkins.com for landing page, regardless of access domain
+const LANDING_BASE_URL = 'https://merchkins.com';
 
 export default function LandingPage() {
   // JSON-LD structured data for SEO
@@ -17,13 +18,13 @@ export default function LandingPage() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: BUSINESS_NAME,
-    url: baseUrl,
+    url: LANDING_BASE_URL,
     description: BUSINESS_DESCRIPTION,
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: `${baseUrl}/search?q={search_term_string}`,
+        urlTemplate: `${LANDING_BASE_URL}/search?q={search_term_string}`,
       },
       'query-input': 'required name=search_term_string',
     },
@@ -33,8 +34,8 @@ export default function LandingPage() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: BUSINESS_NAME,
-    url: baseUrl,
-    logo: `${baseUrl}/favicon.ico`,
+    url: LANDING_BASE_URL,
+    logo: `${LANDING_BASE_URL}/favicon.ico`,
     description: BUSINESS_DESCRIPTION,
     sameAs: [
       // Add social media URLs when available

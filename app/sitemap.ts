@@ -4,6 +4,8 @@ import { api } from '@/convex/_generated/api';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.merchkins.com';
+  // Always use merchkins.com for landing page in sitemap
+  const LANDING_BASE_URL = 'https://merchkins.com';
 
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
@@ -24,9 +26,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     });
 
-    // Add landing page
+    // Add landing page (always use merchkins.com domain, root URL since proxy rewrites to /landing)
     sitemapEntries.push({
-      url: `${baseUrl}/landing`,
+      url: LANDING_BASE_URL,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1.0,

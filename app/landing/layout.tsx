@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://merchkins.com';
+// Always use merchkins.com for landing page canonical, regardless of access domain
+const LANDING_BASE_URL = 'https://app.merchkins.com';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(baseUrl),
+  metadataBase: new URL(LANDING_BASE_URL),
   icons: {
     icon: '/favicon.ico',
   },
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
   creator: 'Merchkins',
   publisher: 'Merchkins',
   alternates: {
-    canonical: `${baseUrl}/landing`,
+    canonical: 'https://merchkins.com',
   },
   robots: {
     index: true,
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
     title: 'Merchkins — The All-in-One Platform for Independent Sellers',
     description:
       'Run your entire business in one place. Custom storefronts, unified order management, payment processing, fulfillment, and omni-channel support for artists, freelancers, and SMEs.',
-    url: `${baseUrl}/landing`,
+    url: 'https://merchkins.com',
     type: 'website',
     siteName: 'Merchkins',
     locale: 'en_PH',
