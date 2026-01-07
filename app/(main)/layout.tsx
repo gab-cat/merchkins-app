@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   title: 'Shop',
   description:
     'Browse and shop from independent sellers, artists, and SMEs. Find unique merchandise, support local businesses, and enjoy seamless ordering.',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function MainLayout({ children }: { children: ReactNode }) {

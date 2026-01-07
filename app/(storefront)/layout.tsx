@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   description: 'Discover unique custom merchandise from top organizations. Shop personalized products and support your favorite creators.',
   keywords: ['custom merch', 'personalized products', 'merchandise', 'organization store', 'branded products'],
   authors: [{ name: 'Merchkins' }],
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function StorefrontLayout({ children }: { children: ReactNode }) {

@@ -75,6 +75,10 @@ export async function generateMetadata(): Promise<Metadata> {
       'Discover unique custom merchandise from top organizations. Shop personalized products, browse featured categories, and support your favorite creators on Merchkins.',
     keywords: ['custom merch', 'personalized products', 'merchandise', 'custom printing', 'unique gifts'],
     authors: [{ name: 'Merchkins' }],
+    icons: {
+      icon: '/favicon.ico',
+      apple: '/apple-touch-icon.png',
+    },
     openGraph: {
       title: 'Merchkins Storefront — Custom Merch Made Easy',
       description: 'Discover unique custom merchandise from top organizations. Shop personalized products and support your favorite creators.',
@@ -82,12 +86,21 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: 'Merchkins',
       locale: 'en_US',
       type: 'website',
+      images: [
+        {
+          url: '/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: 'Merchkins Storefront — Custom Merch Made Easy',
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: 'Merchkins Storefront — Custom Merch Made Easy',
       description: 'Discover unique custom merchandise from top organizations. Shop personalized products and support your favorite creators.',
       creator: '@merchkins',
+      images: ['/og-image.png'],
     },
     alternates: {
       canonical: baseUrl,
