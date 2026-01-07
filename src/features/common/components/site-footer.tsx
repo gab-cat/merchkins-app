@@ -150,12 +150,7 @@ export function SiteFooter() {
           {/* Merchkins */}
           <BlurFade delay={0.1}>
             <div className="space-y-2">
-              <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">{BUSINESS_NAME}</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">{BUSINESS_DESCRIPTION}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                DTI No.: <span className="font-semibold text-primary">{BUSINESS_DTI_NUMBER}</span> | TIN:{' '}
-                <span className="font-semibold text-primary">{BUSINESS_TIN_NUMBER}</span>
-              </p>
+              <h4 className="text-xs font-semibold uppercase tracking-wider mb-2 text-primary">{BUSINESS_SHORT_NAME}</h4>
               <p className="text-sm text-muted-foreground leading-relaxed mt-2">
                 The all-in-one platform for sellers, freelancers, and SMEs. Unified ordering, payments, fulfillment, and omni-channel customer
                 support.{' '}

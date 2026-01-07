@@ -173,16 +173,21 @@ export const createPaymongoCheckout = internalAction({
         }
       }
 
-      // Add voucher discount as negative line item if applicable
-      if (totalVoucherDiscount > 0) {
-        const voucherCode = orders.find((o) => o?.voucherCode)?.voucherCode || 'VOUCHER';
-        lineItems.push({
-          name: `Discount: ${voucherCode}`,
-          quantity: 1,
-          amount: -toCentavos(totalVoucherDiscount),
-          currency: 'PHP',
-          description: 'Voucher discount applied',
-        });
+      // Apply voucher discount proportionally to line items (Paymongo doesn't allow negative amounts)
+      if (totalVoucherDiscount > 0 && lineItems.length > 0) {
+        // Calculate original subtotal from line items
+        const originalSubtotal = lineItems.reduce((sum, item) => sum + item.amount * item.quantity, 0);
+        
+        if (originalSubtotal > 0) {
+          // Calculate discount ratio
+          const discountRatio = (originalSubtotal - toCentavos(totalVoucherDiscount)) / originalSubtotal;
+          
+          // Apply discount proportionally to each line item
+          for (const lineItem of lineItems) {
+            // Round to nearest centavo to avoid floating point issues
+            lineItem.amount = Math.round(lineItem.amount * discountRatio);
+          }
+        }
       }
     } else if (!args.items && args.orderId) {
       // Single order - build items from order
@@ -227,15 +232,21 @@ export const createPaymongoCheckout = internalAction({
           };
         });
 
-        // Add voucher discount if applicable
-        if (totalVoucherDiscount > 0 && order.voucherCode) {
-          lineItems.push({
-            name: `Discount: ${order.voucherCode}`,
-            quantity: 1,
-            amount: -toCentavos(totalVoucherDiscount),
-            currency: 'PHP',
-            description: 'Voucher discount applied',
-          });
+        // Apply voucher discount proportionally to line items (Paymongo doesn't allow negative amounts)
+        if (totalVoucherDiscount > 0 && lineItems.length > 0) {
+          // Calculate original subtotal from line items
+          const originalSubtotal = lineItems.reduce((sum, item) => sum + item.amount * item.quantity, 0);
+          
+          if (originalSubtotal > 0) {
+            // Calculate discount ratio
+            const discountRatio = (originalSubtotal - toCentavos(totalVoucherDiscount)) / originalSubtotal;
+            
+            // Apply discount proportionally to each line item
+            for (const lineItem of lineItems) {
+              // Round to nearest centavo to avoid floating point issues
+              lineItem.amount = Math.round(lineItem.amount * discountRatio);
+            }
+          }
         }
       }
     } else if (args.items) {
@@ -264,11 +275,16 @@ export const createPaymongoCheckout = internalAction({
 
     // Validate that line items total matches the amount parameter
     // PayMongo charges based on line_items, so this validation is critical
+    // Allow ±2 centavos tolerance for rounding errors when dealing with multiple orders and discounts
     const lineItemsTotal = lineItems.reduce((sum, item) => sum + item.amount * item.quantity, 0);
     const expectedAmount = toCentavos(args.amount);
-    if (lineItemsTotal !== expectedAmount) {
+    const difference = Math.abs(lineItemsTotal - expectedAmount);
+    const ROUNDING_TOLERANCE = 2; // Allow up to 2 centavos difference for rounding errors
+    
+    if (difference > ROUNDING_TOLERANCE) {
       throw new Error(
         `Line items total (${lineItemsTotal} centavos) does not match amount parameter (${expectedAmount} centavos). ` +
+          `Difference: ${difference} centavos. ` +
           `This mismatch would cause incorrect charges. Please verify the order totals and voucher discounts.`
       );
     }
@@ -372,7 +388,19 @@ export const createPaymongoCheckout = internalAction({
       };
     } catch (error) {
       console.error('Error creating Paymongo checkout session:', error);
-      throw new Error('Failed to create payment checkout session');
+      
+      // Preserve the original error message if it's an Error instance
+      if (error instanceof Error) {
+        // If it's already a validation error or API error, preserve the message
+        if (error.message.includes('Line items total') || error.message.includes('Paymongo API error')) {
+          throw error;
+        }
+        // Otherwise, wrap with context
+        throw new Error(`Failed to create payment checkout session: ${error.message}`);
+      }
+      
+      // Fallback for non-Error instances
+      throw new Error(`Failed to create payment checkout session: ${String(error)}`);
     }
   },
 });

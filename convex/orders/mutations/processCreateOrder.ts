@@ -336,7 +336,7 @@ export const processCreateOrder = async (ctx: MutationCtx, args: ProcessCreateOr
       }
     } else {
       if (voucher.organizationId && voucher.organizationId !== args.organizationId) {
-        throw new Error('This voucher is only valid for a specific store');
+        throw new Error('This voucher is only valid for a specific store. To use this voucher, please checkout from the same store only.');
       }
     }
 

@@ -59,12 +59,12 @@ export function ProductCard({
         <Card className="relative flex h-full flex-col overflow-hidden rounded-2xl border-0 bg-card shadow-md py-0 transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-primary/10">
           {/* Gradient border effect on hover */}
           <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-            <div className="absolute inset-[1px] rounded-2xl bg-card" />
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/50 via-transparent to-brand-neon/30" />
+            <div className="absolute inset-px rounded-2xl bg-card" />
+            <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-primary/50 via-transparent to-brand-neon/30" />
           </div>
 
           {/* Image container */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-secondary to-secondary/50">
+          <div className="relative aspect-4/3 w-full overflow-hidden bg-linear-to-br from-secondary to-secondary/50">
             <div className="absolute inset-0 h-full w-full">
               <R2Image
                 fileKey={imageUrl?.[0]}
@@ -90,7 +90,7 @@ export function ProductCard({
             </div>
 
             {/* Hover overlay with gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 z-10" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 z-10" />
 
             {/* Quick view indicator */}
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-20">

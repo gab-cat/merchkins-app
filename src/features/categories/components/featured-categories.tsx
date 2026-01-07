@@ -53,37 +53,24 @@ interface FeaturedCategoriesProps {
   preloadedCategories?: Preloaded<typeof api.categories.queries.index.getCategories>;
 }
 
-export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCategories }: FeaturedCategoriesProps = {}) {
-  const organization = preloadedOrganization
-    ? usePreloadedQuery(preloadedOrganization)
-    : useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string }));
+// Type for category data
+type CategoryData = {
+  _id: string;
+  slug: string;
+  name: string;
+  color?: string;
+  activeProductCount?: number;
+};
+
+// Inner component shared by both variants
+interface FeaturedCategoriesInnerProps {
+  orgSlug?: string;
+  categories: CategoryData[];
+  loading: boolean;
+}
+
+function FeaturedCategoriesInner({ orgSlug, categories, loading }: FeaturedCategoriesInnerProps) {
   const { buildOrgLink } = useOrgLink(orgSlug);
-
-  // First try to get featured categories
-  const featuredResult = preloadedCategories
-    ? usePreloadedQuery(preloadedCategories)
-    : useQuery(
-        api.categories.queries.index.getCategories,
-        organization?._id
-          ? { organizationId: organization._id, isFeatured: true, isActive: true, limit: 6 }
-          : { isFeatured: true, isActive: true, limit: 6 }
-      );
-
-  // If no featured categories, fall back to popular categories
-  const popularResult = useQuery(
-    api.categories.queries.index.getPopularCategories,
-    organization?._id ? { organizationId: organization._id, limit: 6, includeEmpty: false } : { limit: 6, includeEmpty: false }
-  );
-
-  const loading = featuredResult === undefined;
-  const featuredCategories = featuredResult?.categories ?? [];
-  const popularCategories = (popularResult ?? []).map((cat) => ({
-    ...cat,
-    _id: cat.id, // Normalize id to _id for consistency
-  }));
-
-  // Use featured categories if available, otherwise fall back to popular categories
-  const categories = featuredCategories.length > 0 ? featuredCategories : popularCategories;
 
   return (
     <div className="space-y-8">
@@ -205,7 +192,9 @@ export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCa
                       {/* Product count */}
                       <div className="flex items-center gap-2">
                         <span className={cn('text-muted-foreground', isLarge ? 'text-sm' : 'text-xs')}>
-                          {c.activeProductCount > 0 ? `${c.activeProductCount} product${c.activeProductCount !== 1 ? 's' : ''}` : 'Coming soon'}
+                          {c.activeProductCount !== undefined && c.activeProductCount > 0
+                            ? `${c.activeProductCount} product${c.activeProductCount !== 1 ? 's' : ''}`
+                            : 'Coming soon'}
                         </span>
 
                         {/* Arrow indicator on large card */}
@@ -244,4 +233,67 @@ export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCa
       )}
     </div>
   );
+}
+
+// Variant that uses preloaded queries (for server-side preloading)
+function FeaturedCategoriesPreloaded({
+  orgSlug,
+  preloadedOrganization,
+  preloadedCategories,
+}: {
+  orgSlug?: string;
+  preloadedOrganization: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug>;
+  preloadedCategories: Preloaded<typeof api.categories.queries.index.getCategories>;
+}) {
+  usePreloadedQuery(preloadedOrganization); // Hydrate but don't need the result
+  const featuredResult = usePreloadedQuery(preloadedCategories);
+  const loading = featuredResult === undefined;
+  const categories = (featuredResult?.categories ?? []) as CategoryData[];
+
+  return <FeaturedCategoriesInner orgSlug={orgSlug} categories={categories} loading={loading} />;
+}
+
+// Variant that uses regular queries (for client-side fetching)
+function FeaturedCategoriesQuery({ orgSlug }: { orgSlug?: string }) {
+  const organization = useQuery(
+    api.organizations.queries.index.getOrganizationBySlug,
+    orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
+  );
+
+  // First try to get featured categories
+  const featuredResult = useQuery(
+    api.categories.queries.index.getCategories,
+    organization?._id
+      ? { organizationId: organization._id, isFeatured: true, isActive: true, limit: 6 }
+      : { isFeatured: true, isActive: true, limit: 6 }
+  );
+
+  // If no featured categories, fall back to popular categories
+  const popularResult = useQuery(
+    api.categories.queries.index.getPopularCategories,
+    organization?._id ? { organizationId: organization._id, limit: 6, includeEmpty: false } : { limit: 6, includeEmpty: false }
+  );
+
+  const loading = featuredResult === undefined;
+  const featuredCategories = (featuredResult?.categories ?? []) as CategoryData[];
+  const popularCategories = (popularResult ?? []).map((cat) => ({
+    ...cat,
+    _id: cat.id, // Normalize id to _id for consistency
+  })) as CategoryData[];
+
+  // Use featured categories if available, otherwise fall back to popular categories
+  const categories = featuredCategories.length > 0 ? featuredCategories : popularCategories;
+
+  return <FeaturedCategoriesInner orgSlug={orgSlug} categories={categories} loading={loading} />;
+}
+
+// Main export: chooses between preloaded and query variants
+export function FeaturedCategories({ orgSlug, preloadedOrganization, preloadedCategories }: FeaturedCategoriesProps = {}) {
+  // Use preloaded variant if both preloaded queries are provided
+  if (preloadedOrganization && preloadedCategories) {
+    return <FeaturedCategoriesPreloaded orgSlug={orgSlug} preloadedOrganization={preloadedOrganization} preloadedCategories={preloadedCategories} />;
+  }
+
+  // Otherwise use client-side queries
+  return <FeaturedCategoriesQuery orgSlug={orgSlug} />;
 }

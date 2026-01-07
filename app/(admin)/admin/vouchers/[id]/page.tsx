@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,6 +30,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Combobox } from '@/components/ui/combobox';
 
 // Admin Components
 import { PageHeader } from '@/src/components/admin/page-header';
@@ -45,6 +46,7 @@ const voucherSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   description: z.string().optional(),
   discountValue: z.coerce.number().min(0, 'Discount value must be positive'),
+  freeItemProductId: z.string().optional(),
   minOrderAmount: z.coerce.number().min(0).optional(),
   maxDiscountAmount: z.coerce.number().min(0).optional(),
   usageLimit: z.coerce.number().min(0).optional(),
@@ -110,6 +112,15 @@ export default function AdminEditVoucherPage() {
   const voucher = useQuery(api.vouchers.queries.index.getVoucherById, { voucherId: voucherId as Id<'vouchers'> });
   const updateVoucher = useMutation(api.vouchers.mutations.index.updateVoucher);
   const deleteVoucher = useMutation(api.vouchers.mutations.index.deleteVoucher);
+  const products = useQuery(
+    api.products.queries.index.getProducts,
+    voucher?.organizationId
+      ? {
+          organizationId: voucher.organizationId,
+          limit: 100,
+        }
+      : 'skip'
+  );
 
   // State
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -128,6 +139,7 @@ export default function AdminEditVoucherPage() {
       name: '',
       description: '',
       discountValue: 0,
+      freeItemProductId: undefined,
       minOrderAmount: undefined,
       maxDiscountAmount: undefined,
       usageLimit: undefined,
@@ -139,6 +151,18 @@ export default function AdminEditVoucherPage() {
   });
 
   const isActive = watch('isActive');
+  const freeItemProductId = watch('freeItemProductId');
+
+  // Prepare product options for combobox
+  const productOptions = useMemo(() => {
+    if (!products?.products) return [];
+    return products.products.map((product) => ({
+      value: product._id,
+      label: product.title,
+      imageUrl: product.imageUrl?.[0],
+      price: product.minPrice,
+    }));
+  }, [products]);
 
   // Populate form when voucher data loads
   useEffect(() => {
@@ -147,6 +171,7 @@ export default function AdminEditVoucherPage() {
         name: voucher.name,
         description: voucher.description || '',
         discountValue: voucher.discountValue,
+        freeItemProductId: voucher.freeItemProductId || undefined,
         minOrderAmount: voucher.minOrderAmount || undefined,
         maxDiscountAmount: voucher.maxDiscountAmount || undefined,
         usageLimit: voucher.usageLimit || undefined,
@@ -179,6 +204,16 @@ export default function AdminEditVoucherPage() {
         setSubmitError('Fixed amount must be greater than 0');
         return;
       }
+      if (voucher?.discountType === 'FREE_ITEM') {
+        if (!values.freeItemProductId) {
+          setSubmitError('Please select a product for the free item');
+          return;
+        }
+        if (values.discountValue <= 0) {
+          setSubmitError('Quantity must be at least 1');
+          return;
+        }
+      }
 
       await promiseToast(
         updateVoucher({
@@ -186,6 +221,7 @@ export default function AdminEditVoucherPage() {
           name: values.name,
           description: values.description || undefined,
           discountValue: values.discountValue,
+          freeItemProductId: voucher?.discountType === 'FREE_ITEM' && values.freeItemProductId ? (values.freeItemProductId as Id<'products'>) : undefined,
           minOrderAmount: values.minOrderAmount || undefined,
           maxDiscountAmount: values.maxDiscountAmount || undefined,
           usageLimit: values.usageLimit || undefined,
@@ -296,41 +332,79 @@ export default function AdminEditVoucherPage() {
 
           {/* Discount Configuration */}
           <FormCard title="Discount Configuration" icon={Percent}>
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                label={voucher.discountType === 'PERCENTAGE' ? 'Percentage' : 'Amount'}
-                name="discountValue"
-                required
-                error={errors.discountValue?.message}
-              >
-                <div className="relative">
+            {voucher.discountType === 'FREE_ITEM' ? (
+              <div className="space-y-4">
+                <FormField
+                  label="Free Item Product"
+                  name="freeItemProductId"
+                  required
+                  error={errors.freeItemProductId?.message}
+                  hint="Select the product to give away for free"
+                >
+                  <Combobox
+                    options={productOptions}
+                    value={freeItemProductId}
+                    onValueChange={(value) => setValue('freeItemProductId', value)}
+                    placeholder="Select a product..."
+                    searchPlaceholder="Search products..."
+                    emptyText="No products found"
+                  />
+                </FormField>
+
+                <FormField
+                  label="Quantity"
+                  name="discountValue"
+                  required
+                  error={errors.discountValue?.message}
+                  hint="Number of free items to give"
+                >
                   <Input
                     type="number"
                     {...register('discountValue')}
-                    className="pr-12"
+                    placeholder="1"
+                    min={1}
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                    {voucher.discountType === 'PERCENTAGE' ? '%' : '₱'}
-                  </span>
-                </div>
-              </FormField>
+                </FormField>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    label={voucher.discountType === 'PERCENTAGE' ? 'Percentage' : 'Amount'}
+                    name="discountValue"
+                    required
+                    error={errors.discountValue?.message}
+                  >
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        {...register('discountValue')}
+                        className="pr-12"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                        {voucher.discountType === 'PERCENTAGE' ? '%' : '₱'}
+                      </span>
+                    </div>
+                  </FormField>
 
-              {voucher.discountType === 'PERCENTAGE' && (
-                <FormField label="Maximum Discount" name="maxDiscountAmount" hint="Cap the discount amount">
+                  {voucher.discountType === 'PERCENTAGE' && (
+                    <FormField label="Maximum Discount" name="maxDiscountAmount" hint="Cap the discount amount">
+                      <div className="relative">
+                        <Input type="number" {...register('maxDiscountAmount')} placeholder="500" className="pr-8" />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₱</span>
+                      </div>
+                    </FormField>
+                  )}
+                </div>
+
+                <FormField label="Minimum Order Amount" name="minOrderAmount" hint="Require a minimum spend">
                   <div className="relative">
-                    <Input type="number" {...register('maxDiscountAmount')} placeholder="500" className="pr-8" />
+                    <Input type="number" {...register('minOrderAmount')} placeholder="0" className="pr-8" />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₱</span>
                   </div>
                 </FormField>
-              )}
-            </div>
-
-            <FormField label="Minimum Order Amount" name="minOrderAmount" hint="Require a minimum spend">
-              <div className="relative">
-                <Input type="number" {...register('minOrderAmount')} placeholder="0" className="pr-8" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₱</span>
-              </div>
-            </FormField>
+              </>
+            )}
           </FormCard>
 
           {/* Usage Limits */}

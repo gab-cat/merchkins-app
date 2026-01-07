@@ -36,17 +36,16 @@ type PopularOrg = {
   isMember?: boolean;
 };
 
-export function PopularOrganizations({ limit = 8, preloadedOrganizations }: PopularOrganizationsProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+// Inner component shared by both variants
+interface PopularOrganizationsInnerProps {
+  organizations: PopularOrg[];
+  loading: boolean;
+}
 
-  const result = preloadedOrganizations
-    ? usePreloadedQuery(preloadedOrganizations)
-    : useQuery(api.organizations.queries.index.getPopularOrganizations, { limit });
+function PopularOrganizationsInner({ organizations, loading }: PopularOrganizationsInnerProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const joinPublic = useMutation(api.organizations.mutations.index.joinPublicOrganization);
   const requestJoin = useMutation(api.organizations.mutations.index.requestToJoinOrganization);
-
-  const loading = result === undefined;
-  const organizations = (result?.organizations ?? []) as unknown as PopularOrg[];
 
   // Featured org is the first one, rest are regular
   const featuredOrg = organizations[0];
@@ -379,4 +378,37 @@ export function PopularOrganizations({ limit = 8, preloadedOrganizations }: Popu
       )}
     </div>
   );
+}
+
+// Variant that uses preloaded query (for server-side preloading)
+function PopularOrganizationsPreloaded({
+  preloadedOrganizations,
+}: {
+  preloadedOrganizations: Preloaded<typeof api.organizations.queries.index.getPopularOrganizations>;
+}) {
+  const result = usePreloadedQuery(preloadedOrganizations);
+  const loading = result === undefined;
+  const organizations = (result?.organizations ?? []) as unknown as PopularOrg[];
+
+  return <PopularOrganizationsInner organizations={organizations} loading={loading} />;
+}
+
+// Variant that uses regular query (for client-side fetching)
+function PopularOrganizationsQuery({ limit = 8 }: { limit?: number }) {
+  const result = useQuery(api.organizations.queries.index.getPopularOrganizations, { limit });
+  const loading = result === undefined;
+  const organizations = (result?.organizations ?? []) as unknown as PopularOrg[];
+
+  return <PopularOrganizationsInner organizations={organizations} loading={loading} />;
+}
+
+// Main export: chooses between preloaded and query variants
+export function PopularOrganizations({ limit = 8, preloadedOrganizations }: PopularOrganizationsProps) {
+  // Use preloaded variant if preloaded query is provided
+  if (preloadedOrganizations) {
+    return <PopularOrganizationsPreloaded preloadedOrganizations={preloadedOrganizations} />;
+  }
+
+  // Otherwise use client-side query
+  return <PopularOrganizationsQuery limit={limit} />;
 }

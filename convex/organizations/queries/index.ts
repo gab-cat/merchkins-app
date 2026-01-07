@@ -14,6 +14,7 @@ import { getPopularOrganizationsArgs, getPopularOrganizationsHandler } from './g
 import { getMyJoinRequestStatusArgs, getMyJoinRequestStatusHandler, getMyJoinRequestStatusReturns } from './getMyJoinRequestStatus';
 import { getChatwootConfigArgs, getChatwootConfigHandler } from './getChatwootConfig';
 import { getOrganizationByNameArgs, getOrganizationByNameHandler, getOrganizationByNameReturns } from './getOrganizationByName';
+import { checkStorefrontAccessArgs, checkStorefrontAccessHandler, checkStorefrontAccessReturns } from './checkStorefrontAccess';
 
 export const getOrganizationById = query({
   args: getOrganizationByIdArgs,
@@ -81,4 +82,9 @@ export const getOrganizationByName = query({
   args: getOrganizationByNameArgs,
   returns: getOrganizationByNameReturns,
   handler: getOrganizationByNameHandler,
+});
+export const checkStorefrontAccess = query({
+  args: checkStorefrontAccessArgs,
+  returns: checkStorefrontAccessReturns,
+  handler: checkStorefrontAccessHandler,
 });

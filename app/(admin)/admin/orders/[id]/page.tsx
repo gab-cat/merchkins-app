@@ -149,12 +149,16 @@ function LineItemImage({ imageKey }: { imageKey?: string }) {
 
 // Order item card component
 function OrderItemCard({ item, index }: { item: OrderItem; index: number }) {
-  return (
+  const productId = item.productInfo?.productId;
+  const content = (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:shadow-sm transition-shadow"
+      className={cn(
+        'flex items-start gap-3 p-3 rounded-lg border bg-card transition-all',
+        productId && 'hover:shadow-md hover:border-primary/30 cursor-pointer'
+      )}
     >
       <LineItemImage imageKey={item.productInfo?.imageUrl?.[0]} />
       <div className="flex-1 min-w-0">
@@ -176,6 +180,12 @@ function OrderItemCard({ item, index }: { item: OrderItem; index: number }) {
       </div>
     </motion.div>
   );
+
+  if (productId) {
+    return <Link href={`/admin/products/${productId}`}>{content}</Link>;
+  }
+
+  return content;
 }
 
 // Summary row component - compact version

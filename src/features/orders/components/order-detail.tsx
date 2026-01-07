@@ -42,6 +42,8 @@ import { buildR2PublicUrl } from '@/lib/utils';
 
 interface OrderItemUI {
   productInfo: {
+    productId?: string;
+    slug?: string;
     imageUrl?: string[];
     title: string;
     variantName?: string | null;
@@ -444,8 +446,16 @@ export function OrderDetail({ orderId }: { orderId: string }) {
               {items.map((it, idx) => {
                 const unitPrice = it.price ?? 0;
                 const subtotal = unitPrice * it.quantity;
-                return (
-                  <div key={idx} className="flex items-start gap-4 p-4 bg-white hover:bg-slate-50/50 transition-colors">
+                const productSlug = it.productInfo?.slug;
+                const orgSlug = order.organizationInfo?.slug;
+                const canLink = productSlug && orgSlug;
+
+                const itemContent = (
+                  <div
+                    className={`flex items-start gap-4 p-4 bg-white transition-all ${
+                      canLink ? 'hover:bg-slate-50 cursor-pointer' : 'hover:bg-slate-50/50'
+                    }`}
+                  >
                     <ProductImage imageKey={it.productInfo.imageUrl?.[0]} />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-slate-900 text-sm truncate">{it.productInfo.title}</p>
@@ -478,6 +488,14 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                       {it.quantity > 1 && <p className="text-[10px] text-slate-400 mt-0.5">subtotal</p>}
                     </div>
                   </div>
+                );
+
+                return canLink ? (
+                  <Link key={idx} href={`/o/${orgSlug}/p/${productSlug}`}>
+                    {itemContent}
+                  </Link>
+                ) : (
+                  <div key={idx}>{itemContent}</div>
                 );
               })}
               {items.length === 0 && <div className="p-8 text-center text-slate-400 text-sm">No items in this order</div>}

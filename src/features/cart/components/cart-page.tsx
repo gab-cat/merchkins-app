@@ -220,33 +220,26 @@ function CartSkeleton() {
 function EmptyCart() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="max-w-md mx-auto px-4 py-16 text-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          {/* Animated icon */}
-          <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ delay: 0.1, duration: 0.4 }} className="relative mb-8">
-            <div className="relative h-28 w-28 mx-auto rounded-3xl bg-linear-to-br from-[#1d43d8]/10 to-brand-neon/10 flex items-center justify-center border border-[#1d43d8]/10">
-              <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
-                <ShoppingCart className="h-12 w-12 text-[#1d43d8]/50" />
-              </motion.div>
-            </div>
-            <motion.div
-              className="absolute -top-1 -right-4 h-4 w-4 rounded-full bg-brand-neon"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+      <div className="max-w-sm mx-auto px-4 py-12 text-center">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          {/* Icon container */}
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+            className="h-20 w-20 mx-auto mb-5 rounded-2xl bg-[#1d43d8]/10 flex items-center justify-center"
+          >
+            <ShoppingCart className="h-9 w-9 text-[#1d43d8]/60" />
           </motion.div>
 
-          <h1 className="text-2xl font-bold mb-3 font-heading text-slate-900">Your cart is empty</h1>
-          <p className="text-slate-500 mb-8 text-base">Browse our products and add items to your cart to get started.</p>
+          <h1 className="text-lg font-bold mb-2 font-heading text-slate-900">Your cart is empty</h1>
+          <p className="text-slate-500 text-sm mb-6">Browse our products and add items to your cart.</p>
 
           <Link href="/">
-            <Button
-              size="lg"
-              className="group bg-[#1d43d8] hover:bg-[#1d43d8]/90 rounded-full px-8 h-12 text-base font-semibold shadow-lg shadow-[#1d43d8]/25 transition-all duration-300 hover:scale-105"
-            >
+            <Button className="bg-[#1d43d8] hover:bg-[#1d43d8]/90 rounded-full px-6 h-10 font-semibold shadow-md shadow-[#1d43d8]/20">
               <ShoppingBag className="mr-2 h-4 w-4" />
               Start Shopping
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </motion.div>

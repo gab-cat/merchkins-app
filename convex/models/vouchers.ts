@@ -31,6 +31,11 @@ export const vouchers = defineTable({
   applicableProductIds: v.optional(v.array(v.id('products'))), // Specific products only
   applicableCategoryIds: v.optional(v.array(v.id('categories'))), // Specific categories only
 
+  // Free item configuration (for FREE_ITEM type)
+  freeItemProductId: v.optional(v.id('products')), // Product to give for free
+  freeItemVariantId: v.optional(v.string()), // Variant of the product (if applicable)
+  freeItemQuantity: v.optional(v.number()), // Quantity of free items (default 1)
+
   // Usage limits
   usageLimit: v.optional(v.number()), // Total times voucher can be used
   usageLimitPerUser: v.optional(v.number()), // Times per user (default 1)

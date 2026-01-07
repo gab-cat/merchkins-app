@@ -3,6 +3,7 @@ import { createVoucherArgs, createVoucherHandler } from './createVoucher';
 import { updateVoucherArgs, updateVoucherHandler } from './updateVoucher';
 import { deleteVoucherArgs, deleteVoucherHandler } from './deleteVoucher';
 import { toggleVoucherStatusArgs, toggleVoucherStatusHandler } from './toggleVoucherStatus';
+import { validateVoucherArgs, validateVoucherHandler } from './validateVoucher';
 
 export const createVoucher = mutation({
   args: createVoucherArgs,
@@ -22,4 +23,9 @@ export const deleteVoucher = mutation({
 export const toggleVoucherStatus = mutation({
   args: toggleVoucherStatusArgs,
   handler: toggleVoucherStatusHandler,
+});
+
+export const validateVoucher = mutation({
+  args: validateVoucherArgs,
+  handler: validateVoucherHandler,
 });

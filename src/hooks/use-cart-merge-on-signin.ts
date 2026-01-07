@@ -90,6 +90,24 @@ export function useCartMergeOnSignIn() {
     setShowDialog(open);
   };
 
+  const handleDiscardItem = (productId: string, variantId?: string, sizeId?: string) => {
+    // Check if this is the last item before removing
+    const isLastItem = guestCart.items.length === 1;
+
+    guestCart.removeItemByProduct(productId, variantId, sizeId);
+
+    if (isLastItem) {
+      hasDismissedRef.current = true;
+      setShowDialog(false);
+    }
+  };
+
+  const handleDiscardAll = () => {
+    guestCart.clear();
+    hasDismissedRef.current = true;
+    setShowDialog(false);
+  };
+
   return {
     showDialog,
     items: guestCart.items,
@@ -97,5 +115,7 @@ export function useCartMergeOnSignIn() {
     onConfirm: handleConfirm,
     onCancel: handleCancel,
     onOpenChange: handleOpenChange,
+    onDiscardItem: handleDiscardItem,
+    onDiscardAll: handleDiscardAll,
   };
 }

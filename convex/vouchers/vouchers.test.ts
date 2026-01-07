@@ -41,7 +41,7 @@ describe('Vouchers Domain', () => {
       it('should return NOT_FOUND for non-existent voucher code', async () => {
         const t = convexTest(schema, modules);
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'NONEXISTENT',
           orderAmount: 100,
         });
@@ -69,7 +69,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'INACTIVE-VOUCHER',
           orderAmount: 100,
         });
@@ -96,7 +96,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'EXPIRED-VOUCHER',
           orderAmount: 100,
         });
@@ -122,7 +122,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'FUTURE-VOUCHER',
           orderAmount: 100,
         });
@@ -149,7 +149,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'EXHAUSTED-VOUCHER',
           orderAmount: 100,
         });
@@ -211,7 +211,7 @@ describe('Vouchers Domain', () => {
           });
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'USER-LIMIT-VOUCHER',
           userId,
           orderAmount: 100,
@@ -238,7 +238,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'MIN-ORDER-VOUCHER',
           orderAmount: 100, // Below minimum
         });
@@ -273,7 +273,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'ORG-VOUCHER',
           organizationId: differentOrgId, // Wrong org
           orderAmount: 100,
@@ -303,7 +303,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'PERCENT10',
           orderAmount: 1000,
         });
@@ -331,7 +331,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'PERCENT50-CAPPED',
           orderAmount: 1000,
         });
@@ -358,7 +358,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'FIXED100',
           orderAmount: 500,
         });
@@ -385,7 +385,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'FIXED1000',
           orderAmount: 500, // Order is only 500
         });
@@ -416,7 +416,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'REFUND-CUSTOMER-001',
           userId: customerId,
           orderAmount: 1000,
@@ -451,7 +451,7 @@ describe('Vouchers Domain', () => {
           );
         });
 
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'REFUND-SELLER-001',
           userId: differentUserId, // Not the assigned user
           orderAmount: 1000,
@@ -489,7 +489,7 @@ describe('Vouchers Domain', () => {
         });
 
         // Should work for any organization
-        const result = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const result = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'REFUND-PLATFORM-WIDE',
           userId: customerId,
           organizationId: anyOrgId,
@@ -591,7 +591,7 @@ describe('Vouchers Domain', () => {
         });
 
         // First validation should pass
-        const firstResult = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const firstResult = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'REFUND-SINGLE-USE',
           userId,
           orderAmount: 1000,
@@ -604,7 +604,7 @@ describe('Vouchers Domain', () => {
         });
 
         // Second validation should fail
-        const secondResult = await t.query(api.vouchers.queries.index.validateVoucher, {
+        const secondResult = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
           code: 'REFUND-SINGLE-USE',
           userId,
           orderAmount: 500,

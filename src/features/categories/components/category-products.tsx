@@ -18,15 +18,16 @@ interface Props {
   preloadedProducts?: Preloaded<typeof api.products.queries.index.getProducts>;
 }
 
-export function CategoryProducts({ slug, orgSlug, preloadedOrganization, preloadedCategory, preloadedProducts }: Props) {
-  const organization = preloadedOrganization
-    ? usePreloadedQuery(preloadedOrganization)
-    : useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string }));
-  const organizationId = organization?._id;
+// Inner component that handles UI and filter state
+interface CategoryProductsInnerProps {
+  slug: string;
+  orgSlug?: string;
+  organizationId?: string;
+  category: { _id?: string; name?: string; description?: string } | null | undefined;
+  initialProducts: { products: any[]; total: number; hasMore: boolean } | null | undefined;
+}
 
-  const category = preloadedCategory
-    ? usePreloadedQuery(preloadedCategory)
-    : useQuery(api.categories.queries.index.getCategoryBySlug, organizationId ? { slug, organizationId } : { slug });
+function CategoryProductsInner({ slug: _slug, orgSlug, organizationId, category, initialProducts }: CategoryProductsInnerProps) {
   const categoryId = category?._id;
 
   type SortOption = 'newest' | 'popular' | 'rating' | 'price_low' | 'price_high';
@@ -51,36 +52,31 @@ export function CategoryProducts({ slug, orgSlug, preloadedOrganization, preload
     .map((t) => t.trim())
     .filter(Boolean);
 
-  // Only use preloaded products if filters match defaults (for initial load)
-  const usePreloaded =
-    preloadedProducts &&
-    sortBy === 'newest' &&
-    offset === 0 &&
-    priceMin === '' &&
-    priceMax === '' &&
-    minRating === '' &&
-    hasInventory === true &&
-    tagList.length === 0;
+  // Check if filters are at default values (for using initial preloaded data)
+  const isDefaultFilters =
+    sortBy === 'newest' && offset === 0 && priceMin === '' && priceMax === '' && minRating === '' && hasInventory === true && tagList.length === 0;
 
-  const productsResult = usePreloaded
-    ? usePreloadedQuery(preloadedProducts)
-    : useQuery(
-        api.products.queries.index.getProducts,
-        categoryId
-          ? {
-              ...(organizationId ? { organizationId } : {}),
-              categoryId,
-              sortBy,
-              limit,
-              offset,
-              ...(hasInventory ? { hasInventory: true } : {}),
-              ...(minVal !== undefined ? { minPrice: minVal } : {}),
-              ...(maxVal !== undefined ? { maxPrice: maxVal } : {}),
-              ...(ratingVal !== undefined ? { minRating: ratingVal } : {}),
-              ...(tagList.length > 0 ? { tags: tagList } : {}),
-            }
-          : 'skip'
-      );
+  // Use regular query for filtered results
+  const filteredResult = useQuery(
+    api.products.queries.index.getProducts,
+    categoryId && !isDefaultFilters
+      ? {
+          ...(organizationId ? { organizationId: organizationId as any } : {}),
+          categoryId: categoryId as any,
+          sortBy,
+          limit,
+          offset,
+          ...(hasInventory ? { hasInventory: true } : {}),
+          ...(minVal !== undefined ? { minPrice: minVal } : {}),
+          ...(maxVal !== undefined ? { maxPrice: maxVal } : {}),
+          ...(ratingVal !== undefined ? { minRating: ratingVal } : {}),
+          ...(tagList.length > 0 ? { tags: tagList } : {}),
+        }
+      : 'skip'
+  );
+
+  // Use initial products if filters are at defaults, otherwise use filtered result
+  const productsResult = isDefaultFilters ? initialProducts : filteredResult;
 
   const loading = productsResult === undefined || category === undefined;
   const products = productsResult?.products ?? [];
@@ -215,7 +211,7 @@ export function CategoryProducts({ slug, orgSlug, preloadedOrganization, preload
         {loading
           ? new Array(12).fill(null).map((_, i) => (
               <Card key={`skeleton-${i}`} className="overflow-hidden py-0 animate-pulse">
-                <div className="aspect-[4/3] bg-secondary skeleton" />
+                <div className="aspect-4/3 bg-secondary skeleton" />
                 <CardHeader className="space-y-2">
                   <div className="flex gap-1">
                     <span className="h-4 w-16 rounded bg-secondary" />
@@ -280,4 +276,74 @@ export function CategoryProducts({ slug, orgSlug, preloadedOrganization, preload
       )}
     </div>
   );
+}
+
+// Variant that uses preloaded queries (for server-side preloading)
+function CategoryProductsPreloaded({
+  slug,
+  orgSlug,
+  preloadedOrganization,
+  preloadedCategory,
+  preloadedProducts,
+}: {
+  slug: string;
+  orgSlug?: string;
+  preloadedOrganization: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug>;
+  preloadedCategory: Preloaded<typeof api.categories.queries.index.getCategoryBySlug>;
+  preloadedProducts: Preloaded<typeof api.products.queries.index.getProducts>;
+}) {
+  const organization = usePreloadedQuery(preloadedOrganization);
+  const category = usePreloadedQuery(preloadedCategory);
+  const initialProducts = usePreloadedQuery(preloadedProducts);
+
+  return (
+    <CategoryProductsInner slug={slug} orgSlug={orgSlug} organizationId={organization?._id} category={category} initialProducts={initialProducts} />
+  );
+}
+
+// Variant that uses regular queries (for client-side fetching)
+function CategoryProductsQuery({ slug, orgSlug }: { slug: string; orgSlug?: string }) {
+  const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
+  const organizationId = organization?._id;
+
+  const category = useQuery(api.categories.queries.index.getCategoryBySlug, organizationId ? { slug, organizationId } : { slug });
+  const categoryId = category?._id;
+
+  // Fetch initial products with default filters
+  const initialProducts = useQuery(
+    api.products.queries.index.getProducts,
+    categoryId
+      ? {
+          ...(organizationId ? { organizationId } : {}),
+          categoryId,
+          sortBy: 'newest' as const,
+          limit: 24,
+          offset: 0,
+          hasInventory: true,
+        }
+      : 'skip'
+  );
+
+  return (
+    <CategoryProductsInner slug={slug} orgSlug={orgSlug} organizationId={organizationId} category={category} initialProducts={initialProducts} />
+  );
+}
+
+// Main export: chooses between preloaded and query variants
+export function CategoryProducts({ slug, orgSlug, preloadedOrganization, preloadedCategory, preloadedProducts }: Props) {
+  // Use preloaded variant if all preloaded queries are provided
+  if (preloadedOrganization && preloadedCategory && preloadedProducts) {
+    return (
+      <CategoryProductsPreloaded
+        slug={slug}
+        orgSlug={orgSlug}
+        preloadedOrganization={preloadedOrganization}
+        preloadedCategory={preloadedCategory}
+        preloadedProducts={preloadedProducts}
+      />
+    );
+  }
+
+  // Otherwise use client-side queries
+  return <CategoryProductsQuery slug={slug} orgSlug={orgSlug} />;
 }

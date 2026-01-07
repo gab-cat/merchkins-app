@@ -50,7 +50,7 @@ describe('Voucher Integration Tests', () => {
       });
 
       // Validate voucher for a new order
-      const validationResult = await t.query(api.vouchers.queries.index.validateVoucher, {
+      const validationResult = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
         code: 'REFUND-TEST123',
         userId: customerId,
         organizationId: orgId, // Different org should still work (platform-wide)
@@ -100,7 +100,7 @@ describe('Voucher Integration Tests', () => {
       });
 
       // Different user tries to use it
-      const validationResult = await t.query(api.vouchers.queries.index.validateVoucher, {
+      const validationResult = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
         code: 'REFUND-PERSONAL',
         userId: differentUserId,
         orderAmount: 500,
@@ -150,7 +150,7 @@ describe('Voucher Integration Tests', () => {
       });
 
       // First validation should pass
-      const firstValidation = await t.query(api.vouchers.queries.index.validateVoucher, {
+      const firstValidation = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
         code: 'REFUND-SINGLEUSE',
         userId: customerId,
         orderAmount: 1000,
@@ -163,7 +163,7 @@ describe('Voucher Integration Tests', () => {
       });
 
       // Second validation should fail
-      const secondValidation = await t.query(api.vouchers.queries.index.validateVoucher, {
+      const secondValidation = await t.mutation(api.vouchers.mutations.index.validateVoucher, {
         code: 'REFUND-SINGLEUSE',
         userId: customerId,
         orderAmount: 500,

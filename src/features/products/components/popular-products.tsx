@@ -34,18 +34,16 @@ interface PopularProductsProps {
   preloadedProducts?: Preloaded<typeof api.products.queries.index.getPopularProducts>;
 }
 
-export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProducts }: PopularProductsProps = {}) {
+// Inner component shared by both variants
+interface PopularProductsInnerProps {
+  orgSlug?: string;
+  products: ProductCardData[];
+  loading: boolean;
+}
+
+function PopularProductsInner({ orgSlug, products, loading }: PopularProductsInnerProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { buildOrgLink } = useOrgLink(orgSlug);
-
-  const organization = preloadedOrganization
-    ? usePreloadedQuery(preloadedOrganization)
-    : useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string }));
-  const result = preloadedProducts
-    ? usePreloadedQuery(preloadedProducts)
-    : useQuery(api.products.queries.index.getPopularProducts, organization?._id ? { limit: 8, organizationId: organization._id } : { limit: 8 });
-  const loading = result === undefined;
-  const products = (result?.products ?? []) as unknown as ProductCardData[];
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -267,4 +265,49 @@ export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProdu
       )}
     </div>
   );
+}
+
+// Variant that uses preloaded queries (for server-side preloading)
+function PopularProductsPreloaded({
+  orgSlug,
+  preloadedOrganization,
+  preloadedProducts,
+}: {
+  orgSlug?: string;
+  preloadedOrganization: Preloaded<typeof api.organizations.queries.index.getOrganizationBySlug>;
+  preloadedProducts: Preloaded<typeof api.products.queries.index.getPopularProducts>;
+}) {
+  usePreloadedQuery(preloadedOrganization); // Hydrate but don't need the result
+  const result = usePreloadedQuery(preloadedProducts);
+  const loading = result === undefined;
+  const products = (result?.products ?? []) as unknown as ProductCardData[];
+
+  return <PopularProductsInner orgSlug={orgSlug} products={products} loading={loading} />;
+}
+
+// Variant that uses regular queries (for client-side fetching)
+function PopularProductsQuery({ orgSlug }: { orgSlug?: string }) {
+  const organization = useQuery(
+    api.organizations.queries.index.getOrganizationBySlug,
+    orgSlug ? { slug: orgSlug } : ('skip' as unknown as { slug: string })
+  );
+  const result = useQuery(
+    api.products.queries.index.getPopularProducts,
+    organization?._id ? { limit: 8, organizationId: organization._id } : { limit: 8 }
+  );
+  const loading = result === undefined;
+  const products = (result?.products ?? []) as unknown as ProductCardData[];
+
+  return <PopularProductsInner orgSlug={orgSlug} products={products} loading={loading} />;
+}
+
+// Main export: chooses between preloaded and query variants
+export function PopularProducts({ orgSlug, preloadedOrganization, preloadedProducts }: PopularProductsProps = {}) {
+  // Use preloaded variant if both preloaded queries are provided
+  if (preloadedOrganization && preloadedProducts) {
+    return <PopularProductsPreloaded orgSlug={orgSlug} preloadedOrganization={preloadedOrganization} preloadedProducts={preloadedProducts} />;
+  }
+
+  // Otherwise use client-side queries
+  return <PopularProductsQuery orgSlug={orgSlug} />;
 }

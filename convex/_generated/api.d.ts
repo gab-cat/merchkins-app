@@ -256,6 +256,7 @@ import type * as organizations_mutations_updateMemberRole from "../organizations
 import type * as organizations_mutations_updateOrganization from "../organizations/mutations/updateOrganization.js";
 import type * as organizations_mutations_updateOrganizationStats from "../organizations/mutations/updateOrganizationStats.js";
 import type * as organizations_queries_checkOrganizationPermission from "../organizations/queries/checkOrganizationPermission.js";
+import type * as organizations_queries_checkStorefrontAccess from "../organizations/queries/checkStorefrontAccess.js";
 import type * as organizations_queries_getChatwootConfig from "../organizations/queries/getChatwootConfig.js";
 import type * as organizations_queries_getInviteLinkByCode from "../organizations/queries/getInviteLinkByCode.js";
 import type * as organizations_queries_getMyJoinRequestStatus from "../organizations/queries/getMyJoinRequestStatus.js";
@@ -466,6 +467,7 @@ import type * as vouchers_mutations_deleteVoucher from "../vouchers/mutations/de
 import type * as vouchers_mutations_index from "../vouchers/mutations/index.js";
 import type * as vouchers_mutations_toggleVoucherStatus from "../vouchers/mutations/toggleVoucherStatus.js";
 import type * as vouchers_mutations_updateVoucher from "../vouchers/mutations/updateVoucher.js";
+import type * as vouchers_mutations_validateVoucher from "../vouchers/mutations/validateVoucher.js";
 import type * as vouchers_queries_getVoucherByCode from "../vouchers/queries/getVoucherByCode.js";
 import type * as vouchers_queries_getVoucherById from "../vouchers/queries/getVoucherById.js";
 import type * as vouchers_queries_getVouchers from "../vouchers/queries/getVouchers.js";
@@ -728,6 +730,7 @@ declare const fullApi: ApiFromModules<{
   "organizations/mutations/updateOrganization": typeof organizations_mutations_updateOrganization;
   "organizations/mutations/updateOrganizationStats": typeof organizations_mutations_updateOrganizationStats;
   "organizations/queries/checkOrganizationPermission": typeof organizations_queries_checkOrganizationPermission;
+  "organizations/queries/checkStorefrontAccess": typeof organizations_queries_checkStorefrontAccess;
   "organizations/queries/getChatwootConfig": typeof organizations_queries_getChatwootConfig;
   "organizations/queries/getInviteLinkByCode": typeof organizations_queries_getInviteLinkByCode;
   "organizations/queries/getMyJoinRequestStatus": typeof organizations_queries_getMyJoinRequestStatus;
@@ -938,6 +941,7 @@ declare const fullApi: ApiFromModules<{
   "vouchers/mutations/index": typeof vouchers_mutations_index;
   "vouchers/mutations/toggleVoucherStatus": typeof vouchers_mutations_toggleVoucherStatus;
   "vouchers/mutations/updateVoucher": typeof vouchers_mutations_updateVoucher;
+  "vouchers/mutations/validateVoucher": typeof vouchers_mutations_validateVoucher;
   "vouchers/queries/getVoucherByCode": typeof vouchers_queries_getVoucherByCode;
   "vouchers/queries/getVoucherById": typeof vouchers_queries_getVoucherById;
   "vouchers/queries/getVouchers": typeof vouchers_queries_getVouchers;

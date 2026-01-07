@@ -173,6 +173,9 @@ export const createVoucherHandler = async (
     maxDiscountAmount: args.maxDiscountAmount,
     applicableProductIds: args.applicableProductIds,
     applicableCategoryIds: args.applicableCategoryIds,
+    freeItemProductId: args.freeItemProductId,
+    freeItemVariantId: args.freeItemVariantId,
+    freeItemQuantity: args.freeItemQuantity,
     usageLimit: args.usageLimit,
     usageLimitPerUser: args.usageLimitPerUser ?? 1, // Default: once per user
     usedCount: 0,

@@ -131,10 +131,12 @@ export default function PaymentSuccessPage() {
   const [showConfetti, setShowConfetti] = useState(true);
   const [confettiPieces, setConfettiPieces] = useState(200);
   const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Payment actions for single orders
   const createInvoice = useAction(api.payments.actions.index.createXenditInvoice);
   const updateOrderInvoice = useMutation(api.orders.mutations.index.createXenditInvoiceForOrder);
+  const refreshPaymongoCheckout = useAction(api.orders.mutations.index.refreshPaymongoCheckout);
 
   // Fetch checkout session if checkoutId is provided
   const checkoutSession = useQuery(api.checkoutSessions.queries.index.getCheckoutSessionById, checkoutId ? { checkoutId } : 'skip');
@@ -670,7 +672,7 @@ export default function PaymentSuccessPage() {
   const isPending = sessionStatus === 'PENDING';
   const isCancelled = sessionStatus === 'CANCELLED';
   const isExpired = sessionStatus === 'EXPIRED';
-  const hasPaymentLink = !!checkoutSession!.xenditInvoiceUrl;
+  const hasPaymentLink = !!(checkoutSession!.paymongoCheckoutUrl || checkoutSession!.xenditInvoiceUrl);
   const formattedAmount = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(checkoutSession!.totalAmount || 0);
 
   // Group orders by store
@@ -870,6 +872,48 @@ export default function PaymentSuccessPage() {
     );
   }
 
+  // Handle Pay Now for checkout sessions
+  const handlePayNow = async () => {
+    if (!orders || orders.length === 0) {
+      showToast({
+        type: 'error',
+        title: 'No orders found',
+        description: 'Please contact support.',
+      });
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      const result = await refreshPaymongoCheckout({ orderId: orders[0]._id });
+
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+        showToast({
+          type: 'success',
+          title: 'Payment link created',
+          description: 'Redirecting to payment page...',
+        });
+      } else {
+        console.error('Payment link missing: refreshPaymongoCheckout returned no checkoutUrl', result);
+        showToast({
+          type: 'error',
+          title: 'Payment link missing',
+          description: 'Please contact support.',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to refresh checkout:', error);
+      showToast({
+        type: 'error',
+        title: 'Failed to create payment link',
+        description: 'Please contact support.',
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   // If payment is pending, show the pending payment UI
   if (isPending) {
     return (
@@ -1012,7 +1056,12 @@ export default function PaymentSuccessPage() {
                 <div className="space-y-2">
                   {hasPaymentLink ? (
                     <Button
-                      onClick={() => window.open(checkoutSession!.xenditInvoiceUrl!, '_blank')}
+                      onClick={() => {
+                        const paymentUrl = checkoutSession!.paymongoCheckoutUrl || checkoutSession!.xenditInvoiceUrl;
+                        if (paymentUrl) {
+                          window.location.href = paymentUrl;
+                        }
+                      }}
                       className="w-full h-12 bg-[#1d43d8] hover:bg-[#1d43d8]/90 text-white font-semibold shadow-md shadow-[#1d43d8]/20"
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
@@ -1020,9 +1069,15 @@ export default function PaymentSuccessPage() {
                       <ExternalLink className="h-4 w-4 ml-2" />
                     </Button>
                   ) : (
-                    <div className="rounded-lg bg-amber-50 p-3 mb-2">
-                      <p className="text-amber-800 text-xs">Payment link is being generated. Please check back in a moment or contact support.</p>
-                    </div>
+                    <Button
+                      onClick={handlePayNow}
+                      disabled={isRefreshing}
+                      className="w-full h-12 bg-[#1d43d8] hover:bg-[#1d43d8]/90 text-white font-semibold shadow-md shadow-[#1d43d8]/20"
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      {isRefreshing ? 'Creating Payment Link...' : 'Pay Now'}
+                      {!isRefreshing && <ExternalLink className="h-4 w-4 ml-2" />}
+                    </Button>
                   )}
 
                   <div className="flex gap-2">

@@ -72,21 +72,25 @@ interface ProductDetailProps {
   preloadedRecommendations?: Preloaded<typeof api.products.queries.index.getProductRecommendations>;
 }
 
-export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecommendations }: ProductDetailProps) {
+// Inner component that receives all data as props
+interface ProductDetailInnerProps {
+  slug: string;
+  orgSlug?: string;
+  product: any;
+  recommendations: any;
+}
+
+function ProductDetailInner({ slug, orgSlug, product, recommendations }: ProductDetailInnerProps) {
   // TODO: replace with dynamic value
   if (slug === '_error_test_') {
     throw new Error('Intentional test error for error boundary validation');
   }
   const { user: currentUser } = useCurrentUser();
   const { requireAuth, dialogOpen, setDialogOpen } = useRequireAuth();
-  const product = preloadedProduct ? usePreloadedQuery(preloadedProduct) : useQuery(api.products.queries.index.getProductBySlug, { slug });
   const organization = useQuery(
     api.organizations.queries.index.getOrganizationById,
     product?.organizationId ? { organizationId: product.organizationId } : 'skip'
   );
-  const recommendations = preloadedRecommendations
-    ? usePreloadedQuery(preloadedRecommendations)
-    : useQuery(api.products.queries.index.getProductRecommendations, product?._id ? { productId: product._id, limit: 8 } : 'skip');
 
   type RecommendedProduct = {
     _id: string;
@@ -107,7 +111,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
   // Organization membership check for PUBLIC org products
   const { isAuthenticated, isMember } = useOrganizationMembership(product?.organizationId || '');
 
-  const activeVariants = useMemo(() => (product?.variants ?? []).filter((v) => v.isActive), [product]);
+  const activeVariants = useMemo(() => (product?.variants ?? []).filter((v: { isActive: boolean }) => v.isActive), [product]);
 
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>(undefined);
   const [selectedSizeId, setSelectedSizeId] = useState<string | undefined>(undefined);
@@ -118,13 +122,13 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
   const selectedVariant = useMemo(() => {
     if (!product) return undefined;
     if (!selectedVariantId) return undefined;
-    return product.variants.find((v) => v.variantId === selectedVariantId);
+    return product.variants.find((v: { variantId: string }) => v.variantId === selectedVariantId);
   }, [product, selectedVariantId]);
 
   const selectedSize = useMemo(() => {
     if (!selectedVariant?.sizes) return undefined;
     if (!selectedSizeId) return undefined;
-    return selectedVariant.sizes.find((s) => s.id === selectedSizeId);
+    return selectedVariant.sizes.find((s: { id: string }) => s.id === selectedSizeId);
   }, [selectedVariant, selectedSizeId]);
 
   // Auto-select single variant and size when applicable
@@ -354,7 +358,7 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
               {product.tags?.length > 0 && (
                 <BlurFade delay={0.35}>
                   <div className="flex flex-wrap gap-2">
-                    {product.tags.map((t) => (
+                    {product.tags.map((t: string) => (
                       <Badge
                         key={t}
                         variant="outline"
@@ -688,6 +692,48 @@ export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecomm
       />
     </div>
   );
+}
+
+// Variant that uses preloaded queries (for server-side preloading)
+function ProductDetailPreloaded({
+  slug,
+  orgSlug,
+  preloadedProduct,
+  preloadedRecommendations,
+}: {
+  slug: string;
+  orgSlug?: string;
+  preloadedProduct: Preloaded<typeof api.products.queries.index.getProductBySlug>;
+  preloadedRecommendations: Preloaded<typeof api.products.queries.index.getProductRecommendations>;
+}) {
+  const product = usePreloadedQuery(preloadedProduct);
+  const recommendations = usePreloadedQuery(preloadedRecommendations);
+
+  return <ProductDetailInner slug={slug} orgSlug={orgSlug} product={product} recommendations={recommendations} />;
+}
+
+// Variant that uses regular queries (for client-side fetching)
+function ProductDetailQuery({ slug, orgSlug }: { slug: string; orgSlug?: string }) {
+  const product = useQuery(api.products.queries.index.getProductBySlug, { slug });
+  const recommendations = useQuery(
+    api.products.queries.index.getProductRecommendations,
+    product?._id ? { productId: product._id, limit: 8 } : 'skip'
+  );
+
+  return <ProductDetailInner slug={slug} orgSlug={orgSlug} product={product} recommendations={recommendations} />;
+}
+
+// Main export: chooses between preloaded and query variants
+export function ProductDetail({ slug, orgSlug, preloadedProduct, preloadedRecommendations }: ProductDetailProps) {
+  // Use preloaded variant if ALL preloaded queries are provided
+  if (preloadedProduct && preloadedRecommendations) {
+    return (
+      <ProductDetailPreloaded slug={slug} orgSlug={orgSlug} preloadedProduct={preloadedProduct} preloadedRecommendations={preloadedRecommendations} />
+    );
+  }
+
+  // Otherwise use client-side queries
+  return <ProductDetailQuery slug={slug} orgSlug={orgSlug} />;
 }
 
 function ProductGallery({ imageKeys }: { imageKeys: string[] }) {

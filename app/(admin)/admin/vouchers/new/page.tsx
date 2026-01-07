@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Combobox } from '@/components/ui/combobox';
+import { Id } from '@/convex/_generated/dataModel';
 
 // Admin Components
 import { PageHeader } from '@/src/components/admin/page-header';
@@ -25,21 +27,35 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 // Schema
-const voucherSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  description: z.string().optional(),
-  code: z.string().optional(),
-  codePrefix: z.string().optional(),
-  discountType: z.enum(['PERCENTAGE', 'FIXED_AMOUNT', 'FREE_ITEM', 'FREE_SHIPPING']),
-  discountValue: z.coerce.number().min(0, 'Discount value must be positive'),
-  minOrderAmount: z.coerce.number().min(0).optional(),
-  maxDiscountAmount: z.coerce.number().min(0).optional(),
-  usageLimit: z.coerce.number().min(0).optional(),
-  usageLimitPerUser: z.coerce.number().min(1).default(1),
-  validFrom: z.string(),
-  validUntil: z.string().optional(),
-  isActive: z.boolean().default(true),
-});
+const voucherSchema = z
+  .object({
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    description: z.string().optional(),
+    code: z.string().optional(),
+    codePrefix: z.string().optional(),
+    discountType: z.enum(['PERCENTAGE', 'FIXED_AMOUNT', 'FREE_ITEM', 'FREE_SHIPPING']),
+    discountValue: z.coerce.number().min(0, 'Discount value must be positive'),
+    freeItemProductId: z.string().optional(),
+    minOrderAmount: z.coerce.number().min(0).optional(),
+    maxDiscountAmount: z.coerce.number().min(0).optional(),
+    usageLimit: z.coerce.number().min(0).optional(),
+    usageLimitPerUser: z.coerce.number().min(1).default(1),
+    validFrom: z.string(),
+    validUntil: z.string().optional(),
+    isActive: z.boolean().default(true),
+  })
+  .refine(
+    (data) => {
+      if (data.discountType === 'FREE_ITEM') {
+        return data.freeItemProductId && data.freeItemProductId.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: 'Please select a product for the free item',
+      path: ['freeItemProductId'],
+    }
+  );
 
 type FormValues = z.infer<typeof voucherSchema>;
 
@@ -59,6 +75,15 @@ export default function AdminCreateVoucherPage() {
   // Convex queries and mutations
   const createVoucher = useMutation(api.vouchers.mutations.index.createVoucher);
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
+  const products = useQuery(
+    api.products.queries.index.getProducts,
+    organization?._id
+      ? {
+          organizationId: organization._id,
+          limit: 100,
+        }
+      : 'skip'
+  );
 
   // State
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -80,7 +105,8 @@ export default function AdminCreateVoucherPage() {
       code: '',
       codePrefix: '',
       discountType: 'PERCENTAGE',
-      discountValue: 10,
+      discountValue: 1,
+      freeItemProductId: undefined,
       minOrderAmount: undefined,
       maxDiscountAmount: undefined,
       usageLimit: undefined,
@@ -92,7 +118,19 @@ export default function AdminCreateVoucherPage() {
   });
 
   const discountType = watch('discountType');
+  const freeItemProductId = watch('freeItemProductId');
   const isActive = watch('isActive');
+
+  // Prepare product options for combobox
+  const productOptions = React.useMemo(() => {
+    if (!products?.products) return [];
+    return products.products.map((product) => ({
+      value: product._id,
+      label: product.title,
+      imageUrl: product.imageUrl?.[0],
+      price: product.minPrice,
+    }));
+  }, [products]);
 
   // Generate preview code
   const generatePreviewCode = useCallback(() => {
@@ -119,6 +157,17 @@ export default function AdminCreateVoucherPage() {
         setSubmitError('Fixed amount must be greater than 0');
         return;
       }
+      if (values.discountType === 'FREE_ITEM') {
+        if (!values.freeItemProductId) {
+          setSubmitError('Please select a product for the free item');
+          return;
+        }
+        // For FREE_ITEM, discountValue represents quantity (default to 1 if not set)
+        if (values.discountValue <= 0) {
+          setSubmitError('Quantity must be at least 1');
+          return;
+        }
+      }
 
       const result = await promiseToast(
         createVoucher({
@@ -128,7 +177,9 @@ export default function AdminCreateVoucherPage() {
           code: codeMode === 'manual' && values.code ? values.code : undefined,
           codePrefix: codeMode === 'auto' ? values.codePrefix || undefined : undefined,
           discountType: values.discountType,
-          discountValue: values.discountValue,
+          discountValue: values.discountType === 'FREE_ITEM' ? values.discountValue || 1 : values.discountValue,
+          freeItemProductId:
+            values.discountType === 'FREE_ITEM' && values.freeItemProductId ? (values.freeItemProductId as Id<'products'>) : undefined,
           minOrderAmount: values.minOrderAmount || undefined,
           maxDiscountAmount: values.maxDiscountAmount || undefined,
           usageLimit: values.usageLimit || undefined,
@@ -273,30 +324,61 @@ export default function AdminCreateVoucherPage() {
             </div>
           </FormField>
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              label={discountType === 'PERCENTAGE' ? 'Percentage' : 'Amount'}
-              name="discountValue"
-              required
-              error={errors.discountValue?.message}
-            >
-              <div className="relative">
-                <Input type="number" {...register('discountValue')} placeholder={discountType === 'PERCENTAGE' ? '10' : '100'} className="pr-12" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  {discountType === 'PERCENTAGE' ? '%' : '₱'}
-                </span>
-              </div>
-            </FormField>
+          {discountType === 'FREE_ITEM' ? (
+            <div className="space-y-4">
+              <FormField
+                label="Free Item Product"
+                name="freeItemProductId"
+                required
+                error={errors.freeItemProductId?.message}
+                hint="Select the product to give away for free"
+              >
+                <Combobox
+                  options={productOptions}
+                  value={freeItemProductId}
+                  onValueChange={(value) => setValue('freeItemProductId', value)}
+                  placeholder="Select a product..."
+                  searchPlaceholder="Search products..."
+                  emptyText="No products found"
+                />
+              </FormField>
 
-            {discountType === 'PERCENTAGE' && (
-              <FormField label="Maximum Discount" name="maxDiscountAmount" hint="Cap the discount amount">
+              <FormField
+                label="Quantity"
+                name="discountValue"
+                required
+                error={errors.discountValue?.message}
+                hint="Number of free items to give (default: 1)"
+              >
+                <Input type="number" {...register('discountValue')} placeholder="1" min={1} defaultValue={1} />
+              </FormField>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                label={discountType === 'PERCENTAGE' ? 'Percentage' : 'Amount'}
+                name="discountValue"
+                required
+                error={errors.discountValue?.message}
+              >
                 <div className="relative">
-                  <Input type="number" {...register('maxDiscountAmount')} placeholder="500" className="pr-8" />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₱</span>
+                  <Input type="number" {...register('discountValue')} placeholder={discountType === 'PERCENTAGE' ? '10' : '100'} className="pr-12" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    {discountType === 'PERCENTAGE' ? '%' : '₱'}
+                  </span>
                 </div>
               </FormField>
-            )}
-          </div>
+
+              {discountType === 'PERCENTAGE' && (
+                <FormField label="Maximum Discount" name="maxDiscountAmount" hint="Cap the discount amount">
+                  <div className="relative">
+                    <Input type="number" {...register('maxDiscountAmount')} placeholder="500" className="pr-8" />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₱</span>
+                  </div>
+                </FormField>
+              )}
+            </div>
+          )}
 
           <FormField label="Minimum Order Amount" name="minOrderAmount" hint="Require a minimum spend to use this voucher">
             <div className="relative">

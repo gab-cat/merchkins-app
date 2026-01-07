@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,7 +10,6 @@ import { useUnifiedCart } from '@/src/hooks/use-unified-cart';
 import { useGuestCartStore } from '@/src/stores/guest-cart';
 import { GuestCheckoutDialog } from './guest-checkout-dialog';
 import { api } from '@/convex/_generated/api';
-import { anyApi } from 'convex/server';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -240,36 +239,61 @@ function CheckoutSkeleton() {
   );
 }
 
+// Redirecting to payment loading state
+function RedirectingToPayment() {
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="max-w-sm mx-auto px-4 py-12 text-center">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          {/* Compact spinner */}
+          <div className="relative w-16 h-16 mx-auto mb-6">
+            <div className="absolute inset-0 rounded-full border-4 border-[#1d43d8]/10" />
+            <div className="absolute inset-0 rounded-full border-4 border-t-[#1d43d8] animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <CreditCard className="h-5 w-5 text-[#1d43d8]" />
+            </div>
+          </div>
+
+          <h1 className="text-lg font-bold mb-2 font-heading text-slate-900">Generating Payment Link</h1>
+          <p className="text-slate-500 text-sm mb-1">Please wait while we prepare your checkout...</p>
+          <p className="text-slate-400 text-xs">You&apos;ll be redirected shortly.</p>
+
+          <motion.div
+            className="mt-6 inline-flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-full"
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Shield className="h-3.5 w-3.5 text-[#1d43d8]" />
+            <span>Secure payment processing</span>
+          </motion.div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 // Empty state component
 function EmptyCheckout() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="max-w-md mx-auto px-4 py-16 text-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          {/* Animated icon */}
-          <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ delay: 0.1, duration: 0.4 }} className="relative mb-8">
-            <div className="absolute inset-0 h-28 w-28 mx-auto rounded-3xl bg-linear-to-br from-[#1d43d8]/20 to-brand-neon/20 blur-xl" />
-            <div className="relative h-28 w-28 mx-auto rounded-3xl bg-linear-to-br from-[#1d43d8]/10 to-brand-neon/10 flex items-center justify-center border border-[#1d43d8]/10">
-              <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
-                <ShoppingBag className="h-12 w-12 text-[#1d43d8]/50" />
-              </motion.div>
-            </div>
-            <motion.div
-              className="absolute -top-1 -right-4 h-4 w-4 rounded-full bg-brand-neon"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+      <div className="max-w-sm mx-auto px-4 py-12 text-center">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          {/* Icon container */}
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+            className="h-20 w-20 mx-auto mb-5 rounded-2xl bg-[#1d43d8]/10 flex items-center justify-center"
+          >
+            <ShoppingBag className="h-9 w-9 text-[#1d43d8]/60" />
           </motion.div>
 
-          <h1 className="text-2xl font-bold mb-3 font-heading text-slate-900">Nothing to checkout</h1>
-          <p className="text-slate-500 mb-8 text-base">Select at least one item in your cart to proceed with checkout.</p>
+          <h1 className="text-lg font-bold mb-2 font-heading text-slate-900">Nothing to checkout</h1>
+          <p className="text-slate-500 text-sm mb-6">Select at least one item in your cart to proceed.</p>
 
           <Link href="/cart">
-            <Button
-              size="lg"
-              className="group bg-[#1d43d8] hover:bg-[#1d43d8]/90 rounded-full px-8 h-12 text-base font-semibold shadow-lg shadow-[#1d43d8]/25 transition-all duration-300 hover:scale-105"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            <Button className="bg-[#1d43d8] hover:bg-[#1d43d8]/90 rounded-full px-6 h-10 font-semibold shadow-md shadow-[#1d43d8]/20">
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Cart
             </Button>
           </Link>
@@ -370,7 +394,6 @@ export function CheckoutPage() {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   // Voucher state
-  const [voucherCode, setVoucherCode] = useState('');
   const [voucherInput, setVoucherInput] = useState('');
   const [isValidatingVoucher, setIsValidatingVoucher] = useState(false);
   const [appliedVoucher, setAppliedVoucher] = useState<{
@@ -378,9 +401,12 @@ export function CheckoutPage() {
     code: string;
     name: string;
     description?: string;
-    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING';
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING' | 'REFUND';
     discountValue: number;
     discountAmount: number;
+    minOrderAmount?: number;
+    maxDiscountAmount?: number;
+    freeItemProductId?: Id<'products'>;
   } | null>(null);
   const [voucherError, setVoucherError] = useState<string | null>(null);
 
@@ -426,6 +452,16 @@ export function CheckoutPage() {
     return selectedItems.map((item) => item.productInfo.productId);
   }, [selectedItems]);
 
+  // Get cart items with prices for FREE_ITEM voucher validation
+  const cartItems = useMemo(() => {
+    return selectedItems.map((item) => ({
+      productId: item.productInfo.productId,
+      variantId: item.variantId,
+      price: item.productInfo.price,
+      quantity: item.quantity,
+    }));
+  }, [selectedItems]);
+
   // Get unique organization IDs from selected items
   const organizationIds = useMemo(() => {
     const orgIds = new Set<string>();
@@ -436,83 +472,94 @@ export function CheckoutPage() {
     return Array.from(orgIds);
   }, [selectedItems]);
 
-  // Voucher validation query (only run when we have a voucher code to validate)
-  // Note: Type assertion needed until `bunx convex dev` regenerates types
-  const customerId = isAuthenticated && me ? me._id : guestUserId;
-  const voucherValidation = useQuery(
-    anyApi.vouchers.queries.index.validateVoucher,
-    voucherCode && customerId
-      ? {
-          code: voucherCode,
-          userId: customerId as Id<'users'>,
-          organizationId: organizationIds.length === 1 ? (organizationIds[0] as Id<'organizations'>) : undefined,
-          orderAmount: totals.amount,
-          productIds: productIds as Id<'products'>[],
-        }
-      : 'skip'
-  ) as
-    | {
-        valid: boolean;
-        voucher?: {
-          _id: Id<'vouchers'>;
-          code: string;
-          name: string;
-          description?: string;
-          discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_ITEM' | 'FREE_SHIPPING';
-          discountValue: number;
-          minOrderAmount?: number;
-          maxDiscountAmount?: number;
-        };
-        discountAmount?: number;
-        error?: string;
-      }
-    | undefined;
-
-  // Update applied voucher when validation result changes
-  useEffect(() => {
-    if (!voucherCode) {
-      setAppliedVoucher(null);
-      setVoucherError(null);
-      return;
-    }
-
-    if (voucherValidation === undefined) {
-      // Still loading
-      return;
-    }
-
-    if (voucherValidation.valid && voucherValidation.voucher) {
-      setAppliedVoucher({
-        ...voucherValidation.voucher,
-        discountAmount: voucherValidation.discountAmount ?? 0,
-      });
-      setVoucherError(null);
-    } else {
-      setAppliedVoucher(null);
-      setVoucherError(voucherValidation.error ?? 'Invalid voucher code');
-    }
-    setIsValidatingVoucher(false);
-  }, [voucherValidation, voucherCode]);
+  // Voucher validation mutation (no caching issues)
+  const validateVoucher = useMutation(api.vouchers.mutations.index.validateVoucher);
 
   // Handle voucher application
-  const handleApplyVoucher = useCallback(() => {
+  const handleApplyVoucher = useCallback(async () => {
     const code = voucherInput.trim().toUpperCase();
     if (!code) {
       setVoucherError('Please enter a voucher code');
       return;
     }
+
+    // Early return if code matches currently applied voucher
+    if (appliedVoucher && appliedVoucher.code === code) {
+      return;
+    }
+
+    // Early return if currently validating
+    if (isValidatingVoucher) {
+      return;
+    }
+
     setIsValidatingVoucher(true);
     setVoucherError(null);
-    setVoucherCode(code);
-  }, [voucherInput]);
+
+    try {
+      const customerId = isAuthenticated && me ? me._id : guestUserId;
+      const result = await validateVoucher({
+        code,
+        userId: customerId as Id<'users'> | undefined,
+        organizationId: organizationIds.length === 1 ? (organizationIds[0] as Id<'organizations'>) : undefined,
+        orderAmount: totals.amount,
+        productIds: productIds as Id<'products'>[],
+        cartItems: cartItems,
+      });
+
+      if (result.valid && result.voucher) {
+        // For FREE_ITEM vouchers, we need to fetch the freeItemProductId
+        // Type assertion needed because generated types may not include freeItemProductId yet
+        const validationResult = result as typeof result & { freeItemProductId?: Id<'products'> };
+        setAppliedVoucher({
+          ...result.voucher,
+          discountAmount: result.discountAmount ?? 0,
+          freeItemProductId: validationResult.freeItemProductId,
+        });
+        setVoucherError(null);
+      } else {
+        setAppliedVoucher(null);
+        setVoucherError(result.error ?? 'Invalid voucher code');
+      }
+    } catch (err) {
+      setAppliedVoucher(null);
+      setVoucherError(err instanceof Error ? err.message : 'Failed to validate voucher code');
+    } finally {
+      setIsValidatingVoucher(false);
+    }
+  }, [
+    voucherInput,
+    appliedVoucher,
+    isValidatingVoucher,
+    isAuthenticated,
+    me,
+    guestUserId,
+    organizationIds,
+    totals.amount,
+    productIds,
+    cartItems,
+    validateVoucher,
+  ]);
 
   // Handle voucher removal
   const handleRemoveVoucher = useCallback(() => {
-    setVoucherCode('');
     setVoucherInput('');
     setAppliedVoucher(null);
     setVoucherError(null);
   }, []);
+
+  // Re-validate FREE_ITEM vouchers when cart items change
+  React.useEffect(() => {
+    if (appliedVoucher && appliedVoucher.discountType === 'FREE_ITEM' && appliedVoucher.freeItemProductId) {
+      // Check if the free item product is still in cart
+      const hasFreeItem = productIds.includes(appliedVoucher.freeItemProductId);
+      if (!hasFreeItem) {
+        // Free item was removed from cart, remove voucher
+        setAppliedVoucher(null);
+        setVoucherError('The free item product was removed from your cart. Please add it back to use this voucher.');
+      }
+    }
+  }, [productIds, appliedVoucher, voucherInput]);
 
   const shopSubtotals = useMemo(() => {
     return Object.entries(selectedByOrg).map(([orgId, group]) => {
@@ -785,6 +832,11 @@ export function CheckoutPage() {
   // Guest cart is immediately available, so no skeleton needed for unauthenticated users
   if (isAuthenticated && (serverCart === undefined || me === undefined)) {
     return <CheckoutSkeleton />;
+  }
+
+  // Show redirecting state when placing order (this prevents flash of empty state)
+  if (isPlacing) {
+    return <RedirectingToPayment />;
   }
 
   // Empty state
@@ -1186,7 +1238,7 @@ export function CheckoutPage() {
                             : 'bg-slate-200 text-slate-500 cursor-not-allowed'
                         )}
                         onClick={handlePlaceOrder}
-                        disabled={isPlacing || !agreeToTerms}
+                        disabled={isPlacing || !agreeToTerms || isValidatingVoucher}
                       >
                         {isPlacing ? (
                           <>

@@ -1,4 +1,4 @@
-import { QueryCtx } from '../../_generated/server';
+import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 
@@ -46,11 +46,13 @@ type ValidationResult = {
     | 'USER_USAGE_LIMIT_REACHED'
     | 'MIN_ORDER_NOT_MET'
     | 'PRODUCTS_NOT_APPLICABLE'
-    | 'ORGANIZATION_MISMATCH';
+    | 'ORGANIZATION_MISMATCH'
+    | 'LOGIN_REQUIRED'
+    | 'NOT_ASSIGNED_TO_USER';
 };
 
 export const validateVoucherHandler = async (
-  ctx: QueryCtx,
+  ctx: MutationCtx,
   args: {
     code: string;
     userId?: Id<'users'>;
@@ -140,12 +142,12 @@ export const validateVoucherHandler = async (
 
   // Special handling for REFUND vouchers
   if (voucher.discountType === 'REFUND') {
-    // REFUND vouchers are personal - must be assigned to the user
+    // REFUND vouchers are personal - must be assigned to user
     if (!args.userId) {
       return {
         valid: false,
         error: 'You must be logged in to use this voucher',
-        errorCode: 'USER_USAGE_LIMIT_REACHED',
+        errorCode: 'LOGIN_REQUIRED',
       };
     }
 
@@ -153,7 +155,7 @@ export const validateVoucherHandler = async (
       return {
         valid: false,
         error: 'This voucher is not assigned to you',
-        errorCode: 'USER_USAGE_LIMIT_REACHED',
+        errorCode: 'NOT_ASSIGNED_TO_USER',
       };
     }
 
@@ -165,7 +167,7 @@ export const validateVoucherHandler = async (
       if (!args.organizationId || args.organizationId !== voucher.organizationId) {
         return {
           valid: false,
-          error: 'This voucher is only valid for a specific store',
+          error: 'This voucher is only valid for a specific store. To use this voucher, please checkout from the same store only.',
           errorCode: 'ORGANIZATION_MISMATCH',
         };
       }
@@ -254,16 +256,7 @@ export const validateVoucherHandler = async (
     }
 
     // If variant is specified, check if cart item matches the variant
-    if (voucher.freeItemVariantId) {
-      // Explicitly fail if cartItems is missing when variant is required
-      if (!args.cartItems) {
-        return {
-          valid: false,
-          error: 'This voucher requires a specific variant of the free item to be in your cart',
-          errorCode: 'PRODUCTS_NOT_APPLICABLE',
-        };
-      }
-
+    if (voucher.freeItemVariantId && args.cartItems) {
       const cartItem = args.cartItems.find((item) => item.productId === voucher.freeItemProductId && item.variantId === voucher.freeItemVariantId);
       if (!cartItem) {
         return {

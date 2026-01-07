@@ -22,7 +22,7 @@ import { BeamsBackground, GradientBackground, GridPattern } from '@/src/componen
 import { Float } from '@/src/components/ui/animations';
 import { Navbar, NavBody, useNavbarScroll } from '@/src/components/ui/resizable-navbar';
 import { useOrgLink } from '@/src/hooks/use-org-link';
-import { BUSINESS_NAME, BUSINESS_CURRENCY, BUSINESS_DTI_NUMBER, BUSINESS_TIN_NUMBER } from '@/src/constants/business-info';
+import { BUSINESS_NAME, BUSINESS_CURRENCY } from '@/src/constants/business-info';
 
 export function SiteHeader() {
   const router = useRouter();
@@ -260,7 +260,7 @@ function SiteHeaderContent({
           </motion.div>
 
           {/* Business name and DTI number - displayed prominently */}
-          {!shouldApplyTheme && !isScrolled && (
+          {/* {!shouldApplyTheme && !isScrolled && (
             <div className="hidden md:flex flex-col gap-0.5 max-w-[220px]">
               <p className={cn('text-[10px] leading-tight text-muted-foreground wrap-break-word')}>{BUSINESS_NAME}</p>
               <p className={cn('text-[10px] leading-tight text-muted-foreground')}>
@@ -268,7 +268,7 @@ function SiteHeaderContent({
                 <span className="font-semibold text-foreground">{BUSINESS_TIN_NUMBER}</span>
               </p>
             </div>
-          )}
+          )} */}
 
           {/* Center: Navigation Items - less prominent, smaller text links */}
           {!isScrolled && (
@@ -304,7 +304,7 @@ function SiteHeaderContent({
               aria-label="Go back home"
             >
               <ArrowLeft className="h-3 w-3" />
-              <span>Home</span>
+              <span>Back to Home</span>
             </Link>
           )}
         </div>
