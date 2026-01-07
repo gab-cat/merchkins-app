@@ -37,9 +37,7 @@ export default function LandingPage() {
     url: LANDING_BASE_URL,
     logo: `${LANDING_BASE_URL}/favicon.ico`,
     description: BUSINESS_DESCRIPTION,
-    sameAs: [
-      // Add social media URLs when available
-    ],
+    sameAs: ['https://www.facebook.com/merchkins', 'https://www.linkedin.com/company/merchkins/'],
     contactPoint: {
       '@type': 'ContactPoint',
       email: 'support@merchkins.com',
