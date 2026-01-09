@@ -1,7 +1,16 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication, logAction, sanitizeString, validateStringLength } from '../../helpers';
+import {
+  requireAuthentication,
+  logAction,
+  sanitizeString,
+  validateStringLength,
+  requireOrganizationPermission,
+  hasOrganizationPermission,
+  getOrganizationMembership,
+  PERMISSION_CODES,
+} from '../../helpers';
 
 export const updateTicketArgs = {
   ticketId: v.id('tickets'),
@@ -31,8 +40,16 @@ export const updateTicketHandler = async (
   const ticket = await ctx.db.get(args.ticketId);
   if (!ticket) throw new Error('Ticket not found');
 
-  // Authorization: creator, assignee, or staff/admin can update
-  const isPrivileged = user.isStaff || user.isAdmin;
+  // Authorization: check organization-level permission first, then fallback to user-level checks
+  let hasOrgPermission = false;
+  if (ticket.organizationId) {
+    const membership = await getOrganizationMembership(ctx, user._id, ticket.organizationId);
+    if (membership) {
+      hasOrgPermission = await hasOrganizationPermission(membership, PERMISSION_CODES.MANAGE_TICKETS, 'update');
+    }
+  }
+
+  const isPrivileged = user.isStaff || user.isAdmin || hasOrgPermission;
   const isOwner = ticket.createdById === user._id;
   const isAssignee = ticket.assignedToId === user._id;
   if (!(isPrivileged || isOwner || isAssignee)) {

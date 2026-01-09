@@ -48,6 +48,16 @@ const PRIORITY_CONFIG: Record<TicketPriority, { label: string; bg: string; text:
 
 function StatusBadge({ value, large = false }: { value: TicketStatus; large?: boolean }) {
   const config = STATUS_CONFIG[value];
+
+  // Guard against invalid status values
+  if (!config) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 font-medium rounded-full border bg-slate-50 text-slate-500 border-slate-200">
+        {value || 'Unknown'}
+      </span>
+    );
+  }
+
   const Icon = config.icon;
 
   if (large) {
@@ -71,6 +81,17 @@ function StatusBadge({ value, large = false }: { value: TicketStatus; large?: bo
 
 function PriorityBadge({ value }: { value: TicketPriority }) {
   const config = PRIORITY_CONFIG[value];
+
+  // Guard against invalid priority values
+  if (!config) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-50 text-slate-500">
+        <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+        {value || 'Unknown'}
+      </span>
+    );
+  }
+
   return (
     <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${config.bg} ${config.text}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />

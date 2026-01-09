@@ -1,7 +1,14 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication, validateStringLength, sanitizeString, logAction, requireOrganizationPermission } from '../../helpers';
+import {
+  requireAuthentication,
+  validateStringLength,
+  sanitizeString,
+  logAction,
+  requireOrganizationPermission,
+  PERMISSION_CODES,
+} from '../../helpers';
 import { internal } from '../../_generated/api';
 
 export const approveRefundRequestArgs = {
@@ -21,9 +28,9 @@ export const approveRefundRequestHandler = async (ctx: MutationCtx, args: { refu
     throw new Error(`Refund request is already ${refundRequest.status.toLowerCase()}`);
   }
 
-  // Validate permissions - org admin or super admin
+  // Validate permissions - org member with MANAGE_REFUNDS or super admin
   if (refundRequest.organizationId) {
-    await requireOrganizationPermission(ctx, refundRequest.organizationId, 'MANAGE_ORDERS', 'update');
+    await requireOrganizationPermission(ctx, refundRequest.organizationId, PERMISSION_CODES.MANAGE_REFUNDS, 'update');
   } else if (!currentUser.isAdmin) {
     throw new Error('Permission denied');
   }

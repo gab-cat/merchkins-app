@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication, logAction, requireOrganizationPermission } from '../../helpers';
+import { requireAuthentication, logAction, requireOrganizationPermission, PERMISSION_CODES } from '../../helpers';
 
 export const toggleVoucherStatusArgs = {
   voucherId: v.id('vouchers'),
@@ -23,9 +23,9 @@ export const toggleVoucherStatusHandler = async (
     throw new Error('Voucher not found');
   }
 
-  // Validate permissions
+  // Validate permissions - use MANAGE_VOUCHERS for voucher-specific operations
   if (voucher.organizationId) {
-    await requireOrganizationPermission(ctx, voucher.organizationId, 'MANAGE_PRODUCTS', 'update');
+    await requireOrganizationPermission(ctx, voucher.organizationId, PERMISSION_CODES.MANAGE_VOUCHERS, 'update');
   } else {
     if (!currentUser.isAdmin) {
       throw new Error('Only admins can update global vouchers');

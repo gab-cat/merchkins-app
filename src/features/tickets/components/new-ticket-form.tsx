@@ -1,57 +1,81 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
+import { Id } from '@/convex/_generated/dataModel';
 
 // UI components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Icons
-import { Ticket, ArrowLeft, Send, AlertCircle, Flag, FileText, Building2, Loader2, CheckCircle, Sparkles } from 'lucide-react';
+import {
+  Ticket,
+  ArrowLeft,
+  Send,
+  AlertCircle,
+  Building2,
+  Loader2,
+  CheckCircle,
+  Clock,
+  Bug,
+  Lightbulb,
+  HelpCircle,
+  MessageSquare,
+  MoreHorizontal,
+  Package,
+} from 'lucide-react';
 
-type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+type TicketCategory = 'BUG' | 'FEATURE_REQUEST' | 'SUPPORT' | 'QUESTION' | 'OTHER';
 
-const PRIORITY_CONFIG: Record<
-  TicketPriority,
+const CATEGORY_CONFIG: Record<
+  TicketCategory,
   {
     label: string;
     description: string;
+    icon: React.ElementType;
     color: string;
-    dotColor: string;
-    bgColor: string;
   }
 > = {
-  LOW: {
-    label: 'Low',
-    description: 'General questions or minor issues',
-    color: 'text-slate-600',
-    dotColor: 'bg-slate-400',
-    bgColor: 'bg-slate-100 dark:bg-slate-950/30',
+  SUPPORT: {
+    label: 'Support',
+    description: 'General help or assistance',
+    icon: MessageSquare,
+    color: 'text-blue-600',
   },
-  MEDIUM: {
-    label: 'Medium',
-    description: 'Important issues affecting your experience',
-    color: 'text-amber-600',
-    dotColor: 'bg-amber-400',
-    bgColor: 'bg-amber-100 dark:bg-amber-950/30',
-  },
-  HIGH: {
-    label: 'High',
-    description: 'Critical issues requiring immediate attention',
+  BUG: {
+    label: 'Bug Report',
+    description: "Something isn't working correctly",
+    icon: Bug,
     color: 'text-red-600',
-    dotColor: 'bg-red-500',
-    bgColor: 'bg-red-100 dark:bg-red-950/30',
+  },
+  QUESTION: {
+    label: 'Question',
+    description: 'Ask us anything',
+    icon: HelpCircle,
+    color: 'text-violet-600',
+  },
+  FEATURE_REQUEST: {
+    label: 'Feature Request',
+    description: 'Suggest an improvement',
+    icon: Lightbulb,
+    color: 'text-amber-600',
+  },
+  OTHER: {
+    label: 'Other',
+    description: 'Something else',
+    icon: MoreHorizontal,
+    color: 'text-slate-600',
   },
 };
 
@@ -60,20 +84,21 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: 0.08,
     },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
 export function NewTicketForm() {
   const router = useRouter();
-  const createTicket = useMutation(api.tickets.mutations.index.createTicket);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const createTicket = useMutation(api.tickets.mutations.index.createTicket);
 
   // Extract org slug from pathname
   const orgSlug = useMemo(() => {
@@ -83,12 +108,15 @@ export function NewTicketForm() {
     return undefined;
   }, [pathname]);
 
+  // Check for orderId in URL params (for order-linked tickets)
+  const orderIdParam = searchParams.get('orderId');
+
   const organization = useQuery(api.organizations.queries.index.getOrganizationBySlug, orgSlug ? { slug: orgSlug } : 'skip');
 
   // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<TicketPriority>('MEDIUM');
+  const [category, setCategory] = useState<TicketCategory>('SUPPORT');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -108,17 +136,18 @@ export function NewTicketForm() {
       await createTicket({
         title: title.trim(),
         description: description.trim(),
-        priority,
+        category,
         organizationId: organization?._id,
+        orderId: orderIdParam ? (orderIdParam as Id<'orders'>) : undefined,
       });
 
       setSuccess(true);
-      showToast({ type: 'success', title: 'Ticket created successfully!' });
+      showToast({ type: 'success', title: 'Ticket submitted!' });
 
       // Redirect after brief delay to show success state
       setTimeout(() => {
         router.push(backUrl);
-      }, 1500);
+      }, 1200);
     } catch {
       showToast({ type: 'error', title: 'Failed to create ticket' });
       setSubmitting(false);
@@ -128,24 +157,24 @@ export function NewTicketForm() {
   // Success state
   if (success) {
     return (
-      <div className="container mx-auto max-w-2xl px-4 py-12">
+      <div className="container mx-auto max-w-lg px-4 py-16">
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
+          initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="flex flex-col items-center justify-center text-center py-16"
+          className="flex flex-col items-center justify-center text-center"
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="h-20 w-20 rounded-full bg-emerald-100 dark:bg-emerald-950/30 flex items-center justify-center mb-6"
+            transition={{ delay: 0.15, type: 'spring', stiffness: 200 }}
+            className="h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center mb-5"
           >
-            <CheckCircle className="h-10 w-10 text-emerald-600" />
+            <CheckCircle className="h-8 w-8 text-emerald-600" />
           </motion.div>
-          <h2 className="text-2xl font-semibold mb-2">Ticket Submitted!</h2>
-          <p className="text-muted-foreground mb-6">We&apos;ll get back to you as soon as possible.</p>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
+          <h2 className="text-xl font-semibold mb-1.5">Ticket Submitted</h2>
+          <p className="text-muted-foreground text-sm mb-4">We&apos;ll get back to you soon.</p>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin" />
             Redirecting...
           </div>
         </motion.div>
@@ -154,50 +183,78 @@ export function NewTicketForm() {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-8">
-      <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
+    <div className="container mx-auto max-w-lg px-4 py-6">
+      <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-5">
         {/* Header */}
-        <motion.div variants={itemVariants} className="space-y-2">
-          <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground -ml-2">
+        <motion.div variants={itemVariants} className="space-y-3">
+          <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground -ml-2 h-8">
             <Link href={backUrl}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Tickets
+              <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+              Back
             </Link>
           </Button>
 
-          <div className="flex items-center gap-3 pt-2">
-            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Ticket className="h-6 w-6 text-primary" />
+          <div className="flex items-start gap-3">
+            <div className="h-10 w-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+              <Ticket className="h-5 w-5 text-violet-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">New Support Ticket</h1>
+              <h1 className="text-lg font-semibold tracking-tight">New Support Request</h1>
               {organization?.name ? (
-                <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                  <Building2 className="h-3.5 w-3.5" />
-                  Filing with {organization.name}
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                  <Building2 className="h-3 w-3" />
+                  {organization.name}
                 </p>
               ) : (
-                <p className="text-sm text-muted-foreground">We&apos;re here to help</p>
+                <p className="text-xs text-muted-foreground">We&apos;re here to help</p>
               )}
             </div>
           </div>
         </motion.div>
 
-        {/* Form Card */}
+        {/* Order Link Indicator */}
+        {orderIdParam && (
+          <motion.div variants={itemVariants}>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-100 text-sm">
+              <Package className="h-4 w-4 text-blue-600" />
+              <span className="text-blue-700">This ticket will be linked to your order</span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Form */}
         <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <FileText className="h-4 w-4" />
-                Ticket Details
-              </CardTitle>
-              <CardDescription>Please provide as much detail as possible to help us assist you quickly.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-6" onSubmit={handleSubmit}>
+          <Card className="border-slate-200">
+            <CardContent className="pt-5 pb-4">
+              <form className="space-y-4" onSubmit={handleSubmit}>
+                {/* Category */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="category" className="text-xs font-medium text-muted-foreground">
+                    What&apos;s this about?
+                  </Label>
+                  <Select value={category} onValueChange={(v) => setCategory(v as TicketCategory)}>
+                    <SelectTrigger className="w-full h-9">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.entries(CATEGORY_CONFIG) as [TicketCategory, (typeof CATEGORY_CONFIG)[TicketCategory]][]).map(([value, config]) => {
+                        const Icon = config.icon;
+                        return (
+                          <SelectItem key={value} value={value}>
+                            <div className="flex items-center gap-2">
+                              <Icon className={cn('h-3.5 w-3.5', config.color)} />
+                              <span>{config.label}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Title */}
-                <div className="space-y-2">
-                  <Label htmlFor="title">
+                <div className="space-y-1.5">
+                  <Label htmlFor="title" className="text-xs font-medium text-muted-foreground">
                     Subject <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -205,10 +262,10 @@ export function NewTicketForm() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Brief summary of your issue"
-                    className={cn(titleError && 'border-destructive focus-visible:ring-destructive')}
+                    className={cn('h-9', titleError && 'border-destructive focus-visible:ring-destructive')}
                   />
                   {titleError && (
-                    <p className="text-xs text-destructive flex items-center gap-1">
+                    <p className="text-[11px] text-destructive flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       {titleError}
                     </p>
@@ -216,73 +273,46 @@ export function NewTicketForm() {
                 </div>
 
                 {/* Description */}
-                <div className="space-y-2">
-                  <Label htmlFor="description">
+                <div className="space-y-1.5">
+                  <Label htmlFor="description" className="text-xs font-medium text-muted-foreground">
                     Description <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Please describe your issue in detail. Include any relevant information that might help us understand and resolve your problem."
-                    className={cn('min-h-[160px] resize-none', descriptionError && 'border-destructive focus-visible:ring-destructive')}
+                    placeholder="Please describe your issue in detail..."
+                    className={cn('min-h-[120px] resize-none text-sm', descriptionError && 'border-destructive focus-visible:ring-destructive')}
                   />
-                  {descriptionError && (
-                    <p className="text-xs text-destructive flex items-center gap-1">
-                      <AlertCircle className="h-3 w-3" />
-                      {descriptionError}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">{description.length} characters</p>
-                </div>
-
-                {/* Priority Selection */}
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Flag className="h-4 w-4" />
-                    Priority
-                  </Label>
-                  <Select value={priority} onValueChange={(v) => setPriority(v as TicketPriority)}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(Object.entries(PRIORITY_CONFIG) as [TicketPriority, (typeof PRIORITY_CONFIG)[TicketPriority]][]).map(([value, config]) => (
-                        <SelectItem key={value} value={value}>
-                          <div className="flex items-center gap-2">
-                            <span className={cn('h-2 w-2 rounded-full', config.dotColor)} />
-                            <span>{config.label}</span>
-                            <span className="text-xs text-muted-foreground">— {config.description}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Priority indicator */}
-                  <div className={cn('flex items-center gap-2 p-3 rounded-lg text-sm', PRIORITY_CONFIG[priority].bgColor)}>
-                    <span className={cn('h-2 w-2 rounded-full', PRIORITY_CONFIG[priority].dotColor)} />
-                    <span className={PRIORITY_CONFIG[priority].color}>{PRIORITY_CONFIG[priority].label} Priority</span>
-                    <span className="text-muted-foreground">— {PRIORITY_CONFIG[priority].description}</span>
+                  <div className="flex items-center justify-between">
+                    {descriptionError ? (
+                      <p className="text-[11px] text-destructive flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {descriptionError}
+                      </p>
+                    ) : (
+                      <span />
+                    )}
+                    <p className="text-[11px] text-muted-foreground">{description.length} chars</p>
                   </div>
                 </div>
 
-                {/* Submit Button */}
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <p className="text-xs text-muted-foreground">
-                    <Sparkles className="h-3 w-3 inline mr-1" />
-                    We typically respond within 24 hours
+                {/* Submit */}
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                  <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Typically 24hr response
                   </p>
-                  <Button type="submit" disabled={!canSubmit}>
+                  <Button type="submit" size="sm" disabled={!canSubmit} className="h-8 px-4">
                     {submitting ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Creating...
+                        <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                        Sending...
                       </>
                     ) : (
                       <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Submit Ticket
+                        <Send className="h-3.5 w-3.5 mr-1.5" />
+                        Submit
                       </>
                     )}
                   </Button>
@@ -292,26 +322,16 @@ export function NewTicketForm() {
           </Card>
         </motion.div>
 
-        {/* Help Text */}
+        {/* Tips */}
         <motion.div variants={itemVariants}>
-          <Card className="bg-muted/30 border-dashed">
-            <CardContent className="pt-6">
-              <div className="flex gap-4">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <AlertCircle className="h-5 w-5 text-primary" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-medium text-sm">Tips for faster resolution</h3>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Be specific about what you were trying to do</li>
-                    <li>• Include any error messages you saw</li>
-                    <li>• Mention steps to reproduce the issue</li>
-                    <li>• Note your device and browser if relevant</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-100">
+            <p className="text-[11px] font-medium text-slate-600 mb-1.5">Tips for faster resolution</p>
+            <ul className="text-[11px] text-slate-500 space-y-0.5">
+              <li>• Be specific about what you were trying to do</li>
+              <li>• Include any error messages you saw</li>
+              <li>• Mention steps to reproduce the issue</li>
+            </ul>
+          </div>
         </motion.div>
       </motion.div>
     </div>

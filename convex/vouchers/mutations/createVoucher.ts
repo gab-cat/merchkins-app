@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication, validateOrganizationExists, logAction, requireOrganizationPermission } from '../../helpers';
+import { requireAuthentication, validateOrganizationExists, logAction, requireOrganizationPermission, PERMISSION_CODES } from '../../helpers';
 
 /**
  * Generates a voucher code with prefix + random suffix
@@ -11,7 +11,10 @@ function generateVoucherCode(prefix?: string): string {
   const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
   if (prefix) {
     // Clean prefix: uppercase, remove special chars, max 10 chars
-    const cleanPrefix = prefix.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+    const cleanPrefix = prefix
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 10);
     return `${cleanPrefix}-${randomPart}`;
   }
   return `VOUCHER-${randomPart}`;
@@ -19,39 +22,34 @@ function generateVoucherCode(prefix?: string): string {
 
 export const createVoucherArgs = {
   organizationId: v.optional(v.id('organizations')),
-  
+
   // Code options
   code: v.optional(v.string()), // Manual code entry
   codePrefix: v.optional(v.string()), // For auto-generation with prefix
-  
+
   // Voucher details
   name: v.string(),
   description: v.optional(v.string()),
-  
+
   // Discount configuration
-  discountType: v.union(
-    v.literal('PERCENTAGE'),
-    v.literal('FIXED_AMOUNT'),
-    v.literal('FREE_ITEM'),
-    v.literal('FREE_SHIPPING')
-  ),
+  discountType: v.union(v.literal('PERCENTAGE'), v.literal('FIXED_AMOUNT'), v.literal('FREE_ITEM'), v.literal('FREE_SHIPPING')),
   discountValue: v.number(),
-  
+
   // For FREE_ITEM type
   freeItemProductId: v.optional(v.id('products')),
   freeItemVariantId: v.optional(v.string()),
   freeItemQuantity: v.optional(v.number()),
-  
+
   // Constraints
   minOrderAmount: v.optional(v.number()),
   maxDiscountAmount: v.optional(v.number()),
   applicableProductIds: v.optional(v.array(v.id('products'))),
   applicableCategoryIds: v.optional(v.array(v.id('categories'))),
-  
+
   // Usage limits
   usageLimit: v.optional(v.number()),
   usageLimitPerUser: v.optional(v.number()),
-  
+
   // Validity
   validFrom: v.number(),
   validUntil: v.optional(v.number()),
@@ -84,10 +82,10 @@ export const createVoucherHandler = async (
 ) => {
   const currentUser = await requireAuthentication(ctx);
 
-  // Validate permissions
+  // Validate permissions - use MANAGE_VOUCHERS for voucher-specific operations
   if (args.organizationId) {
     await validateOrganizationExists(ctx, args.organizationId);
-    await requireOrganizationPermission(ctx, args.organizationId, 'MANAGE_PRODUCTS', 'create');
+    await requireOrganizationPermission(ctx, args.organizationId, PERMISSION_CODES.MANAGE_VOUCHERS, 'create');
   } else {
     // Global vouchers require admin
     if (!currentUser.isAdmin) {
@@ -141,7 +139,7 @@ export const createVoucherHandler = async (
     .query('vouchers')
     .withIndex('by_code', (q) => q.eq('code', voucherCode))
     .first();
-  
+
   if (existingVoucher) {
     throw new Error(`Voucher code "${voucherCode}" is already in use`);
   }

@@ -656,6 +656,14 @@ export function OrderDetail({ orderId }: { orderId: string }) {
                 Cancel Order
               </Button>
             )}
+
+            {/* Report Issue Button - Order-linked ticket creation */}
+            <Button variant="outline" className="w-full rounded-full" asChild>
+              <Link href={`/tickets/new?orderId=${order._id}`}>
+                <Ticket className="h-4 w-4 mr-2" />
+                Report Issue with Order
+              </Link>
+            </Button>
           </motion.div>
 
           {/* Modals */}

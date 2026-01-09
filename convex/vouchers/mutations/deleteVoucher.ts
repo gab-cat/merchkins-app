@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication, logAction, requireOrganizationPermission } from '../../helpers';
+import { requireAuthentication, logAction, requireOrganizationPermission, PERMISSION_CODES } from '../../helpers';
 
 export const deleteVoucherArgs = {
   voucherId: v.id('vouchers'),
@@ -21,9 +21,9 @@ export const deleteVoucherHandler = async (
     throw new Error('Voucher not found');
   }
 
-  // Validate permissions
+  // Validate permissions - use MANAGE_VOUCHERS for voucher-specific operations
   if (voucher.organizationId) {
-    await requireOrganizationPermission(ctx, voucher.organizationId, 'MANAGE_PRODUCTS', 'delete');
+    await requireOrganizationPermission(ctx, voucher.organizationId, PERMISSION_CODES.MANAGE_VOUCHERS, 'delete');
   } else {
     if (!currentUser.isAdmin) {
       throw new Error('Only admins can delete global vouchers');

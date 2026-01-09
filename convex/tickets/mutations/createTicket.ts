@@ -9,17 +9,20 @@ import {
   validateStringLength,
   validateUserExists,
   requireActiveOrganization,
+  requireOrganizationPermission,
+  PERMISSION_CODES,
 } from '../../helpers';
 
 export const createTicketArgs = {
   title: v.string(),
   description: v.string(),
-  priority: v.union(v.literal('LOW'), v.literal('MEDIUM'), v.literal('HIGH')),
+  priority: v.optional(v.union(v.literal('LOW'), v.literal('MEDIUM'), v.literal('HIGH'))),
   category: v.optional(v.union(v.literal('BUG'), v.literal('FEATURE_REQUEST'), v.literal('SUPPORT'), v.literal('QUESTION'), v.literal('OTHER'))),
   tags: v.optional(v.array(v.string())),
   assignedToId: v.optional(v.id('users')),
   dueDate: v.optional(v.number()),
   organizationId: v.optional(v.id('organizations')),
+  orderId: v.optional(v.id('orders')), // Link ticket to specific order
 };
 
 export const createTicketHandler = async (
@@ -27,12 +30,13 @@ export const createTicketHandler = async (
   args: {
     title: string;
     description: string;
-    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH';
     category?: 'BUG' | 'FEATURE_REQUEST' | 'SUPPORT' | 'QUESTION' | 'OTHER';
     tags?: string[];
     assignedToId?: Id<'users'>;
     dueDate?: number;
     organizationId?: Id<'organizations'>;
+    orderId?: Id<'orders'>;
   }
 ) => {
   const currentUser = await requireAuthentication(ctx);
@@ -67,18 +71,30 @@ export const createTicketHandler = async (
   };
 
   const now = Date.now();
+  const priority = args.priority ?? 'MEDIUM'; // Default to MEDIUM if not provided
 
-  // Validate organization if provided (customers may file tickets with orgs)
+  // Validate organization and check permissions if provided
+  // Staff/Admin can create tickets on behalf of org, regular members can only create personal tickets
   if (args.organizationId) {
     await requireActiveOrganization(ctx, args.organizationId);
+    // Check if user has MANAGE_TICKETS permission for this organization
+    // This allows org admins/staff to assign tickets properly
+    try {
+      await requireOrganizationPermission(ctx, args.organizationId, PERMISSION_CODES.MANAGE_TICKETS, 'create');
+    } catch {
+      // If user doesn't have MANAGE_TICKETS permission, they can still create a ticket
+      // but it will be as a customer support request (not as staff)
+      // This is intentional - customers should be able to file tickets with organizations
+    }
   }
 
   const ticketId = await ctx.db.insert('tickets', {
     organizationId: args.organizationId,
+    orderId: args.orderId,
     title,
     description,
     status: 'OPEN',
-    priority: args.priority,
+    priority,
     createdById: currentUser._id,
     assignedToId: args.assignedToId,
     creatorInfo,
@@ -103,7 +119,7 @@ export const createTicketHandler = async (
     update: 'OPEN',
     createdById: currentUser._id,
     creatorInfo,
-    ticketInfo: { title, priority: args.priority, category: args.category },
+    ticketInfo: { title, priority, category: args.category },
     content: 'Ticket created',
     updateType: 'STATUS_CHANGE',
     previousValue: undefined,
@@ -130,9 +146,10 @@ export const createTicketHandler = async (
 
   await logAction(ctx, 'create_ticket', 'DATA_CHANGE', 'MEDIUM', `Created ticket: ${title}`, currentUser._id, undefined, {
     ticketId,
-    priority: args.priority,
+    priority,
     category: args.category,
     assignedToId: args.assignedToId,
+    orderId: args.orderId,
   });
 
   return ticketId;

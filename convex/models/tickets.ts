@@ -4,6 +4,7 @@ import { v } from 'convex/values';
 // Optimized tickets with embedded user info and updates
 export const tickets = defineTable({
   organizationId: v.optional(v.id('organizations')),
+  orderId: v.optional(v.id('orders')), // Link ticket to specific order for context
   title: v.string(),
   description: v.string(),
   status: v.union(v.literal('OPEN'), v.literal('IN_PROGRESS'), v.literal('RESOLVED'), v.literal('CLOSED')),
@@ -83,7 +84,8 @@ export const tickets = defineTable({
   .index('by_status_priority', ['status', 'priority'])
   .index('by_assignee_status', ['assignedToId', 'status'])
   .index('by_organization_and_status', ['organizationId', 'status'])
-  .index('by_creator_and_status', ['createdById', 'status']);
+  .index('by_creator_and_status', ['createdById', 'status'])
+  .index('by_order', ['orderId']);
 
 // Enhanced ticket updates with embedded user info
 export const ticketUpdates = defineTable({

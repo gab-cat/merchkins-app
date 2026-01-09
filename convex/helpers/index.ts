@@ -4,6 +4,9 @@ export * from './auth';
 // Permission helpers
 export * from './permissions';
 
+// Permission code constants
+export * from './permissionCodes';
+
 // Organization helpers
 export * from './organizations';
 

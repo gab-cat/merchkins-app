@@ -130,6 +130,7 @@ import type * as helpers_emailTemplates_shippingUpdate from "../helpers/emailTem
 import type * as helpers_emailTemplates_welcomeEmail from "../helpers/emailTemplates/welcomeEmail.js";
 import type * as helpers_index from "../helpers/index.js";
 import type * as helpers_organizations from "../helpers/organizations.js";
+import type * as helpers_permissionCodes from "../helpers/permissionCodes.js";
 import type * as helpers_permissions from "../helpers/permissions.js";
 import type * as helpers_utils from "../helpers/utils.js";
 import type * as helpers_validation from "../helpers/validation.js";
@@ -604,6 +605,7 @@ declare const fullApi: ApiFromModules<{
   "helpers/emailTemplates/welcomeEmail": typeof helpers_emailTemplates_welcomeEmail;
   "helpers/index": typeof helpers_index;
   "helpers/organizations": typeof helpers_organizations;
+  "helpers/permissionCodes": typeof helpers_permissionCodes;
   "helpers/permissions": typeof helpers_permissions;
   "helpers/utils": typeof helpers_utils;
   "helpers/validation": typeof helpers_validation;

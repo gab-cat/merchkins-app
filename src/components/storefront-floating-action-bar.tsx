@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, MessageSquare, Search, X } from 'lucide-react';
+import { ShoppingBag, MessageSquare, Search, X, Ticket } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { api } from '@/convex/_generated/api';
@@ -48,6 +48,12 @@ export function FloatingActionBar({ orgSlug }: FloatingActionBarProps) {
       label: 'Search',
       href: buildOrgLink('/search'),
       color: 'text-slate-600',
+    },
+    {
+      icon: Ticket,
+      label: 'Support',
+      href: buildOrgLink('/tickets/new'),
+      color: 'text-violet-600',
     },
     {
       icon: MessageSquare,
