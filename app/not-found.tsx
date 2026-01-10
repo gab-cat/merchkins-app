@@ -27,7 +27,7 @@ export default function NotFound() {
             Something went off the grid
           </div>
 
-          <h1 className="mb-2 text-7xl font-extrabold tracking-tight gradient-text sm:text-8xl">404</h1>
+          <h1 className="mb-2 text-7xl font-extrabold tracking-tight sm:text-8xl z-10">404</h1>
           <p className="mb-1 text-2xl font-semibold">Page not found</p>
           <p className="mx-auto mb-8 max-w-md text-balance text-sm text-muted-foreground">
             The page you are looking for might have been moved, renamed, or might never have existed.

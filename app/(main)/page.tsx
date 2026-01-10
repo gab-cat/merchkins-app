@@ -4,9 +4,13 @@ import { PopularProducts } from '@/src/features/products/components/popular-prod
 import { FeaturedCategories } from '@/src/features/categories/components/featured-categories';
 import type { Metadata } from 'next';
 import { PopularOrganizations } from '@/src/features/organizations/components/popular-organizations';
+import { SectionSeparator } from '@/src/components/landing/SectionSeparator';
+import { QuickAccessStrip } from '@/src/components/landing/QuickAccessStrip';
+import { CtaFooter } from '@/src/components/landing/CtaFooter';
 import { preloadQuery } from 'convex/nextjs';
 import { api } from '@/convex/_generated/api';
 import { BUSINESS_NAME, BUSINESS_DESCRIPTION } from '@/src/constants/business-info';
+import { LayoutGrid, Building2 } from 'lucide-react';
 
 export default async function Page() {
   const preloadedPopularProducts = await preloadQuery(api.products.queries.index.getPopularProducts, { limit: 8 });
@@ -19,31 +23,38 @@ export default async function Page() {
       <HomeHero />
 
       {/* Popular Products Section */}
-      <section className="relative w-full py-16 md:py-20">
+      <section className="relative w-full py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4">
           <PopularProducts preloadedProducts={preloadedPopularProducts} />
         </div>
       </section>
 
-      {/* Section spacer */}
-      <div className="h-8 md:h-12" />
+      {/* Section Separator */}
+      <SectionSeparator variant="default" />
+
+      {/* Organizations Section */}
+      <section className="relative w-full py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <PopularOrganizations preloadedOrganizations={preloadedPopularOrganizations} />
+        </div>
+      </section>
+
+      {/* Quick Access Strip - Code Entry + Category Chips */}
+      <QuickAccessStrip />
+
+      {/* Section Separator */}
+      <SectionSeparator variant="accent" icon={<LayoutGrid className="h-4 w-4 text-[#1d43d8]" />} />
 
       {/* Categories Section */}
-      <section className="relative w-full py-16 md:py-20">
+      <section className="relative w-full py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4">
           <FeaturedCategories preloadedCategories={preloadedFeaturedCategories} />
         </div>
       </section>
 
-      {/* Section spacer */}
-      <div className="h-8 md:h-12" />
-
-      {/* Organizations Section */}
-      <section className="relative w-full py-16 md:py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <PopularOrganizations preloadedOrganizations={preloadedPopularOrganizations} />
-        </div>
-      </section>
+      {/* CTA Footer Section */}
+      <SectionSeparator variant="subtle" />
+      <CtaFooter />
 
       {/* Structured Data */}
       <script

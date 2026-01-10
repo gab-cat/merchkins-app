@@ -4,7 +4,6 @@ import { SiteHeader } from '@/src/features/common/components/site-header';
 import { SiteFooter } from '@/src/features/common/components/site-footer';
 import ErrorBoundary from '@/src/components/error-boundary';
 import { PlatformChatwoot } from '@/src/components/chatwoot/platform-chatwoot';
-import CTAComponent from '@/src/features/common/components/cta';
 import { BUSINESS_NAME, BUSINESS_DESCRIPTION } from '@/src/constants/business-info';
 // import { PlatformBackground } from '@/src/components/ui/backgrounds/platform-background';
 
@@ -51,7 +50,6 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         <main className="w-full min-h-[80vh]">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
-        <CTAComponent />
         <SiteFooter />
       </div>
       <PlatformChatwoot />
