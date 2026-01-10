@@ -70,7 +70,11 @@ export const organizations = defineTable({
   .index('by_name', ['name'])
   .index('by_isDeleted', ['isDeleted'])
   .index('by_organizationType', ['organizationType'])
-  .index('by_member_count', ['memberCount']);
+  .index('by_member_count', ['memberCount'])
+  .searchIndex('search_organizations', {
+    searchField: 'name',
+    filterFields: ['isDeleted', 'organizationType'],
+  });
 
 // Optimized organization members with embedded user info
 export const organizationMembers = defineTable({

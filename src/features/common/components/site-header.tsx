@@ -5,9 +5,21 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Search, Building2, Package, User as UserIcon, ArrowRight, ArrowLeft, Sparkles, LogIn, DollarSign } from 'lucide-react';
+import {
+  ShoppingCart,
+  Building2,
+  Package,
+  User as UserIcon,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  LogIn,
+  DollarSign,
+  ChevronDown,
+  Check,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { SignedIn, SignedOut, UserButton, useAuth, SignInButton } from '@clerk/nextjs';
@@ -24,11 +36,14 @@ import { Navbar, NavBody, useNavbarScroll } from '@/src/components/ui/resizable-
 import { useOrgLink } from '@/src/hooks/use-org-link';
 import { BUSINESS_NAME, BUSINESS_CURRENCY } from '@/src/constants/business-info';
 
+type SearchMode = 'products' | 'organizations';
+
 export function SiteHeader() {
   const router = useRouter();
   const pathname = usePathname();
   useAuth();
   const [search, setSearch] = useState('');
+  const [searchMode, setSearchMode] = useState<SearchMode>('products');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { shouldApplyTheme } = useThemeExclusionAuto();
 
@@ -102,10 +117,21 @@ export function SiteHeader() {
   function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const q = search.trim();
-    if (q.length > 0) {
-      router.push(buildOrgLink(`/search?q=${encodeURIComponent(q)}`));
+
+    if (searchMode === 'organizations') {
+      // Organizations mode: route to /orgs with query
+      if (q.length > 0) {
+        router.push(`/orgs?q=${encodeURIComponent(q)}`);
+      } else {
+        router.push('/orgs');
+      }
     } else {
-      router.push(buildOrgLink('/search'));
+      // Products mode: route to org-specific search
+      if (q.length > 0) {
+        router.push(buildOrgLink(`/search?q=${encodeURIComponent(q)}`));
+      } else {
+        router.push(buildOrgLink('/search'));
+      }
     }
   }
 
@@ -139,6 +165,8 @@ export function SiteHeader() {
           navItems={navItems}
           search={search}
           setSearch={setSearch}
+          searchMode={searchMode}
+          setSearchMode={setSearchMode}
           handleSearchSubmit={handleSearchSubmit}
           totalItems={totalItems}
           mobileMenuOpen={mobileMenuOpen}
@@ -158,6 +186,8 @@ function SiteHeaderContent({
   navItems,
   search,
   setSearch,
+  searchMode,
+  setSearchMode,
   handleSearchSubmit,
   totalItems,
   setMobileMenuOpen,
@@ -169,6 +199,8 @@ function SiteHeaderContent({
   navItems: Array<{ name: string; link: string }>;
   search: string;
   setSearch: (value: string) => void;
+  searchMode: SearchMode;
+  setSearchMode: (mode: SearchMode) => void;
   handleSearchSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   totalItems: number;
 
@@ -311,60 +343,91 @@ function SiteHeaderContent({
 
         {/* Right side actions */}
         <div className="flex items-center gap-2">
-          {/* Enhanced Search Bar with Glassmorphism */}
+          {/* Enhanced Search Bar with Glassmorphism and Mode Dropdown */}
           <form onSubmit={handleSearchSubmit} role="search" className="hidden md:flex group">
-            <motion.div className="relative w-64" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-              <Search
-                className={cn(
-                  'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 z-20 transition-colors duration-300',
-                  isScrolled
-                    ? 'text-white/80 group-focus-within:text-white'
-                    : shouldApplyTheme
-                      ? 'text-foreground/60 group-focus-within:text-primary'
-                      : 'text-foreground/60 group-focus-within:text-primary'
-                )}
-              />
-              <motion.div
-                className="absolute inset-0 rounded-full opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"
-                style={{
-                  background: shouldApplyTheme
-                    ? 'linear-gradient(135deg, rgba(29, 67, 216, 0.1), rgba(79, 125, 249, 0.1))'
-                    : 'linear-gradient(135deg, rgba(173, 252, 4, 0.15), rgba(29, 67, 216, 0.15))',
-                  filter: 'blur(8px)',
-                }}
-              />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search products..."
-                aria-label="Search products"
-                className={cn(
-                  'h-9 pl-10 text-sm pr-10 rounded-full border transition-all duration-300 relative z-10',
-                  isScrolled
-                    ? 'bg-white/20 backdrop-blur-sm text-white border-white/20 placeholder:text-white/60 hover:border-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/20'
-                    : shouldApplyTheme
-                      ? 'bg-white/80 backdrop-blur-sm text-foreground border-border placeholder:text-muted-foreground hover:border-primary/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/20'
-                      : 'bg-white/80 backdrop-blur-sm text-foreground border-border placeholder:text-muted-foreground hover:border-primary/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/20'
-                )}
-              />
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  size="sm"
+            <motion.div className="relative flex items-center" whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+              {/* Search Mode Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'h-9 px-2.5 rounded-l-full rounded-r-none border border-r-0 flex items-center gap-1 transition-all duration-300 z-10',
+                      isScrolled
+                        ? 'bg-white/20 backdrop-blur-sm text-white border-white/20 hover:bg-white/30'
+                        : shouldApplyTheme
+                          ? 'bg-white/80 backdrop-blur-sm text-foreground border-border hover:bg-white'
+                          : 'bg-white/80 backdrop-blur-sm text-foreground border-border hover:bg-white'
+                    )}
+                  >
+                    {searchMode === 'products' ? <Package className="h-3.5 w-3.5" /> : <Building2 className="h-3.5 w-3.5" />}
+                    <ChevronDown className="h-3 w-3 opacity-60" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem onClick={() => setSearchMode('products')} className="flex items-center justify-between cursor-pointer">
+                    <span className="flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      Products
+                    </span>
+                    {searchMode === 'products' && <Check className="h-4 w-4 text-primary" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSearchMode('organizations')} className="flex items-center justify-between cursor-pointer">
+                    <span className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Organizations
+                    </span>
+                    {searchMode === 'organizations' && <Check className="h-4 w-4 text-primary" />}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Search Input */}
+              <div className="relative w-52">
+                <motion.div
+                  className="absolute inset-0 rounded-r-full opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"
+                  style={{
+                    background: shouldApplyTheme
+                      ? 'linear-gradient(135deg, rgba(29, 67, 216, 0.1), rgba(79, 125, 249, 0.1))'
+                      : 'linear-gradient(135deg, rgba(173, 252, 4, 0.15), rgba(29, 67, 216, 0.15))',
+                    filter: 'blur(8px)',
+                  }}
+                />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={searchMode === 'products' ? 'Search products...' : 'Search organizations...'}
+                  aria-label={searchMode === 'products' ? 'Search products' : 'Search organizations'}
                   className={cn(
-                    'absolute right-1.5 top-1/2 -translate-y-1/2 h-6 w-6 p-0 rounded-full transition-all duration-300',
+                    'h-9 pl-3 text-sm pr-9 rounded-l-none rounded-r-full border transition-all duration-300 relative z-10',
                     isScrolled
-                      ? 'hover:bg-white/10 text-white hover:text-white'
+                      ? 'bg-white/20 backdrop-blur-sm text-white border-white/20 placeholder:text-white/60 hover:border-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/20'
                       : shouldApplyTheme
-                        ? 'hover:bg-primary/10 text-muted-foreground hover:text-primary'
-                        : 'hover:bg-primary/10 text-muted-foreground hover:text-primary'
+                        ? 'bg-white/80 backdrop-blur-sm text-foreground border-border placeholder:text-muted-foreground hover:border-primary/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/20'
+                        : 'bg-white/80 backdrop-blur-sm text-foreground border-border placeholder:text-muted-foreground hover:border-primary/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/20'
                   )}
-                >
-                  <ArrowRight className="h-3.5 w-3.5" />
-                  <span className="sr-only">Search</span>
-                </Button>
-              </motion.div>
+                />
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'absolute right-1.5 top-1/2 -translate-y-1/2 h-6 w-6 p-0 rounded-full transition-all duration-300',
+                      isScrolled
+                        ? 'hover:bg-white/10 text-white hover:text-white'
+                        : shouldApplyTheme
+                          ? 'hover:bg-primary/10 text-muted-foreground hover:text-primary'
+                          : 'hover:bg-primary/10 text-muted-foreground hover:text-primary'
+                    )}
+                  >
+                    <ArrowRight className="h-3.5 w-3.5" />
+                    <span className="sr-only">Search</span>
+                  </Button>
+                </motion.div>
+              </div>
             </motion.div>
           </form>
           {/* My Orders Button - hidden when compressed */}

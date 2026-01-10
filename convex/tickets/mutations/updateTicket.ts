@@ -6,7 +6,6 @@ import {
   logAction,
   sanitizeString,
   validateStringLength,
-  requireOrganizationPermission,
   hasOrganizationPermission,
   getOrganizationMembership,
   PERMISSION_CODES,

@@ -73,7 +73,7 @@ export const updateOrganizationHandler = async (
   const organization = await requireActiveOrganization(ctx, organizationId);
 
   // Require organization manage_organization permission
-  const { user: currentUser } = await requireOrganizationPermission(ctx, organizationId, 'MANAGE_ORGANIZATION', 'update');
+  await requireOrganizationPermission(ctx, organizationId, 'MANAGE_ORGANIZATION', 'update');
 
   // Handle slug update: sanitize, validate, uniqueness
   if (updates.slug !== undefined) {

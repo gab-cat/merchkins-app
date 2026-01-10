@@ -9,6 +9,7 @@ import { getOrganizationAnalyticsArgs, getOrganizationAnalyticsHandler } from '.
 import { getInviteLinkByCodeArgs, getInviteLinkByCodeHandler } from './getInviteLinkByCode';
 import { getOrganizationInviteLinksArgs, getOrganizationInviteLinksHandler } from './getOrganizationInviteLinks';
 import { searchOrganizationsArgs, searchOrganizationsHandler } from './searchOrganizations';
+import { searchPublicOrganizationsArgs, searchPublicOrganizationsHandler } from './searchPublicOrganizations';
 import { listJoinRequestsArgs, listJoinRequestsHandler } from './listJoinRequests';
 import { getPopularOrganizationsArgs, getPopularOrganizationsHandler } from './getPopularOrganizations';
 import { getMyJoinRequestStatusArgs, getMyJoinRequestStatusHandler, getMyJoinRequestStatusReturns } from './getMyJoinRequestStatus';
@@ -60,6 +61,10 @@ export const getOrganizationInviteLinks = query({
 export const searchOrganizations = query({
   args: searchOrganizationsArgs,
   handler: searchOrganizationsHandler,
+});
+export const searchPublicOrganizations = query({
+  args: searchPublicOrganizationsArgs,
+  handler: searchPublicOrganizationsHandler,
 });
 export const listJoinRequests = query({
   args: listJoinRequestsArgs,

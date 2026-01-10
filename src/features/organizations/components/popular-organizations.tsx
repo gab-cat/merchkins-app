@@ -89,7 +89,7 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
       }
     }
     return (
-      <div className="h-full w-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground text-lg font-bold">
+      <div className="h-full w-full bg-linear-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground text-lg font-bold">
         {org.name?.charAt(0) || 'O'}
       </div>
     );
@@ -126,7 +126,7 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
         />
       );
     }
-    return <div className="h-full w-full bg-gradient-to-br from-primary/40 via-primary/20 to-brand-neon/30" />;
+    return <div className="h-full w-full bg-linear-to-br from-primary/40 via-primary/20 to-brand-neon/30" />;
   };
 
   return (
@@ -168,12 +168,12 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
         /* Loading skeleton */
         <div className="grid gap-5 md:grid-cols-12">
           <div className="md:col-span-5 lg:col-span-4">
-            <div className="h-80 rounded-3xl bg-gradient-to-br from-secondary to-secondary/50 skeleton" />
+            <div className="h-80 rounded-3xl bg-linear-to-br from-secondary to-secondary/50 skeleton" />
           </div>
           <div className="md:col-span-7 lg:col-span-8">
             <div className="flex gap-4 overflow-hidden">
               {new Array(3).fill(null).map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-72 h-64 rounded-2xl bg-gradient-to-br from-secondary to-secondary/50 skeleton" />
+                <div key={i} className="shrink-0 w-72 h-64 rounded-2xl bg-linear-to-br from-secondary to-secondary/50 skeleton" />
               ))}
             </div>
           </div>
@@ -192,7 +192,7 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
                 <div
                   className={cn(
                     'relative h-full min-h-[320px] rounded-3xl overflow-hidden',
-                    'bg-gradient-to-br from-primary via-primary/90 to-primary/70',
+                    'bg-linear-to-br from-primary via-primary/90 to-primary/70',
                     'shadow-xl hover:shadow-2xl transition-all duration-500',
                     'hover:scale-[1.02]'
                   )}
@@ -201,8 +201,8 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
                   <div className="absolute inset-0 opacity-40">{renderOrgBanner(featuredOrg)}</div>
 
                   {/* Overlays */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-br from-primary/30 to-transparent" />
 
                   {/* Featured badge */}
                   <div className="absolute top-4 left-4 z-20">
@@ -276,7 +276,7 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
               {regularOrgs.map((org, index) => (
                 <motion.div
                   key={org.id}
-                  className="flex-shrink-0 w-72 snap-start"
+                  className="shrink-0 w-72 snap-start"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1, duration: 0.4 }}
@@ -291,7 +291,7 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
                       {/* Banner */}
                       <div className="relative h-24 w-full overflow-hidden">
                         {renderOrgBanner(org)}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
 
                         {/* Type badge */}
                         <Badge

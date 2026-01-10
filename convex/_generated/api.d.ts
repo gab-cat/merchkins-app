@@ -273,6 +273,7 @@ import type * as organizations_queries_getPopularOrganizations from "../organiza
 import type * as organizations_queries_index from "../organizations/queries/index.js";
 import type * as organizations_queries_listJoinRequests from "../organizations/queries/listJoinRequests.js";
 import type * as organizations_queries_searchOrganizations from "../organizations/queries/searchOrganizations.js";
+import type * as organizations_queries_searchPublicOrganizations from "../organizations/queries/searchPublicOrganizations.js";
 import type * as payments_actions_createGroupedPaymongoCheckout from "../payments/actions/createGroupedPaymongoCheckout.js";
 import type * as payments_actions_createGroupedXenditInvoice from "../payments/actions/createGroupedXenditInvoice.js";
 import type * as payments_actions_createXenditInvoice from "../payments/actions/createXenditInvoice.js";
@@ -748,6 +749,7 @@ declare const fullApi: ApiFromModules<{
   "organizations/queries/index": typeof organizations_queries_index;
   "organizations/queries/listJoinRequests": typeof organizations_queries_listJoinRequests;
   "organizations/queries/searchOrganizations": typeof organizations_queries_searchOrganizations;
+  "organizations/queries/searchPublicOrganizations": typeof organizations_queries_searchPublicOrganizations;
   "payments/actions/createGroupedPaymongoCheckout": typeof payments_actions_createGroupedPaymongoCheckout;
   "payments/actions/createGroupedXenditInvoice": typeof payments_actions_createGroupedXenditInvoice;
   "payments/actions/createXenditInvoice": typeof payments_actions_createXenditInvoice;

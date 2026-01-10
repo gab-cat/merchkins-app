@@ -8,7 +8,6 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { cn } from '@/lib/utils';
 import { showToast } from '@/lib/toast';
-import { Id } from '@/convex/_generated/dataModel';
 
 // UI components
 import { Button } from '@/components/ui/button';

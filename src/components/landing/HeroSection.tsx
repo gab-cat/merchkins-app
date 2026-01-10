@@ -1,10 +1,13 @@
 'use client';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Building2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useCurrentUser } from '@/src/features/auth/hooks/use-current-user';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,6 +41,13 @@ export function HeroSection() {
 
   // Text moves upward faster than background (parallax effect)
   const textY = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
+
+  // Get current user and their organizations
+  const { user } = useCurrentUser();
+  const userOrgs = useQuery(api.organizations.queries.index.getOrganizationsByUser, user?._id ? { userId: user._id } : 'skip');
+
+  // Show explore button if user is signed out OR has no joined organizations
+  const showExploreButton = !user || (userOrgs && userOrgs.length === 0);
 
   return (
     <section ref={sectionRef} className="relative flex items-center justify-center pt-8 pb-8 md:pb-12 lg:pb-16 px-4 sm:px-6 lg:px-8">
@@ -84,7 +94,7 @@ export function HeroSection() {
               The unified platform for freelancers, artists, and SMEs — manage orders, payments, fulfillment, and customer support all in one place.
             </motion.p>
 
-            {/* CTA Button */}
+            {/* CTA Buttons */}
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Link
                 href={process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.merchkins.com'}
@@ -93,6 +103,18 @@ export function HeroSection() {
                 Launch your storefront
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
+
+              {/* Explore Organizations Button - shown to signed-out users or users with no orgs */}
+              {showExploreButton && (
+                <Link
+                  href="/orgs"
+                  className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 text-white text-base font-semibold rounded-full border border-white/20 backdrop-blur-sm hover:bg-white/20 transition-all hover:-translate-y-0.5"
+                >
+                  <Building2 className="h-5 w-5" />
+                  Explore Organizations
+                  <ArrowRight className="h-5 w-5 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                </Link>
+              )}
             </motion.div>
 
             {/* Social Proof */}
