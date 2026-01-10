@@ -119,6 +119,7 @@ import type * as helpers_emailTemplates_constants from "../helpers/emailTemplate
 import type * as helpers_emailTemplates_index from "../helpers/emailTemplates/index.js";
 import type * as helpers_emailTemplates_mailgunClient from "../helpers/emailTemplates/mailgunClient.js";
 import type * as helpers_emailTemplates_orderConfirmation from "../helpers/emailTemplates/orderConfirmation.js";
+import type * as helpers_emailTemplates_organizationInvite from "../helpers/emailTemplates/organizationInvite.js";
 import type * as helpers_emailTemplates_paymentConfirmation from "../helpers/emailTemplates/paymentConfirmation.js";
 import type * as helpers_emailTemplates_paymentReceived from "../helpers/emailTemplates/paymentReceived.js";
 import type * as helpers_emailTemplates_payoutInvoiceReady from "../helpers/emailTemplates/payoutInvoiceReady.js";
@@ -168,10 +169,12 @@ import type * as messages_queries_getMessages from "../messages/queries/getMessa
 import type * as messages_queries_getMessagesByEmail from "../messages/queries/getMessagesByEmail.js";
 import type * as messages_queries_index from "../messages/queries/index.js";
 import type * as messages_queries_searchMessages from "../messages/queries/searchMessages.js";
+import type * as migrations_addAllPermissions from "../migrations/addAllPermissions.js";
 import type * as migrations_backfillCheckoutSessionExpiresAt from "../migrations/backfillCheckoutSessionExpiresAt.js";
 import type * as migrations_backfillImageUrls from "../migrations/backfillImageUrls.js";
 import type * as migrations_backfillOrderLogs from "../migrations/backfillOrderLogs.js";
 import type * as migrations_backfillPaidAt from "../migrations/backfillPaidAt.js";
+import type * as migrations_index from "../migrations/index.js";
 import type * as migrations_migrateVoucherSchema from "../migrations/migrateVoucherSchema.js";
 import type * as models_announcements from "../models/announcements.js";
 import type * as models_carts from "../models/carts.js";
@@ -240,6 +243,8 @@ import type * as orders_queries_getOrdersByCheckoutSession from "../orders/queri
 import type * as orders_queries_getOrdersPage from "../orders/queries/getOrdersPage.js";
 import type * as orders_queries_index from "../orders/queries/index.js";
 import type * as orders_queries_searchOrders from "../orders/queries/searchOrders.js";
+import type * as organizations_actions_index from "../organizations/actions/index.js";
+import type * as organizations_actions_sendInviteEmail from "../organizations/actions/sendInviteEmail.js";
 import type * as organizations_mutations_addMember from "../organizations/mutations/addMember.js";
 import type * as organizations_mutations_createInviteLink from "../organizations/mutations/createInviteLink.js";
 import type * as organizations_mutations_createOrganization from "../organizations/mutations/createOrganization.js";
@@ -260,6 +265,7 @@ import type * as organizations_queries_checkOrganizationPermission from "../orga
 import type * as organizations_queries_checkStorefrontAccess from "../organizations/queries/checkStorefrontAccess.js";
 import type * as organizations_queries_getChatwootConfig from "../organizations/queries/getChatwootConfig.js";
 import type * as organizations_queries_getInviteLinkByCode from "../organizations/queries/getInviteLinkByCode.js";
+import type * as organizations_queries_getInviteLinkById from "../organizations/queries/getInviteLinkById.js";
 import type * as organizations_queries_getMyJoinRequestStatus from "../organizations/queries/getMyJoinRequestStatus.js";
 import type * as organizations_queries_getOrganizationAnalytics from "../organizations/queries/getOrganizationAnalytics.js";
 import type * as organizations_queries_getOrganizationById from "../organizations/queries/getOrganizationById.js";
@@ -595,6 +601,7 @@ declare const fullApi: ApiFromModules<{
   "helpers/emailTemplates/index": typeof helpers_emailTemplates_index;
   "helpers/emailTemplates/mailgunClient": typeof helpers_emailTemplates_mailgunClient;
   "helpers/emailTemplates/orderConfirmation": typeof helpers_emailTemplates_orderConfirmation;
+  "helpers/emailTemplates/organizationInvite": typeof helpers_emailTemplates_organizationInvite;
   "helpers/emailTemplates/paymentConfirmation": typeof helpers_emailTemplates_paymentConfirmation;
   "helpers/emailTemplates/paymentReceived": typeof helpers_emailTemplates_paymentReceived;
   "helpers/emailTemplates/payoutInvoiceReady": typeof helpers_emailTemplates_payoutInvoiceReady;
@@ -644,10 +651,12 @@ declare const fullApi: ApiFromModules<{
   "messages/queries/getMessagesByEmail": typeof messages_queries_getMessagesByEmail;
   "messages/queries/index": typeof messages_queries_index;
   "messages/queries/searchMessages": typeof messages_queries_searchMessages;
+  "migrations/addAllPermissions": typeof migrations_addAllPermissions;
   "migrations/backfillCheckoutSessionExpiresAt": typeof migrations_backfillCheckoutSessionExpiresAt;
   "migrations/backfillImageUrls": typeof migrations_backfillImageUrls;
   "migrations/backfillOrderLogs": typeof migrations_backfillOrderLogs;
   "migrations/backfillPaidAt": typeof migrations_backfillPaidAt;
+  "migrations/index": typeof migrations_index;
   "migrations/migrateVoucherSchema": typeof migrations_migrateVoucherSchema;
   "models/announcements": typeof models_announcements;
   "models/carts": typeof models_carts;
@@ -716,6 +725,8 @@ declare const fullApi: ApiFromModules<{
   "orders/queries/getOrdersPage": typeof orders_queries_getOrdersPage;
   "orders/queries/index": typeof orders_queries_index;
   "orders/queries/searchOrders": typeof orders_queries_searchOrders;
+  "organizations/actions/index": typeof organizations_actions_index;
+  "organizations/actions/sendInviteEmail": typeof organizations_actions_sendInviteEmail;
   "organizations/mutations/addMember": typeof organizations_mutations_addMember;
   "organizations/mutations/createInviteLink": typeof organizations_mutations_createInviteLink;
   "organizations/mutations/createOrganization": typeof organizations_mutations_createOrganization;
@@ -736,6 +747,7 @@ declare const fullApi: ApiFromModules<{
   "organizations/queries/checkStorefrontAccess": typeof organizations_queries_checkStorefrontAccess;
   "organizations/queries/getChatwootConfig": typeof organizations_queries_getChatwootConfig;
   "organizations/queries/getInviteLinkByCode": typeof organizations_queries_getInviteLinkByCode;
+  "organizations/queries/getInviteLinkById": typeof organizations_queries_getInviteLinkById;
   "organizations/queries/getMyJoinRequestStatus": typeof organizations_queries_getMyJoinRequestStatus;
   "organizations/queries/getOrganizationAnalytics": typeof organizations_queries_getOrganizationAnalytics;
   "organizations/queries/getOrganizationById": typeof organizations_queries_getOrganizationById;
