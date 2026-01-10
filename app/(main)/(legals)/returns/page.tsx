@@ -18,7 +18,7 @@ export default function ReturnsPage() {
 
         <div className="prose prose-slate max-w-none space-y-8">
           <h1 className="text-3xl font-bold font-heading mb-2">Returns & Refund Policy</h1>
-          <p className="text-slate-600 mb-8">Last updated: December 22, 2025</p>
+          <p className="text-slate-600 mb-8">Last updated: January 15, 2026</p>
 
           {/* Quick Overview Cards */}
           <div className="grid md:grid-cols-3 gap-4 not-prose mb-10 space-y-8">
@@ -80,16 +80,45 @@ export default function ReturnsPage() {
 
             <h3 className="text-xl font-semibold mb-3 mt-6">3.1 Cancellation Window</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
-              For orders that have been successfully paid, cancellation requests must be submitted within
-              <strong> twenty-four (24) hours</strong> from the time payment is confirmed. This window allows customers reasonable time to review
-              their purchase while enabling sellers to process orders efficiently.
+              For orders that have been successfully paid, cancellation requests must be submitted within <strong>twenty-four (24) hours</strong> from
+              the time payment is confirmed. This window allows customers reasonable time to review their purchase while enabling sellers to process
+              orders efficiently.
             </p>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
+              <h4 className="font-semibold text-slate-900 mb-2">Definition of Key Terms</h4>
+              <ul className="list-disc list-inside space-y-1 text-slate-700 text-sm ml-4">
+                <li>
+                  <strong>"Payment confirmation":</strong> The time when Merchkins receives confirmation from the payment processor that payment has
+                  been successfully processed and funds have been received. This is typically within minutes of payment submission but may take up to
+                  one (1) business day for certain payment methods (e.g., bank transfers). You will receive an email notification when payment is
+                  confirmed.
+                </li>
+                <li>
+                  <strong>"Business days":</strong> Monday through Friday, excluding Philippine national holidays and declared non-working days. The
+                  24-hour cancellation window operates continuously (including weekends and holidays), but seller review periods are calculated in
+                  business days only.
+                </li>
+                <li>
+                  <strong>"Defective":</strong> Products that have manufacturing defects, functional issues, or fail to perform as intended due to
+                  flaws in materials or workmanship.
+                </li>
+                <li>
+                  <strong>"Damaged":</strong> Products that arrive damaged due to shipping, handling, or packaging issues, or products that are
+                  damaged during transit and arrive in a condition that renders them unusable or significantly different from what was ordered.
+                </li>
+                <li>
+                  <strong>"Not as described":</strong> Products that materially differ from the seller's listing description, including but not
+                  limited to wrong size, color, design, material, quantity, or specifications.
+                </li>
+              </ul>
+            </div>
             <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
                 <p className="text-amber-800 text-sm">
                   <strong>Important:</strong> After the 24-hour window has elapsed, cancellation requests will not be accepted unless the product is
-                  defective, damaged, or not as described.
+                  defective, damaged, or not as described (as defined above). Change of mind or buyer's remorse after the 24-hour window does not
+                  qualify for cancellation, except where required by applicable consumer protection laws.
                 </p>
               </div>
             </div>
@@ -104,10 +133,33 @@ export default function ReturnsPage() {
               <li>You will receive an email notification once your request has been processed</li>
             </ol>
 
-            <h3 className="text-xl font-semibold mb-3 mt-6">3.3 Review Process</h3>
+            <h3 className="text-xl font-semibold mb-3 mt-6">3.3 Review Process and Enforcement</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
-              Cancellation requests are reviewed by the organization administrators (sellers). The review process typically takes 1-3 business days.
-              Approved cancellations will result in a refund voucher being issued to your account.
+              Cancellation requests are reviewed by the organization administrators (sellers). Sellers are required to respond to cancellation
+              requests within <strong>three (3) business days</strong> from the date the request is submitted. The review process typically takes 1-3
+              business days. Approved cancellations will result in a refund voucher being issued to your account.
+            </p>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-blue-800 font-medium mb-1">Merchkins Intervention Rights</p>
+                  <p className="text-blue-700 text-sm leading-relaxed mb-2">
+                    If a seller fails to respond to a cancellation request within three (3) business days, or if Merchkins determines that a
+                    cancellation request is valid but has been improperly denied, Merchkins reserves the right to:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-blue-700 text-sm ml-4">
+                    <li>Intervene and approve the cancellation request on behalf of the seller</li>
+                    <li>Issue the refund voucher directly to the customer</li>
+                    <li>Charge the refund amount to the seller's account or withhold from future payouts</li>
+                    <li>Take disciplinary action against the seller, including account warnings or suspension</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <p className="text-slate-700 leading-relaxed">
+              Merchkins may also intervene in cases where cancellation requests are clearly valid (e.g., product out of stock, seller-initiated
+              cancellation, or clear violation of seller obligations) to ensure timely resolution and protect consumer rights.
             </p>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">3.4 Pre-Orders and Made-to-Order Products</h3>
@@ -172,19 +224,26 @@ export default function ReturnsPage() {
                 <strong>Platform-Wide Use:</strong> Vouchers can be used at any store on the Merchkins platform, not just the original seller
               </li>
               <li>
-                <strong>No Expiration:</strong> Vouchers do not expire and remain valid indefinitely
+                <strong>No Expiration:</strong> Vouchers do not expire and remain valid indefinitely, subject to Merchkins' right to void vouchers
+                obtained through fraud, abuse, or violation of these Terms
               </li>
               <li>
-                <strong>Non-Transferable:</strong> Vouchers are linked to your account and cannot be transferred to another user
+                <strong>Non-Transferable:</strong> Vouchers are linked to your account and cannot be transferred, sold, or exchanged for cash or other
+                consideration
               </li>
               <li>
-                <strong>Stackable:</strong> Multiple vouchers can be used on a single order
+                <strong>Stackable:</strong> Multiple vouchers can be used on a single order, subject to any limitations imposed by individual sellers
               </li>
               <li>
-                <strong>Partial Use:</strong> If your order total is less than the voucher value, the remaining balance stays in your voucher
+                <strong>Partial Use:</strong> If your order total is less than the voucher value, the remaining balance stays in your voucher account
+                for future use
               </li>
               <li>
                 <strong>Top-Up Eligible:</strong> If your order exceeds the voucher value, you can pay the difference using other payment methods
+              </li>
+              <li>
+                <strong>Void for Fraud or Abuse:</strong> Merchkins reserves the right to void vouchers obtained through fraudulent activity,
+                chargeback abuse, or violation of platform policies. Voided vouchers cannot be reinstated.
               </li>
             </ul>
 
@@ -196,14 +255,29 @@ export default function ReturnsPage() {
             <ol className="list-decimal list-inside space-y-2 text-slate-700 ml-4 mb-4">
               <li>Navigate to your Vouchers page or Order details</li>
               <li>Find the eligible refund request</li>
-              <li>Click "Request Monetary Refund" or contact support</li>
-              <li>Your request will be reviewed by our support team</li>
+              <li>Click "Request Monetary Refund" or contact Merchkins support</li>
+              <li>Your request will be reviewed by Merchkins support team</li>
               <li>Once approved, the refund will be processed to your original payment method promptly</li>
             </ol>
             <p className="text-slate-700 leading-relaxed mb-4">
-              <strong>Processing Time:</strong> Monetary refund requests are processed promptly in accordance with applicable laws, typically within
-              3-5 business days after approval. Refunds will be credited to your original payment method.
+              <strong>Processing Time:</strong> Merchkins will acknowledge receipt of monetary refund requests within one (1) business day. Merchkins
+              will review and respond to monetary refund requests within <strong>five (5) business days</strong> of receipt. Once approved, refunds
+              will be processed to your original payment method within 3-5 business days, or as required by applicable law (whichever is faster).
+              Refunds will be credited to your original payment method.
             </p>
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-red-800 font-medium mb-1">Time Limits for Merchkins Response</p>
+                  <p className="text-red-700 text-sm">
+                    If Merchkins fails to respond to a monetary refund request within five (5) business days, or if Merchkins denies a valid refund
+                    request, you may escalate the matter to the Department of Trade and Industry (DTI) or file a complaint with the appropriate
+                    government agency. Merchkins is committed to timely resolution of all refund requests.
+                  </p>
+                </div>
+              </div>
+            </div>
             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
               <div className="flex items-start gap-3">
                 <ShieldCheck className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
@@ -267,17 +341,34 @@ export default function ReturnsPage() {
             <p className="text-slate-700 leading-relaxed mb-4">
               For valid complaints regarding defective, damaged, or incorrect products, you may be entitled to:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4">
+            <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 mb-4">
               <li>
-                <strong>Replacement:</strong> A new item sent to you at no additional cost
+                <strong>Replacement:</strong> A new item sent to you at no additional cost, including free return shipping for the defective/damaged
+                item
               </li>
               <li>
-                <strong>Refund Voucher:</strong> Full value issued as a platform voucher
+                <strong>Monetary Refund:</strong> Full refund to your original payment method, as required by the Consumer Act of the Philippines
+                (R.A. 7394) for defective, damaged, or misrepresented products
               </li>
               <li>
-                <strong>Partial Refund:</strong> A partial voucher for minor issues (upon agreement)
+                <strong>Refund Voucher:</strong> Full value issued as a platform voucher (optional, subject to your consent and statutory rights)
+              </li>
+              <li>
+                <strong>Partial Refund:</strong> A partial monetary refund or voucher for minor issues, only upon your explicit written agreement and
+                subject to your statutory rights
               </li>
             </ul>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                <p className="text-blue-800 text-sm">
+                  <strong>Important:</strong> For defective, damaged, or misrepresented products, you have a statutory right to monetary refunds under
+                  R.A. 7394. Partial refunds or vouchers may only be offered with your explicit consent and do not waive your right to full monetary
+                  refunds. Merchkins will not pressure or coerce you into accepting partial refunds or vouchers in lieu of full monetary refunds where
+                  required by law.
+                </p>
+              </div>
+            </div>
           </section>
 
           <section className="mb-10">
@@ -375,20 +466,38 @@ export default function ReturnsPage() {
             <p className="text-slate-700 leading-relaxed mb-4">If you are unsatisfied with the resolution provided, you may:</p>
             <ol className="list-decimal list-inside space-y-2 text-slate-700 ml-4 mb-4">
               <li>
-                <strong>Escalate to Merchkins Support:</strong> Contact our support team for mediation between you and the seller
+                <strong>Escalate to Merchkins Support:</strong> Contact Merchkins support team for mediation between you and the seller. Merchkins
+                will respond to escalation requests within <strong>three (3) business days</strong> and will attempt to mediate a resolution within{' '}
+                <strong>seven (7) business days</strong> of receiving your escalation request.
               </li>
               <li>
-                <strong>File a Complaint with DTI:</strong> You may file a complaint with the Department of Trade and Industry for consumer-related
-                disputes
+                <strong>File a Complaint with DTI:</strong> You may file a complaint with the Department of Trade and Industry (DTI) for
+                consumer-related disputes at any time. DTI complaints can be filed online at{' '}
+                <a href="https://www.dti.gov.ph" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  www.dti.gov.ph
+                </a>{' '}
+                or in person at any DTI office.
               </li>
               <li>
-                <strong>Seek Legal Remedies:</strong> As a last resort, you may pursue legal action through appropriate channels
+                <strong>Seek Legal Remedies:</strong> As a last resort, you may pursue legal action through appropriate channels. Consumer protection
+                claims under R.A. 7394 must be filed within two (2) years from the date the cause of action arose.
               </li>
             </ol>
             <p className="text-slate-700 leading-relaxed mb-4">
               Merchkins is committed to fair resolution of all disputes and will cooperate fully with regulatory authorities in the investigation of
-              any consumer complaints.
+              any consumer complaints. Merchkins will provide all necessary documentation and information requested by DTI or other regulatory
+              agencies.
             </p>
+            <div className="bg-amber-50 border-l-4 border-amber-500 p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                <p className="text-amber-800 text-sm">
+                  <strong>Time Limits:</strong> All disputes must be raised within <strong>thirty (30) days</strong> of delivery or the date you
+                  discovered the issue (whichever is later). Disputes raised after this period may not be eligible for resolution, except where
+                  required by applicable consumer protection laws (e.g., defective products under R.A. 7394).
+                </p>
+              </div>
+            </div>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">8.1 How to Contact Support</h3>
             <p className="text-slate-700 leading-relaxed mb-4">You can reach our support team through multiple channels:</p>

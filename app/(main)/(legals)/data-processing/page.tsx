@@ -65,18 +65,18 @@ const subprocessors = [
     website: 'https://clerk.com',
   },
   {
-    company: 'Xendit Pte. Ltd.',
-    location: 'Singapore (serving Southeast Asia)',
+    company: 'Paymongo, Inc.',
+    location: 'Philippines',
     purpose: 'Payment Processing',
     activities: [
       'Credit/debit card payment processing',
-      'E-wallet payments (GCash, Maya)',
-      'Bank transfer processing',
+      'E-wallet payments (GCash, GrabPay, PayMaya)',
+      'Direct online banking (DOB)',
       'Payment verification and fraud detection',
       'Refund and chargeback handling',
     ],
     dataProcessed: 'Payment details, transaction amounts, billing information (tokenized)',
-    website: 'https://xendit.co',
+    website: 'https://paymongo.com',
   },
   {
     company: 'Mailgun Technologies, Inc.',

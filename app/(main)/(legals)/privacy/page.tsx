@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowLeft, Shield, Eye, Lock, Database, Share2, UserCheck, Clock, Globe, Bell, FileText, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Shield, Eye, Lock, Database, Share2, UserCheck, Clock, Globe, Bell, FileText, HelpCircle, AlertTriangle } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — Merchkins',
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
 
         <div className="prose prose-slate max-w-none space-y-8">
           <h1 className="text-3xl font-bold font-heading mb-2">Privacy Policy</h1>
-          <p className="text-slate-600 mb-8">Last updated: December 22, 2025</p>
+          <p className="text-slate-600 mb-8">Last updated: January 15, 2025</p>
 
           {/* Data Privacy Compliance Card */}
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 not-prose mb-10">
@@ -209,33 +209,76 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 mb-4">
               <li>Use customer data only for order fulfillment and customer service</li>
-              <li>Handle data in compliance with the Data Privacy Act of 2012</li>
-              <li>Not share customer data with third parties without consent</li>
-              <li>Not use customer data for unrelated marketing without separate consent</li>
-              <li>Implement reasonable security measures to protect customer data</li>
+              <li>Handle data in compliance with the Data Privacy Act of 2012 (R.A. 10173) and its Implementing Rules and Regulations</li>
+              <li>Not share customer data with third parties without explicit consent from the customer</li>
+              <li>Not use customer data for unrelated marketing without separate, explicit consent</li>
+              <li>Implement reasonable security measures to protect customer data, including encryption, access controls, and secure storage</li>
+              <li>Notify Merchkins immediately of any data breach or unauthorized access to customer data</li>
+              <li>Cooperate with Merchkins and regulatory authorities in any data privacy investigation</li>
             </ul>
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-red-800 font-medium mb-1">Consequences of Seller Violations</p>
+                  <p className="text-red-700 text-sm leading-relaxed mb-2">Violation of data privacy obligations by sellers may result in:</p>
+                  <ul className="list-disc list-inside space-y-1 text-red-700 text-sm ml-4">
+                    <li>Immediate suspension or termination of seller account and storefront</li>
+                    <li>Removal of all product listings</li>
+                    <li>Reporting to the National Privacy Commission (NPC) for investigation</li>
+                    <li>Legal action and potential liability for damages under R.A. 10173</li>
+                    <li>Withholding of payouts until resolution of privacy violations</li>
+                    <li>Indemnification of Merchkins for any losses arising from seller's privacy violations</li>
+                  </ul>
+                  <p className="text-red-700 text-sm mt-2">
+                    Merchkins reserves the right to take immediate action to protect customer data and comply with data privacy laws, including
+                    terminating seller access to customer data.
+                  </p>
+                </div>
+              </div>
+            </div>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">4.2 Service Providers</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
-              We engage trusted third-party service providers who assist us in operating our Platform:
+              Merchkins engages third-party service providers who assist in operating the Platform. Merchkins selects service providers based on the
+              following criteria:
             </p>
             <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 mb-4">
+              <li>Compliance with applicable data protection laws and industry standards (e.g., ISO 27001, SOC 2)</li>
+              <li>Implementation of appropriate technical and organizational security measures</li>
+              <li>Execution of data processing agreements or standard contractual clauses</li>
+              <li>Reputation and track record in data security and privacy</li>
+              <li>Geographic location and data residency requirements</li>
+              <li>Ability to meet Merchkins' security and privacy standards</li>
+            </ul>
+            <p className="text-slate-700 leading-relaxed mb-4">Merchkins engages the following categories of third-party service providers:</p>
+            <ul className="list-disc list-inside space-y-2 text-slate-700 ml-4 mb-4">
               <li>
-                <strong>Payment processors:</strong> To process your payments securely (e.g., Xendit, GCash, Maya)
+                <strong>Payment processors:</strong> To process your payments securely (e.g., Paymongo, GCash, Maya). These providers are PCI-DSS
+                compliant and process payment data according to strict security standards.
               </li>
               <li>
-                <strong>Cloud hosting providers:</strong> To host and maintain our Platform infrastructure
+                <strong>Cloud hosting providers:</strong> To host and maintain Platform infrastructure. Providers must meet industry security
+                standards and implement encryption at rest and in transit.
               </li>
               <li>
-                <strong>Email service providers:</strong> To send transactional and promotional emails
+                <strong>Email service providers:</strong> To send transactional and promotional emails. Providers must implement email security
+                measures and comply with anti-spam regulations.
               </li>
               <li>
-                <strong>Analytics providers:</strong> To analyze Platform usage and improve our services
+                <strong>Analytics providers:</strong> To analyze Platform usage and improve services. Data is anonymized where possible, and providers
+                must comply with data minimization principles.
               </li>
               <li>
-                <strong>Customer support tools:</strong> To manage and respond to your inquiries
+                <strong>Customer support tools:</strong> To manage and respond to inquiries. Providers must implement access controls and data
+                encryption.
               </li>
             </ul>
+            <p className="text-slate-700 leading-relaxed">
+              All service providers are contractually bound to process data only as instructed by Merchkins, maintain appropriate security measures,
+              and comply with applicable data protection laws. Merchkins regularly reviews service provider compliance and may terminate agreements
+              with providers that fail to meet security or privacy standards.
+            </p>
 
             <h3 className="text-xl font-semibold mb-3 mt-6">4.3 Legal and Regulatory Authorities</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
@@ -602,16 +645,22 @@ export default function PrivacyPage() {
 
             <h3 className="text-xl font-semibold mb-3">9.1 Exercising Your Rights</h3>
             <p className="text-slate-700 leading-relaxed mb-4">
-              To exercise any of these rights, please contact our Data Protection Officer at
+              To exercise any of these rights, please contact Merchkins' Data Protection Officer at{' '}
               <a href="mailto:business@merchkins.com" className="text-blue-600 hover:underline">
-                {' '}
                 business@merchkins.com
               </a>
-              . We will respond to your request within thirty (30) days as required by the Data Privacy Act.
+              . Merchkins will acknowledge receipt of your request within <strong>three (3) business days</strong> and respond to your request within{' '}
+              <strong>thirty (30) calendar days</strong> as required by the Data Privacy Act of 2012 (R.A. 10173).
+            </p>
+            <p className="text-slate-700 leading-relaxed mb-4">
+              If Merchkins is unable to respond within thirty (30) days due to the complexity of the request or volume of requests, Merchkins will
+              notify you in writing within thirty (30) days, explain the reason for the delay, and provide an estimated response date (not to exceed
+              sixty (60) days total).
             </p>
             <p className="text-slate-700 leading-relaxed">
-              Please note that some rights may be limited where we have overriding legitimate grounds, or where data is needed for legal claims or
-              compliance with legal obligations.
+              Please note that some rights may be limited where Merchkins has overriding legitimate grounds (such as ongoing legal proceedings), or
+              where data is needed for legal claims or compliance with legal obligations (such as tax records retention requirements). Merchkins will
+              explain any limitations on your rights in its response.
             </p>
           </section>
 
@@ -663,8 +712,10 @@ export default function PrivacyPage() {
           <section className="mb-10">
             <h2 className="text-2xl font-semibold mb-4">12. Third-Party Links</h2>
             <p className="text-slate-700 leading-relaxed">
-              Our Platform may contain links to third-party websites or services that are not owned or controlled by Merchkins. We are not responsible
-              for the privacy practices of these third parties. We encourage you to review the privacy policies of any third-party sites you visit.
+              The Platform may contain links to third-party websites or services that are not owned or controlled by Merchkins. Merchkins is not
+              responsible for the privacy practices, data collection, or security measures of these third parties. Merchkins encourages you to review
+              the privacy policies of any third-party sites you visit. Your use of third-party services is subject to their respective terms and
+              privacy policies.
             </p>
           </section>
 
@@ -674,15 +725,41 @@ export default function PrivacyPage() {
               13. Data Breach Notification
             </h2>
             <p className="text-slate-700 leading-relaxed mb-4">
-              In the event of a personal data breach that is likely to result in a risk to your rights and freedoms, we will:
+              In the event of a personal data breach that is likely to result in a risk to your rights and freedoms, Merchkins will:
             </p>
             <ol className="list-decimal list-inside space-y-2 text-slate-700 ml-4 mb-4">
-              <li>Notify the National Privacy Commission (NPC) within seventy-two (72) hours of becoming aware of the breach</li>
-              <li>Notify affected data subjects when the breach is likely to result in high risk to their rights and freedoms</li>
-              <li>Document all breaches including their effects and remedial actions taken</li>
-              <li>Implement measures to address the breach and prevent future occurrences</li>
+              <li>
+                Notify the National Privacy Commission (NPC) within <strong>seventy-two (72) hours</strong> of becoming aware of the breach, as
+                required by NPC Circular No. 16-03
+              </li>
+              <li>
+                Notify affected data subjects <strong>without undue delay</strong> when the breach is likely to result in high risk to their rights
+                and freedoms, including but not limited to identity theft, financial fraud, or reputational damage
+              </li>
+              <li>Document all breaches including their effects, scope, and remedial actions taken</li>
+              <li>Implement immediate measures to address the breach and prevent future occurrences</li>
+              <li>Provide affected individuals with information about the breach, potential risks, and steps they can take to protect themselves</li>
             </ol>
-            <p className="text-slate-700 leading-relaxed">This is in compliance with NPC Circular No. 16-03 on Personal Data Breach Management.</p>
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <Shield className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-blue-800 font-medium mb-1">Data Breach Liability</p>
+                  <p className="text-blue-700 text-sm leading-relaxed">
+                    Merchkins is committed to protecting your personal data and will take all reasonable measures to prevent data breaches. However,
+                    no method of data transmission or storage is 100% secure. In the event of a data breach caused by Merchkins' gross negligence or
+                    willful misconduct, Merchkins may be held liable under the Data Privacy Act of 2012 (R.A. 10173). Merchkins maintains cyber
+                    liability insurance to cover potential data breach costs and will comply with all legal obligations regarding breach notification
+                    and remediation.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <p className="text-slate-700 leading-relaxed">
+              This is in compliance with <strong>NPC Circular No. 16-03 on Personal Data Breach Management</strong> and the Data Privacy Act of 2012
+              (R.A. 10173). Merchkins maintains incident response procedures and regularly conducts security assessments to minimize the risk of data
+              breaches.
+            </p>
           </section>
 
           <section className="mb-10">
