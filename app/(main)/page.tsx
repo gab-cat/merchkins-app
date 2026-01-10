@@ -10,7 +10,7 @@ import { CtaFooter } from '@/src/components/landing/CtaFooter';
 import { preloadQuery } from 'convex/nextjs';
 import { api } from '@/convex/_generated/api';
 import { BUSINESS_NAME, BUSINESS_DESCRIPTION } from '@/src/constants/business-info';
-import { LayoutGrid, Building2 } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 
 export default async function Page() {
   const preloadedPopularProducts = await preloadQuery(api.products.queries.index.getPopularProducts, { limit: 8 });

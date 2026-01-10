@@ -218,8 +218,8 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 border-b pb-6">
+    <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 border-b pb-4">
         <div className="flex items-center gap-3">
           <Button
             type="submit"
@@ -234,7 +234,7 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full justify-start h-auto p-1 bg-muted/30 border rounded-xl mb-6 flex-wrap">
+        <TabsList className="w-full justify-start h-auto p-1 bg-muted/30 border rounded-xl mb-4 flex-wrap">
           <TabsTrigger
             value="general"
             className="rounded-lg px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all gap-2"
@@ -259,13 +259,13 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
         </TabsList>
 
         {/* General Settings */}
-        <TabsContent value="general" className="space-y-6 focus-visible:outline-none">
+        <TabsContent value="general" className="space-y-4 focus-visible:outline-none">
           <Card className="overflow-hidden border-border/50 shadow-sm transition-all hover:shadow-md">
-            <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+            <CardHeader className="bg-muted/10 border-b border-border/50 pb-3">
               <CardTitle>Basic Information</CardTitle>
               <CardDescription>Core details about your organization.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-6 grid gap-6 md:grid-cols-2">
+            <CardContent className="pt-4 grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="org-name">Organization Name</Label>
                 <Input id="org-name" value={name} onChange={(e) => setName(e.target.value)} className="h-10 bg-background/50" />
@@ -340,14 +340,14 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
 
         {/* Branding Settings */}
         <TabsContent value="branding" className="focus-visible:outline-none">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-7 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-7 space-y-4">
               <Card className="overflow-hidden border-border/50 shadow-sm">
-                <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+                <CardHeader className="bg-muted/10 border-b border-border/50 pb-3">
                   <CardTitle>Logos & Assets</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6 space-y-6">
-                  <div className="grid gap-6 sm:grid-cols-2">
+                <CardContent className="pt-4 space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-3">
                       <Label>Organization Logo</Label>
                       <div className="group relative h-32 w-32 overflow-hidden rounded-xl border-2 border-dashed border-muted-foreground/20 bg-muted/5 transition-all hover:border-primary/50 hover:bg-muted/10">
@@ -403,11 +403,11 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
               </Card>
 
               <Card className="overflow-hidden border-border/50 shadow-sm">
-                <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+                <CardHeader className="bg-muted/10 border-b border-border/50 pb-3">
                   <CardTitle>Colors & Typography</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6 space-y-8">
-                  <div className="space-y-4">
+                <CardContent className="pt-4 space-y-4">
+                  <div className="space-y-3">
                     <Label className="text-base">Brand Colors</Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <ColorPicker label="Primary Color" value={primaryColor} onChange={setPrimaryColor} />
@@ -417,7 +417,7 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
 
                   <Separator />
 
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <Label className="text-base">Header Colors</Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <ColorPicker label="Header Background" value={headerBg} onChange={setHeaderBg} />
@@ -428,7 +428,7 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
 
                   <Separator />
 
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <Label className="text-base">Footer Colors</Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <ColorPicker label="Footer Background" value={footerBg} onChange={setFooterBg} />
@@ -438,7 +438,7 @@ export function OrgSettingsForm({ organization }: { organization: OrganizationDo
 
                   <Separator />
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-3">
                       <Label>Font Family</Label>
                       <Select value={fontFamily} onValueChange={setFontFamily}>

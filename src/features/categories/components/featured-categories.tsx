@@ -6,8 +6,7 @@ import { motion } from 'framer-motion';
 import { usePreloadedQuery, Preloaded } from 'convex/react';
 import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { api } from '@/convex/_generated/api';
-import { BlurFade } from '@/src/components/ui/animations';
-import { ArrowRight, LayoutGrid, Sparkles, Shirt, Coffee, Laptop, Gift, Music, Camera, Palette, Star } from 'lucide-react';
+import { ArrowRight, Sparkles, Shirt, Coffee, Laptop, Gift, Music, Camera, Palette, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOrgLink } from '@/src/hooks/use-org-link';
 
@@ -37,15 +36,6 @@ const getIconForCategory = (name: string) => {
   return categoryIcons.default;
 };
 
-// Monochromatic brand-primary tints for cohesive design
-const gradients = [
-  'from-[#1d43d8]/15 via-[#1d43d8]/8 to-[#1d43d8]/15',
-  'from-[#1d43d8]/12 via-[#1d43d8]/6 to-[#1d43d8]/12',
-  'from-[#1d43d8]/10 via-[#1d43d8]/5 to-[#1d43d8]/10',
-  'from-slate-100/80 via-slate-50/50 to-slate-100/80 dark:from-slate-800/50 dark:via-slate-800/30 dark:to-slate-800/50',
-  'from-[#1d43d8]/8 via-transparent to-[#1d43d8]/8',
-  'from-brand-neon/15 via-brand-neon/8 to-brand-neon/15',
-];
 
 interface FeaturedCategoriesProps {
   orgSlug?: string;

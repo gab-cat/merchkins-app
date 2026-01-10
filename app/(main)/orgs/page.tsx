@@ -12,7 +12,7 @@ import { R2Image } from '@/src/components/ui/r2-image';
 import { BlurFade } from '@/src/components/ui/animations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { X, Heart, Building2, Users, Globe, Lock, Search, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';

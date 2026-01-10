@@ -265,16 +265,33 @@ function ProductDetailInner({ slug, orgSlug, product, recommendations }: Product
 
   if (product === undefined) {
     return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="aspect-4/3 rounded-lg bg-secondary skeleton" />
-          <div className="space-y-3">
-            <div className="h-6 w-2/3 rounded bg-secondary animate-pulse" />
-            <div className="h-4 w-1/3 rounded bg-secondary animate-pulse" />
-            <div className="h-16 w-full rounded bg-secondary animate-pulse" />
-            <div className="h-8 w-32 rounded bg-secondary animate-pulse" />
+      <div className="min-h-screen">
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-linear-to-b from-primary/2 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
+          <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10">
+            <div className="grid gap-8 lg:gap-12 lg:grid-cols-2">
+              {/* Gallery Section */}
+              <div className="space-y-4">
+                <div className="h-[400px] md:h-[550px] w-full rounded-3xl bg-secondary skeleton" />
+              </div>
+              {/* Product Info Section */}
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <div className="h-8 sm:h-10 md:h-12 w-3/4 rounded bg-secondary animate-pulse" />
+                  <div className="h-6 w-1/2 rounded bg-secondary animate-pulse" />
+                </div>
+                <div className="h-10 sm:h-12 w-1/3 rounded bg-secondary animate-pulse" />
+                <div className="h-20 w-full rounded bg-secondary animate-pulse" />
+                <div className="flex flex-wrap gap-2">
+                  <div className="h-6 w-16 rounded-full bg-secondary animate-pulse" />
+                  <div className="h-6 w-20 rounded-full bg-secondary animate-pulse" />
+                </div>
+                <div className="h-14 w-full rounded-full bg-secondary animate-pulse" />
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     );
   }
@@ -742,7 +759,7 @@ function ProductGallery({ imageKeys }: { imageKeys: string[] }) {
   const [dialogImageIndex, setDialogImageIndex] = React.useState(0);
 
   if (!imageKeys || imageKeys.length === 0) {
-    return <div className="h-[500px] md:h-[600px] w-full rounded-3xl bg-secondary skeleton" />;
+    return <div className="h-[400px] md:h-[550px] w-full rounded-3xl bg-secondary skeleton" />;
   }
 
   const goPrev = () => setCurrent((c) => (c - 1 + imageKeys.length) % imageKeys.length);
@@ -762,17 +779,14 @@ function ProductGallery({ imageKeys }: { imageKeys: string[] }) {
         whileHover={{ scale: 1.01 }}
         transition={{ duration: 0.3 }}
       >
-        {/* Gradient border effect */}
-        <div className="absolute inset-0 rounded-3xl bg-linear-to-br from-primary/20 via-transparent to-brand-neon/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-20" />
-
-        <div className="h-[400px] md:h-[550px] mx-auto flex items-center justify-center bg-linear-to-br from-secondary via-secondary/80 to-secondary/60 relative">
+        <div className="h-[400px] md:h-[550px] w-full relative bg-linear-to-br from-secondary via-secondary/80 to-secondary/60">
           <R2Image
             key={imageKeys[current]}
             fileKey={imageKeys[current]}
             alt="Product image"
-            width={800}
-            height={600}
-            className="rounded-3xl object-cover object-center animate-in fade-in transition-transform duration-500 group-hover:scale-105"
+            fill
+            className="rounded-3xl object-cover object-center animate-in fade-in"
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
 
           {/* Zoom indicator */}

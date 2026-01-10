@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { BlurFade } from '@/src/components/ui/animations/effects';
 
 interface ErrorFallbackProps {
   error?: Error;
@@ -12,88 +13,80 @@ interface ErrorFallbackProps {
 
 export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   const router = useRouter();
+  const [showErrorDetails, setShowErrorDetails] = useState(false);
 
   return (
-    <div className="min-h-[500px] flex items-center justify-center p-8">
-      <div className="relative max-w-md w-full">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 rounded-2xl opacity-50 animate-pulse" />
-        <div
-          className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-red-400 to-orange-400 rounded-full opacity-20 animate-bounce"
-          style={{ animationDelay: '0.5s' }}
-        />
-        <div
-          className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full opacity-20 animate-bounce"
-          style={{ animationDelay: '1s' }}
-        />
-
-        {/* Main content */}
-        <div className="relative bg-white/80 backdrop-blur-sm border border-red-200/50 rounded-2xl p-8 shadow-xl">
-          {/* Icon with animation */}
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 rounded-full blur-lg opacity-30 animate-pulse" />
-              <div className="relative bg-gradient-to-r from-red-500 to-orange-500 p-4 rounded-full">
-                <AlertTriangle className="h-8 w-8 text-white" />
+    <div className="min-h-[60vh] flex items-center justify-center px-4 py-6">
+      <BlurFade delay={0.1} duration={0.4} blurAmount={8} yOffset={10}>
+        <div className="max-w-md w-full">
+          {/* Main card */}
+          <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-modern">
+            {/* Icon section */}
+            <div className="flex justify-center mb-6">
+              <div className="p-3 rounded-xl bg-[#1d43d8]/10">
+                <AlertTriangle className="h-6 w-6 text-[#1d43d8]" />
               </div>
             </div>
-          </div>
 
-          {/* Error message */}
-          <div className="text-center space-y-3 mb-8">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">Oops! Something broke</h2>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              We encountered an unexpected error. Don&apos;t worry, it&apos;s not your fault. Let&apos;s get you back on track.
-            </p>
-          </div>
+            {/* Error message */}
+            <div className="text-center space-y-3 mb-8">
+              <h2 className="text-xl font-bold font-heading text-slate-900">Something went wrong</h2>
+              <p className="text-slate-500 text-sm font-body leading-relaxed">
+                We encountered an unexpected error. Don&apos;t worry, it&apos;s not your fault. Let&apos;s get you back on track.
+              </p>
+            </div>
 
-          {/* Action buttons */}
-          <div className="space-y-3">
-            <Button
-              onClick={resetError}
-              className="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Try Again
-            </Button>
-
-            <div className="grid grid-cols-2 gap-3">
+            {/* Action buttons */}
+            <div className="space-y-3">
               <Button
-                onClick={() => router.back()}
-                variant="outline"
-                className="border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-300"
+                onClick={resetError}
+                className="w-full bg-[#1d43d8] hover:bg-[#1d43d8]/90 text-white rounded-full px-6 h-10 font-semibold shadow-lg shadow-[#1d43d8]/25"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Go Back
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Try Again
               </Button>
 
-              <Button
-                onClick={() => router.push('/')}
-                variant="outline"
-                className="border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-300"
-              >
-                <Home className="mr-2 h-4 w-4" />
-                Home
-              </Button>
-            </div>
-          </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={() => router.back()}
+                  variant="outline"
+                  className="rounded-full px-4 h-10 font-medium border-slate-200 text-slate-600 hover:bg-slate-50"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Go Back
+                </Button>
 
-          {/* Error code (if available) */}
-          {error?.message && (
-            <div className="mt-6 p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-xs text-gray-500 font-mono break-all">Error: {error.message}</p>
+                <Button
+                  onClick={() => router.push('/')}
+                  variant="outline"
+                  className="rounded-full px-4 h-10 font-medium border-slate-200 text-slate-600 hover:bg-slate-50"
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  Home
+                </Button>
+              </div>
             </div>
-          )}
+
+            {/* Error details - collapsible */}
+            {error?.message && (
+              <div className="mt-6">
+                <button
+                  onClick={() => setShowErrorDetails(!showErrorDetails)}
+                  className="w-full flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
+                >
+                  <span className="text-xs font-medium text-slate-600 font-body">Error Details</span>
+                  {showErrorDetails ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                </button>
+                {showErrorDetails && (
+                  <div className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <p className="text-xs text-slate-500 font-mono break-all font-body">{error.message}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Floating particles */}
-        <div className="absolute top-0 left-1/4 w-2 h-2 bg-red-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '0.2s' }} />
-        <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-orange-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '0.7s' }} />
-        <div
-          className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping opacity-75"
-          style={{ animationDelay: '1.2s' }}
-        />
-      </div>
+      </BlurFade>
     </div>
   );
 }
