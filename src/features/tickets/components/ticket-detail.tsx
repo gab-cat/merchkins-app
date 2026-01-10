@@ -7,8 +7,9 @@ import { motion } from 'framer-motion';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { showToast } from '@/lib/toast';
+import { buildR2PublicUrl } from '@/lib/utils';
 import {
   ArrowLeft,
   Ticket,
@@ -110,6 +111,14 @@ function TicketProgressStepper({ status }: { status: TicketStatus }) {
   ];
   const currentIndex = steps.findIndex((s) => s.key === status);
 
+  // Color mapping for progress steps
+  const stepColors: Record<TicketStatus, { bg: string; ring: string; connector: string }> = {
+    OPEN: { bg: 'bg-amber-500', ring: 'ring-amber-500/20', connector: 'bg-amber-400' },
+    IN_PROGRESS: { bg: 'bg-blue-500', ring: 'ring-blue-500/20', connector: 'bg-blue-400' },
+    RESOLVED: { bg: 'bg-emerald-500', ring: 'ring-emerald-500/20', connector: 'bg-emerald-400' },
+    CLOSED: { bg: 'bg-slate-500', ring: 'ring-slate-500/20', connector: 'bg-slate-400' },
+  };
+
   return (
     <div className="rounded-xl border border-slate-100 p-4 bg-slate-50/50">
       <h3 className="text-sm font-semibold text-slate-700 mb-4">Progress</h3>
@@ -118,21 +127,26 @@ function TicketProgressStepper({ status }: { status: TicketStatus }) {
           const isCompleted = index <= currentIndex;
           const isCurrent = index === currentIndex;
           const config = STATUS_CONFIG[step.key];
+          const colors = stepColors[step.key];
           const Icon = config.icon;
+
+          // Determine colors based on completion status
+          const stepBgColor = isCompleted ? colors.bg : 'bg-slate-200';
+          const stepRingClass = isCurrent ? `ring-4 ${colors.ring}` : '';
+          const connectorColor = index < currentIndex ? colors.connector : 'bg-slate-200';
+          const labelColor = isCurrent ? config.text : 'text-slate-500';
 
           return (
             <React.Fragment key={step.key}>
               <div className="flex flex-col items-center">
                 <div
-                  className={`h-10 w-10 rounded-full flex items-center justify-center transition-all ${
-                    isCompleted ? (isCurrent ? 'bg-[#1d43d8] ring-4 ring-[#1d43d8]/20' : 'bg-[#1d43d8]') : 'bg-slate-200'
-                  }`}
+                  className={`h-10 w-10 rounded-full flex items-center justify-center transition-all ${stepBgColor} ${stepRingClass}`}
                 >
                   <Icon className={`h-5 w-5 ${isCompleted ? 'text-white' : 'text-slate-400'}`} />
                 </div>
-                <span className={`mt-2 text-xs font-medium ${isCurrent ? 'text-[#1d43d8]' : 'text-slate-500'}`}>{step.label}</span>
+                <span className={`mt-2 text-xs font-medium ${labelColor}`}>{step.label}</span>
               </div>
-              {index < steps.length - 1 && <div className={`flex-1 h-1 mx-2 rounded ${index < currentIndex ? 'bg-[#1d43d8]' : 'bg-slate-200'}`} />}
+              {index < steps.length - 1 && <div className={`flex-1 h-1 mx-2 rounded ${connectorColor}`} />}
             </React.Fragment>
           );
         })}
@@ -146,7 +160,7 @@ function UpdateItem({
   update,
   index,
 }: {
-  update: TicketUpdate & { creatorInfo?: { firstName?: string; lastName?: string; email: string } | null };
+  update: TicketUpdate & { creatorInfo?: { firstName?: string; lastName?: string; email: string; imageUrl?: string } | null };
   index: number;
 }) {
   const isComment = update.updateType === 'COMMENT';
@@ -161,6 +175,8 @@ function UpdateItem({
     .join('')
     .slice(0, 2)
     .toUpperCase();
+
+  const imageUrl = buildR2PublicUrl(update.creatorInfo?.imageUrl || null);
 
   const formatDate = (ts: number) => {
     const date = new Date(ts);
@@ -186,6 +202,7 @@ function UpdateItem({
       className={`flex gap-3 ${isComment ? 'items-start' : 'items-center'}`}
     >
       <Avatar className="h-8 w-8 shrink-0">
+        {imageUrl && <AvatarImage src={imageUrl} alt={creatorName} />}
         <AvatarFallback className="text-xs bg-[#1d43d8]/10 text-[#1d43d8]">{initials}</AvatarFallback>
       </Avatar>
 

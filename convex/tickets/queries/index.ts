@@ -1,5 +1,6 @@
 import { query } from '../../_generated/server';
 import { getTicketsHandler, getTicketsArgs } from './getTickets';
+import { getTicketsPageHandler, getTicketsPageArgs } from './getTicketsPage';
 import { getTicketByIdHandler, getTicketByIdArgs } from './getTicketById';
 import { getTicketUpdatesHandler, getTicketUpdatesArgs } from './getTicketUpdates';
 import { getTicketAnalyticsHandler, getTicketAnalyticsArgs } from './getTicketAnalytics';
@@ -9,6 +10,11 @@ import { getOpenCountHandler, getOpenCountArgs } from './getOpenCount';
 export const getTickets = query({
   args: getTicketsArgs,
   handler: getTicketsHandler,
+});
+
+export const getTicketsPage = query({
+  args: getTicketsPageArgs,
+  handler: getTicketsPageHandler,
 });
 
 export const getTicketById = query({

@@ -119,77 +119,58 @@ function PriorityBadge({ priority }: { priority: TicketPriority }) {
   );
 }
 
-// Progress stepper
-function TicketProgress({ status }: { status: TicketStatus }) {
-  const steps: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
-  const currentIndex = steps.indexOf(status);
-
-  return (
-    <div className="flex items-center gap-1">
-      {steps.map((step, i) => {
-        const isComplete = i <= currentIndex;
-        const config = STATUS_CONFIG[step];
-        return (
-          <div key={step} className="flex items-center">
-            <div className={cn('h-2 w-2 rounded-full transition-all', isComplete ? config.bgColor : 'bg-muted')} />
-            {i < steps.length - 1 && <div className={cn('h-0.5 w-4', i < currentIndex ? 'bg-primary/40' : 'bg-muted')} />}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 // Ticket card
 function TicketCard({ ticket, index, orgSlug }: { ticket: TicketListItem; index: number; orgSlug?: string }) {
   const statusConfig = STATUS_CONFIG[ticket.status];
-  const StatusIcon = statusConfig?.icon || AlertCircle;
   const detailUrl = orgSlug ? `/o/${orgSlug}/tickets/${ticket._id}` : `/tickets/${ticket._id}`;
+
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffTime = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
 
   return (
     <BlurFade delay={0.05 * Math.min(index, 10)}>
       <Link href={detailUrl}>
-        <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} className="group">
-          <Card className="overflow-hidden transition-all duration-200 hover:shadow-md hover:border-primary/30">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                {/* Icon */}
-                <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center shrink-0', statusConfig?.bgColor)}>
-                  <StatusIcon className={cn('h-5 w-5', statusConfig?.color)} />
-                </div>
+        <motion.div whileHover={{ scale: 1.005 }} whileTap={{ scale: 0.998 }} className="group">
+          <Card className="overflow-hidden py-2 border transition-all duration-200 hover:shadow-sm hover:border-primary/40 hover:bg-accent/30">
+            <CardContent className="p-3 ">
+              <div className="flex items-center gap-3">
+                {/* Status indicator bar */}
+                <div className={cn('w-1 h-12 rounded-full shrink-0', statusConfig?.bgColor)} />
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <h3 className="font-medium text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors pr-2">
                       {ticket.title || 'Untitled Ticket'}
                     </h3>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all mt-0.5" />
                   </div>
 
-                  {/* Meta row */}
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  {/* Meta info row */}
+                  <div className="flex items-center gap-2 flex-wrap">
                     <StatusBadge status={ticket.status} />
                     <PriorityBadge priority={ticket.priority} />
-                  </div>
-
-                  {/* Progress & Date */}
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                    <TicketProgress status={ticket.status} />
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      {ticket.updateCount !== undefined && ticket.updateCount > 0 && (
-                        <span className="flex items-center gap-1">
-                          <MessageSquare className="h-3 w-3" />
-                          {ticket.updateCount}
-                        </span>
-                      )}
-                      {ticket.updatedAt && (
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(ticket.updatedAt).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
+                    {ticket.updateCount !== undefined && ticket.updateCount > 0 && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <MessageSquare className="h-3 w-3" />
+                        <span>{ticket.updateCount}</span>
+                      </span>
+                    )}
+                    {ticket.updatedAt && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
+                        <Calendar className="h-3 w-3" />
+                        <span>{formatDate(ticket.updatedAt)}</span>
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -207,15 +188,15 @@ function TicketsSkeleton() {
     <div className="space-y-3">
       {[1, 2, 3, 4].map((i) => (
         <Card key={i}>
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <Skeleton className="h-10 w-10 rounded-xl" />
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-1 h-12 rounded-full shrink-0" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-                <div className="flex items-center justify-between pt-3 mt-3 border-t">
-                  <Skeleton className="h-2 w-24" />
-                  <Skeleton className="h-3 w-20" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                  <Skeleton className="h-3 w-20 ml-auto" />
                 </div>
               </div>
             </div>
@@ -284,7 +265,7 @@ export function TicketsPage() {
     hasMore,
     loadMore,
   } = useCursorPagination<TicketListItem, { organizationId: Id<'organizations'>; search?: string }>({
-    query: api.tickets.queries.index.getTickets,
+    query: api.tickets.queries.index.getTicketsPage,
     baseArgs: organization?._id ? { organizationId: organization._id, search: debouncedSearch.trim() } : 'skip',
     limit: 25,
     selectPage: (res: unknown) => {

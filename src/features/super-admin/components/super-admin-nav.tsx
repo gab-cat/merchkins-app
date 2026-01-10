@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Building2, Users, ShieldCheck, ScrollText, Megaphone, BarChart3, LucideIcon, DollarSign, Receipt } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, ShieldCheck, ScrollText, Megaphone, BarChart3, LucideIcon, DollarSign, Receipt, Ticket } from 'lucide-react';
 
 interface NavItemProps {
   href: string;
@@ -77,6 +77,7 @@ export function SuperAdminNav() {
     { href: '/super-admin/organizations', icon: Building2, label: 'Organizations' },
     { href: '/super-admin/applications', icon: ScrollText, label: 'Applications' }, // Using ScrollText as clipboard/list replacement
     { href: '/super-admin/users', icon: Users, label: 'Users' },
+    { href: '/super-admin/tickets', icon: Ticket, label: 'Tickets' },
     { href: '/super-admin/payouts', icon: DollarSign, label: 'Payouts' },
     { href: '/super-admin/voucher-refunds', icon: Receipt, label: 'Voucher Refunds' },
   ];

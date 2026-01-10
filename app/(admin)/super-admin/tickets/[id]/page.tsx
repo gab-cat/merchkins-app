@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import type { Id } from '@/convex/_generated/dataModel';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { showToast } from '@/lib/toast';
 
 // Admin components
@@ -169,7 +169,13 @@ function InfoRow({ icon: Icon, label, value, className }: { icon: React.ElementT
   );
 }
 
-export default function AdminTicketDetailPage() {
+interface EligibleAssignee {
+  userId: Id<'users'>;
+  role: 'STAFF' | 'ADMIN';
+  userInfo: { firstName?: string; lastName?: string; email: string };
+}
+
+export default function SuperAdminTicketDetailPage() {
   const params = useParams() as { id: string };
   const ticketId = params.id as Id<'tickets'>;
 
@@ -177,9 +183,15 @@ export default function AdminTicketDetailPage() {
   const ticket = useQuery(api.tickets.queries.index.getTicketById, { ticketId });
   const updates = useQuery(api.tickets.queries.index.getTicketUpdates, { ticketId, limit: 100, offset: 0 });
 
-  // Use organizationId from ticket if available, otherwise skip
-  const membersQueryArgs = ticket?.organizationId ? { organizationId: ticket.organizationId, isActive: true, limit: 100 } : 'skip';
-  const members = useQuery(api.organizations.queries.index.getOrganizationMembers, membersQueryArgs);
+  // Query staff and admin users for eligible assignees (only for personal tickets)
+  const staffUsers = useQuery(api.users.queries.index.getUsers, ticket && !ticket.organizationId ? { isStaff: true, limit: 100 } : 'skip');
+  const adminUsers = useQuery(api.users.queries.index.getUsers, ticket && !ticket.organizationId ? { isAdmin: true, limit: 100 } : 'skip');
+
+  // Query organization members for eligible assignees (only for organization tickets)
+  const orgMembers = useQuery(
+    api.organizations.queries.index.getOrganizationMembers,
+    ticket?.organizationId ? { organizationId: ticket.organizationId, isActive: true, limit: 100 } : 'skip'
+  );
 
   // Mutations
   const addUpdate = useMutation(api.tickets.mutations.index.addTicketUpdate);
@@ -207,18 +219,84 @@ export default function AdminTicketDetailPage() {
     });
   }, [updates]);
 
-  interface OrganizationMember {
-    userId: Id<'users'>;
-    role: 'ADMIN' | 'STAFF' | 'MEMBER';
-    userInfo: { firstName?: string; lastName?: string; email: string };
-  }
+  // Combine staff and admin users into eligible assignees (for personal tickets)
+  const eligibleAssignees = useMemo<EligibleAssignee[]>(() => {
+    if (!ticket || ticket.organizationId) {
+      // If ticket has organizationId, return empty (use org members instead)
+      return [];
+    }
 
-  const eligibleAssignees = useMemo<OrganizationMember[]>(() => {
-    const orgMembers = (members as { page?: OrganizationMember[] } | undefined)?.page || [];
+    const staff =
+      (staffUsers as { page?: Array<{ _id: Id<'users'>; firstName?: string; lastName?: string; email: string }> } | undefined)?.page || [];
+    const admin =
+      (adminUsers as { page?: Array<{ _id: Id<'users'>; firstName?: string; lastName?: string; email: string }> } | undefined)?.page || [];
 
-    // Only include org members with STAFF or ADMIN roles
-    return orgMembers.filter((m) => m.role === 'STAFF' || m.role === 'ADMIN');
-  }, [members]);
+    // Combine and deduplicate (in case a user is both staff and admin)
+    const assigneeMap = new Map<Id<'users'>, EligibleAssignee>();
+
+    // Add staff users
+    staff.forEach((user) => {
+      if (user._id && String(user._id).trim()) {
+        assigneeMap.set(user._id, {
+          userId: user._id,
+          role: 'STAFF',
+          userInfo: {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+          },
+        });
+      }
+    });
+
+    // Add admin users (will overwrite if user is both, prioritizing ADMIN role)
+    admin.forEach((user) => {
+      if (user._id && String(user._id).trim()) {
+        assigneeMap.set(user._id, {
+          userId: user._id,
+          role: 'ADMIN',
+          userInfo: {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+          },
+        });
+      }
+    });
+
+    return Array.from(assigneeMap.values());
+  }, [ticket, staffUsers, adminUsers]);
+
+  // Filter organization members to only ADMIN and STAFF roles for eligible assignees
+  const eligibleOrgAssignees = useMemo<EligibleAssignee[]>(() => {
+    if (!ticket?.organizationId || !orgMembers) {
+      return [];
+    }
+
+    const members =
+      (
+        orgMembers as {
+          page?: Array<{
+            userId: Id<'users'>;
+            role: 'ADMIN' | 'STAFF' | 'MEMBER';
+            userInfo: { firstName?: string; lastName?: string; email: string };
+          }>;
+        }
+      )?.page || [];
+
+    // Filter to only ADMIN and STAFF roles, and map to EligibleAssignee structure
+    return members
+      .filter((member) => member.role === 'ADMIN' || member.role === 'STAFF')
+      .map((member) => ({
+        userId: member.userId,
+        role: member.role as 'STAFF' | 'ADMIN',
+        userInfo: {
+          firstName: member.userInfo.firstName,
+          lastName: member.userInfo.lastName,
+          email: member.userInfo.email,
+        },
+      }));
+  }, [ticket, orgMembers]);
 
   const handleStatusChange = async (newStatus: TicketStatus) => {
     if (!ticket || isBusy) return;
@@ -234,6 +312,13 @@ export default function AdminTicketDetailPage() {
         isInternal: false,
       });
       showToast({ type: 'success', title: 'Status updated' });
+    } catch (err) {
+      console.error('Status update error:', err);
+      showToast({
+        type: 'error',
+        title: 'Failed to update status',
+        description: err instanceof Error ? err.message : 'An unexpected error occurred',
+      });
     } finally {
       setIsBusy(false);
     }
@@ -312,8 +397,6 @@ export default function AdminTicketDetailPage() {
     );
   }
 
-  const _statusConfig = STATUS_CONFIG[ticket.status as TicketStatus];
-  const _priorityConfig = PRIORITY_CONFIG[ticket.priority as TicketPriority];
   const creatorImageUrl = buildR2PublicUrl(ticket.creatorInfo?.imageUrl || null);
 
   return (
@@ -322,7 +405,7 @@ export default function AdminTicketDetailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild className="shrink-0 h-9 w-9 rounded-full">
-            <Link href="/admin/tickets">
+            <Link href="/super-admin/tickets">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
@@ -443,14 +526,16 @@ export default function AdminTicketDetailPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(STATUS_CONFIG).map(([key, conf]) => (
-                        <SelectItem key={key} value={key}>
-                          <div className="flex items-center gap-2">
-                            <conf.icon className={cn('h-3.5 w-3.5', conf.color)} />
-                            {conf.label}
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {Object.entries(STATUS_CONFIG)
+                        .filter(([key]) => key && key.trim())
+                        .map(([key, conf]) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <conf.icon className={cn('h-3.5 w-3.5', conf.color)} />
+                              {conf.label}
+                            </div>
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -462,14 +547,16 @@ export default function AdminTicketDetailPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(PRIORITY_CONFIG).map(([key, conf]) => (
-                        <SelectItem key={key} value={key}>
-                          <div className="flex items-center gap-2">
-                            <span className={cn('h-2 w-2 rounded-full', conf.dotColor)} />
-                            {conf.label}
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {Object.entries(PRIORITY_CONFIG)
+                        .filter(([key]) => key && key.trim())
+                        .map(([key, conf]) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <span className={cn('h-2 w-2 rounded-full', conf.dotColor)} />
+                              {conf.label}
+                            </div>
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -484,7 +571,7 @@ export default function AdminTicketDetailPage() {
             <CardContent className="p-4 pt-0">
               <div className="space-y-1.5">
                 <label className="text-[10px] uppercase font-bold text-muted-foreground/70 tracking-wider">Assignee</label>
-                <Select value={String(ticket.assignedToId || '')} onValueChange={handleAssign} disabled={isBusy}>
+                <Select value={ticket.assignedToId ? String(ticket.assignedToId) : undefined} onValueChange={handleAssign} disabled={isBusy}>
                   <SelectTrigger className="h-9 w-full bg-background">
                     <div className="flex items-center gap-2">
                       <UserPlus className="h-3.5 w-3.5 text-muted-foreground" />
@@ -494,16 +581,55 @@ export default function AdminTicketDetailPage() {
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    {eligibleAssignees.map((m) => (
-                      <SelectItem key={String(m.userId)} value={String(m.userId)}>
-                        <div className="flex flex-col text-left">
-                          <span className="font-medium text-xs">
-                            {m.userInfo.firstName ? `${m.userInfo.firstName} ${m.userInfo.lastName || ''}` : m.userInfo.email.split('@')[0]}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">{m.role.toLowerCase()}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                    {ticket.organizationId ? (
+                      eligibleOrgAssignees.length > 0 ? (
+                        eligibleOrgAssignees
+                          .filter((m) => m.userId && String(m.userId).trim())
+                          .map((m) => {
+                            const userIdString = String(m.userId).trim();
+                            // Double-check to ensure value is not empty before rendering
+                            if (!userIdString) return null;
+                            return (
+                              <SelectItem key={userIdString} value={userIdString}>
+                                <div className="flex flex-col text-left">
+                                  <span className="font-medium text-xs">
+                                    {m.userInfo.firstName ? `${m.userInfo.firstName} ${m.userInfo.lastName || ''}` : m.userInfo.email.split('@')[0]}
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground">{m.role.toLowerCase()}</span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })
+                          .filter(Boolean)
+                      ) : (
+                        <SelectGroup>
+                          <SelectLabel>No organization members available</SelectLabel>
+                        </SelectGroup>
+                      )
+                    ) : eligibleAssignees.length > 0 ? (
+                      eligibleAssignees
+                        .filter((m) => m.userId && String(m.userId).trim())
+                        .map((m) => {
+                          const userIdString = String(m.userId).trim();
+                          // Double-check to ensure value is not empty before rendering
+                          if (!userIdString) return null;
+                          return (
+                            <SelectItem key={userIdString} value={userIdString}>
+                              <div className="flex flex-col text-left">
+                                <span className="font-medium text-xs">
+                                  {m.userInfo.firstName ? `${m.userInfo.firstName} ${m.userInfo.lastName || ''}` : m.userInfo.email.split('@')[0]}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground">{m.role.toLowerCase()}</span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })
+                        .filter(Boolean)
+                    ) : (
+                      <SelectGroup>
+                        <SelectLabel>Loading assignees...</SelectLabel>
+                      </SelectGroup>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

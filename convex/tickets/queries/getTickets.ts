@@ -8,6 +8,7 @@ export const getTicketsArgs = {
   assignedToId: v.optional(v.id('users')),
   assignedToMe: v.optional(v.boolean()),
   organizationId: v.optional(v.id('organizations')),
+  personalOnly: v.optional(v.boolean()),
   status: v.optional(v.union(v.literal('OPEN'), v.literal('IN_PROGRESS'), v.literal('RESOLVED'), v.literal('CLOSED'))),
   priority: v.optional(v.union(v.literal('LOW'), v.literal('MEDIUM'), v.literal('HIGH'))),
   category: v.optional(v.union(v.literal('BUG'), v.literal('FEATURE_REQUEST'), v.literal('SUPPORT'), v.literal('QUESTION'), v.literal('OTHER'))),
@@ -28,6 +29,7 @@ export const getTicketsHandler = async (
     assignedToId?: Id<'users'>;
     assignedToMe?: boolean;
     organizationId?: Id<'organizations'>;
+    personalOnly?: boolean;
     status?: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
     priority?: 'LOW' | 'MEDIUM' | 'HIGH';
     category?: 'BUG' | 'FEATURE_REQUEST' | 'SUPPORT' | 'QUESTION' | 'OTHER';
@@ -122,6 +124,11 @@ export const getTicketsHandler = async (
 
   let results = await filtered.collect();
   results.sort((a, b) => b.updatedAt - a.updatedAt);
+
+  // Filter for personal tickets (no organizationId) if requested
+  if (args.personalOnly) {
+    results = results.filter((ticket: any) => !ticket.organizationId);
+  }
 
   // Apply search filter if provided
   if (args.search && args.search.trim().length > 0) {
