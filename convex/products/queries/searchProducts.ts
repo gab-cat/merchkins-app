@@ -2,7 +2,7 @@ import { QueryCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 
-// Search products by title, description, or tags
+// Search products by title using full-text search
 export const searchProductsArgs = {
   query: v.string(),
   organizationId: v.optional(v.id('organizations')),
@@ -27,70 +27,68 @@ export const searchProductsHandler = async (
     throw new Error('Search query cannot be empty');
   }
 
-  const searchTerms = args.query.toLowerCase().trim().split(/\s+/);
+  const queryLower = args.query.toLowerCase().trim();
+  const limit = args.limit || 50;
+  const offset = args.offset || 0;
+  const isDeleted = args.includeDeleted ? undefined : false;
 
-  let baseQuery;
-
-  // Choose the most specific index
-  if (args.organizationId && args.categoryId) {
-    baseQuery = ctx.db
-      .query('products')
-      .withIndex('by_organization_category', (q) => q.eq('organizationId', args.organizationId!).eq('categoryId', args.categoryId!));
-  } else if (args.organizationId) {
-    baseQuery = ctx.db.query('products').withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!));
-  } else if (args.categoryId) {
-    baseQuery = ctx.db.query('products').withIndex('by_category', (q) => q.eq('categoryId', args.categoryId!));
-  } else {
-    baseQuery = ctx.db.query('products').withIndex('by_isDeleted', (q) => q.eq('isDeleted', false));
+  // When organizationId is not provided, get all public organization IDs first
+  // so we can scope the search query properly
+  let publicOrgIds: Set<Id<'organizations'>> | null = null;
+  if (!args.organizationId) {
+    const publicOrgs = await ctx.db
+      .query('organizations')
+      .withIndex('by_organizationType', (q) => q.eq('organizationType', 'PUBLIC'))
+      .filter((q) => q.eq(q.field('isDeleted'), false))
+      .collect();
+    publicOrgIds = new Set(publicOrgs.map((org) => org._id));
   }
 
-  // Apply basic filters
-  let filteredQuery = baseQuery;
+  // Use the search index for efficient database-level search
+  // When organizationId is provided, it's already scoped in the search query
+  // When not provided, we'll filter in-memory for public orgs after fetching
+  const searchQuery = ctx.db.query('products').withSearchIndex('search_products', (q) => {
+    let search = q.search('title', args.query);
 
-  if (!args.includeDeleted) {
-    filteredQuery = filteredQuery.filter((q) => q.eq(q.field('isDeleted'), false));
-  }
+    // Apply filter fields available in the search index
+    if (isDeleted !== undefined) {
+      search = search.eq('isDeleted', isDeleted);
+    }
+    if (args.organizationId) {
+      // When organizationId is provided, scope at the database level
+      search = search.eq('organizationId', args.organizationId);
+    }
+    if (args.categoryId) {
+      search = search.eq('categoryId', args.categoryId);
+    }
 
-  // Get all results for text searching
-  let allProducts = await filteredQuery.collect();
+    return search;
+  });
+
+  // Fetch ALL matching products from the search query to get accurate totals
+  // This ensures total and hasMore are computed from the complete filtered set
+  let allProducts = await searchQuery.collect();
 
   // If not scoped to an organization, filter to public org products (or global)
-  if (!args.organizationId) {
-    const filtered: typeof allProducts = [] as any;
+  // This filtering happens on the complete set, ensuring accurate totals
+  if (!args.organizationId && publicOrgIds) {
+    const filtered: typeof allProducts = [];
     for (const p of allProducts) {
       if (!p.organizationId) {
+        // Products without an organization are allowed
         filtered.push(p);
         continue;
       }
-      const org = await ctx.db.get(p.organizationId as Id<'organizations'>);
-      if (org && !org.isDeleted && org.organizationType === 'PUBLIC') {
+      // Only include products from public organizations
+      if (publicOrgIds.has(p.organizationId)) {
         filtered.push(p);
       }
     }
     allProducts = filtered;
   }
 
-  // Filter products by search terms
-  const matchedProducts = allProducts.filter((product) => {
-    const searchableText = [
-      product.title,
-      product.description || '',
-      ...product.tags,
-      product.creatorInfo.firstName || '',
-      product.creatorInfo.lastName || '',
-      product.organizationInfo?.name || '',
-      product.categoryInfo?.name || '',
-    ]
-      .join(' ')
-      .toLowerCase();
-
-    // Check if all search terms are found in the searchable text
-    return searchTerms.every((term) => searchableText.includes(term));
-  });
-
   // Sort by relevance (exact title matches first, then partial matches)
-  const queryLower = args.query.toLowerCase();
-  matchedProducts.sort((a, b) => {
+  allProducts.sort((a, b) => {
     const aTitle = a.title.toLowerCase();
     const bTitle = b.title.toLowerCase();
 
@@ -111,11 +109,8 @@ export const searchProductsHandler = async (
   });
 
   // Apply pagination
-  const total = matchedProducts.length;
-  const offset = args.offset || 0;
-  const limit = args.limit || 50;
-
-  const paginatedResults = matchedProducts.slice(offset, offset + limit);
+  const total = allProducts.length;
+  const paginatedResults = allProducts.slice(offset, offset + limit);
 
   return {
     products: paginatedResults,

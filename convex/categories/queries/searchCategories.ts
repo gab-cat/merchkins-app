@@ -2,7 +2,7 @@ import { QueryCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
 
-// Search categories by name, description, or tags
+// Search categories by name using full-text search
 export const searchCategoriesArgs = {
   searchTerm: v.string(),
   organizationId: v.optional(v.id('organizations')),
@@ -19,50 +19,44 @@ export const searchCategoriesHandler = async (
     limit?: number;
   }
 ) => {
-  const searchTerm = args.searchTerm.toLowerCase().trim();
+  const searchTerm = args.searchTerm.trim();
   if (!searchTerm) {
     return [];
   }
 
-  let query;
+  const limit = args.limit || 20;
+  const searchLower = searchTerm.toLowerCase();
 
-  if (args.organizationId) {
-    query = ctx.db.query('categories').withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId!));
-  } else {
-    query = ctx.db.query('categories');
-  }
+  // Use the search index for efficient database-level search
+  const categories = await ctx.db
+    .query('categories')
+    .withSearchIndex('search_categories', (q) => {
+      let search = q.search('name', searchTerm).eq('isDeleted', false);
 
-  const categories = await query
-    .filter((q) => {
-      const conditions = [q.eq(q.field('isDeleted'), false)];
-
+      if (args.organizationId) {
+        search = search.eq('organizationId', args.organizationId);
+      }
       if (args.isActive !== undefined) {
-        conditions.push(q.eq(q.field('isActive'), args.isActive));
+        search = search.eq('isActive', args.isActive);
       }
 
-      return q.and(...conditions);
+      return search;
     })
-    .collect();
-
-  // Filter by search term in memory (since Convex doesn't support text search in filters)
-  const filteredCategories = categories.filter((category) => {
-    const nameMatch = category.name.toLowerCase().includes(searchTerm);
-    const descriptionMatch = category.description?.toLowerCase().includes(searchTerm) || false;
-    const tagMatch = category.tags.some((tag) => tag.toLowerCase().includes(searchTerm));
-
-    return nameMatch || descriptionMatch || tagMatch;
-  });
+    .take(limit * 2); // Fetch more for re-sorting
 
   // Sort by relevance (exact name match first, then partial matches)
-  filteredCategories.sort((a, b) => {
-    const aNameExact = a.name.toLowerCase() === searchTerm;
-    const bNameExact = b.name.toLowerCase() === searchTerm;
+  const sorted = [...categories].sort((a, b) => {
+    const aNameLower = a.name.toLowerCase();
+    const bNameLower = b.name.toLowerCase();
+
+    const aNameExact = aNameLower === searchLower;
+    const bNameExact = bNameLower === searchLower;
 
     if (aNameExact && !bNameExact) return -1;
     if (!aNameExact && bNameExact) return 1;
 
-    const aNameStartsWith = a.name.toLowerCase().startsWith(searchTerm);
-    const bNameStartsWith = b.name.toLowerCase().startsWith(searchTerm);
+    const aNameStartsWith = aNameLower.startsWith(searchLower);
+    const bNameStartsWith = bNameLower.startsWith(searchLower);
 
     if (aNameStartsWith && !bNameStartsWith) return -1;
     if (!aNameStartsWith && bNameStartsWith) return 1;
@@ -71,7 +65,5 @@ export const searchCategoriesHandler = async (
     return a.name.localeCompare(b.name);
   });
 
-  // Apply limit
-  const limit = args.limit || 20;
-  return filteredCategories.slice(0, limit);
+  return sorted.slice(0, limit);
 };

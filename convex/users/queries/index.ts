@@ -10,7 +10,7 @@ import { getUserByEmailArgs, getUserByEmailHandler } from './getUserByEmail';
 import { getUsersArgs, getUsersHandler } from './getUsers';
 import { getUsersByManagerArgs, getUsersByManagerHandler } from './getUsersByManager';
 import { getUsersByOrganizationArgs, getUsersByOrganizationHandler } from './getUsersByOrganization';
-import { searchUsersArgs, searchUsersHandler } from './searchUsers';
+import { searchUsersArgs, searchUsersReturns, searchUsersHandler } from './searchUsers';
 import { getChatwootHmacTokenArgs, getChatwootHmacTokenHandler } from './getChatwootHmacToken';
 
 // Export query functions
@@ -61,6 +61,7 @@ export const getUsersByOrganization = query({
 
 export const searchUsers = query({
   args: searchUsersArgs,
+  returns: searchUsersReturns,
   handler: searchUsersHandler,
 });
 
