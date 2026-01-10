@@ -37,14 +37,14 @@ const getIconForCategory = (name: string) => {
   return categoryIcons.default;
 };
 
-// Predefined gradient combos for variety
+// Monochromatic brand-primary tints for cohesive design
 const gradients = [
-  'from-violet-500/20 via-purple-500/10 to-fuchsia-500/20',
-  'from-blue-500/20 via-cyan-500/10 to-teal-500/20',
-  'from-orange-500/20 via-amber-500/10 to-yellow-500/20',
-  'from-emerald-500/20 via-green-500/10 to-lime-500/20',
-  'from-rose-500/20 via-pink-500/10 to-red-500/20',
-  'from-indigo-500/20 via-blue-500/10 to-sky-500/20',
+  'from-[#1d43d8]/15 via-[#1d43d8]/8 to-[#1d43d8]/15',
+  'from-[#1d43d8]/12 via-[#1d43d8]/6 to-[#1d43d8]/12',
+  'from-[#1d43d8]/10 via-[#1d43d8]/5 to-[#1d43d8]/10',
+  'from-slate-100/80 via-slate-50/50 to-slate-100/80 dark:from-slate-800/50 dark:via-slate-800/30 dark:to-slate-800/50',
+  'from-[#1d43d8]/8 via-transparent to-[#1d43d8]/8',
+  'from-brand-neon/15 via-brand-neon/8 to-brand-neon/15',
 ];
 
 interface FeaturedCategoriesProps {
@@ -73,145 +73,122 @@ function FeaturedCategoriesInner({ orgSlug, categories, loading }: FeaturedCateg
   const { buildOrgLink } = useOrgLink(orgSlug);
 
   return (
-    <div className="space-y-8">
-      {/* Section header */}
-      <BlurFade>
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <LayoutGrid className="h-5 w-5 text-primary" />
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight font-heading">Shop by Category</h2>
-            </div>
-            <p className="text-muted-foreground text-sm">Find exactly what you&apos;re looking for</p>
-          </div>
-          <Link
-            className="group inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-semibold transition-all duration-200 whitespace-nowrap"
-            href={buildOrgLink('/search')}
-          >
-            <span>View all</span>
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Link>
+    <div className="space-y-10">
+      {/* Section header — minimal, editorial */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="flex items-end justify-between gap-4"
+      >
+        <div>
+          <p className="text-xs font-medium tracking-[0.25em] uppercase text-slate-400 mb-2">Browse</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight font-heading">Categories</h2>
         </div>
-      </BlurFade>
+        <Link
+          className="group inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-semibold transition-all duration-200 whitespace-nowrap pb-1"
+          href={buildOrgLink('/search')}
+        >
+          <span>View all</span>
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </Link>
+      </motion.div>
 
-      {/* Bento Grid Categories */}
+      {/* Category Grid — Asymmetric layout */}
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {new Array(6).fill(null).map((_, i) => (
             <motion.div
               key={`skeleton-${i}`}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05, duration: 0.3 }}
-              className={cn(
-                'rounded-2xl bg-linear-to-br from-secondary to-secondary/50 skeleton',
-                i === 0 ? 'col-span-2 row-span-2 aspect-square md:aspect-auto' : 'aspect-square'
-              )}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: i * 0.05 }}
+              className={cn('rounded-2xl bg-slate-100 dark:bg-slate-900 animate-pulse', i < 2 ? 'col-span-2 h-48' : 'h-32')}
             />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 auto-rows-fr">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {categories.map((c, index) => {
             const Icon = getIconForCategory(c.name);
-            const gradient = gradients[index % gradients.length];
-            const isLarge = index === 0;
+            // First 2 categories are featured (larger)
+            const isFeatured = index < 2;
 
             return (
               <motion.div
                 key={c._id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
                 transition={{ delay: index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                className={cn(isLarge && 'col-span-2 row-span-2')}
+                className={cn(isFeatured && 'col-span-2')}
               >
                 <Link
                   href={buildOrgLink(`/c/${c.slug}`)}
                   className={cn(
-                    'group relative flex flex-col h-full rounded-2xl overflow-hidden',
-                    'bg-card border border-border/50',
-                    'hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10',
+                    'group relative flex h-full rounded-2xl overflow-hidden',
+                    'bg-white dark:bg-slate-900',
+                    'border border-slate-200 dark:border-slate-800',
+                    'hover:border-[#1d43d8]/40 hover:shadow-2xl hover:shadow-[#1d43d8]/10',
                     'transition-all duration-500 hover:-translate-y-1',
-                    isLarge ? 'p-6 md:p-8' : 'p-4 md:p-5'
+                    isFeatured ? 'p-6 md:p-8 min-h-[180px]' : 'p-4 md:p-5 min-h-[120px]'
                   )}
                 >
-                  {/* Background gradient */}
+                  {/* Large decorative icon — background element */}
                   <div
-                    className={cn('absolute inset-0 bg-linear-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500', gradient)}
-                  />
-
-                  {/* Custom color background if available */}
-                  {c.color && (
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500"
-                      style={{ backgroundColor: c.color }}
-                    />
-                  )}
+                    className={cn(
+                      'absolute -right-4 -bottom-4 opacity-[0.04] dark:opacity-[0.08] transition-all duration-500',
+                      'group-hover:opacity-[0.08] group-hover:scale-110 group-hover:-translate-x-2 group-hover:-translate-y-2',
+                      isFeatured ? 'text-[160px]' : 'text-[100px]'
+                    )}
+                  >
+                    <Icon className="w-full h-full" />
+                  </div>
 
                   {/* Content */}
-                  <div className="relative z-10 flex flex-col h-full">
-                    {/* Icon */}
-                    <div className={cn('mb-auto', isLarge ? 'mb-6' : 'mb-3')}>
+                  <div className="relative z-10 flex flex-col justify-between h-full w-full">
+                    {/* Top: Small icon badge */}
+                    <div>
                       <div
                         className={cn(
-                          'inline-flex items-center justify-center rounded-xl transition-all duration-300',
-                          'bg-primary/10 group-hover:bg-primary group-hover:scale-110',
-                          isLarge ? 'p-4' : 'p-2.5'
+                          'inline-flex items-center justify-center rounded-xl',
+                          'bg-[#1d43d8]/8 group-hover:bg-[#1d43d8] group-hover:scale-105',
+                          'transition-all duration-300',
+                          isFeatured ? 'p-3' : 'p-2'
                         )}
-                        style={
-                          c.color
-                            ? {
-                                backgroundColor: `${c.color}20`,
-                              }
-                            : undefined
-                        }
                       >
                         <Icon
-                          className={cn(
-                            'transition-colors duration-300 group-hover:text-white',
-                            isLarge ? 'h-8 w-8' : 'h-5 w-5',
-                            !c.color && 'text-primary'
-                          )}
+                          className={cn('text-[#1d43d8] group-hover:text-white transition-colors duration-300', isFeatured ? 'h-6 w-6' : 'h-4 w-4')}
                         />
                       </div>
                     </div>
 
-                    {/* Category info */}
+                    {/* Bottom: Name and count */}
                     <div className="mt-auto">
                       <h3
                         className={cn(
-                          'font-bold text-foreground group-hover:text-primary transition-colors font-heading',
-                          isLarge ? 'text-xl md:text-2xl mb-2' : 'text-sm md:text-base mb-1'
+                          'font-bold text-slate-900 dark:text-white group-hover:text-[#1d43d8] transition-colors font-heading',
+                          isFeatured ? 'text-xl md:text-2xl' : 'text-sm md:text-base'
                         )}
                       >
                         {c.name}
                       </h3>
-
-                      {/* Product count */}
-                      <div className="flex items-center gap-2">
-                        <span className={cn('text-muted-foreground', isLarge ? 'text-sm' : 'text-xs')}>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={cn('text-slate-500', isFeatured ? 'text-sm' : 'text-xs')}>
                           {c.activeProductCount !== undefined && c.activeProductCount > 0
                             ? `${c.activeProductCount} product${c.activeProductCount !== 1 ? 's' : ''}`
                             : 'Coming soon'}
                         </span>
-
-                        {/* Arrow indicator on large card */}
-                        {isLarge && (
-                          <ArrowRight className="h-4 w-4 text-primary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                        {isFeatured && (
+                          <ArrowRight className="h-4 w-4 text-[#1d43d8] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                         )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Decorative corner accent */}
-                  <div
-                    className={cn(
-                      'absolute top-0 right-0 w-16 h-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500',
-                      'bg-linear-to-bl from-primary/20 to-transparent rounded-bl-3xl'
-                    )}
-                  />
+                  {/* Hover accent line */}
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1d43d8] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                 </Link>
               </motion.div>
             );
@@ -221,15 +198,13 @@ function FeaturedCategoriesInner({ orgSlug, categories, loading }: FeaturedCateg
 
       {/* Empty state */}
       {!loading && categories.length === 0 && (
-        <BlurFade>
-          <div className="text-center py-16 px-4 rounded-2xl bg-muted/30 border border-dashed border-border">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-              <Sparkles className="h-8 w-8 text-primary/50" />
-            </div>
-            <p className="text-muted-foreground text-lg font-medium">No categories yet</p>
-            <p className="text-muted-foreground/60 text-sm mt-1">Categories will appear here once added.</p>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 px-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+            <Sparkles className="h-8 w-8 text-slate-400" />
           </div>
-        </BlurFade>
+          <p className="text-slate-500 text-lg font-medium">No categories yet</p>
+          <p className="text-slate-400 text-sm mt-1">Categories will appear here once added.</p>
+        </motion.div>
       )}
     </div>
   );

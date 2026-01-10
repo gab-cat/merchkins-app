@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Id } from '@/convex/_generated/dataModel';
 import { R2Image } from '@/src/components/ui/r2-image';
-import { Users, ShoppingBag, UserPlus, Building2, ArrowRight, Sparkles, Crown, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { Users, ShoppingBag, UserPlus, ArrowRight, Sparkles, Crown, ChevronLeft, ChevronRight, ExternalLink, CheckCircle } from 'lucide-react';
 import { BlurFade } from '@/src/components/ui/animations';
 import { cn, buildR2PublicUrl } from '@/lib/utils';
 
@@ -130,39 +130,48 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
   };
 
   return (
-    <div className="space-y-8">
-      {/* Section header */}
-      <BlurFade>
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight font-heading">Top Communities</h2>
-            </div>
-            <p className="text-muted-foreground text-sm">Join organizations and discover exclusive products</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* Scroll controls for carousel */}
-            <div className="hidden md:flex items-center gap-1">
-              <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-border/50 hover:border-primary/50" onClick={scrollLeft}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-border/50 hover:border-primary/50" onClick={scrollRight}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-            <Link
-              className="group inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-semibold transition-all duration-200 whitespace-nowrap"
-              href="/organizations"
-            >
-              <span>View all</span>
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
+    <div className="space-y-10">
+      {/* Section header — minimal, editorial */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="flex items-end justify-between gap-4"
+      >
+        <div>
+          <p className="text-xs font-medium tracking-[0.25em] uppercase text-slate-400 mb-2">Community</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight font-heading">Top Stores</h2>
         </div>
-      </BlurFade>
+        <div className="flex items-center gap-2 pb-1">
+          {/* Scroll controls for carousel */}
+          <div className="hidden md:flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-full border-slate-200 dark:border-slate-700 hover:border-[#1d43d8]/50"
+              onClick={scrollLeft}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-full border-slate-200 dark:border-slate-700 hover:border-[#1d43d8]/50"
+              onClick={scrollRight}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <Link
+            className="group inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-semibold transition-all duration-200 whitespace-nowrap"
+            href="/orgs"
+          >
+            <span>View all</span>
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </div>
+      </motion.div>
 
       {loading ? (
         /* Loading skeleton */
@@ -180,94 +189,140 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-12">
-          {/* Featured Organization - Spotlight Card */}
+          {/* Featured Organization - Banner as Top Strip */}
           {featuredOrg && (
             <motion.div
-              className="md:col-span-5 lg:col-span-4"
+              className="md:col-span-5 lg:col-span-5"
               initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
             >
-              <Link href={`/o/${featuredOrg.slug}`} className="group block h-full" prefetch>
-                <div
-                  className={cn(
-                    'relative h-full min-h-[320px] rounded-3xl overflow-hidden',
-                    'bg-linear-to-br from-primary via-primary/90 to-primary/70',
-                    'shadow-xl hover:shadow-2xl transition-all duration-500',
-                    'hover:scale-[1.02]'
-                  )}
-                >
-                  {/* Banner background */}
-                  <div className="absolute inset-0 opacity-40">{renderOrgBanner(featuredOrg)}</div>
+              <div
+                className={cn(
+                  'relative h-full min-h-[420px] rounded-2xl overflow-hidden',
+                  'bg-white dark:bg-slate-900',
+                  'border border-slate-200 dark:border-slate-800',
+                  'shadow-xl hover:shadow-2xl hover:border-[#1d43d8]/30',
+                  'transition-all duration-500 group'
+                )}
+              >
+                {/* Banner Strip at Top */}
+                <div className="relative h-28 md:h-32 w-full overflow-hidden">
+                  {renderOrgBanner(featuredOrg)}
+                  <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/10 to-transparent" />
 
-                  {/* Overlays */}
-                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
-                  <div className="absolute inset-0 bg-linear-to-br from-primary/30 to-transparent" />
-
-                  {/* Featured badge */}
-                  <div className="absolute top-4 left-4 z-20">
+                  {/* Badges on Banner */}
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
                     <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-neon text-black text-xs font-bold shadow-lg">
                       <Crown className="h-3.5 w-3.5" />
                       Featured
                     </div>
-                  </div>
-
-                  {/* Organization type badge */}
-                  <div className="absolute top-4 right-4 z-20">
-                    <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-xs font-semibold">
-                      {featuredOrg.organizationType === 'PUBLIC' ? 'Open' : featuredOrg.organizationType === 'PRIVATE' ? 'Private' : 'Invite'}
+                    <Badge
+                      variant="secondary"
+                      className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm text-slate-700 dark:text-slate-300 border-0 text-xs font-medium"
+                    >
+                      {featuredOrg.organizationType === 'PUBLIC' ? 'Public' : featuredOrg.organizationType === 'PRIVATE' ? 'Private' : 'Invite Only'}
                     </Badge>
                   </div>
+                </div>
 
-                  {/* Content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    {/* Logo */}
-                    <div className="h-16 w-16 mb-4 overflow-hidden rounded-xl ring-2 ring-white/30 shadow-lg bg-white">
-                      {renderOrgLogo(featuredOrg, 64)}
+                {/* Content Area */}
+                <div className="relative p-6 md:p-8 flex flex-col">
+                  {/* Logo positioned at junction of banner and content */}
+                  <div className="flex items-start gap-4 mb-4 -mt-8">
+                    <div className="shrink-0 h-20 w-20 rounded-xl overflow-hidden bg-white dark:bg-slate-900 ring-4 ring-white dark:ring-slate-900 shadow-xl">
+                      {renderOrgLogo(featuredOrg, 80)}
                     </div>
-
-                    {/* Info */}
-                    <h3 className="text-xl font-bold text-white font-heading mb-1">{featuredOrg.name}</h3>
-                    <p className="text-white/70 text-sm mb-4 line-clamp-2">{featuredOrg.description || `Join @${featuredOrg.slug} today`}</p>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="flex items-center gap-1.5 text-white/80 text-sm">
-                        <Users className="h-4 w-4" />
-                        <span className="font-semibold text-white">{featuredOrg.memberCount.toLocaleString()}</span>
-                        <span>members</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-white/80 text-sm">
-                        <ShoppingBag className="h-4 w-4" />
-                        <span className="font-semibold text-white">{featuredOrg.totalOrderCount.toLocaleString()}</span>
-                        <span>orders</span>
-                      </div>
+                    <div className="flex-1 min-w-0 pt-4">
+                      <Link href={`/o/${featuredOrg.slug}`} className="block group/link" prefetch>
+                        <h3 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white font-heading line-clamp-1 group-hover/link:text-[#1d43d8] transition-colors mb-1">
+                          {featuredOrg.name}
+                        </h3>
+                      </Link>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">@{featuredOrg.slug}</p>
                     </div>
+                  </div>
 
-                    {/* CTA */}
+                  {/* Description */}
+                  <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed line-clamp-2 mb-6">
+                    {featuredOrg.description || `Join the ${featuredOrg.name} community and discover exclusive products.`}
+                  </p>
+
+                  {/* Stats Row */}
+                  <div className="flex items-center gap-6 mb-6">
+                    {/* Member avatars + count */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex -space-x-2">
+                        {[...Array(Math.min(3, featuredOrg.memberCount))].map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-7 h-7 rounded-full bg-linear-to-br from-[#1d43d8] to-[#1d43d8]/70 border-2 border-white dark:border-slate-900 flex items-center justify-center"
+                          >
+                            <Users className="h-3 w-3 text-white" />
+                          </div>
+                        ))}
+                      </div>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">{featuredOrg.memberCount.toLocaleString()}</span>
+                      <span className="text-xs text-slate-500">members</span>
+                    </div>
+                    {/* Orders */}
+                    <div className="flex items-center gap-1.5 text-slate-500 text-sm">
+                      <ShoppingBag className="h-4 w-4" />
+                      <span className="font-semibold text-slate-900 dark:text-white">{featuredOrg.totalOrderCount.toLocaleString()}</span>
+                      <span className="text-xs">orders</span>
+                    </div>
+                  </div>
+
+                  {/* Spacer */}
+                  <div className="flex-1 min-h-[40px]" />
+
+                  {/* CTA Buttons */}
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/o/${featuredOrg.slug}`}
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full',
+                        'bg-slate-900 dark:bg-white text-white dark:text-slate-900',
+                        'font-semibold text-sm',
+                        'hover:bg-[#1d43d8] hover:text-white dark:hover:bg-[#1d43d8]',
+                        'transition-all duration-300'
+                      )}
+                      prefetch
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Visit Store
+                    </Link>
                     {!featuredOrg.isMember && featuredOrg.organizationType === 'PUBLIC' && (
                       <Button
-                        className="w-full bg-white text-primary hover:bg-white/90 font-semibold gap-2"
+                        variant="outline"
+                        className="flex-1 rounded-full border-slate-200 dark:border-slate-700 hover:border-[#1d43d8]/50 hover:bg-[#1d43d8]/5"
                         onClick={(e) => handleJoin(e, featuredOrg.id, featuredOrg.organizationType)}
                       >
-                        <UserPlus className="h-4 w-4" />
-                        Join Community
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Join
                       </Button>
                     )}
                     {featuredOrg.isMember && (
-                      <Button className="w-full bg-white/20 text-white hover:bg-white/30 font-semibold gap-2">
-                        <ExternalLink className="h-4 w-4" />
-                        Visit Store
-                      </Button>
+                      <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm font-medium">
+                        <CheckCircle className="h-4 w-4" />
+                        Member
+                      </div>
                     )}
                   </div>
                 </div>
-              </Link>
+
+                {/* Geometric accent */}
+                <div className="absolute bottom-0 right-0 w-32 h-32 pointer-events-none">
+                  <div className="absolute bottom-6 right-6 w-px h-12 bg-linear-to-t from-[#1d43d8]/20 to-transparent" />
+                  <div className="absolute bottom-6 right-6 w-12 h-px bg-linear-to-l from-[#1d43d8]/20 to-transparent" />
+                </div>
+              </div>
             </motion.div>
           )}
 
           {/* Regular Organizations - Horizontal Scroll */}
-          <div className="md:col-span-7 lg:col-span-8">
+          <div className="md:col-span-7 lg:col-span-7">
             <div
               ref={scrollContainerRef}
               className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 -mb-4"
@@ -285,13 +340,13 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
                     <Card
                       className={cn(
                         'h-full overflow-hidden rounded-2xl border bg-card shadow-sm py-0',
-                        'transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-primary/30'
+                        'transition-all duration-300 hover:shadow-xl hover:border-primary/30'
                       )}
                     >
-                      {/* Banner */}
-                      <div className="relative h-24 w-full overflow-hidden">
+                      {/* Compact Banner Strip */}
+                      <div className="relative h-16 w-full overflow-hidden">
                         {renderOrgBanner(org)}
-                        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-b from-black/30 via-black/10 to-transparent" />
 
                         {/* Type badge */}
                         <Badge
@@ -303,21 +358,24 @@ function PopularOrganizationsInner({ organizations, loading }: PopularOrganizati
                         >
                           {org.organizationType === 'PUBLIC' ? 'Open' : org.organizationType === 'PRIVATE' ? 'Private' : 'Invite'}
                         </Badge>
-
-                        {/* Logo overlay */}
-                        <div className="absolute bottom-2 left-3 h-12 w-12 overflow-hidden rounded-xl ring-2 ring-white shadow-lg bg-white">
-                          {renderOrgLogo(org, 48)}
-                        </div>
                       </div>
 
-                      <CardContent className="p-4 pt-2 space-y-3">
-                        {/* Name & slug */}
-                        <div>
-                          <CardTitle className="text-base font-bold text-foreground group-hover:text-primary transition-colors font-heading truncate">
-                            {org.name}
-                          </CardTitle>
-                          <p className="text-xs text-muted-foreground">@{org.slug}</p>
+                      <CardContent className="p-4 pt-0 space-y-3">
+                        {/* Logo + Name + Slug - Horizontal Layout */}
+                        <div className="flex items-center gap-3">
+                          <div className="shrink-0 h-12 w-12 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 ring-2 ring-slate-200 dark:ring-slate-700 shadow-sm">
+                            {renderOrgLogo(org, 48)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-base py-0 font-bold text-foreground group-hover:text-primary transition-colors font-heading truncate leading-tight">
+                              {org.name}
+                            </CardTitle>
+                            <p className="text-xs text-muted-foreground truncate">@{org.slug}</p>
+                          </div>
                         </div>
+
+                        {/* Description */}
+                        {org.description && <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{org.description}</p>}
 
                         {/* Industry */}
                         {org.industry && (

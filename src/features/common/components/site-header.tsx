@@ -5,19 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import {
-  ShoppingCart,
-  Building2,
-  Package,
-  User as UserIcon,
-  ArrowRight,
-  ArrowLeft,
-  Sparkles,
-  LogIn,
-  DollarSign,
-  ChevronDown,
-  Check,
-} from 'lucide-react';
+import { ShoppingCart, Building2, Package, User as UserIcon, ArrowRight, ArrowLeft, Sparkles, LogIn, ChevronDown, Check, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -34,7 +22,7 @@ import { BeamsBackground, GradientBackground, GridPattern } from '@/src/componen
 import { Float } from '@/src/components/ui/animations';
 import { Navbar, NavBody, useNavbarScroll } from '@/src/components/ui/resizable-navbar';
 import { useOrgLink } from '@/src/hooks/use-org-link';
-import { BUSINESS_NAME, BUSINESS_CURRENCY } from '@/src/constants/business-info';
+import { BUSINESS_NAME } from '@/src/constants/business-info';
 
 type SearchMode = 'products' | 'organizations';
 
@@ -468,34 +456,40 @@ function SiteHeaderContent({
             )}
           </SignedIn>
 
-          {/* Currency Indicator - shown beside cart */}
-          {!shouldApplyTheme && (
-            <div
-              className={cn(
-                'hidden md:flex items-center gap-1.5 px-2.5 h-9 rounded-lg text-xs font-medium transition-colors',
-                isScrolled ? 'text-white/80' : 'text-muted-foreground'
-              )}
-              aria-label={`Currency: ${BUSINESS_CURRENCY}`}
-            >
-              {BUSINESS_CURRENCY === 'PHP' ? (
-                <>
+          {/* Support Button - hidden when compressed */}
+          {!isScrolled && (
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'hidden md:flex gap-1.5 px-2.5 h-9 relative transition-all duration-300 rounded-lg',
+                  isScrolled
+                    ? 'hover:bg-white/10 text-white hover:text-white hover:shadow-sm'
+                    : shouldApplyTheme
+                      ? 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                      : 'hover:bg-primary/10 text-foreground hover:text-primary hover:shadow-sm'
+                )}
+              >
+                <Link href={buildOrgLink('/tickets')} className="flex items-center gap-1.5">
+                  <Ticket
+                    className={cn(
+                      'h-4 w-4 transition-transform duration-300',
+                      isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
+                    )}
+                  />
                   <span
-                    className={cn('text-base font-semibold leading-none', isScrolled ? 'text-white/80' : 'text-muted-foreground')}
-                    aria-hidden="true"
+                    className={cn(
+                      'hidden sm:inline text-sm font-medium',
+                      isScrolled ? 'text-white' : shouldApplyTheme ? 'text-foreground' : 'text-foreground'
+                    )}
                   >
-                    ₱
+                    Support
                   </span>
-                  <span>{BUSINESS_CURRENCY}</span>
-                </>
-              ) : BUSINESS_CURRENCY === 'USD' ? (
-                <>
-                  <DollarSign className={cn('h-3.5 w-3.5', isScrolled ? 'text-white/80' : 'text-muted-foreground')} aria-hidden="true" />
-                  <span>{BUSINESS_CURRENCY}</span>
-                </>
-              ) : (
-                <span>{BUSINESS_CURRENCY}</span>
-              )}
-            </div>
+                </Link>
+              </Button>
+            </motion.div>
           )}
 
           {/* Cart Sheet - Show for both authenticated and unauthenticated users */}
