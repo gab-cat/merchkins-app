@@ -47,7 +47,8 @@ export function HeroSection() {
   const userOrgs = useQuery(api.organizations.queries.index.getOrganizationsByUser, user?._id ? { userId: user._id } : 'skip');
 
   // Show explore button if user is signed out OR has no joined organizations
-  const showExploreButton = !user || (userOrgs && userOrgs.length === 0);
+  const isLoading = user && userOrgs === undefined;
+  const showExploreButton = !user || (!isLoading && userOrgs?.length === 0);
 
   return (
     <section ref={sectionRef} className="relative flex items-center justify-center pt-8 pb-8 md:pb-12 lg:pb-16 px-4 sm:px-6 lg:px-8">
