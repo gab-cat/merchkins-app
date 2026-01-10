@@ -47,8 +47,7 @@ type ValidationResult = {
     | 'MIN_ORDER_NOT_MET'
     | 'PRODUCTS_NOT_APPLICABLE'
     | 'ORGANIZATION_MISMATCH'
-    | 'LOGIN_REQUIRED'
-    | 'NOT_ASSIGNED_TO_USER';
+    | 'LOGIN_REQUIRED';
 };
 
 export const validateVoucherHandler = async (
@@ -155,7 +154,7 @@ export const validateVoucherHandler = async (
       return {
         valid: false,
         error: 'This voucher is not assigned to you',
-        errorCode: 'NOT_ASSIGNED_TO_USER',
+        errorCode: 'USER_USAGE_LIMIT_REACHED',
       };
     }
 
