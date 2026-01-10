@@ -105,4 +105,8 @@ export const users = defineTable({
   .index('by_last_login', ['lastLoginAt'])
   .index('by_total_orders', ['totalOrders'])
   .index('by_total_spent', ['totalSpent'])
-  .index('by_chatwoot_contact', ['chatwootContactId']);
+  .index('by_chatwoot_contact', ['chatwootContactId'])
+  .searchIndex('search_users', {
+    searchField: 'email',
+    filterFields: ['isDeleted'],
+  });

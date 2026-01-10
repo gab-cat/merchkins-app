@@ -116,7 +116,11 @@ export const products = defineTable({
   .index('by_inventory_type', ['inventoryType'])
   .index('by_best_price', ['isBestPrice'])
   .index('by_view_count', ['viewCount'])
-  .index('by_code', ['code']);
+  .index('by_code', ['code'])
+  .searchIndex('search_products', {
+    searchField: 'title',
+    filterFields: ['isDeleted', 'organizationId', 'categoryId'],
+  });
 
 // Enhanced reviews with embedded user and product info
 export const reviews = defineTable({

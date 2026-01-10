@@ -97,4 +97,8 @@ export const announcements = defineTable({
   .index('by_expires_at', ['expiresAt'])
   .index('by_organization_active', ['organizationId', 'isActive'])
   .index('by_organization_level', ['organizationId', 'level'])
-  .index('by_view_count', ['viewCount']);
+  .index('by_view_count', ['viewCount'])
+  .searchIndex('search_announcements', {
+    searchField: 'title',
+    filterFields: ['organizationId', 'isActive', 'targetAudience'],
+  });

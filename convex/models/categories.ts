@@ -59,4 +59,8 @@ export const categories = defineTable({
   .index('by_display_order', ['displayOrder'])
   .index('by_organization_active', ['organizationId', 'isActive'])
   .index('by_organization_level', ['organizationId', 'level'])
-  .index('by_product_count', ['productCount']);
+  .index('by_product_count', ['productCount'])
+  .searchIndex('search_categories', {
+    searchField: 'name',
+    filterFields: ['isDeleted', 'organizationId', 'isActive'],
+  });

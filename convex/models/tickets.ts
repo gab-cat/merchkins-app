@@ -85,7 +85,11 @@ export const tickets = defineTable({
   .index('by_assignee_status', ['assignedToId', 'status'])
   .index('by_organization_and_status', ['organizationId', 'status'])
   .index('by_creator_and_status', ['createdById', 'status'])
-  .index('by_order', ['orderId']);
+  .index('by_order', ['orderId'])
+  .searchIndex('search_tickets', {
+    searchField: 'title',
+    filterFields: ['createdById', 'assignedToId', 'status'],
+  });
 
 // Enhanced ticket updates with embedded user info
 export const ticketUpdates = defineTable({
