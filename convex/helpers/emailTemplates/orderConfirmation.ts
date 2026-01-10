@@ -1,9 +1,9 @@
 /**
  * Order Confirmation Email Template
- * Premium dark mode design - Celebrate the purchase
+ * Merchkins brand design - Celebrate the purchase with brand gradients and neon accents
  */
 
-import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_RADIUS, EMAIL_FONT_SIZES, EMAIL_FONTS } from './constants';
+import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_RADIUS, EMAIL_FONT_SIZES, EMAIL_FONTS, EMAIL_GRADIENTS, EMAIL_SHADOWS } from './constants';
 import {
   createEmailWrapper,
   createEmailHeader,
@@ -106,14 +106,21 @@ export const generateOrderConfirmationEmail = (data: OrderConfirmationData): { s
         }
         <tr>
           <td colspan="2" style="padding-top: 16px; text-align: right; font-weight: 700; font-size: ${EMAIL_FONT_SIZES.base}; color: ${EMAIL_COLORS.textPrimary};">Total</td>
-          <td style="padding-top: 16px; text-align: right; font-weight: 700; font-size: ${EMAIL_FONT_SIZES.lg}; color: ${EMAIL_COLORS.accent}; font-family: ${EMAIL_FONTS.mono};">${formatCurrency(data.total)}</td>
+          <td style="padding-top: 16px; text-align: right; font-weight: 700; font-size: ${EMAIL_FONT_SIZES.lg}; font-family: ${EMAIL_FONTS.mono};">
+            <!--[if !mso]><!-->
+            <span style="color: ${EMAIL_COLORS.neon}; text-shadow: ${EMAIL_SHADOWS.neonGlow};">${formatCurrency(data.total)}</span>
+            <!--<![endif]-->
+            <!--[if mso]>
+            <span style="color: ${EMAIL_COLORS.primary};">${formatCurrency(data.total)}</span>
+            <![endif]-->
+          </td>
         </tr>
       </tfoot>
     </table>
   `;
 
   const orderDetailsContent = `
-    ${createDetailRow('Order Number', `<span style="font-family: ${EMAIL_FONTS.mono}; color: ${EMAIL_COLORS.accent};">#${data.orderNumber}</span>`)}
+    ${createDetailRow('Order Number', `<span style="font-family: ${EMAIL_FONTS.mono}; color: ${EMAIL_COLORS.primary}; font-weight: 600;">#${data.orderNumber}</span>`)}
     ${createDetailRow('Order Date', formatDate(data.orderDate))}
     ${createDetailRow('Store', data.organizationName)}
     ${createDetailRow('Payment Status', '<span style="color: ' + EMAIL_COLORS.warning + ';">Pending</span>')}
@@ -138,7 +145,7 @@ export const generateOrderConfirmationEmail = (data: OrderConfirmationData): { s
     
     ${createSectionTitle('Items')}
     
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: ${EMAIL_SPACING.lg}; background-color: ${EMAIL_COLORS.surfaceElevated}; border: 1px solid ${EMAIL_COLORS.border}; border-radius: ${EMAIL_RADIUS.md};">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: ${EMAIL_SPACING.lg}; background: ${EMAIL_GRADIENTS.cardAccent}; border: 1px solid ${EMAIL_COLORS.borderAccent}; border-radius: ${EMAIL_RADIUS.md};">
       <tr>
         <td style="padding: ${EMAIL_SPACING.md};">
           ${orderSummaryContent}

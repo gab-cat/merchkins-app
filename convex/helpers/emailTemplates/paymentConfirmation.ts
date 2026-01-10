@@ -1,6 +1,6 @@
 /**
  * Payment Confirmation Email Template
- * Premium dark mode design - Celebrate the payout
+ * Merchkins brand design - Celebrate the payout with brand styling
  */
 
 import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_FONTS, EMAIL_FONT_SIZES } from './constants';
@@ -45,7 +45,7 @@ export const generatePaymentConfirmationEmail = (data: PaymentConfirmationData):
       Hey ${data.organizationName} Team! 💸
     </p>
     
-    ${createParagraph(`Great news — your payout for invoice <strong style="color: ${EMAIL_COLORS.accent};">${data.invoiceNumber}</strong> has been processed.`)}
+    ${createParagraph(`Great news — your payout for invoice <strong style="color: ${EMAIL_COLORS.primary}; font-weight: 600;">${data.invoiceNumber}</strong> has been processed.`)}
     
     ${createAmountDisplay('Payout Amount', formatCurrency(data.netAmount), 'success')}
     

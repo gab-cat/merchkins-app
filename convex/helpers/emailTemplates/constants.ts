@@ -1,29 +1,37 @@
 /**
  * Email Template Constants
- * CLEAN LIGHT MODE DESIGN SYSTEM - Merchkins
- * Features: White backgrounds, clean typography, professional styling (Apple-inspired)
+ * MERCHKINS BRAND DESIGN SYSTEM
+ * Features: Vibrant blue (#1d43d8), neon accent (#adfc04), Outfit/DM Sans typography, modern gradients
  */
 
 // =============================================================================
-// BRAND COLORS - Light Mode Professional Aesthetic
+// BRAND COLORS - Merchkins Brand Identity
 // =============================================================================
 
 export const EMAIL_COLORS = {
-  // Primary brand color - Merchkins Blue
-  primary: '#3b82f6',
-  primaryHover: '#2563eb',
-  primaryLight: 'rgba(59, 130, 246, 0.08)',
-  primaryLighter: 'rgba(59, 130, 246, 0.04)',
-  primaryDark: '#1d4ed8',
-  primaryDeep: '#1e40af',
+  // Primary brand color - Merchkins Vibrant Blue
+  primary: '#1d43d8',
+  primaryHover: '#1a3bc2',
+  primaryLight: 'rgba(29, 67, 216, 0.08)',
+  primaryLighter: 'rgba(29, 67, 216, 0.04)',
+  primaryDark: '#1630a8',
+  primaryDeep: '#0f2380',
 
-  // Accent color - Merchkins Blue (clean, professional)
-  accent: '#3b82f6',
-  accentHover: '#2563eb',
-  accentDark: '#1d4ed8',
-  accentDeep: '#1e40af',
-  accentGlow: 'rgba(59, 130, 246, 0.15)',
-  accentSubtle: 'rgba(59, 130, 246, 0.06)',
+  // Accent color - Merchkins Neon Green (signature accent)
+  accent: '#1d43d8',
+  accentHover: '#1a3bc2',
+  accentDark: '#1630a8',
+  accentDeep: '#0f2380',
+  accentGlow: 'rgba(29, 67, 216, 0.15)',
+  accentSubtle: 'rgba(29, 67, 216, 0.06)',
+  
+  // Neon accent - Signature Merchkins green
+  neon: '#adfc04',
+  neonHover: '#9ae303',
+  neonLight: 'rgba(173, 252, 4, 0.12)',
+  neonLighter: 'rgba(173, 252, 4, 0.06)',
+  neonGlow: 'rgba(173, 252, 4, 0.25)',
+  neonSubtle: 'rgba(173, 252, 4, 0.08)',
 
   // Status colors - Clean, professional tones
   success: '#22c55e',
@@ -57,7 +65,8 @@ export const EMAIL_COLORS = {
   border: '#e5e7eb',
   borderLight: '#f3f4f6',
   borderSubtle: '#f9fafb',
-  borderAccent: 'rgba(59, 130, 246, 0.2)',
+  borderAccent: 'rgba(29, 67, 216, 0.2)',
+  borderNeon: 'rgba(173, 252, 4, 0.3)',
 
   // Light mode colors
   dark: {
@@ -86,29 +95,36 @@ export const EMAIL_COLORS = {
 // =============================================================================
 
 export const EMAIL_GRADIENTS = {
-  // Hero gradients - Clean and subtle
+  // Brand gradient - Signature Merchkins gradient
+  brand: 'linear-gradient(135deg, #1d43d8 0%, #4f7df9 50%, #adfc04 100%)',
+  brandSubtle: 'linear-gradient(135deg, rgba(29, 67, 216, 0.1) 0%, rgba(79, 125, 249, 0.05) 50%, rgba(173, 252, 4, 0.08) 100%)',
+  brandText: 'linear-gradient(135deg, #1d43d8 0%, #4f7df9 50%, #adfc04 100%)',
+  
+  // Hero gradients - Brand-infused
   heroDark: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
   heroGlow: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%)',
-  heroAccent: 'linear-gradient(135deg, rgba(59, 130, 246, 0.04) 0%, transparent 50%, rgba(59, 130, 246, 0.02) 100%)',
+  heroAccent: 'linear-gradient(135deg, rgba(29, 67, 216, 0.04) 0%, transparent 50%, rgba(173, 252, 4, 0.02) 100%)',
 
-  // Card backgrounds with subtle depth
+  // Card backgrounds with brand depth
   cardDark: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
   cardGlow: 'linear-gradient(135deg, rgba(0, 0, 0, 0.01) 0%, transparent 100%)',
-  cardAccent: 'linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, transparent 50%)',
+  cardAccent: 'linear-gradient(135deg, rgba(29, 67, 216, 0.03) 0%, transparent 50%, rgba(173, 252, 4, 0.02) 100%)',
 
-  // Status gradients - Subtle tints
+  // Status gradients - Brand-aligned
   successGradient: 'linear-gradient(135deg, rgba(34, 197, 94, 0.06) 0%, rgba(34, 197, 94, 0.02) 100%)',
   warningGradient: 'linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(245, 158, 11, 0.02) 100%)',
   errorGradient: 'linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(239, 68, 68, 0.02) 100%)',
-  primaryGradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(59, 130, 246, 0.02) 100%)',
+  primaryGradient: 'linear-gradient(135deg, rgba(29, 67, 216, 0.06) 0%, rgba(29, 67, 216, 0.02) 100%)',
+  neonGradient: 'linear-gradient(135deg, rgba(173, 252, 4, 0.12) 0%, rgba(173, 252, 4, 0.04) 100%)',
 
-  // Accent glow - Softer for light mode
-  accentGlow: 'radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 60%)',
-  primaryGlow: 'radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 60%)',
+  // Accent glow - Brand colors
+  accentGlow: 'radial-gradient(ellipse at top, rgba(29, 67, 216, 0.12) 0%, transparent 60%)',
+  primaryGlow: 'radial-gradient(ellipse at top, rgba(29, 67, 216, 0.12) 0%, transparent 60%)',
+  neonGlow: 'radial-gradient(ellipse at center, rgba(173, 252, 4, 0.2) 0%, transparent 70%)',
 
-  // Mesh background - Very subtle
+  // Mesh background - Brand colors
   meshDark:
-    'radial-gradient(at 40% 20%, rgba(59, 130, 246, 0.03) 0px, transparent 50%), radial-gradient(at 80% 80%, rgba(59, 130, 246, 0.02) 0px, transparent 50%)',
+    'radial-gradient(at 40% 20%, rgba(29, 67, 216, 0.03) 0px, transparent 50%), radial-gradient(at 80% 80%, rgba(173, 252, 4, 0.02) 0px, transparent 50%)',
 } as const;
 
 // =============================================================================
@@ -116,14 +132,14 @@ export const EMAIL_GRADIENTS = {
 // =============================================================================
 
 export const EMAIL_FONTS = {
-  // Headings - Geist for ultra-modern feel
-  heading: "'Geist', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  // Body - Geist Sans for clean readability
-  body: "'Geist Sans', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  // Headings - Outfit (matching app brand)
+  heading: "'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  // Body - DM Sans (matching app brand)
+  body: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   // Mono - For codes, prices, and emphasis
   mono: "'Geist Mono', 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace",
-  // Display - For hero text
-  display: "'Geist', 'SF Pro Display', -apple-system, sans-serif",
+  // Display - For hero text (Outfit)
+  display: "'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 } as const;
 
 export const EMAIL_FONT_SIZES = {
@@ -187,8 +203,9 @@ export const EMAIL_SHADOWS = {
   md: '0 4px 8px rgba(0, 0, 0, 0.08)',
   lg: '0 8px 24px rgba(0, 0, 0, 0.1)',
   xl: '0 16px 48px rgba(0, 0, 0, 0.12)',
-  glow: '0 0 20px rgba(59, 130, 246, 0.15)',
-  accentGlow: '0 0 15px rgba(59, 130, 246, 0.2)',
+  glow: '0 0 20px rgba(29, 67, 216, 0.15)',
+  accentGlow: '0 0 15px rgba(29, 67, 216, 0.2)',
+  neonGlow: '0 0 20px rgba(173, 252, 4, 0.3)',
   successGlow: '0 0 15px rgba(34, 197, 94, 0.15)',
   inner: 'inset 0 1px 0 rgba(255, 255, 255, 0.8)',
   card: '0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',

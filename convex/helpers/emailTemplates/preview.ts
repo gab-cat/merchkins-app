@@ -8,9 +8,11 @@ import { generateRefundApprovedEmail, RefundApprovedData } from './refundApprove
 import { generateRefundRejectedEmail, RefundRejectedData } from './refundRejected';
 import { generatePayoutInvoiceReadyEmail, PayoutInvoiceReadyData } from './payoutInvoiceReady';
 import { generatePaymentConfirmationEmail, PaymentConfirmationData } from './paymentConfirmation';
+import { generatePaymentReceivedEmail, PaymentReceivedData } from './paymentReceived';
 import { generateOrderConfirmationEmail, OrderConfirmationData } from './orderConfirmation';
 import { generateShippingUpdateEmail, ShippingUpdateData, ShippingStatus } from './shippingUpdate';
 import { generateWelcomeEmail, WelcomeEmailData } from './welcomeEmail';
+import { generateOrganizationInviteEmail, OrganizationInviteEmailData } from './organizationInvite';
 
 // =============================================================================
 // SAMPLE DATA FOR PREVIEWS
@@ -130,6 +132,33 @@ export const sampleWelcomeEmailData: WelcomeEmailData = {
   email: 'juan.delacruz@example.com',
 };
 
+export const samplePaymentReceivedData: PaymentReceivedData = {
+  customerFirstName: 'Juan',
+  orderNumber: 'ORD-2024-005678',
+  orderDate: Date.now(),
+  organizationName: 'Awesome Merch Store',
+  items: [
+    { name: 'Classic Logo T-Shirt', variant: 'Black / Large', quantity: 2, price: 599.0 },
+    { name: 'Limited Edition Hoodie', variant: 'Navy / Medium', quantity: 1, price: 1499.0 },
+  ],
+  subtotal: 2697.0,
+  discount: 300.0,
+  total: 2397.0,
+  paymentAmount: 2397.0,
+  transactionId: 'TXN-20241213-ABC123XYZ',
+  paymentMethod: 'GCash',
+};
+
+export const sampleOrganizationInviteEmailData: OrganizationInviteEmailData = {
+  recipientEmail: 'juan.delacruz@example.com',
+  organizationName: 'Awesome Merch Store',
+  creatorName: 'Maria Santos',
+  inviteLinkUrl: 'https://app.merchkins.com/invite/abc123xyz789',
+  expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days from now
+  usageLimit: 5,
+  usedCount: 1,
+};
+
 // =============================================================================
 // PREVIEW GENERATORS
 // =============================================================================
@@ -140,12 +169,14 @@ export type EmailTemplateType =
   | 'refund-rejected'
   | 'payout-invoice-ready'
   | 'payment-confirmation'
+  | 'payment-received'
   | 'order-confirmation'
   | 'shipping-shipped'
   | 'shipping-out-for-delivery'
   | 'shipping-delivered'
   | 'shipping-ready-for-pickup'
-  | 'welcome';
+  | 'welcome'
+  | 'organization-invite';
 
 /**
  * Generate a preview of any email template using sample data
@@ -162,6 +193,8 @@ export const generateEmailPreview = (templateType: EmailTemplateType): { subject
       return generatePayoutInvoiceReadyEmail(samplePayoutInvoiceReadyData);
     case 'payment-confirmation':
       return generatePaymentConfirmationEmail(samplePaymentConfirmationData);
+    case 'payment-received':
+      return generatePaymentReceivedEmail(samplePaymentReceivedData);
     case 'order-confirmation':
       return generateOrderConfirmationEmail(sampleOrderConfirmationData);
     case 'shipping-shipped':
@@ -174,6 +207,8 @@ export const generateEmailPreview = (templateType: EmailTemplateType): { subject
       return generateShippingUpdateEmail(sampleShippingUpdateData.READY_FOR_PICKUP);
     case 'welcome':
       return generateWelcomeEmail(sampleWelcomeEmailData);
+    case 'organization-invite':
+      return generateOrganizationInviteEmail(sampleOrganizationInviteEmailData);
   }
 };
 
@@ -187,12 +222,14 @@ export const getAllTemplateTypes = (): EmailTemplateType[] => {
     'refund-rejected',
     'payout-invoice-ready',
     'payment-confirmation',
+    'payment-received',
     'order-confirmation',
     'shipping-shipped',
     'shipping-out-for-delivery',
     'shipping-delivered',
     'shipping-ready-for-pickup',
     'welcome',
+    'organization-invite',
   ];
 };
 

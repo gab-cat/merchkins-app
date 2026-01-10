@@ -1,9 +1,9 @@
 /**
  * Payment Received Email Template
- * Clean light mode design - Confirms payment and order status update to Processing
+ * Merchkins brand design - Confirms payment with brand gradients and neon accents
  */
 
-import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_RADIUS, EMAIL_FONT_SIZES, EMAIL_FONTS } from './constants';
+import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_RADIUS, EMAIL_FONT_SIZES, EMAIL_FONTS, EMAIL_SHADOWS } from './constants';
 import {
   createEmailWrapper,
   createEmailHeader,
@@ -95,14 +95,14 @@ export const generatePaymentReceivedEmail = (data: PaymentReceivedData): { subje
         }
         <tr>
           <td colspan="2" style="padding-top: 16px; text-align: right; font-weight: 700; font-size: ${EMAIL_FONT_SIZES.base}; color: ${EMAIL_COLORS.textPrimary};">Total Paid</td>
-          <td style="padding-top: 16px; text-align: right; font-weight: 700; font-size: ${EMAIL_FONT_SIZES.lg}; color: ${EMAIL_COLORS.success}; font-family: ${EMAIL_FONTS.mono};">${formatCurrency(data.paymentAmount)}</td>
+          <td style="padding-top: 16px; text-align: right; font-weight: 700; font-size: ${EMAIL_FONT_SIZES.lg}; color: ${EMAIL_COLORS.neon}; font-family: ${EMAIL_FONTS.mono}; text-shadow: ${EMAIL_SHADOWS.neonGlow};">${formatCurrency(data.paymentAmount)}</td>
         </tr>
       </tfoot>
     </table>
   `;
 
   const paymentDetailsContent = `
-    ${createDetailRow('Order Number', `<span style="font-family: ${EMAIL_FONTS.mono}; color: ${EMAIL_COLORS.accent};">#${data.orderNumber}</span>`)}
+    ${createDetailRow('Order Number', `<span style="font-family: ${EMAIL_FONTS.mono}; color: ${EMAIL_COLORS.primary}; font-weight: 600;">#${data.orderNumber}</span>`)}
     ${createDetailRow('Payment Date', formatDate(Date.now()))}
     ${createDetailRow('Amount Paid', `<span style="font-weight: 600; color: ${EMAIL_COLORS.success};">${formatCurrency(data.paymentAmount)}</span>`)}
     ${createDetailRow('Transaction ID', `<span style="font-family: ${EMAIL_FONTS.mono}; font-size: ${EMAIL_FONT_SIZES.xs};">${data.transactionId}</span>`)}

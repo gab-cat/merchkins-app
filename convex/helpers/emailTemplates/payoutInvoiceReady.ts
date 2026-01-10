@@ -1,6 +1,6 @@
 /**
  * Payout Invoice Ready Email Template
- * Premium dark mode design - Celebrate seller success
+ * Merchkins brand design - Celebrate seller success with brand styling
  */
 
 import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_FONTS, EMAIL_FONT_SIZES } from './constants';
@@ -41,7 +41,7 @@ export const generatePayoutInvoiceReadyEmail = (data: PayoutInvoiceReadyData): {
   const subject = `Invoice Ready - ${data.invoiceNumber} 📊`;
 
   const invoiceDetailsContent = `
-    ${createDetailRow('Invoice', `<span style="font-family: ${EMAIL_FONTS.mono};">${data.invoiceNumber}</span>`)}
+    ${createDetailRow('Invoice', `<span style="font-family: ${EMAIL_FONTS.mono}; color: ${EMAIL_COLORS.primary}; font-weight: 600;">${data.invoiceNumber}</span>`)}
     ${createDetailRow('Period', `${formatDate(data.periodStart)} — ${formatDate(data.periodEnd)}`)}
     ${createDetailRow('Gross Sales', formatCurrency(data.grossAmount))}
     ${createDetailRow('Platform Fee', `<span style="color: ${EMAIL_COLORS.textMuted};">${formatCurrency(data.platformFeeAmount)} (${data.platformFeePercentage}%)</span>`)}

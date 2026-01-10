@@ -1,10 +1,20 @@
 /**
  * Email Template Builders
- * CLEAN LIGHT MODE DESIGN - Sleek, professional, Apple-inspired
- * Features: White backgrounds, clean typography, subtle shadows
+ * MERCHKINS BRAND DESIGN SYSTEM
+ * Features: Vibrant blue (#1d43d8), neon accent (#adfc04), Outfit/DM Sans typography, brand gradients
  */
 
-import { EMAIL_COLORS, EMAIL_FONTS, EMAIL_FONT_SIZES, EMAIL_SPACING, EMAIL_RADIUS, EMAIL_ASSETS, EMAIL_LAYOUT, EMAIL_SHADOWS } from './constants';
+import {
+  EMAIL_COLORS,
+  EMAIL_FONTS,
+  EMAIL_FONT_SIZES,
+  EMAIL_SPACING,
+  EMAIL_RADIUS,
+  EMAIL_ASSETS,
+  EMAIL_LAYOUT,
+  EMAIL_SHADOWS,
+  EMAIL_GRADIENTS,
+} from './constants';
 
 // =============================================================================
 // TYPE DEFINITIONS
@@ -150,8 +160,8 @@ export const createEmailWrapper = (content: string, title: string): string => {
   </noscript>
   <![endif]-->
   <style type="text/css">
-    /* Load Geist font */
-    @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+    /* Load Merchkins brand fonts - Outfit & DM Sans */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
     
     /* Light mode preference */
     :root { color-scheme: light; }
@@ -171,7 +181,9 @@ export const createEmailWrapper = (content: string, title: string): string => {
     
     /* Mobile styles */
     @media only screen and (max-width: 480px) {
-      .email-container { width: 100% !important; max-width: 100% !important; }
+      .email-container { width: 100% !important; max-width: 100% !important; margin: 0 !important; border-radius: 0 !important; }
+      .email-wrapper-padding { padding: 0 !important; }
+      .email-footer { width: 100% !important; max-width: 100% !important; margin: 16px 0 0 !important; }
       .mobile-padding { padding-left: 20px !important; padding-right: 20px !important; }
       .mobile-stack { display: block !important; width: 100% !important; }
       .mobile-center { text-align: center !important; }
@@ -182,21 +194,21 @@ export const createEmailWrapper = (content: string, title: string): string => {
   </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: ${EMAIL_COLORS.background}; font-family: ${EMAIL_FONTS.body};">
-  <!-- Outer wrapper with mesh gradient effect -->
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: ${EMAIL_COLORS.background};">
+  <!-- Outer wrapper with brand mesh gradient effect -->
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: ${EMAIL_GRADIENTS.meshDark};">
     <tr>
-      <td style="padding: ${EMAIL_SPACING['2xl']} ${EMAIL_SPACING.md};">
-        <!-- Main container with glassmorphism -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="${EMAIL_LAYOUT.maxWidth}" align="center" class="email-container" style="max-width: ${EMAIL_LAYOUT.maxWidth}; margin: 0 auto; background-color: ${EMAIL_COLORS.surface}; border-radius: ${EMAIL_RADIUS.xl}; overflow: hidden; border: 1px solid ${EMAIL_COLORS.border}; box-shadow: ${EMAIL_SHADOWS.xl};">
+      <td class="email-wrapper-padding" style="padding: ${EMAIL_SPACING['2xl']} ${EMAIL_SPACING.md};">
+        <!-- Main container with brand styling - no shadow -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="${EMAIL_LAYOUT.maxWidth}" align="center" class="email-container" style="max-width: ${EMAIL_LAYOUT.maxWidth}; margin: 0 auto; background-color: ${EMAIL_COLORS.surface}; border-radius: ${EMAIL_RADIUS.xl}; overflow: hidden; border: 1px solid ${EMAIL_COLORS.border};">
           ${content}
         </table>
         
         <!-- Footer branding outside card -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="${EMAIL_LAYOUT.maxWidth}" align="center" style="max-width: ${EMAIL_LAYOUT.maxWidth}; margin: ${EMAIL_SPACING.lg} auto 0;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="${EMAIL_LAYOUT.maxWidth}" align="center" class="email-footer" style="max-width: ${EMAIL_LAYOUT.maxWidth}; margin: ${EMAIL_SPACING.lg} auto 0;">
           <tr>
             <td style="text-align: center; padding: ${EMAIL_SPACING.md};">
               <p style="margin: 0; color: ${EMAIL_COLORS.textLight}; font-size: ${EMAIL_FONT_SIZES.xs}; letter-spacing: 0.5px;">
-                Powered by <span style="color: ${EMAIL_COLORS.accent}; font-weight: 600;">MERCHKINS</span>
+                Powered by <span style="color: ${EMAIL_COLORS.primary}; font-weight: 600;">MERCHKINS</span>
               </p>
             </td>
           </tr>
@@ -209,18 +221,22 @@ export const createEmailWrapper = (content: string, title: string): string => {
 };
 
 /**
- * Create email header with premium dark design
+ * Create email header with brand gradient design
  */
-export const createEmailHeader = (options: EmailHeader): string => {
-  const { title, subtitle, statusType = 'primary', showLogo = true } = options;
-  const accentColor = getStatusColor(statusType);
+export const createEmailHeader = (options: EmailHeader & { useNeonAccent?: boolean }): string => {
+  const { title, subtitle, statusType = 'primary', showLogo = true, useNeonAccent = false } = options;
   const glowEffect = getStatusGlow(statusType);
+  const titleColor = useNeonAccent ? EMAIL_COLORS.neon : EMAIL_COLORS.textPrimary;
+  const accentLine = useNeonAccent ? EMAIL_COLORS.neon : EMAIL_GRADIENTS.brand;
+  const logoGlow = useNeonAccent ? EMAIL_SHADOWS.neonGlow : glowEffect;
+  const titleShadow = useNeonAccent ? EMAIL_SHADOWS.neonGlow : '';
+  const accentLineShadow = useNeonAccent ? EMAIL_SHADOWS.neonGlow : '';
 
   return `
 <tr>
   <td style="background: ${EMAIL_COLORS.surfaceElevated}; position: relative; overflow: hidden;">
-    <!-- Gradient overlay for depth -->
-    <div style="position: absolute; top: 0; left: 0; right: 0; height: 100%; background: radial-gradient(ellipse at top, ${accentColor}15 0%, transparent 70%); pointer-events: none;"></div>
+    <!-- Brand gradient overlay for depth -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 100%; background: ${EMAIL_GRADIENTS.heroAccent}; pointer-events: none;"></div>
     
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
       <tr>
@@ -228,21 +244,21 @@ export const createEmailHeader = (options: EmailHeader): string => {
           ${
             showLogo
               ? `
-          <!-- Logo with glow effect -->
-          <div style="margin: 0 auto ${EMAIL_SPACING.lg}; width: 56px; height: 56px; background: ${EMAIL_COLORS.surface}; border-radius: ${EMAIL_RADIUS.lg}; display: inline-block; border: 1px solid ${EMAIL_COLORS.border}; box-shadow: ${glowEffect};">
+          <!-- Logo with brand glow effect -->
+          <div style="margin: 0 auto ${EMAIL_SPACING.lg}; width: 56px; height: 56px; background: ${EMAIL_COLORS.surface}; border-radius: ${EMAIL_RADIUS.lg}; display: inline-block; border: 1px solid ${EMAIL_COLORS.borderAccent}; box-shadow: ${logoGlow};">
             <img src="${EMAIL_ASSETS.logoUrl}" alt="${EMAIL_ASSETS.companyName}" width="56" height="56" style="display: block; border-radius: ${EMAIL_RADIUS.lg};" />
           </div>
           `
               : ''
           }
           
-          <!-- Title with accent underline -->
-          <h1 class="hero-title" style="margin: 0 0 ${EMAIL_SPACING.sm}; color: ${EMAIL_COLORS.textPrimary}; font-family: ${EMAIL_FONTS.heading}; font-size: ${EMAIL_FONT_SIZES['2xl']}; font-weight: 700; line-height: 1.2; letter-spacing: -0.5px;">
+          <!-- Title with brand typography -->
+          <h1 class="hero-title" style="margin: 0 0 ${EMAIL_SPACING.sm}; color: ${titleColor}; font-family: ${EMAIL_FONTS.heading}; font-size: ${EMAIL_FONT_SIZES['2xl']}; font-weight: 700; line-height: 1.2; letter-spacing: -0.5px; ${titleShadow ? `text-shadow: ${titleShadow};` : ''}">
             ${title}
           </h1>
           
-          <!-- Accent line -->
-          <div style="width: 48px; height: 3px; background: ${accentColor}; margin: ${EMAIL_SPACING.md} auto; border-radius: ${EMAIL_RADIUS.full};"></div>
+          <!-- Brand gradient accent line -->
+          <div style="width: 64px; height: 4px; background: ${accentLine}; margin: ${EMAIL_SPACING.md} auto; border-radius: ${EMAIL_RADIUS.full}; ${accentLineShadow ? `box-shadow: ${accentLineShadow};` : ''}"></div>
           
           ${
             subtitle
@@ -286,18 +302,18 @@ export const createParagraph = (text: string, options?: { muted?: boolean; cente
 };
 
 /**
- * Create a CTA button - Premium neon style
+ * Create a CTA button - Brand solid color style
  */
 export const createButton = (button: EmailButton): string => {
-  const isAccent = button.variant === 'primary' || button.variant === 'success';
-  const bgColor = isAccent ? EMAIL_COLORS.accent : getStatusColor(button.variant || 'primary');
-  const textColor = isAccent ? EMAIL_COLORS.textOnAccent : EMAIL_COLORS.white;
-  const glow = getStatusGlow(button.variant || 'primary');
+  const isPrimary = button.variant === 'primary';
+  const isSuccess = button.variant === 'success';
+  const bgColor = isPrimary ? EMAIL_COLORS.primary : isSuccess ? EMAIL_COLORS.success : getStatusColor(button.variant || 'primary');
+  const textColor = isPrimary || isSuccess ? EMAIL_COLORS.textOnAccent : EMAIL_COLORS.white;
 
   return `
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: ${EMAIL_SPACING.lg} 0;">
   <tr>
-    <td style="border-radius: ${EMAIL_RADIUS.md}; background-color: ${bgColor}; box-shadow: ${glow};">
+    <td style="border-radius: ${EMAIL_RADIUS.md}; background-color: ${bgColor};">
       <a href="${button.url}" target="_blank" style="display: inline-block; padding: 14px ${EMAIL_SPACING.xl}; color: ${textColor}; font-family: ${EMAIL_FONTS.body}; font-size: ${EMAIL_FONT_SIZES.sm}; font-weight: 600; text-decoration: none; border-radius: ${EMAIL_RADIUS.md}; letter-spacing: 0.3px;">
         ${button.text} →
       </a>
@@ -307,19 +323,19 @@ export const createButton = (button: EmailButton): string => {
 };
 
 /**
- * Create centered button - Premium neon style
+ * Create centered button - Brand solid color style
  */
 export const createCenteredButton = (button: EmailButton): string => {
-  const isAccent = button.variant === 'primary' || button.variant === 'success';
-  const bgColor = isAccent ? EMAIL_COLORS.accent : getStatusColor(button.variant || 'primary');
-  const textColor = isAccent ? EMAIL_COLORS.textOnAccent : EMAIL_COLORS.white;
-  const glow = getStatusGlow(button.variant || 'primary');
+  const isPrimary = button.variant === 'primary';
+  const isSuccess = button.variant === 'success';
+  const bgColor = isPrimary ? EMAIL_COLORS.primary : isSuccess ? EMAIL_COLORS.success : getStatusColor(button.variant || 'primary');
+  const textColor = isPrimary || isSuccess ? EMAIL_COLORS.textOnAccent : EMAIL_COLORS.white;
 
   return `
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: ${EMAIL_SPACING.xl} 0;">
   <tr>
     <td align="center">
-      <a href="${button.url}" target="_blank" style="display: inline-block; padding: 16px ${EMAIL_SPACING['2xl']}; background-color: ${bgColor}; color: ${textColor}; font-family: ${EMAIL_FONTS.body}; font-size: ${EMAIL_FONT_SIZES.base}; font-weight: 600; text-decoration: none; border-radius: ${EMAIL_RADIUS.md}; letter-spacing: 0.3px; box-shadow: ${glow};">
+      <a href="${button.url}" target="_blank" style="display: inline-block; padding: 16px ${EMAIL_SPACING['2xl']}; background-color: ${bgColor}; color: ${textColor}; font-family: ${EMAIL_FONTS.body}; font-size: ${EMAIL_FONT_SIZES.base}; font-weight: 600; text-decoration: none; border-radius: ${EMAIL_RADIUS.md}; letter-spacing: 0.3px;">
         ${button.text} →
       </a>
     </td>
@@ -328,12 +344,17 @@ export const createCenteredButton = (button: EmailButton): string => {
 };
 
 /**
- * Create an info card - Glassmorphism style
+ * Create an info card - Brand glassmorphism style
  */
 export const createCard = (options: EmailCard): string => {
   const { title, content, statusType = 'neutral', showBorder = true } = options;
   const borderColor = getStatusColor(statusType);
-  const borderStyle = showBorder ? `border-left: 3px solid ${borderColor};` : '';
+  const borderGradient = statusType === 'primary' ? EMAIL_GRADIENTS.brand : '';
+  const borderStyle = showBorder
+    ? borderGradient
+      ? `border-left: 3px solid transparent; background: linear-gradient(${EMAIL_COLORS.surfaceElevated}, ${EMAIL_COLORS.surfaceElevated}) padding-box, ${borderGradient} border-box;`
+      : `border-left: 3px solid ${borderColor};`
+    : '';
 
   return `
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 0 0 ${EMAIL_SPACING.md};">
@@ -622,4 +643,45 @@ export const createStatusBadge = (text: string, statusType: EmailStatusType = 'p
   const bgColor = getStatusLightColor(statusType);
 
   return `<span style="display: inline-block; padding: 4px 12px; background-color: ${bgColor}; color: ${color}; font-size: ${EMAIL_FONT_SIZES.xs}; font-weight: 600; border-radius: ${EMAIL_RADIUS.full}; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid ${color}30;">${text}</span>`;
+};
+
+/**
+ * Create a brand gradient box - For highlighted sections
+ */
+export const createBrandGradientBox = (content: string): string => {
+  return `
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: ${EMAIL_SPACING.md} 0;">
+  <tr>
+    <td style="background: ${EMAIL_GRADIENTS.brandSubtle}; padding: ${EMAIL_SPACING.lg}; border-radius: ${EMAIL_RADIUS.md}; border: 1px solid ${EMAIL_COLORS.borderAccent}; position: relative; overflow: hidden;">
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: ${EMAIL_GRADIENTS.brand};"></div>
+      <div style="color: ${EMAIL_COLORS.textSecondary}; font-size: ${EMAIL_FONT_SIZES.sm}; line-height: 1.7; position: relative;">
+        ${content}
+      </div>
+    </td>
+  </tr>
+</table>`;
+};
+
+/**
+ * Create a neon accent callout - For special highlights
+ */
+export const createNeonAccent = (content: string): string => {
+  return `
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: ${EMAIL_SPACING.md} 0;">
+  <tr>
+    <td style="background-color: ${EMAIL_COLORS.neonLight}; padding: ${EMAIL_SPACING.md} ${EMAIL_SPACING.lg}; border-radius: ${EMAIL_RADIUS.md}; border: 1px solid ${EMAIL_COLORS.borderNeon}; box-shadow: ${EMAIL_SHADOWS.neonGlow};">
+      <div style="color: ${EMAIL_COLORS.textPrimary}; font-size: ${EMAIL_FONT_SIZES.sm}; line-height: 1.7; font-weight: 500;">
+        ${content}
+      </div>
+    </td>
+  </tr>
+</table>`;
+};
+
+/**
+ * Create a brand header - Enhanced header with gradients
+ * @deprecated Use createEmailHeader with useNeonAccent option instead
+ */
+export const createBrandHeader = (options: EmailHeader & { useNeonAccent?: boolean }): string => {
+  return createEmailHeader(options);
 };

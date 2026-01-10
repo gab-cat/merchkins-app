@@ -1,6 +1,6 @@
 /**
  * Shipping Update Email Template
- * Premium dark mode design - Keep customers informed
+ * Merchkins brand design - Keep customers informed with brand styling
  */
 
 import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_FONTS, EMAIL_FONT_SIZES, EMAIL_RADIUS } from './constants';
@@ -93,9 +93,9 @@ const createTrackingProgress = (status: ShippingStatus): string => {
   const stepsHtml = steps
     .map((step, _index) => {
       const isActive = step.completed;
-      const dotColor = isActive ? EMAIL_COLORS.accent : EMAIL_COLORS.surfaceElevated;
+      const dotColor = isActive ? EMAIL_COLORS.primary : EMAIL_COLORS.surfaceElevated;
       const textColor = isActive ? EMAIL_COLORS.textPrimary : EMAIL_COLORS.textMuted;
-      const borderColor = isActive ? EMAIL_COLORS.accent : EMAIL_COLORS.border;
+      const borderColor = isActive ? EMAIL_COLORS.primary : EMAIL_COLORS.border;
 
       return `
       <td style="text-align: center; width: 25%;">
@@ -108,7 +108,7 @@ const createTrackingProgress = (status: ShippingStatus): string => {
     .join('');
 
   return `
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: ${EMAIL_SPACING.lg} 0; background-color: ${EMAIL_COLORS.surfaceElevated}; border-radius: ${EMAIL_RADIUS.md}; padding: ${EMAIL_SPACING.lg}; border: 1px solid ${EMAIL_COLORS.border};">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: ${EMAIL_SPACING.lg} 0; background-color: ${EMAIL_COLORS.surfaceElevated}; border-radius: ${EMAIL_RADIUS.md}; padding: ${EMAIL_SPACING.lg}; border: 1px solid ${EMAIL_COLORS.borderAccent};">
     <tr>
       <td style="padding: ${EMAIL_SPACING.md};">
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
@@ -129,7 +129,7 @@ export const generateShippingUpdateEmail = (data: ShippingUpdateData): { subject
   const subject = `${statusContent.emoji} ${statusContent.title} - Order #${data.orderNumber}`;
 
   const trackingDetailsContent = `
-    ${createDetailRow('Order', `<span style="font-family: ${EMAIL_FONTS.mono}; color: ${EMAIL_COLORS.accent};">#${data.orderNumber}</span>`)}
+    ${createDetailRow('Order', `<span style="font-family: ${EMAIL_FONTS.mono}; color: ${EMAIL_COLORS.primary}; font-weight: 600;">#${data.orderNumber}</span>`)}
     ${data.trackingNumber ? createDetailRow('Tracking', `<span style="font-family: ${EMAIL_FONTS.mono};">${data.trackingNumber}</span>`) : ''}
     ${data.carrierName ? createDetailRow('Carrier', data.carrierName) : ''}
     ${data.estimatedDelivery ? createDetailRow('Est. Delivery', data.estimatedDelivery) : ''}

@@ -30,7 +30,7 @@
 // =============================================================================
 // CONSTANTS
 // =============================================================================
-export { EMAIL_COLORS, EMAIL_FONTS, EMAIL_FONT_SIZES, EMAIL_SPACING, EMAIL_RADIUS, EMAIL_ASSETS, EMAIL_LAYOUT } from './constants';
+export { EMAIL_COLORS, EMAIL_FONTS, EMAIL_FONT_SIZES, EMAIL_SPACING, EMAIL_RADIUS, EMAIL_ASSETS, EMAIL_LAYOUT, EMAIL_GRADIENTS, EMAIL_SHADOWS } from './constants';
 
 // =============================================================================
 // BUILDERS (Low-level utilities for custom templates)
@@ -66,6 +66,11 @@ export {
   createUnorderedList,
   createSectionTitle,
   createSpacer,
+  createBrandGradientBox,
+  createNeonAccent,
+  createBrandHeader,
+  createFeatureRow,
+  createStatusBadge,
 } from './builders';
 
 // =============================================================================
@@ -96,6 +101,8 @@ export { type PayoutInvoiceReadyData, generatePayoutInvoiceReadyEmail } from './
 
 export { type PaymentConfirmationData, generatePaymentConfirmationEmail } from './paymentConfirmation';
 
+export { type PaymentReceivedData, generatePaymentReceivedEmail } from './paymentReceived';
+
 // =============================================================================
 // EMAIL TEMPLATES - Order
 // =============================================================================
@@ -112,6 +119,11 @@ export { type ShippingStatus, type ShippingUpdateData, generateShippingUpdateEma
 export { type WelcomeEmailData, generateWelcomeEmail } from './welcomeEmail';
 
 // =============================================================================
+// EMAIL TEMPLATES - Organization Invite
+// =============================================================================
+export { type OrganizationInviteEmailData, generateOrganizationInviteEmail } from './organizationInvite';
+
+// =============================================================================
 // PREVIEW UTILITIES
 // =============================================================================
 export {
@@ -126,7 +138,9 @@ export {
   sampleRefundRejectedData,
   samplePayoutInvoiceReadyData,
   samplePaymentConfirmationData,
+  samplePaymentReceivedData,
   sampleOrderConfirmationData,
   sampleShippingUpdateData,
   sampleWelcomeEmailData,
+  sampleOrganizationInviteEmailData,
 } from './preview';

@@ -10,12 +10,14 @@
  * - refund-rejected
  * - payout-invoice-ready
  * - payment-confirmation
+ * - payment-received
  * - order-confirmation
  * - shipping-shipped
  * - shipping-out-for-delivery
  * - shipping-delivered
  * - shipping-ready-for-pickup
  * - welcome
+ * - organization-invite
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -26,7 +28,7 @@ import { generateEmailPreview, getAllTemplateTypes, type EmailTemplateType } fro
 export async function GET(request: NextRequest) {
   // Only allow in development
   if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Email preview is only available in development' }, { status: 403 });
+    return NextResponse.json({ error: 'Page not found' }, { status: 404 });
   }
 
   const searchParams = request.nextUrl.searchParams;
@@ -95,10 +97,12 @@ export async function GET(request: NextRequest) {
             .map((t: EmailTemplateType) => {
               let badge = '';
               if (t.includes('refund')) badge = '<span class="badge refund">Refund</span>';
-              else if (t.includes('payout') || t.includes('payment')) badge = '<span class="badge payout">Payout</span>';
+              else if (t.includes('payout') || (t.includes('payment') && !t.includes('received'))) badge = '<span class="badge payout">Payout</span>';
+              else if (t.includes('payment-received')) badge = '<span class="badge payout">Payment</span>';
               else if (t.includes('order')) badge = '<span class="badge order">Order</span>';
               else if (t.includes('shipping')) badge = '<span class="badge shipping">Shipping</span>';
               else if (t.includes('welcome')) badge = '<span class="badge welcome">Welcome</span>';
+              else if (t.includes('organization-invite')) badge = '<span class="badge welcome">Invite</span>';
 
               return `<a href="?template=${t}">${t.replace(/-/g, ' ')}${badge}</a>`;
             })

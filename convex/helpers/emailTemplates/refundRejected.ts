@@ -1,6 +1,6 @@
 /**
  * Refund Rejected Email Template
- * Premium dark mode design - Handle with care
+ * Merchkins brand design - Handle with care using brand styling
  */
 
 import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_FONT_SIZES } from './constants';
@@ -33,7 +33,7 @@ export const generateRefundRejectedEmail = (data: RefundRejectedData): { subject
   const subject = `Update on Your Refund Request - Order #${data.orderNumber}`;
 
   const orderDetailsContent = `
-    ${createDetailRow('Order', `<span style="color: ${EMAIL_COLORS.accent};">#${data.orderNumber}</span>`)}
+    ${createDetailRow('Order', `<span style="color: ${EMAIL_COLORS.primary}; font-weight: 600;">#${data.orderNumber}</span>`)}
     ${createDetailRow('Date', formatDate(data.orderDate))}
     ${createDetailRow('Requested', formatCurrency(data.refundAmount))}
   `;

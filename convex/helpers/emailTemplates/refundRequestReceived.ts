@@ -1,6 +1,6 @@
 /**
  * Refund Request Received Email Template
- * Premium dark mode design - For organization admins
+ * Merchkins brand design - For organization admins with brand styling
  */
 
 import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_FONT_SIZES } from './constants';
@@ -49,11 +49,11 @@ export const generateRefundRequestReceivedEmail = (data: RefundRequestReceivedDa
   const subject = `🔔 Refund Request - Order #${data.orderNumber}`;
 
   const orderDetailsContent = `
-    ${createDetailRow('Order', `<span style="color: ${EMAIL_COLORS.accent};">#${data.orderNumber}</span>`)}
+    ${createDetailRow('Order', `<span style="color: ${EMAIL_COLORS.primary}; font-weight: 600;">#${data.orderNumber}</span>`)}
     ${createDetailRow('Date', formatDate(data.orderDate))}
-    ${createDetailRow('Amount', `<span style="color: ${EMAIL_COLORS.warning};">${formatCurrency(data.refundAmount)}</span>`)}
+    ${createDetailRow('Amount', `<span style="color: ${EMAIL_COLORS.warning}; font-weight: 600;">${formatCurrency(data.refundAmount)}</span>`)}
     ${createDetailRow('Customer', `${data.customerFirstName} ${data.customerLastName}`)}
-    ${createDetailRow('Email', `<a href="mailto:${data.customerEmail}" style="color: ${EMAIL_COLORS.accent}; text-decoration: none;">${data.customerEmail}</a>`)}
+    ${createDetailRow('Email', `<a href="mailto:${data.customerEmail}" style="color: ${EMAIL_COLORS.primary}; text-decoration: none; font-weight: 500;">${data.customerEmail}</a>`)}
     ${createDetailRow('Reason', `<span style="color: ${EMAIL_COLORS.warning};">${data.reason ? REFUND_REASON_LABELS[data.reason] || data.reason : 'Other'}</span>`)}
   `;
 

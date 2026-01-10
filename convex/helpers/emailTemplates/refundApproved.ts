@@ -1,6 +1,6 @@
 /**
  * Refund Approved Email Template
- * Premium dark mode design - Celebrate the resolution
+ * Merchkins brand design - Celebrate the resolution with brand styling
  */
 
 import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_FONTS, EMAIL_FONT_SIZES } from './constants';
@@ -45,7 +45,7 @@ export const generateRefundApprovedEmail = (data: RefundApprovedData): { subject
       Hey ${data.customerFirstName}! 🎉
     </p>
     
-    ${createParagraph(`Good news — your refund request for order <strong style="color: ${EMAIL_COLORS.accent};">#${data.orderNumber}</strong> has been approved!`)}
+    ${createParagraph(`Good news — your refund request for order <strong style="color: ${EMAIL_COLORS.primary}; font-weight: 600;">#${data.orderNumber}</strong> has been approved!`)}
     
     ${createParagraph("We've issued a voucher for the refund amount that you can use on your next purchase:")}
     

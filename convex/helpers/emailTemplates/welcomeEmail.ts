@@ -1,17 +1,17 @@
 /**
  * Welcome Email Template
- * Premium dark mode design - First impression matters
+ * Merchkins brand design - First impression with brand gradients and neon accents
  */
 
 import { EMAIL_ASSETS, EMAIL_COLORS, EMAIL_SPACING, EMAIL_FONT_SIZES } from './constants';
 import {
   createEmailWrapper,
-  createEmailHeader,
+  createBrandHeader,
   createEmailBody,
   createEmailFooter,
   createParagraph,
   createCenteredButton,
-  createHighlightBox,
+  createBrandGradientBox,
   createDivider,
   createFeatureRow,
 } from './builders';
@@ -33,7 +33,7 @@ export const generateWelcomeEmail = (data: WelcomeEmailData): { subject: string;
       Hey ${data.firstName} 👋
     </p>
     
-    ${createParagraph('Welcome to <strong style="color: ' + EMAIL_COLORS.accent + ';">Merchkins</strong> — where creators and organizations sell their merch, and fans discover unique drops.')}
+    ${createParagraph('Welcome to <strong style="color: #4f7df9; background: linear-gradient(135deg, #1d43d8 0%, #4f7df9 50%, #adfc04 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Merchkins</strong> — where creators and organizations sell their merch, and fans discover unique drops.')}
     
     ${createParagraph("You're now part of a community that values authentic merchandise and seamless shopping. Here's what you can do:")}
     
@@ -47,7 +47,7 @@ export const generateWelcomeEmail = (data: WelcomeEmailData): { subject: string;
     
     ${createDivider()}
     
-    ${createHighlightBox('💡 <strong>Pro tip:</strong> Follow your favorite stores to get notified when they drop new merch!', 'primary')}
+    ${createBrandGradientBox('💡 <strong>Pro tip:</strong> Follow your favorite stores to get notified when they drop new merch!')}
     
     ${createCenteredButton({
       text: 'Start Exploring',
@@ -65,11 +65,12 @@ export const generateWelcomeEmail = (data: WelcomeEmailData): { subject: string;
 
   const html = createEmailWrapper(
     `
-    ${createEmailHeader({
+    ${createBrandHeader({
       title: 'Welcome to Merchkins',
       subtitle: 'Your merch journey starts now',
       statusType: 'primary',
       showLogo: true,
+      useNeonAccent: false,
     })}
     ${createEmailBody(bodyContent)}
     ${createEmailFooter({ showSupportEmail: true })}
