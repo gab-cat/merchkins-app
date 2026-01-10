@@ -9,6 +9,7 @@ export const createInviteLinkArgs = {
   createdById: v.id('users'),
   expiresAt: v.optional(v.number()),
   usageLimit: v.optional(v.number()),
+  code: v.optional(v.string()),
 };
 
 export const createInviteLinkHandler = async (
@@ -18,9 +19,10 @@ export const createInviteLinkHandler = async (
     createdById: Id<'users'>;
     expiresAt?: number;
     usageLimit?: number;
+    code?: string;
   }
 ) => {
-  const { organizationId, createdById, expiresAt, usageLimit } = args;
+  const { organizationId, createdById, expiresAt, usageLimit, code } = args;
 
   // Get organization
   const organization = await ctx.db.get(organizationId);
@@ -40,13 +42,36 @@ export const createInviteLinkHandler = async (
     throw new Error('createdById must match the authenticated user');
   }
 
-  // Generate unique invite code
-  const code = generateInviteCode();
+  // Validate and get invite code
+  let finalCode: string;
+  if (code) {
+    // Validate custom code format (alphanumeric only)
+    const alphanumericRegex = /^[A-Z0-9]+$/;
+    if (!alphanumericRegex.test(code)) {
+      throw new Error('Code must contain only uppercase letters (A-Z) and numbers (0-9)');
+    }
+
+    // Check uniqueness against active invite links
+    const existingInvite = await ctx.db
+      .query('organizationInviteLinks')
+      .withIndex('by_code', (q) => q.eq('code', code))
+      .filter((q) => q.eq(q.field('isActive'), true))
+      .first();
+
+    if (existingInvite) {
+      throw new Error('This code is already in use. Please choose a different code.');
+    }
+
+    finalCode = code;
+  } else {
+    // Generate unique invite code
+    finalCode = await generateUniqueInviteCode(ctx);
+  }
 
   // Create invite link
   const inviteLinkId = await ctx.db.insert('organizationInviteLinks', {
     organizationId,
-    code,
+    code: finalCode,
     createdById,
     creatorInfo: {
       firstName: creator.firstName,
@@ -77,19 +102,35 @@ export const createInviteLinkHandler = async (
     `Created invite link for organization ${organization.name}`,
     createdById,
     organizationId,
-    { code, expiresAt, usageLimit },
+    { code: finalCode, expiresAt, usageLimit },
     { resourceType: 'organization_invite', resourceId: inviteLinkId as unknown as string }
   );
 
-  return { inviteLinkId, code };
+  return { inviteLinkId, code: finalCode };
 };
 
-// Helper function to generate invite code
-function generateInviteCode(): string {
+// Helper function to generate unique invite code
+async function generateUniqueInviteCode(ctx: MutationCtx): Promise<string> {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  for (let i = 0; i < 8; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  const maxAttempts = 100;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    // Check if code is unique among active invite links
+    const existingInvite = await ctx.db
+      .query('organizationInviteLinks')
+      .withIndex('by_code', (q) => q.eq('code', result))
+      .filter((q) => q.eq(q.field('isActive'), true))
+      .first();
+
+    if (!existingInvite) {
+      return result;
+    }
   }
-  return result;
+
+  throw new Error('Failed to generate unique invite code after multiple attempts');
 }

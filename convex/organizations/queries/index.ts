@@ -7,6 +7,7 @@ import { getOrganizationsByUserArgs, getOrganizationsByUserHandler } from './get
 import { getOrganizationMembersArgs, getOrganizationMembersHandler, getOrganizationMembersInternalHandler } from './getOrganizationMembers';
 import { getOrganizationAnalyticsArgs, getOrganizationAnalyticsHandler } from './getOrganizationAnalytics';
 import { getInviteLinkByCodeArgs, getInviteLinkByCodeHandler } from './getInviteLinkByCode';
+import { getInviteLinkByIdArgs, getInviteLinkByIdHandler } from './getInviteLinkById';
 import { getOrganizationInviteLinksArgs, getOrganizationInviteLinksHandler } from './getOrganizationInviteLinks';
 import { searchOrganizationsArgs, searchOrganizationsHandler } from './searchOrganizations';
 import { searchPublicOrganizationsArgs, searchPublicOrganizationsHandler } from './searchPublicOrganizations';
@@ -53,6 +54,10 @@ export const getOrganizationAnalytics = query({
 export const getInviteLinkByCode = query({
   args: getInviteLinkByCodeArgs,
   handler: getInviteLinkByCodeHandler,
+});
+export const getInviteLinkById = query({
+  args: getInviteLinkByIdArgs,
+  handler: getInviteLinkByIdHandler,
 });
 export const getOrganizationInviteLinks = query({
   args: getOrganizationInviteLinksArgs,
