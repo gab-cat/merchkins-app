@@ -1,7 +1,16 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { logAction, sanitizeString, validateNotEmpty, validateStringLength, isOrganizationSlugUnique, buildPublicUrl } from '../../helpers';
+import {
+  logAction,
+  sanitizeString,
+  validateNotEmpty,
+  validateStringLength,
+  isOrganizationSlugUnique,
+  buildPublicUrl,
+  requireOrganizationPermission,
+  requireActiveOrganization,
+} from '../../helpers';
 
 // Update organization details
 export const updateOrganizationArgs = {
@@ -61,10 +70,10 @@ export const updateOrganizationHandler = async (
   const { organizationId, ...updates } = args;
 
   // Get current organization
-  const organization = await ctx.db.get(organizationId);
-  if (!organization || organization.isDeleted) {
-    throw new Error('Organization not found');
-  }
+  const organization = await requireActiveOrganization(ctx, organizationId);
+
+  // Require organization manage_organization permission
+  const { user: currentUser } = await requireOrganizationPermission(ctx, organizationId, 'MANAGE_ORGANIZATION', 'update');
 
   // Handle slug update: sanitize, validate, uniqueness
   if (updates.slug !== undefined) {

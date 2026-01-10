@@ -10,7 +10,7 @@ import { updateOrderStatsArgs, updateOrderStatsHandler } from './updateOrderStat
 import { refreshXenditInvoiceArgs, refreshXenditInvoiceHandler } from './refreshXenditInvoice';
 import { updateOrderXenditInvoiceArgs, updateOrderXenditInvoiceHandler } from './updateOrderXenditInvoice';
 import { createXenditInvoiceForOrderArgs, createXenditInvoiceForOrderHandler } from './createXenditInvoiceForOrder';
-import { createOrderLogArgs, createOrderLogHandler } from './createOrderLog';
+import { createOrderLogArgs, createOrderLogHandler, createOrderLogInternalHandler } from './createOrderLog';
 import { updateOrderWithNoteArgs, updateOrderWithNoteHandler } from './updateOrderWithNote';
 import { updateOrdersInvoiceForSessionArgs, updateOrdersInvoiceForSessionHandler } from './updateOrdersInvoiceForSession';
 import { confirmOrderReceivedArgs, confirmOrderReceivedHandler } from './confirmOrderReceived';
@@ -102,7 +102,7 @@ export const createOrderLog = mutation({
 
 export const createOrderLogInternal = internalMutation({
   args: createOrderLogArgs,
-  handler: createOrderLogHandler,
+  handler: createOrderLogInternalHandler,
 });
 
 export const updateOrdersInvoiceForSession = internalMutation({

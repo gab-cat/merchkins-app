@@ -22,7 +22,7 @@ export const createTicketArgs = {
   assignedToId: v.optional(v.id('users')),
   dueDate: v.optional(v.number()),
   organizationId: v.optional(v.id('organizations')),
-  orderId: v.optional(v.id('orders')), // Link ticket to specific order
+  orderId: v.optional(v.string()), // Link ticket to specific order
 };
 
 export const createTicketHandler = async (
@@ -36,7 +36,7 @@ export const createTicketHandler = async (
     assignedToId?: Id<'users'>;
     dueDate?: number;
     organizationId?: Id<'organizations'>;
-    orderId?: Id<'orders'>;
+    orderId?: string;
   }
 ) => {
   const currentUser = await requireAuthentication(ctx);
@@ -81,16 +81,40 @@ export const createTicketHandler = async (
     // This allows org admins/staff to assign tickets properly
     try {
       await requireOrganizationPermission(ctx, args.organizationId, PERMISSION_CODES.MANAGE_TICKETS, 'create');
-    } catch {
+    } catch (error) {
+      // Only allow permission-denied errors to pass through
+      // Rethrow unexpected errors (database failures, etc.)
+      if (!(error instanceof Error) || !error.message.includes('permission')) {
+        throw error;
+      }
       // If user doesn't have MANAGE_TICKETS permission, they can still create a ticket
       // but it will be as a customer support request (not as staff)
-      // This is intentional - customers should be able to file tickets with organizations
+    }
+  }
+
+  // Validate order exists and belongs to the same organization if provided
+  let normalizedOrderId: Id<'orders'> | undefined = undefined;
+  if (args.orderId) {
+    const normalized = ctx.db.normalizeId('orders', args.orderId);
+    if (!normalized) {
+      throw new Error('Invalid order ID format');
+    }
+    normalizedOrderId = normalized;
+
+    const order = await ctx.db.get(normalizedOrderId);
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    // Check ownership/access: order must belong to the organization (if provided) or have the same organization context
+    if (args.organizationId && order.organizationId !== args.organizationId) {
+      throw new Error('Not authorized to link this order to the ticket');
     }
   }
 
   const ticketId = await ctx.db.insert('tickets', {
     organizationId: args.organizationId,
-    orderId: args.orderId,
+    orderId: normalizedOrderId,
     title,
     description,
     status: 'OPEN',
@@ -149,7 +173,7 @@ export const createTicketHandler = async (
     priority,
     category: args.category,
     assignedToId: args.assignedToId,
-    orderId: args.orderId,
+    orderId: normalizedOrderId,
   });
 
   return ticketId;

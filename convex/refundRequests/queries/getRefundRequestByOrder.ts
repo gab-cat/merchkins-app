@@ -1,7 +1,7 @@
 import { QueryCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication } from '../../helpers';
+import { requireAuthentication, requireOrganizationPermission, PERMISSION_CODES } from '../../helpers';
 
 export const getRefundRequestByOrderArgs = {
   orderId: v.id('orders'),
@@ -16,19 +16,11 @@ export const getRefundRequestByOrderHandler = async (ctx: QueryCtx, args: { orde
     return null;
   }
 
-  // Check if user owns the order or is admin/staff
-  if (order.customerId !== currentUser._id && !currentUser.isAdmin && !currentUser.isStaff) {
-    // Check if user is org admin
+  // Check if user owns the order or has administrative permission
+  if (order.customerId !== currentUser._id) {
     if (order.organizationId) {
-      const member = await ctx.db
-        .query('organizationMembers')
-        .withIndex('by_user_organization', (q) => q.eq('userId', currentUser._id).eq('organizationId', order.organizationId as Id<'organizations'>))
-        .filter((q) => q.eq(q.field('role'), 'ADMIN'))
-        .first();
-      if (!member) {
-        throw new Error('Permission denied');
-      }
-    } else {
+      await requireOrganizationPermission(ctx, order.organizationId as Id<'organizations'>, PERMISSION_CODES.MANAGE_REFUNDS, 'read');
+    } else if (!currentUser.isAdmin) {
       throw new Error('Permission denied');
     }
   }

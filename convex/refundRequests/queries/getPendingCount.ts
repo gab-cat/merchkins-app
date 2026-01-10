@@ -1,7 +1,7 @@
 import { QueryCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication, isOrganizationMember } from '../../helpers';
+import { requireAuthentication, requireOrganizationPermission, PERMISSION_CODES } from '../../helpers';
 
 export const getPendingCountArgs = {
   organizationId: v.optional(v.id('organizations')),
@@ -15,11 +15,7 @@ export const getPendingCountHandler = async (ctx: QueryCtx, args: { organization
   const user = await requireAuthentication(ctx);
 
   if (args.organizationId) {
-    // Check if user is a member of the organization
-    const isMember = await isOrganizationMember(ctx, user._id, args.organizationId);
-    if (!isMember && !(user.isAdmin || user.isStaff)) {
-      throw new Error('Permission denied: not a member of this organization');
-    }
+    await requireOrganizationPermission(ctx, args.organizationId, PERMISSION_CODES.MANAGE_REFUNDS, 'read');
 
     // Count pending refund requests for this organization
     const pendingRequests = await ctx.db

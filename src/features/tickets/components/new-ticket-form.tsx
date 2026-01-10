@@ -138,7 +138,7 @@ export function NewTicketForm() {
         description: description.trim(),
         category,
         organizationId: organization?._id,
-        orderId: orderIdParam ? (orderIdParam as Id<'orders'>) : undefined,
+        orderId: orderIdParam || undefined,
       });
 
       setSuccess(true);

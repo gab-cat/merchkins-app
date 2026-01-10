@@ -1,7 +1,7 @@
 import { QueryCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication, requireOrganizationPermission } from '../../helpers';
+import { requireAuthentication, requireOrganizationPermission, PERMISSION_CODES } from '../../helpers';
 
 export const getRefundRequestByIdArgs = {
   refundRequestId: v.id('refundRequests'),
@@ -17,7 +17,7 @@ export const getRefundRequestByIdHandler = async (ctx: QueryCtx, args: { refundR
 
   // Check permissions
   if (refundRequest.organizationId) {
-    await requireOrganizationPermission(ctx, refundRequest.organizationId, 'MANAGE_ORDERS', 'read');
+    await requireOrganizationPermission(ctx, refundRequest.organizationId, PERMISSION_CODES.MANAGE_REFUNDS, 'read');
   } else if (!currentUser.isAdmin && currentUser._id !== refundRequest.requestedById) {
     throw new Error('Permission denied');
   }

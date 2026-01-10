@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { logAction, requireOrganizationAdmin } from '../../helpers';
+import { logAction, requireOrganizationPermission } from '../../helpers';
 
 // Update member role and permissions
 export const updateMemberRoleArgs = {
@@ -37,8 +37,8 @@ export const updateMemberRoleHandler = async (
   }
 ) => {
   const { organizationId, userId, role, permissions = [] } = args;
-  // Ensure actor has admin rights for this org
-  await requireOrganizationAdmin(ctx, organizationId);
+  // Ensure actor has manage_members permission for this org
+  await requireOrganizationPermission(ctx, organizationId, 'MANAGE_MEMBERS', 'update');
 
   // Get membership
   const membership = await ctx.db

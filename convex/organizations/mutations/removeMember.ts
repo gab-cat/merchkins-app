@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { logAction, requireOrganizationAdmin } from '../../helpers';
+import { logAction, requireOrganizationPermission } from '../../helpers';
 
 // Remove member from organization
 export const removeMemberArgs = {
@@ -18,8 +18,8 @@ export const removeMemberHandler = async (
 ) => {
   const { organizationId, userId } = args;
 
-  // Ensure actor has admin rights; also get actor for logging
-  const { user: _actor } = await requireOrganizationAdmin(ctx, organizationId);
+  // Ensure actor has manage_members permission; also get actor for logging
+  const { user: _actor } = await requireOrganizationPermission(ctx, organizationId, 'MANAGE_MEMBERS', 'delete');
 
   // Get organization
   const organization = await ctx.db.get(organizationId);

@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireOrganizationAdmin, validateUserExists, requireActiveOrganization, logAction } from '../../helpers';
+import { requireOrganizationPermission, validateUserExists, requireActiveOrganization, logAction } from '../../helpers';
 
 // Add member to organization
 export const addMemberArgs = {
@@ -38,8 +38,8 @@ export const addMemberHandler = async (
 ) => {
   const { organizationId, userId, role, permissions = [] } = args;
 
-  // Require organization admin permissions
-  const { user: currentUser } = await requireOrganizationAdmin(ctx, organizationId);
+  // Require organization admin or manage_members permission
+  const { user: currentUser } = await requireOrganizationPermission(ctx, organizationId, 'MANAGE_MEMBERS', 'create');
 
   // Validate organization and user exist
   const organization = await requireActiveOrganization(ctx, organizationId);

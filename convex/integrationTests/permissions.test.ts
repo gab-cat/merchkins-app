@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { api } from '../_generated/api';
 import schema from '../schema';
 import { modules } from '../test.setup';
-import { createTestUserData, createTestOrganizationData, createTestOrgMemberData, createTestVoucherData } from '../testHelpers';
+import { createTestUserData, createTestOrganizationData, createTestOrgMemberData, createTestVoucherData, createTestOrderData } from '../testHelpers';
 
 /**
  * Permission System Integration Tests
@@ -277,6 +277,162 @@ describe('Permission System Integration Tests', () => {
       });
 
       expect(result).toBe(ticketId);
+    });
+  });
+
+  // =========================================================================
+  // MANAGE_REFUNDS Permission Tests
+  // =========================================================================
+  describe('MANAGE_REFUNDS Permission', () => {
+    it('should allow org admin with MANAGE_REFUNDS to approve refund', async () => {
+      const t = convexTest(schema, modules);
+
+      // Create admin and customer users
+      const [adminId, customerId] = await t.run(async (ctx) => {
+        const u1 = await ctx.db.insert('users', createTestUserData({ clerkId: 'admin_clerk' }));
+        const u2 = await ctx.db.insert('users', createTestUserData({ clerkId: 'customer_clerk' }));
+        return [u1, u2];
+      });
+
+      // Create organization
+      const orgId = await t.run(async (ctx) => {
+        return await ctx.db.insert('organizations', createTestOrganizationData());
+      });
+
+      // Create order
+      const orderId = await t.run(async (ctx) => {
+        return await ctx.db.insert('orders', createTestOrderData(orgId, customerId));
+      });
+
+      // Create refund request for that order
+      const refundRequestId = await t.run(async (ctx) => {
+        return await ctx.db.insert('refundRequests', {
+          isDeleted: false,
+          orderId,
+          requestedById: customerId,
+          organizationId: orgId,
+          status: 'PENDING',
+          refundAmount: 100,
+          reason: 'OTHER',
+          customerMessage: 'Please refund me',
+          orderInfo: {
+            orderNumber: 'ORD-123',
+            totalAmount: 100,
+            status: 'PAID',
+            paymentStatus: 'PAID',
+            orderDate: Date.now(),
+          },
+          customerInfo: {
+            email: 'customer@test.com',
+            phone: '+63123456789',
+          },
+          organizationInfo: {
+            name: 'Test Org',
+            slug: 'test-org',
+          },
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      });
+
+      // Add admin as org member with MANAGE_REFUNDS permission
+      await t.run(async (ctx) => {
+        await ctx.db.insert(
+          'organizationMembers',
+          createTestOrgMemberData(adminId, orgId, 'ADMIN', {
+            permissions: [
+              {
+                permissionCode: 'MANAGE_REFUNDS',
+                canCreate: true,
+                canRead: true,
+                canUpdate: true,
+                canDelete: true,
+              },
+            ],
+          })
+        );
+      });
+
+      const asAdmin = t.withIdentity({ subject: 'admin_clerk' });
+
+      // Admin should be able to approve refund
+      const result = await asAdmin.mutation(api.refundRequests.mutations.index.approveRefundRequest, {
+        refundRequestId,
+        adminMessage: 'Refund approved after review',
+      });
+
+      expect(result).toBe(refundRequestId);
+    });
+
+    it('should deny refund approval for member without MANAGE_REFUNDS permission', async () => {
+      const t = convexTest(schema, modules);
+
+      // Create member and customer users
+      const [memberId, customerId] = await t.run(async (ctx) => {
+        const u1 = await ctx.db.insert('users', createTestUserData({ clerkId: 'member_clerk' }));
+        const u2 = await ctx.db.insert('users', createTestUserData({ clerkId: 'customer_clerk' }));
+        return [u1, u2];
+      });
+
+      // Create organization
+      const orgId = await t.run(async (ctx) => {
+        return await ctx.db.insert('organizations', createTestOrganizationData());
+      });
+
+      // Create order
+      const orderId = await t.run(async (ctx) => {
+        return await ctx.db.insert('orders', createTestOrderData(orgId, customerId));
+      });
+
+      // Create refund request
+      const refundRequestId = await t.run(async (ctx) => {
+        return await ctx.db.insert('refundRequests', {
+          isDeleted: false,
+          orderId,
+          requestedById: customerId,
+          organizationId: orgId,
+          status: 'PENDING',
+          refundAmount: 100,
+          reason: 'OTHER',
+          orderInfo: {
+            orderNumber: 'ORD-123',
+            totalAmount: 100,
+            status: 'PAID',
+            paymentStatus: 'PAID',
+            orderDate: Date.now(),
+          },
+          customerInfo: {
+            email: 'customer@test.com',
+            phone: '+63123456789',
+          },
+          organizationInfo: {
+            name: 'Test Org',
+            slug: 'test-org',
+          },
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      });
+
+      // Add member with NO refund permission
+      await t.run(async (ctx) => {
+        await ctx.db.insert(
+          'organizationMembers',
+          createTestOrgMemberData(memberId, orgId, 'MEMBER', {
+            permissions: [], // No permissions
+          })
+        );
+      });
+
+      const asMember = t.withIdentity({ subject: 'member_clerk' });
+
+      // Member should NOT be able to approve refund
+      await expect(
+        asMember.mutation(api.refundRequests.mutations.index.approveRefundRequest, {
+          refundRequestId,
+          adminMessage: 'Trying to approve without permission',
+        })
+      ).rejects.toThrow(/MANAGE_REFUNDS/);
     });
   });
 

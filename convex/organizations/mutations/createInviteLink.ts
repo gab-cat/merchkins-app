@@ -1,7 +1,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { logAction, requireOrganizationAdminOrStaff } from '../../helpers';
+import { logAction, requireOrganizationPermission } from '../../helpers';
 
 // Create organization invite link
 export const createInviteLinkArgs = {
@@ -34,8 +34,8 @@ export const createInviteLinkHandler = async (
     throw new Error('Creator not found');
   }
 
-  // Ensure actor has admin or staff rights (and is current user)
-  const { user: actor } = await requireOrganizationAdminOrStaff(ctx, organizationId);
+  // Ensure actor has manage_members permission (and is current user)
+  const { user: actor } = await requireOrganizationPermission(ctx, organizationId, 'MANAGE_MEMBERS', 'create');
   if (createdById !== actor._id) {
     throw new Error('createdById must match the authenticated user');
   }

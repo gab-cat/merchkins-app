@@ -26,6 +26,10 @@ export const PERMISSION_CODES = {
 
   // Storefront
   MANAGE_STOREFRONT: 'MANAGE_STOREFRONT',
+
+  // Organization Management
+  MANAGE_ORGANIZATION: 'MANAGE_ORGANIZATION',
+  MANAGE_MEMBERS: 'MANAGE_MEMBERS',
 } as const;
 
 export type PermissionCode = (typeof PERMISSION_CODES)[keyof typeof PERMISSION_CODES];
@@ -126,6 +130,16 @@ export const PERMISSION_METADATA: Record<
   MANAGE_STOREFRONT: {
     name: 'Manage Storefront',
     description: 'Configure storefront settings and applications',
+    category: 'Organization Management',
+  },
+  MANAGE_ORGANIZATION: {
+    name: 'Manage Organization',
+    description: 'Update organization name, slug, logo, and theme settings',
+    category: 'Organization Management',
+  },
+  MANAGE_MEMBERS: {
+    name: 'Manage Members',
+    description: 'Invite members, remove members, and manage roles/permissions',
     category: 'Organization Management',
   },
 };

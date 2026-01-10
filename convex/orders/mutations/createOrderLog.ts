@@ -82,6 +82,27 @@ export const createOrderLogHandler = async (
 };
 
 /**
+ * Internal handler for order logs.
+ * This does not require authentication and can be used for system-generated logs.
+ */
+export const createOrderLogInternalHandler = async (
+  ctx: MutationCtx,
+  args: {
+    orderId: Id<'orders'>;
+    logType: OrderLogType;
+    reason: string;
+    message?: string;
+    userMessage?: string;
+    previousValue?: string;
+    newValue?: string;
+    isPublic?: boolean;
+    actorId?: Id<'users'>;
+  }
+) => {
+  return await createSystemOrderLog(ctx, args);
+};
+
+/**
  * Internal helper to create system-generated order logs.
  * This is called directly by order mutations, not exposed as an API.
  */

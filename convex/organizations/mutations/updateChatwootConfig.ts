@@ -3,7 +3,7 @@
 import { MutationCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { logAction } from '../../helpers';
+import { logAction, requireActiveOrganization, requireOrganizationPermission } from '../../helpers';
 
 /**
  * Update Chatwoot integration configuration for an organization.
@@ -36,11 +36,11 @@ export const updateChatwootConfigHandler = async (
 ) => {
   const { organizationId, chatwootWebsiteToken, chatwootIdentityToken, chatwootAgentBotId, chatwootAgentBotToken, chatwootAccountId } = args;
 
-  // Get current organization
-  const organization = await ctx.db.get(organizationId);
-  if (!organization || organization.isDeleted) {
-    throw new Error('Organization not found');
-  }
+  // Require organization manage_organization permission
+  await requireOrganizationPermission(ctx, organizationId, 'MANAGE_ORGANIZATION', 'update');
+
+  // Get current organization for logging
+  const organization = await requireActiveOrganization(ctx, organizationId);
 
   // Build updates object
   const updates: {

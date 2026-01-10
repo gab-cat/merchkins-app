@@ -1,7 +1,7 @@
 import { QueryCtx } from '../../_generated/server';
 import { v } from 'convex/values';
 import { Id } from '../../_generated/dataModel';
-import { requireAuthentication, requireOrganizationPermission } from '../../helpers';
+import { requireAuthentication, requireOrganizationPermission, PERMISSION_CODES } from '../../helpers';
 
 export const getRefundRequestsArgs = {
   organizationId: v.optional(v.id('organizations')),
@@ -31,7 +31,7 @@ export const getRefundRequestsHandler = async (
 
   // Filter by organization if provided
   if (args.organizationId) {
-    await requireOrganizationPermission(ctx, args.organizationId, 'MANAGE_ORDERS', 'read');
+    await requireOrganizationPermission(ctx, args.organizationId, PERMISSION_CODES.MANAGE_REFUNDS, 'read');
     const statusFilter = args.status ?? 'PENDING';
     query = ctx.db
       .query('refundRequests')
@@ -80,11 +80,7 @@ export const getRefundRequestsHandler = async (
       const customerLastName = request.customerInfo?.lastName?.toLowerCase() || '';
       const customerName = `${customerFirstName} ${customerLastName}`.trim();
 
-      return (
-        orderNumber.includes(searchTerm) ||
-        customerEmail.includes(searchTerm) ||
-        customerName.includes(searchTerm)
-      );
+      return orderNumber.includes(searchTerm) || customerEmail.includes(searchTerm) || customerName.includes(searchTerm);
     });
 
     return {
