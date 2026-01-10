@@ -1,6 +1,7 @@
 import { internalMutation } from '../_generated/server';
 import { Id, Doc } from '../_generated/dataModel';
 import { v } from 'convex/values';
+import { PERMISSION_CODES, PERMISSION_METADATA, type PermissionCode } from '../helpers/permissionCodes';
 
 export const seedData = internalMutation({
   args: {},
@@ -536,49 +537,50 @@ export const seedData = internalMutation({
     }
 
     // 8) Global permissions catalogue
-    const permissionCatalog = [
-      {
-        code: 'USER_VIEW',
-        name: 'View Users',
-        category: 'USER_MANAGEMENT' as const,
-      },
-      {
-        code: 'PRODUCT_EDIT',
-        name: 'Edit Products',
-        category: 'PRODUCT_MANAGEMENT' as const,
-      },
-      {
-        code: 'ORDER_MANAGE',
-        name: 'Manage Orders',
-        category: 'ORDER_MANAGEMENT' as const,
-      },
-      {
-        code: 'PAYMENT_REFUND',
-        name: 'Process Refunds',
-        category: 'PAYMENT_MANAGEMENT' as const,
-      },
-      {
-        code: 'ORG_SETTINGS',
-        name: 'Organization Settings',
-        category: 'ORGANIZATION_MANAGEMENT' as const,
-      },
-      {
-        code: 'SYSTEM_ADMIN',
-        name: 'System Administration',
-        category: 'SYSTEM_ADMINISTRATION' as const,
-      },
-    ];
-    for (const p of permissionCatalog) {
+    // Maps human-readable category names from PERMISSION_METADATA to database enum values
+    const mapCategoryToEnum = (
+      category: string
+    ): 'USER_MANAGEMENT' | 'PRODUCT_MANAGEMENT' | 'ORDER_MANAGEMENT' | 'PAYMENT_MANAGEMENT' | 'ORGANIZATION_MANAGEMENT' | 'SYSTEM_ADMINISTRATION' => {
+      const categoryMap: Record<
+        string,
+        'USER_MANAGEMENT' | 'PRODUCT_MANAGEMENT' | 'ORDER_MANAGEMENT' | 'PAYMENT_MANAGEMENT' | 'ORGANIZATION_MANAGEMENT' | 'SYSTEM_ADMINISTRATION'
+      > = {
+        'Order Management': 'ORDER_MANAGEMENT',
+        'Product Management': 'PRODUCT_MANAGEMENT',
+        Financial: 'PAYMENT_MANAGEMENT',
+        'Organization Management': 'ORGANIZATION_MANAGEMENT',
+        'User Management': 'USER_MANAGEMENT',
+        Support: 'SYSTEM_ADMINISTRATION',
+        Communication: 'SYSTEM_ADMINISTRATION',
+        'System Administration': 'SYSTEM_ADMINISTRATION',
+      };
+      return categoryMap[category] || 'SYSTEM_ADMINISTRATION';
+    };
+
+    // Get all permission codes from PERMISSION_CODES
+    const permissionCodes = Object.values(PERMISSION_CODES) as PermissionCode[];
+
+    for (const code of permissionCodes) {
       const exists = await ctx.db
         .query('permissions')
-        .withIndex('by_code', (q) => q.eq('code', p.code))
+        .withIndex('by_code', (q) => q.eq('code', code))
         .first();
+
       if (!exists) {
+        // Get metadata for this permission
+        const metadata = PERMISSION_METADATA[code];
+        if (!metadata) {
+          continue; // Skip if no metadata found
+        }
+
+        // Map category to database enum
+        const dbCategory = mapCategoryToEnum(metadata.category);
+
         await ctx.db.insert('permissions', {
-          code: p.code,
-          name: p.name,
-          description: undefined,
-          category: p.category,
+          code,
+          name: metadata.name,
+          description: metadata.description,
+          category: dbCategory,
           defaultSettings: {
             canCreate: true,
             canRead: true,
@@ -586,8 +588,8 @@ export const seedData = internalMutation({
             canDelete: false,
           },
           isActive: true,
-          isSystemPermission: p.code === 'SYSTEM_ADMIN',
-          requiredRole: p.code === 'SYSTEM_ADMIN' ? 'ADMIN' : undefined,
+          isSystemPermission: false,
+          requiredRole: undefined,
           createdAt: now,
           updatedAt: now,
         });
